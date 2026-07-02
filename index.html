@@ -5953,5 +5953,196 @@ main > section.active{
   })();
 </script>
 
+
+<script>
+/* =========================================================
+   PULSO — RESET AUTOMÁTICO DIÁRIO
+   Reinicia métricas diárias quando muda o dia.
+   Funciona na primeira abertura após as 00:00.
+   Não apaga histórico, perfil, objetivos nem planos.
+   ========================================================= */
+(function(){
+  const RESET_VERSION = '2026-07-03-01';
+  const LAST_DAY_KEY = 'pulso:last-active-day';
+  const RESET_VERSION_KEY = 'pulso:daily-reset-version';
+
+  function todayKey(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function safeJson(value, fallback){
+    try { return JSON.parse(value); } catch(e){ return fallback; }
+  }
+
+  function isArrayKeyDailyRecord(key){
+    const raw = localStorage.getItem(key);
+    const arr = safeJson(raw, null);
+    if(!Array.isArray(arr)) return false;
+    return true;
+  }
+
+  function filterArrayToToday(key, today){
+    const raw = localStorage.getItem(key);
+    const arr = safeJson(raw, null);
+    if(!Array.isArray(arr)) return;
+
+    const filtered = arr.filter(item => {
+      if(!item || typeof item !== 'object') return false;
+      const dateValue =
+        item.date || item.day || item.data || item.createdAt ||
+        item.time || item.ts || item.timestamp || item.datetime;
+
+      if(!dateValue) return false;
+      return String(dateValue).slice(0, 10) === today;
+    });
+
+    localStorage.setItem(key, JSON.stringify(filtered));
+  }
+
+  function resetDailyData(){
+    const today = todayKey();
+
+    /*
+      Chaves diárias conhecidas/possíveis.
+      Mantemos histórico e perfil. Limpamos apenas estados de hoje,
+      listas temporárias, contadores e seleção diária.
+    */
+    const removeKeys = [
+      'pulsoTodayWorkout',
+      'todayWorkout',
+      'selectedTodayWorkout',
+      'pulso:selected-today-workout',
+      'pulso:today-workout',
+      'pulsoHydroToday',
+      'hydroToday',
+      'pulsoCoffeeToday',
+      'coffeeToday',
+      'pulsoKcalToday',
+      'kcalToday',
+      'pulsoMealsToday',
+      'mealsToday',
+      'pulsoFoodsToday',
+      'foodsToday',
+      'pulsoDailyNutrition',
+      'dailyNutrition',
+      'pulsoDailyHydration',
+      'dailyHydration',
+      'pulsoDailyCoffee',
+      'dailyCoffee',
+      'pulsoDailyKcal',
+      'dailyKcal',
+      'pulsoWorkoutKcalToday',
+      'workoutKcalToday',
+      'pulsoDailyDeficit',
+      'dailyDeficit'
+    ];
+
+    const zeroKeys = [
+      'hydroMlToday',
+      'coffeeCountToday',
+      'kcalConsumedToday',
+      'kcalNetToday',
+      'carbsToday',
+      'proteinToday',
+      'fatToday',
+      'workoutCaloriesToday',
+      'dailyCalorieDeficit'
+    ];
+
+    removeKeys.forEach(k => {
+      try { localStorage.removeItem(k); } catch(e){}
+    });
+
+    zeroKeys.forEach(k => {
+      try { localStorage.setItem(k, '0'); } catch(e){}
+    });
+
+    /*
+      Best-effort: se existirem listas por dia sem histórico separado,
+      mantemos só entradas de hoje em chaves claramente diárias.
+    */
+    Object.keys(localStorage).forEach(key => {
+      const lower = key.toLowerCase();
+
+      const looksDaily =
+        lower.includes('today') ||
+        lower.includes('daily') ||
+        lower.includes('hoje') ||
+        lower.includes('kcal') ||
+        lower.includes('hydro') ||
+        lower.includes('water') ||
+        lower.includes('agua') ||
+        lower.includes('coffee') ||
+        lower.includes('cafe') ||
+        lower.includes('meal') ||
+        lower.includes('food');
+
+      const looksHistory =
+        lower.includes('history') ||
+        lower.includes('historico') ||
+        lower.includes('log') ||
+        lower.includes('profile') ||
+        lower.includes('perfil') ||
+        lower.includes('weight') ||
+        lower.includes('peso') ||
+        lower.includes('sleep') ||
+        lower.includes('sono') ||
+        lower.includes('race') ||
+        lower.includes('plan') ||
+        lower.includes('goal') ||
+        lower.includes('objetivo') ||
+        lower.includes('workouts') ||
+        lower.includes('treinos');
+
+      if(looksDaily && !looksHistory && isArrayKeyDailyRecord(key)){
+        try { localStorage.setItem(key, JSON.stringify([])); } catch(e){}
+      }
+    });
+
+    localStorage.setItem(LAST_DAY_KEY, today);
+    localStorage.setItem(RESET_VERSION_KEY, RESET_VERSION);
+  }
+
+  function checkDailyReset(){
+    const today = todayKey();
+    const lastDay = localStorage.getItem(LAST_DAY_KEY);
+
+    if(!lastDay){
+      localStorage.setItem(LAST_DAY_KEY, today);
+      localStorage.setItem(RESET_VERSION_KEY, RESET_VERSION);
+      return;
+    }
+
+    if(lastDay !== today){
+      resetDailyData();
+    }
+  }
+
+  window.PulsoDailyReset = {
+    check: checkDailyReset,
+    force: resetDailyData,
+    today: todayKey
+  };
+
+  checkDailyReset();
+
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) checkDailyReset();
+  });
+
+  window.addEventListener('focus', checkDailyReset);
+
+  /*
+    Se a app ficar aberta à meia-noite, este intervalo confirma
+    periodicamente se já mudou o dia.
+  */
+  setInterval(checkDailyReset, 60 * 1000);
+})();
+</script>
+
 </body>
 </html>
