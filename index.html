@@ -3100,6 +3100,129 @@ body.keyboard-open #tab-hidratacao{
   }
 }
 
+
+/* =========================================================
+   PULSO — CORREÇÃO FINAL: DATAS PESO/SONO + SCROLL PAINEL
+   ========================================================= */
+
+/* Scroll real no Painel, incluindo acesso ao treino em baixo */
+#tab-dashboard{
+  height:100% !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain !important;
+  padding-bottom:calc(210px + env(safe-area-inset-bottom)) !important;
+  scroll-padding-bottom:calc(230px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Garante que nada dentro do painel bloqueia o scroll */
+#tab-dashboard .card,
+#tab-dashboard .grid2,
+#tab-dashboard .grid3,
+#tab-dashboard #today-workout-card{
+  flex:0 0 auto !important;
+}
+
+/* O main não deve cortar o scroll interno da página ativa */
+main{
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+
+main > section.active{
+  min-height:0 !important;
+}
+
+/* Corrigir alinhamento dos campos de data no Peso e Sono */
+@media (max-width:760px){
+
+  #tab-saude input[type="date"]{
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    width:100% !important;
+    min-height:58px !important;
+    height:58px !important;
+    padding:0 14px !important;
+    font-size:18px !important;
+    line-height:58px !important;
+    border-radius:20px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    box-sizing:border-box !important;
+  }
+
+  #tab-saude input[type="date"]::-webkit-date-and-time-value{
+    min-height:58px !important;
+    height:58px !important;
+    line-height:58px !important;
+    text-align:left !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  #tab-saude input[type="date"]::-webkit-datetime-edit{
+    padding:0 !important;
+    margin:0 !important;
+    line-height:58px !important;
+  }
+
+  #tab-saude input[type="date"]::-webkit-calendar-picker-indicator{
+    margin-left:auto !important;
+    opacity:.85 !important;
+  }
+
+  /* Peso/Sono: todos os campos com a mesma altura e sem desalinhamento */
+  #tab-saude .field{
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:flex-end !important;
+  }
+
+  #tab-saude .field label{
+    min-height:30px !important;
+    margin:0 0 7px !important;
+    display:flex !important;
+    align-items:flex-end !important;
+  }
+
+  #tab-saude input:not([type="date"]),
+  #tab-saude select{
+    height:58px !important;
+    min-height:58px !important;
+    padding:0 14px !important;
+    line-height:58px !important;
+  }
+
+  /* Mais espaço de scroll no Painel em iPhone */
+  #tab-dashboard{
+    padding-bottom:calc(230px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom:calc(250px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* iPhones pequenos */
+@media (max-width:390px){
+  #tab-saude input[type="date"],
+  #tab-saude input:not([type="date"]),
+  #tab-saude select{
+    height:56px !important;
+    min-height:56px !important;
+    line-height:56px !important;
+    font-size:17px !important;
+  }
+
+  #tab-saude input[type="date"]::-webkit-date-and-time-value,
+  #tab-saude input[type="date"]::-webkit-datetime-edit{
+    height:56px !important;
+    min-height:56px !important;
+    line-height:56px !important;
+  }
+}
+
 </style>
 </head>
 <body>
