@@ -16,14 +16,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Pulso — Painel de Saúde & Treino</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- Gráficos desenhados em SVG puro, sem dependências externas (mais fiável que uma biblioteca via CDN) -->
 <style>
   :root{
     --bg:#0B1220; --surface:#131B2E; --surface-2:#1B2540; --border:#232E4A;
     --text:#E7ECF5; --text-muted:#8B96AC;
     --teal:#35D9A6; --amber:#F2B84B; --red:#F2555A; --blue:#5B8DEF; --purple:#9B8CFF;
-    --font-display:'Space Mono', monospace; --font-body:'Manrope', sans-serif;
+    --font-display:'Space Grotesk', sans-serif; --font-body:'Space Grotesk', sans-serif; --font-main:'Space Grotesk', sans-serif;
     --app-vh: 1vh;
   }
   *{box-sizing:border-box;}
@@ -1068,6 +1069,1838 @@ header.top::after{
   }
 }
 
+
+/* Correção iPhone: permitir toque real no login e evitar bloqueios visuais */
+#app-locked{display:flex; pointer-events:auto; touch-action:manipulation;}
+#login-form, #login-submit, #login-name{touch-action:manipulation; -webkit-user-select:text;}
+#login-submit{position:relative; z-index:3;}
+
+
+/* ================= Ajuste pedido: notas de treino maiores + próxima prova abaixo ================= */
+#today-workout-card{
+  min-height: 188px !important;
+  padding: 24px 20px !important;
+}
+#today-workout-body{
+  min-height: 96px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#today-workout-body .help,
+#today-workout-body p{
+  font-size: 14px;
+  line-height: 1.45;
+}
+#tab-dashboard .grid3{
+  margin-top: 2px;
+}
+#tab-dashboard > #d-race-card{
+  min-height: 118px !important;
+  padding: 18px !important;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  overflow:hidden;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  border-color:rgba(53,217,166,.18);
+}
+#tab-dashboard > #d-race-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(8,13,24,.48), rgba(8,13,24,.82)),
+    radial-gradient(circle at 50% -20%, rgba(53,217,166,.22), transparent 55%);
+  z-index:0;
+  pointer-events:none;
+}
+#tab-dashboard > #d-race-card > *{
+  position:relative;
+  z-index:1;
+}
+#tab-dashboard > #d-race-card h3{
+  font-size:10.5px !important;
+  letter-spacing:1.2px;
+  margin-bottom:8px !important;
+}
+#tab-dashboard > #d-race-card .stat,
+#tab-dashboard > #d-race-card .stat[style]{
+  font-size:22px !important;
+  line-height:1.15;
+  text-transform:uppercase;
+}
+#tab-dashboard > #d-race-card .trend{
+  font-size:12px !important;
+  margin-top:8px !important;
+}
+@media (max-width:430px){
+  #today-workout-card{min-height:176px !important;}
+  #today-workout-body{min-height:86px;}
+  #tab-dashboard > #d-race-card{min-height:110px !important;}
+}
+
+
+/* ================= Ajuste pedido: treino ocupa o local da prova ================= */
+#tab-dashboard #today-workout-card{display:none !important;}
+#tab-dashboard > #d-workout-card{
+  min-height:138px !important;
+  padding:20px 18px !important;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  text-align:left;
+  border-color:rgba(53,217,166,.22);
+  background:
+    radial-gradient(circle at 50% -20%, rgba(53,217,166,.18), transparent 56%),
+    linear-gradient(180deg, rgba(29,42,68,.98), rgba(16,24,39,.98));
+}
+#tab-dashboard > #d-workout-card h3{
+  font-size:11px !important;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+}
+#tab-dashboard > #d-workout-card #d-workout,
+#tab-dashboard > #d-workout-card #d-workout[style]{
+  font-size:23px !important;
+  line-height:1.15;
+  text-transform:none;
+}
+#tab-dashboard > #d-workout-card #d-workout-trend{
+  font-size:12px !important;
+  margin-top:8px !important;
+}
+#tab-dashboard > #d-race-card{display:none !important;}
+@media (max-width:430px){
+  #tab-dashboard > #d-workout-card{min-height:128px !important;}
+}
+
+
+
+/* ================= AJUSTE FINAL PEDIDO — login + dashboard como imagem ================= */
+#app-locked{display:flex; pointer-events:auto;}
+#app-content{display:none;}
+#tab-dashboard{gap:10px;}
+#tab-dashboard > .card:first-of-type{min-height:250px;}
+#tab-dashboard .grid3{grid-template-columns:1fr 1fr !important; gap:10px !important;}
+#tab-dashboard .grid3 .card{min-height:132px !important; padding:18px !important; border-radius:18px !important;}
+#tab-dashboard .grid3 .card h3{font-size:15px !important; line-height:1.2 !important; margin-bottom:8px !important; text-transform:none !important; letter-spacing:0 !important;}
+#tab-dashboard .grid3 .card .stat{font-size:34px !important; line-height:1.05 !important;}
+#tab-dashboard .grid3 .card .stat small{font-size:16px !important;}
+#tab-dashboard .grid3 #d-workout-card .stat,
+#tab-dashboard .grid3 #d-workout-card .stat[style]{font-size:16px !important; line-height:1.25 !important;}
+#tab-dashboard #today-workout-card{display:flex !important; min-height:170px !important; padding:22px 18px !important; flex-direction:column; justify-content:flex-start; text-align:left;}
+#tab-dashboard #today-workout-body{min-height:94px; display:block;}
+#tab-dashboard > #d-race-card{display:none !important;}
+@media (max-width:520px){
+  #tab-dashboard > .card:first-of-type{min-height:250px;}
+  #tab-dashboard .grid3{grid-template-columns:1fr 1fr !important;}
+  #tab-dashboard .grid3 .card{min-height:124px !important; padding:17px !important;}
+  #tab-dashboard .grid3 .card .stat{font-size:32px !important;}
+  #tab-dashboard #today-workout-card{min-height:165px !important;}
+}
+@media (max-width:390px){
+  #tab-dashboard .grid3 .card{min-height:116px !important; padding:15px !important;}
+  #tab-dashboard .grid3 .card .stat{font-size:28px !important;}
+}
+
+
+
+/* ================= AJUSTE FINAL v2 — visual moderno/redondo + scroll dos treinos ================= */
+/* Mantém a estrutura pedida, mas volta ao aspeto mais moderno e arredondado. */
+.card{
+  border-radius:26px !important;
+  background:linear-gradient(180deg, rgba(24,34,56,.97), rgba(14,22,38,.98)) !important;
+  border:1px solid rgba(255,255,255,.085) !important;
+  box-shadow:0 16px 42px rgba(0,0,0,.28) !important;
+}
+.card::before{
+  background:linear-gradient(135deg, rgba(255,255,255,.055), transparent 42%) !important;
+}
+.login-card{
+  border-radius:30px !important;
+  background:linear-gradient(180deg, rgba(24,34,56,.98), rgba(12,18,31,.98)) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  box-shadow:0 30px 80px rgba(0,0,0,.42) !important;
+}
+button.primary,
+input,
+select,
+textarea{
+  border-radius:16px !important;
+}
+button.ghost,
+button.chip{
+  border-radius:999px !important;
+}
+nav.tabbar{
+  border-radius:28px !important;
+  background:rgba(12,18,31,.84) !important;
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+nav.tabbar button{
+  border-radius:20px !important;
+}
+.subtabs{
+  border-radius:999px !important;
+  background:rgba(255,255,255,.045) !important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+
+/* Dashboard: mantém os dados como na imagem, mas com cartões mais redondos e modernos. */
+#tab-dashboard > .card:first-of-type{
+  border-radius:28px !important;
+}
+#tab-dashboard .grid3 .card{
+  border-radius:24px !important;
+  background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(15,23,39,.98)) !important;
+}
+#tab-dashboard #today-workout-card{
+  border-radius:28px !important;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(53,217,166,.18), transparent 55%),
+    linear-gradient(180deg, rgba(29,42,68,.98), rgba(16,24,39,.98)) !important;
+}
+
+/* Correção do problema: a janela de escolha do treino passa a ter scroll próprio no telemóvel. */
+#today-picker-modal{
+  overflow:hidden !important;
+  height:100dvh !important;
+  max-height:100dvh !important;
+  padding:calc(16px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom)) !important;
+}
+#today-picker-modal .scroll-y{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain !important;
+  min-height:0 !important;
+  padding-bottom:24px !important;
+}
+#today-picker-modal .card{
+  flex:0 0 auto !important;
+  margin-bottom:12px !important;
+}
+#today-picker-modal .row{
+  align-items:flex-end;
+}
+#today-picker-modal input{
+  font-size:16px !important;
+}
+@media (max-width:520px){
+  #today-picker-modal{
+    padding-left:12px !important;
+    padding-right:12px !important;
+  }
+  #today-picker-modal .row:not(.space-between){
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+  #today-picker-modal .field,
+  #today-picker-modal button.primary{
+    width:100% !important;
+  }
+}
+
+/* Também permite scroll natural na lista de treinos criados dentro do separador Treinos. */
+#tab-treinos,
+#tab-treinos .subview.active{
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+#quick-suggestions,
+#workouts-list,
+#plan-output{
+  overflow-y:visible !important;
+  max-height:none !important;
+  height:auto !important;
+}
+
+
+
+/* ================= AJUSTE FINAL — objetivo sem foto + iPhone scroll total ================= */
+:root{
+  --radius-xl:30px;
+  --radius-lg:24px;
+}
+.card,
+.login-card,
+.chart-box,
+.race-photo-preview{
+  border-radius:30px !important;
+}
+input,
+select,
+textarea,
+button.primary,
+button.ghost,
+button.chip{
+  border-radius:18px !important;
+}
+nav.tabbar{
+  border-radius:32px !important;
+}
+nav.tabbar button,
+.subtabs{
+  border-radius:24px !important;
+}
+
+/* Layout seguro para iPhone: o ecrã todo não corta conteúdo; cada separador rola */
+html, body{
+  width:100%;
+  height:100%;
+  overflow:hidden !important;
+}
+body{
+  min-height:100svh;
+  min-height:100dvh;
+}
+#app-content{
+  height:100svh;
+  height:100dvh;
+  overflow:hidden !important;
+}
+main{
+  flex:1 1 auto;
+  min-height:0 !important;
+  overflow:hidden !important;
+  padding-left:12px;
+  padding-right:12px;
+}
+main > section{
+  height:100% !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  padding-bottom:calc(136px + env(safe-area-inset-bottom)) !important;
+  scroll-padding-bottom:calc(170px + env(safe-area-inset-bottom)) !important;
+}
+.subview,
+.subview.active,
+.scroll-y,
+section .fill{
+  min-height:0 !important;
+  max-height:none !important;
+}
+.subview.active{
+  overflow:visible !important;
+}
+.scroll-y{
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+
+/* Objetivo: mais limpo, sem campo/foto, caixas confortáveis */
+#sub-objetivo .card{
+  border-radius:30px !important;
+}
+#sub-objetivo form.entry{
+  display:grid !important;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+#sub-objetivo form.entry .field:first-child{
+  grid-column:1 / -1;
+}
+#sub-objetivo form.entry button.primary{
+  grid-column:1 / -1;
+  width:100%;
+}
+#race-summary{
+  border-radius:30px !important;
+  line-height:1.55;
+}
+
+@media (max-width:520px){
+  header.top{
+    min-height:86px;
+    padding:16px 14px 8px;
+  }
+  .brand-mark{width:42px !important; height:42px !important;}
+  .brand h1{font-size:20px !important;}
+  .brand .tagline{font-size:10.5px !important;}
+  .ecg-wrap{height:14px !important; margin-top:8px !important;}
+  main{padding-left:10px !important; padding-right:10px !important;}
+  main > section{gap:12px !important; padding-top:10px !important;}
+  .card{padding:16px !important; border-radius:28px !important;}
+  #tab-dashboard .grid3{grid-template-columns:1fr 1fr !important; gap:10px !important;}
+  #tab-dashboard .grid3 .card{min-height:86px !important;}
+  #sub-objetivo form.entry{grid-template-columns:1fr !important;}
+  nav.tabbar{left:8px !important; right:8px !important; bottom:calc(8px + env(safe-area-inset-bottom)) !important;}
+  nav.tabbar button{min-height:48px !important; font-size:9px !important;}
+}
+
+
+
+/* ================= FINAL — Login sempre visível + iPhone scroll ================= */
+#app-locked{
+  display:flex;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  pointer-events:auto;
+  touch-action:manipulation;
+}
+#app-content{display:none;}
+.login-card{
+  border-radius:32px !important;
+  max-width:390px;
+  width:100%;
+}
+.card,
+button.primary,
+button.ghost,
+button.chip,
+input,
+select,
+textarea,
+nav.tabbar{
+  border-radius:24px;
+}
+button.primary,
+input,
+select,
+textarea{border-radius:18px;}
+nav.tabbar button{border-radius:18px;}
+html,body,#app-content{height:100dvh; overflow:hidden;}
+main{overflow:hidden; min-height:0;}
+main > section{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  padding-bottom:calc(145px + env(safe-area-inset-bottom)) !important;
+}
+.subview.active,
+.scroll-y,
+#quick-suggestions,
+#workouts-list,
+#plan-output{
+  max-height:none !important;
+  height:auto !important;
+  overflow:visible !important;
+}
+#quick-suggestions{
+  padding-bottom:24px;
+}
+body.keyboard-open main > section.active{
+  padding-bottom:calc(220px + env(safe-area-inset-bottom)) !important;
+}
+@media(max-width:520px){
+  main{padding-left:12px; padding-right:12px;}
+  .grid2,.grid3{grid-template-columns:1fr 1fr;}
+  section:not(#tab-dashboard) .grid2,
+  section:not(#tab-dashboard) .grid3{grid-template-columns:1fr;}
+  .card{border-radius:26px !important;}
+}
+
+
+/* Strava VO2 manual */
+.strava-zone-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+.strava-zone-row{display:grid; grid-template-columns:58px 1fr auto; gap:8px; align-items:center; font-size:12px;}
+.strava-zone-bar{height:8px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden;}
+.strava-zone-fill{height:100%; border-radius:99px; background:var(--teal); opacity:.75;}
+@media(max-width:520px){.strava-zone-row{grid-template-columns:48px 1fr;}.strava-zone-row span:last-child{grid-column:2;font-size:11px;color:var(--text-muted);}}
+
+
+
+/* Ajuste final: dashboard mostra só o nome do treino e mantém scroll no editor/listas */
+#tab-dashboard #today-workout-card{
+  min-height:118px !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+#tab-dashboard #today-workout-card .row.space-between{
+  justify-content:center !important;
+  align-items:center !important;
+}
+#tab-dashboard #today-workout-body{
+  min-height:auto !important;
+}
+#quick-suggestions .card{
+  border-radius:24px !important;
+}
+#workout-edit-modal .card{
+  border-radius:26px !important;
+}
+@media (max-width:520px){
+  #quick-suggestions .card h3{padding-right:104px !important;}
+  #workout-edit-modal{padding:14px 12px calc(24px + env(safe-area-inset-bottom)) !important;}
+}
+
+
+/* Ajuste UI: cruz pequena para limpar/apagar treino, visível no telemóvel */
+.today-clear-x,
+.fav-del-x{
+  position:absolute;
+  top:10px;
+  left:10px;
+  width:34px;
+  height:34px;
+  min-width:34px;
+  min-height:34px;
+  padding:0;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(7,11,20,.55);
+  color:var(--text-muted);
+  font-size:19px;
+  line-height:1;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:5;
+  cursor:pointer;
+}
+.today-clear-x:active,
+.fav-del-x:active{transform:scale(.94);}
+.today-clear-x:hover,
+.fav-del-x:hover{color:var(--red); border-color:rgba(242,85,90,.45);}
+.workout-card-title{font-size:15px !important; line-height:1.25 !important;}
+.workout-card-desc{font-size:12.5px !important; line-height:1.45 !important;}
+@media (max-width:430px){
+  .today-clear-x,
+  .fav-del-x{
+    width:32px;
+    height:32px;
+    min-width:32px;
+    min-height:32px;
+    font-size:18px;
+    top:9px;
+    left:9px;
+  }
+  .workout-card-title{font-size:14.5px !important; padding-left:34px;}
+  .workout-card-desc{font-size:12.5px !important;}
+}
+
+
+/* ================= Ajuste: cartões de treino centrados + menu ⋮ mobile ================= */
+#tab-dashboard #today-workout-card{
+  position:relative;
+  min-height:150px !important;
+  padding:12px 18px 20px !important;
+  justify-content:flex-start !important;
+  text-align:center !important;
+}
+#tab-dashboard #today-workout-card > .row.space-between{
+  display:none !important;
+}
+#today-workout-body{
+  width:100%;
+  padding-top:30px;
+}
+.today-workout-title{
+  font-family:var(--font-display);
+  font-size:22px;
+  line-height:1.18;
+  font-weight:800;
+  letter-spacing:-.03em;
+  text-align:center;
+  margin:4px auto 8px;
+  padding:0 34px;
+  max-width:100%;
+  word-break:break-word;
+}
+.today-workout-desc{
+  font-size:14px;
+  line-height:1.45;
+  color:var(--text-muted);
+  text-align:center;
+  margin:0 auto;
+  padding:0 10px;
+  max-width:34rem;
+  white-space:normal;
+  overflow:visible;
+  word-break:break-word;
+}
+.today-workout-badge{
+  display:inline-block;
+  margin-top:10px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(53,217,166,.14);
+  color:var(--teal);
+  font-size:11px;
+  font-weight:800;
+}
+.workout-menu-dot,
+.today-menu-dot{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:36px;
+  height:36px;
+  min-width:36px;
+  min-height:36px;
+  padding:0;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(7,11,20,.55);
+  color:var(--text-muted);
+  font-size:22px;
+  line-height:1;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:6;
+  cursor:pointer;
+}
+.workout-menu-dot:hover,
+.today-menu-dot:hover{color:var(--teal); border-color:rgba(53,217,166,.45);}
+.workout-action-menu{
+  position:absolute;
+  top:50px;
+  right:10px;
+  z-index:20;
+  min-width:168px;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(16,24,39,.98);
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+}
+.workout-action-menu button{
+  width:100%;
+  min-height:42px;
+  border:0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  padding:10px 14px;
+  font-size:14px;
+  font-weight:700;
+}
+.workout-action-menu button:last-child{border-bottom:0;}
+.workout-action-menu button:active{transform:none; background:rgba(255,255,255,.06);}
+.workout-pick-card{
+  position:relative;
+  cursor:pointer;
+  min-height:132px;
+  padding:42px 18px 18px !important;
+  text-align:center;
+}
+.workout-pick-card .workout-card-title{
+  display:block;
+  font-family:var(--font-display);
+  color:var(--text) !important;
+  font-size:20px !important;
+  line-height:1.2 !important;
+  font-weight:800;
+  text-align:center;
+  margin:0 0 6px !important;
+  padding:0 28px !important;
+  word-break:break-word;
+}
+.workout-pick-card .workout-card-title .help{
+  display:block;
+  margin-top:3px;
+  font-family:var(--font-body);
+  font-size:11px;
+  font-weight:700;
+}
+.workout-pick-card .workout-card-desc{
+  text-align:center;
+  font-size:13.5px !important;
+  line-height:1.45 !important;
+  margin:0 auto 6px !important;
+  padding:0 4px;
+  max-width:36rem;
+  white-space:normal;
+  overflow:visible;
+  word-break:break-word;
+}
+@media (max-width:430px){
+  #tab-dashboard #today-workout-card{min-height:142px !important; padding-left:14px !important; padding-right:14px !important;}
+  #today-workout-body{padding-top:28px;}
+  .today-workout-title{font-size:19px; padding:0 30px;}
+  .today-workout-desc{font-size:13.5px; padding:0 4px;}
+  .workout-pick-card{min-height:126px; padding:40px 14px 16px !important;}
+  .workout-pick-card .workout-card-title{font-size:17px !important; padding:0 30px !important;}
+  .workout-pick-card .workout-card-desc{font-size:13.2px !important;}
+}
+
+
+/* Edição por três pontos em todos os cartões de treino */
+.workout-pick-card{
+  position:relative;
+  padding:42px 16px 18px !important;
+  text-align:center;
+  border-radius:24px !important;
+}
+.workout-pick-card .workout-card-title{
+  margin:0 auto 6px !important;
+  padding:0 42px !important;
+  text-align:center;
+  font-size:17px !important;
+  line-height:1.25 !important;
+  color:var(--text) !important;
+}
+.workout-pick-card .workout-card-desc{
+  margin:0 auto !important;
+  text-align:center;
+  font-size:13.5px !important;
+  line-height:1.45 !important;
+  max-width:34rem;
+  white-space:normal;
+  overflow:visible;
+  word-break:break-word;
+}
+.workout-action-menu button{
+  min-height:44px;
+  font-size:14px;
+  text-align:left;
+}
+
+
+/* Ajuste: janela Treino de hoje editável no iPhone */
+.today-picker-card{border-radius:28px !important; padding:26px 22px 22px !important; min-height:150px;}
+.today-picker-card .workout-menu-dot{top:12px !important; right:14px !important;}
+@media (max-width:520px){
+  .today-picker-card{padding:24px 18px 20px !important; border-radius:26px !important;}
+  .today-picker-card h3{font-size:16px !important;}
+  .today-picker-card p{font-size:13.5px !important;}
+}
+
+
+/* ================= PULSO — Estado e cartões centrados ================= */
+/* Cartões pequenos do painel principal: texto ao centro da janela */
+#tab-dashboard .grid3 .card:not(#d-race-card),
+#tab-dashboard .grid3 .card {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+#tab-dashboard .grid3 .card h3,
+#tab-dashboard .grid3 .card .stat,
+#tab-dashboard .grid3 .card .trend,
+#tab-dashboard .grid3 .card .detail {
+  width:100%;
+  text-align:center !important;
+}
+
+/* Cartão da bola de estado: bola ao centro, texto centrado e sem barra */
+#tab-dashboard > .card:nth-of-type(1) {
+  text-align:center;
+}
+#tab-dashboard > .card:nth-of-type(1) .verdict-wrap {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:12px !important;
+  text-align:center !important;
+}
+#tab-dashboard > .card:nth-of-type(1) .verdict-wrap > div:last-child {
+  width:100%;
+  text-align:center !important;
+}
+.verdict-score {
+  width:96px !important;
+  height:96px !important;
+  margin:0 auto !important;
+  border:5px solid transparent !important;
+  background:
+    linear-gradient(180deg, rgba(24,34,56,.98), rgba(12,18,31,.98)) padding-box,
+    conic-gradient(from 220deg, var(--red) 0 42%, var(--amber) 42% 62%, var(--teal) 62% 100%) border-box !important;
+  box-shadow:
+    0 0 28px rgba(53,217,166,.12),
+    inset 0 0 24px rgba(0,0,0,.28) !important;
+}
+.verdict-score .n {
+  font-size:30px !important;
+}
+.verdict-score .l {
+  font-size:9px !important;
+}
+.verdict-title,
+#verdict-sub {
+  text-align:center !important;
+}
+.verdict-list {
+  align-items:center !important;
+  text-align:center !important;
+  margin-top:12px !important;
+}
+.verdict-list li {
+  padding-left:0 !important;
+  max-width:680px;
+  text-align:center !important;
+}
+.verdict-list li::before {
+  content:'' !important;
+}
+#verdict-gauge-wrap {
+  display:none !important;
+}
+#tab-dashboard > .card:nth-of-type(1) > .help {
+  text-align:center !important;
+}
+
+@media (max-width:520px){
+  .verdict-score {
+    width:88px !important;
+    height:88px !important;
+  }
+  .verdict-score .n {
+    font-size:28px !important;
+  }
+  .verdict-list li {
+    font-size:12px;
+    line-height:1.45;
+  }
+}
+
+
+/* ================= AJUSTE — estado por percentagem + detalhe separado ================= */
+#tab-dashboard > .card:first-of-type{
+  min-height:210px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+#tab-dashboard > .card:first-of-type .verdict-wrap{
+  width:100%;
+}
+.verdict-score{
+  --verdict-color: var(--teal);
+  --verdict-pct: 0%;
+  width:104px !important;
+  height:104px !important;
+  border:0 !important;
+  padding:5px;
+  background:conic-gradient(var(--verdict-color) 0 var(--verdict-pct), rgba(255,255,255,.10) var(--verdict-pct) 100%) !important;
+  box-shadow:0 0 26px color-mix(in srgb, var(--verdict-color) 25%, transparent), inset 0 0 22px rgba(0,0,0,.22) !important;
+}
+.verdict-score::before{
+  content:'';
+  position:absolute;
+  inset:5px;
+  border-radius:50%;
+  background:linear-gradient(180deg, rgba(24,34,56,.98), rgba(12,18,31,.98));
+  z-index:0;
+}
+.verdict-score .n,.verdict-score .l{position:relative; z-index:1;}
+#verdict-gauge-wrap{display:none !important;}
+#verdict-detail-card{
+  text-align:center !important;
+  min-height:auto !important;
+}
+#verdict-detail-card h3{
+  text-align:center !important;
+  margin-bottom:10px !important;
+}
+#verdict-detail-card .verdict-list{
+  align-items:center !important;
+  text-align:center !important;
+  margin:0 !important;
+}
+#verdict-detail-card .verdict-list li{
+  text-align:center !important;
+  padding-left:0 !important;
+  max-width:720px;
+}
+#verdict-detail-card .verdict-list li::before{content:'' !important;}
+#tab-dashboard .grid3 #d-workout-card .stat,
+#tab-dashboard .grid3 #d-workout-card .stat[style],
+#d-workout{
+  font-size:34px !important;
+  line-height:1.05 !important;
+  font-family:var(--font-display) !important;
+  font-weight:700 !important;
+  letter-spacing:-.06em !important;
+}
+@media(max-width:520px){
+  .verdict-score{width:96px !important; height:96px !important;}
+  #tab-dashboard .grid3 #d-workout-card .stat,
+  #tab-dashboard .grid3 #d-workout-card .stat[style],
+  #d-workout{font-size:32px !important;}
+}
+@media(max-width:390px){
+  #tab-dashboard .grid3 #d-workout-card .stat,
+  #tab-dashboard .grid3 #d-workout-card .stat[style],
+  #d-workout{font-size:28px !important;}
+}
+
+
+
+/* ================= PULSO — Cartão de estado definitivo ================= */
+#verdict-main-card{
+  min-height:210px !important;
+  padding:22px 24px !important;
+}
+#verdict-main-card .verdict-wrap{
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:36% 64% !important;
+  align-items:center !important;
+  gap:20px !important;
+  text-align:left !important;
+}
+.verdict-left{
+  min-height:160px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border-right:1px solid rgba(255,255,255,.10);
+  padding-right:20px;
+}
+.verdict-left .verdict-score{
+  margin:0 auto 14px !important;
+}
+.verdict-left .verdict-title{
+  margin:0 !important;
+  font-size:20px !important;
+  line-height:1.1 !important;
+  letter-spacing:.04em !important;
+  text-transform:uppercase !important;
+  color:var(--teal) !important;
+  text-align:center !important;
+}
+#verdict-sub{
+  display:none !important;
+}
+.verdict-right{
+  min-width:0;
+  display:flex;
+  align-items:center;
+}
+#verdict-main-card .verdict-list{
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:10px !important;
+  align-items:stretch !important;
+  text-align:left !important;
+  list-style:none !important;
+}
+#verdict-main-card .verdict-list li{
+  position:relative !important;
+  max-width:none !important;
+  padding-left:16px !important;
+  text-align:left !important;
+  color:#AFC0DE !important;
+  font-size:13.5px !important;
+  line-height:1.42 !important;
+}
+#verdict-main-card .verdict-list li::before{
+  content:'—' !important;
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  color:var(--teal) !important;
+}
+#verdict-detail-card{
+  display:none !important;
+}
+.verdict-score .l{
+  display:none !important;
+}
+@media(max-width:520px){
+  #verdict-main-card{padding:18px 16px !important; min-height:190px !important;}
+  #verdict-main-card .verdict-wrap{grid-template-columns:34% 66% !important; gap:12px !important;}
+  .verdict-left{min-height:150px; padding-right:12px;}
+  .verdict-left .verdict-score{width:82px !important; height:82px !important; margin-bottom:10px !important;}
+  .verdict-left .verdict-score .n{font-size:27px !important;}
+  .verdict-left .verdict-title{font-size:14px !important; letter-spacing:.03em !important;}
+  #verdict-main-card .verdict-list{gap:7px !important;}
+  #verdict-main-card .verdict-list li{font-size:11.8px !important; line-height:1.35 !important; padding-left:13px !important;}
+}
+@media(max-width:380px){
+  #verdict-main-card .verdict-wrap{grid-template-columns:32% 68% !important; gap:10px !important;}
+  .verdict-left{padding-right:10px;}
+  .verdict-left .verdict-score{width:74px !important; height:74px !important;}
+  .verdict-left .verdict-score .n{font-size:24px !important;}
+  .verdict-left .verdict-title{font-size:12.5px !important;}
+  #verdict-main-card .verdict-list li{font-size:11px !important;}
+}
+
+
+
+/* ================= PULSO FIX FINAL — dashboard refeito sem remendos ================= */
+/* Cartão principal do estado: duas colunas reais */
+#tab-dashboard #verdict-main-card{
+  width:100% !important;
+  min-height:220px !important;
+  padding:24px !important;
+  display:block !important;
+  overflow:hidden !important;
+  text-align:initial !important;
+}
+#tab-dashboard #verdict-main-card .verdict-wrap{
+  width:100% !important;
+  min-height:170px !important;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:stretch !important;
+  gap:22px !important;
+  text-align:initial !important;
+}
+#tab-dashboard #verdict-main-card .verdict-left{
+  flex:0 0 36% !important;
+  min-width:0 !important;
+  min-height:170px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  padding:0 22px 0 0 !important;
+  border-right:1px solid rgba(255,255,255,.12) !important;
+}
+#tab-dashboard #verdict-main-card .verdict-right{
+  flex:1 1 auto !important;
+  min-width:0 !important;
+  min-height:170px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  text-align:left !important;
+}
+#tab-dashboard #verdict-main-card .verdict-score{
+  --verdict-color: var(--teal);
+  --verdict-pct: 0%;
+  position:relative !important;
+  flex:0 0 auto !important;
+  width:112px !important;
+  height:112px !important;
+  min-width:112px !important;
+  min-height:112px !important;
+  max-width:112px !important;
+  max-height:112px !important;
+  margin:0 0 14px 0 !important;
+  padding:6px !important;
+  border:0 !important;
+  border-radius:50% !important;
+  overflow:hidden !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:conic-gradient(var(--verdict-color) 0 var(--verdict-pct), rgba(255,255,255,.10) var(--verdict-pct) 100%) !important;
+  box-shadow:0 0 26px rgba(53,217,166,.15), inset 0 0 22px rgba(0,0,0,.28) !important;
+}
+#tab-dashboard #verdict-main-card .verdict-score::before{
+  content:'' !important;
+  position:absolute !important;
+  inset:6px !important;
+  width:auto !important;
+  height:auto !important;
+  border-radius:50% !important;
+  background:linear-gradient(180deg, rgba(24,34,56,.98), rgba(12,18,31,.98)) !important;
+  z-index:0 !important;
+  pointer-events:none !important;
+}
+#tab-dashboard #verdict-main-card .verdict-score .n{
+  position:relative !important;
+  z-index:1 !important;
+  font-size:34px !important;
+  line-height:1 !important;
+  font-family:var(--font-display) !important;
+  font-weight:800 !important;
+  color:#fff !important;
+  text-align:center !important;
+}
+#tab-dashboard #verdict-main-card .verdict-score .l,
+#tab-dashboard #verdict-main-card #verdict-sub,
+#tab-dashboard #verdict-main-card #verdict-gauge-wrap{
+  display:none !important;
+}
+#tab-dashboard #verdict-main-card .verdict-title{
+  display:block !important;
+  margin:0 !important;
+  width:100% !important;
+  text-align:center !important;
+  font-size:19px !important;
+  line-height:1.15 !important;
+  font-weight:900 !important;
+  letter-spacing:.06em !important;
+  text-transform:uppercase !important;
+  color:var(--teal) !important;
+}
+#tab-dashboard #verdict-main-card .verdict-list{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  list-style:none !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:center !important;
+  gap:11px !important;
+  text-align:left !important;
+}
+#tab-dashboard #verdict-main-card .verdict-list li{
+  position:relative !important;
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 0 0 17px !important;
+  color:#AFC0DE !important;
+  font-size:14px !important;
+  line-height:1.42 !important;
+  text-align:left !important;
+}
+#tab-dashboard #verdict-main-card .verdict-list li::before{
+  content:'—' !important;
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  color:var(--teal) !important;
+}
+#verdict-detail-card{display:none !important;}
+
+/* Cartões pequenos: texto centrado e último treino com o mesmo tamanho */
+#tab-dashboard .grid3 .card{
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+#tab-dashboard .grid3 .card h3,
+#tab-dashboard .grid3 .card .stat,
+#tab-dashboard .grid3 .card .trend,
+#tab-dashboard .grid3 .card .detail{
+  width:100% !important;
+  text-align:center !important;
+}
+#tab-dashboard .grid3 #d-workout-card .stat,
+#tab-dashboard .grid3 #d-workout-card .stat[style],
+#d-workout{
+  font-size:22px !important;
+  line-height:1.05 !important;
+  font-family:var(--font-display) !important;
+  font-weight:800 !important;
+  letter-spacing:-.04em !important;
+}
+
+@media(max-width:520px){
+  #tab-dashboard #verdict-main-card{
+    min-height:190px !important;
+    padding:18px 14px !important;
+    border-radius:26px !important;
+  }
+  #tab-dashboard #verdict-main-card .verdict-wrap{
+    min-height:150px !important;
+    gap:12px !important;
+  }
+  #tab-dashboard #verdict-main-card .verdict-left{
+    flex-basis:34% !important;
+    min-height:150px !important;
+    padding-right:12px !important;
+  }
+  #tab-dashboard #verdict-main-card .verdict-right{
+    min-height:150px !important;
+  }
+  #tab-dashboard #verdict-main-card .verdict-score{
+    width:82px !important;
+    height:82px !important;
+    min-width:82px !important;
+    min-height:82px !important;
+    max-width:82px !important;
+    max-height:82px !important;
+    margin-bottom:10px !important;
+    padding:5px !important;
+  }
+  #tab-dashboard #verdict-main-card .verdict-score::before{inset:5px !important;}
+  #tab-dashboard #verdict-main-card .verdict-score .n{font-size:27px !important;}
+  #tab-dashboard #verdict-main-card .verdict-title{font-size:13.5px !important; letter-spacing:.035em !important;}
+  #tab-dashboard #verdict-main-card .verdict-list{gap:7px !important;}
+  #tab-dashboard #verdict-main-card .verdict-list li{font-size:11.8px !important; line-height:1.34 !important; padding-left:13px !important;}
+  #tab-dashboard .grid3 #d-workout-card .stat,
+  #tab-dashboard .grid3 #d-workout-card .stat[style],
+  #d-workout{font-size:20px !important;}
+}
+@media(max-width:380px){
+  #tab-dashboard #verdict-main-card .verdict-left{flex-basis:32% !important; padding-right:10px !important;}
+  #tab-dashboard #verdict-main-card .verdict-wrap{gap:10px !important;}
+  #tab-dashboard #verdict-main-card .verdict-score{
+    width:74px !important; height:74px !important; min-width:74px !important; min-height:74px !important; max-width:74px !important; max-height:74px !important;
+  }
+  #tab-dashboard #verdict-main-card .verdict-score .n{font-size:24px !important;}
+  #tab-dashboard #verdict-main-card .verdict-title{font-size:12px !important;}
+  #tab-dashboard #verdict-main-card .verdict-list li{font-size:10.8px !important;}
+}
+
+
+/* Ajuste: título do treino maior e legível no iPhone */
+.today-workout-title{
+  font-size:22px !important;
+  font-weight:800 !important;
+  line-height:1.2 !important;
+  text-transform:uppercase;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.today-workout-desc{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  overflow-wrap:anywhere;
+}
+.workout-pick-card .workout-card-title{
+  font-size:20px !important;
+  text-transform:uppercase;
+  overflow-wrap:anywhere;
+}
+@media (max-width:430px){
+  .today-workout-title{font-size:22px !important;}
+  .today-workout-desc{font-size:14px !important;}
+  .workout-pick-card .workout-card-title{font-size:19px !important;}
+}
+
+
+
+/* ================= AJUSTE — Último treino com tipografia igual aos restantes cartões ================= */
+#tab-dashboard .grid3 #d-workout-card,
+#tab-dashboard .grid3 #d-workout-card *{
+  text-align:center !important;
+}
+
+#tab-dashboard .grid3 #d-workout-card #d-workout,
+#tab-dashboard .grid3 #d-workout-card #d-workout.stat,
+#tab-dashboard .grid3 #d-workout-card #d-workout[style],
+#d-workout{
+  font-size:34px !important;
+  line-height:1.05 !important;
+  font-family:var(--font-display) !important;
+  font-weight:700 !important;
+  letter-spacing:-.06em !important;
+  width:100% !important;
+  display:block !important;
+}
+
+#tab-dashboard .grid3 #d-workout-card #d-workout-trend,
+#d-workout-trend{
+  font-size:14px !important;
+  line-height:1.25 !important;
+  font-family:var(--font-body) !important;
+  font-weight:600 !important;
+  letter-spacing:0 !important;
+  margin-top:6px !important;
+  width:100% !important;
+  display:block !important;
+}
+
+@media(max-width:520px){
+  #tab-dashboard .grid3 #d-workout-card #d-workout,
+  #tab-dashboard .grid3 #d-workout-card #d-workout.stat,
+  #tab-dashboard .grid3 #d-workout-card #d-workout[style],
+  #d-workout{
+    font-size:32px !important;
+  }
+  #tab-dashboard .grid3 #d-workout-card #d-workout-trend,
+  #d-workout-trend{
+    font-size:13.5px !important;
+  }
+}
+
+@media(max-width:390px){
+  #tab-dashboard .grid3 #d-workout-card #d-workout,
+  #tab-dashboard .grid3 #d-workout-card #d-workout.stat,
+  #tab-dashboard .grid3 #d-workout-card #d-workout[style],
+  #d-workout{
+    font-size:28px !important;
+  }
+  #tab-dashboard .grid3 #d-workout-card #d-workout-trend,
+  #d-workout-trend{
+    font-size:13px !important;
+  }
+}
+
+
+
+/* ================= PULSO FINAL — Último treino igual aos outros cartões ================= */
+#tab-dashboard .grid3 #d-workout-card .stat,
+#tab-dashboard .grid3 #d-workout-card .stat[style],
+#d-workout{
+  font-family:var(--font-body) !important;
+  font-size:34px !important;
+  font-weight:800 !important;
+  line-height:1.05 !important;
+  letter-spacing:-.04em !important;
+  color:var(--text) !important;
+  text-align:center !important;
+  width:100% !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  font-stretch:normal !important;
+  transform:none !important;
+}
+#tab-dashboard .grid3 #d-workout-card .trend,
+#d-workout-trend{
+  font-family:var(--font-body) !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  line-height:1.25 !important;
+  color:#AFC0DE !important;
+  text-align:center !important;
+}
+@media(max-width:520px){
+  #tab-dashboard .grid3 #d-workout-card .stat,
+  #tab-dashboard .grid3 #d-workout-card .stat[style],
+  #d-workout{font-size:32px !important;}
+}
+@media(max-width:390px){
+  #tab-dashboard .grid3 #d-workout-card .stat,
+  #tab-dashboard .grid3 #d-workout-card .stat[style],
+  #d-workout{font-size:28px !important;}
+}
+
+
+/* ================= Nutrição — kcal/macros moderno ================= */
+.kcal-modern-card{
+  border-radius:32px !important;
+  padding:28px 18px 24px !important;
+  text-align:center;
+}
+.kcal-ring-wrap{
+  position:relative;
+  width:220px;
+  height:220px;
+  margin:0 auto 26px;
+}
+.kcal-ring{
+  width:220px;
+  height:220px;
+  transform:rotate(-90deg);
+  display:block;
+}
+.kcal-ring-bg,
+.kcal-ring-seg{
+  fill:none;
+  stroke-width:14;
+  stroke-linecap:round;
+}
+.kcal-ring-bg{stroke:rgba(255,255,255,.08);}
+.kcal-ring-seg{
+  stroke-dasharray:0 540.35;
+  stroke-dashoffset:0;
+  transition:stroke-dasharray .25s ease, stroke-dashoffset .25s ease;
+}
+.kcal-ring-seg.carbs{stroke:#35D9A6;}
+.kcal-ring-seg.protein{stroke:#F2B84B;}
+.kcal-ring-seg.fat{stroke:#9B8CFF;}
+.kcal-center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.kcal-center div{
+  font-family:var(--font-display);
+  font-size:42px;
+  font-weight:800;
+  line-height:1;
+}
+.kcal-center span{
+  font-size:18px;
+  color:var(--text-muted);
+  margin-top:6px;
+}
+.kcal-center small{
+  font-size:14px;
+  color:var(--text-muted);
+  margin-top:8px;
+}
+.macro-row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  border-top:1px solid rgba(255,255,255,.08);
+  padding-top:22px;
+}
+.macro-item{
+  text-align:center;
+  padding:0 10px;
+  min-width:0;
+}
+.macro-item + .macro-item{border-left:1px solid rgba(255,255,255,.12);}
+.macro-title{
+  font-size:13px;
+  font-weight:800;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  white-space:nowrap;
+}
+.macro-title span{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  flex:0 0 auto;
+}
+.macro-item.carbs .macro-title{color:#35D9A6;}
+.macro-item.protein .macro-title{color:#F2B84B;}
+.macro-item.fat .macro-title{color:#9B8CFF;}
+.macro-item.carbs .macro-title span{background:#35D9A6;}
+.macro-item.protein .macro-title span{background:#F2B84B;}
+.macro-item.fat .macro-title span{background:#9B8CFF;}
+.macro-item strong{
+  display:block;
+  font-family:var(--font-display);
+  font-size:28px;
+  font-weight:800;
+  margin-top:14px;
+  color:var(--text);
+  line-height:1.1;
+}
+.macro-item em{
+  display:block;
+  font-style:normal;
+  font-size:18px;
+  font-weight:800;
+  margin-top:8px;
+}
+.macro-item.carbs em{color:#35D9A6;}
+.macro-item.protein em{color:#F2B84B;}
+.macro-item.fat em{color:#9B8CFF;}
+.macro-item em small{
+  display:inline;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-muted);
+}
+@media(max-width:430px){
+  .kcal-modern-card{padding:24px 12px 20px !important;}
+  .kcal-ring-wrap,.kcal-ring{width:190px;height:190px;}
+  .kcal-ring-wrap{margin-bottom:22px;}
+  .kcal-center div{font-size:36px;}
+  .kcal-center span{font-size:16px;}
+  .kcal-center small{font-size:12.5px;}
+  .macro-row{padding-top:18px;}
+  .macro-item{padding:0 6px;}
+  .macro-title{font-size:10.5px;gap:5px;}
+  .macro-title span{width:7px;height:7px;}
+  .macro-item strong{font-size:22px;margin-top:11px;}
+  .macro-item em{font-size:15px;}
+  .macro-item em small{display:block;font-size:10.5px;margin-top:3px;}
+}
+
+/* ================= Nutrição — água/café no estilo kcal ================= */
+.single-ring-card{
+  border-radius:32px !important;
+  padding:28px 18px 24px !important;
+  text-align:center;
+}
+.single-ring-card .kcal-ring-wrap{
+  margin-bottom:22px;
+}
+.single-ring-seg{
+  fill:none;
+  stroke-width:14;
+  stroke-linecap:round;
+  stroke-dasharray:0 540.35;
+  stroke-dashoffset:0;
+  transition:stroke-dasharray .25s ease;
+}
+.single-ring-seg.water{stroke:#5B8DEF;}
+.single-ring-seg.coffee{stroke:#F2B84B;}
+.single-ring-actions{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:4px;
+}
+.single-ring-note{
+  max-width:360px;
+  margin:12px auto 0;
+  text-align:center;
+}
+@media(max-width:430px){
+  .single-ring-card{padding:24px 12px 20px !important;}
+  .single-ring-actions .chip{font-size:13px;padding:11px 13px;}
+}
+
+
+
+/* ================= FIX FINAL — Scroll no plano Treinos > Objetivo =================
+   Quando o plano tem muitas semanas/treinos, o conteúdo deve rolar sempre no iPhone.
+   A página inteira do separador Objetivo faz scroll natural; o plano nunca fica preso. */
+#tab-treinos.active{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain !important;
+}
+#tab-treinos #sub-objetivo,
+#tab-treinos #sub-objetivo.active{
+  width:100% !important;
+  min-height:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  flex:0 0 auto !important;
+  padding-bottom:calc(150px + env(safe-area-inset-bottom)) !important;
+}
+#plan-section{
+  display:flex;
+  flex-direction:column;
+  flex:0 0 auto !important;
+  min-height:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+#plan-output{
+  flex:0 0 auto !important;
+  min-height:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  -webkit-overflow-scrolling:touch !important;
+  padding-bottom:32px !important;
+}
+#plan-output table,
+#plan-output .plan{
+  width:100% !important;
+}
+@media (max-width:520px){
+  #tab-treinos #sub-objetivo,
+  #tab-treinos #sub-objetivo.active{
+    padding-bottom:calc(175px + env(safe-area-inset-bottom)) !important;
+  }
+  #plan-output{
+    padding-bottom:48px !important;
+  }
+}
+
+
+/* ================= FIX REAL — scroll dentro da janela Semana do plano =================
+   O problema estava na janela aberta da Semana: a classe .scroll-y tinha overflow visible,
+   por isso os treinos ficavam presos e o menu inferior tapava o fim da lista. */
+#plan-detail-modal{
+  position:fixed !important;
+  inset:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+  padding:16px 16px 0 !important;
+  background:var(--bg) !important;
+}
+#plan-detail-modal .plan-detail-header{
+  flex:0 0 auto !important;
+  margin-bottom:10px !important;
+}
+#plan-detail-modal .plan-detail-scroll{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain !important;
+  padding-bottom:calc(150px + env(safe-area-inset-bottom)) !important;
+  scroll-padding-bottom:calc(150px + env(safe-area-inset-bottom)) !important;
+}
+#plan-detail-modal .workout-pick-card{
+  flex:0 0 auto !important;
+}
+@media(max-width:520px){
+  #plan-detail-modal{
+    padding:12px 10px 0 !important;
+  }
+  #plan-detail-modal .plan-detail-scroll{
+    padding-bottom:calc(170px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+
+
+/* ================= PULSO — Objetivo por semanas + pico máximo ================= */
+#race-peak-hours{
+  text-align:center;
+  font-weight:800;
+}
+#plan-weeks-list .row{
+  align-items:center;
+}
+#plan-weeks-list strong{
+  font-family:var(--font-display);
+  letter-spacing:.4px;
+}
+@media(max-width:520px){
+  #form-race{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  #form-race .field:first-child,
+  #form-race .field:nth-child(2),
+  #form-race button.primary{
+    grid-column:1 / -1;
+  }
+}
+
+
+
+/* ================= PULSO — Fonte global Outfit ================= */
+:root{
+  --font-main:'Space Grotesk', sans-serif;
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Space Grotesk', sans-serif;
+}
+html, body, button, input, select, textarea, table, label, small, span, p, div, h1, h2, h3, h4, h5, h6{
+  font-family:'Space Grotesk', sans-serif !important;
+}
+
+/* ===== Tipografia global — Space Grotesk ===== */
+html, body, button, input, select, textarea {
+  font-family: var(--font-main) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+:root{
+  --font-main:'Space Grotesk', sans-serif;
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Space Grotesk', sans-serif;
+}
+
+
+/* ================= CORREÇÃO FINAL — Último treino igual aos outros cartões =================
+   O nome do último treino estava maior por regras antigas acumuladas.
+   Esta regra fica no fim do CSS para ganhar prioridade. */
+#tab-dashboard .grid3 #d-workout-card #d-workout,
+#tab-dashboard .grid3 #d-workout-card #d-workout.stat,
+#tab-dashboard .grid3 #d-workout-card #d-workout[style],
+#d-workout{
+  font-family:var(--font-main, var(--font-body), sans-serif) !important;
+  font-size:24px !important;
+  font-weight:700 !important;
+  line-height:1 !important;
+  letter-spacing:0 !important;
+  text-align:center !important;
+  color:var(--text) !important;
+  width:100% !important;
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  transform:none !important;
+  font-stretch:normal !important;
+}
+
+#tab-dashboard .grid3 #d-workout-card #d-workout-trend,
+#d-workout-trend{
+  font-family:var(--font-main, var(--font-body), sans-serif) !important;
+  font-size:14px !important;
+  font-weight:500 !important;
+  line-height:1.25 !important;
+  letter-spacing:0 !important;
+  text-align:center !important;
+  color:#AFC0DE !important;
+  margin-top:8px !important;
+}
+
+@media(max-width:520px){
+  #tab-dashboard .grid3 #d-workout-card #d-workout,
+  #tab-dashboard .grid3 #d-workout-card #d-workout.stat,
+  #tab-dashboard .grid3 #d-workout-card #d-workout[style],
+  #d-workout{font-size:23px !important;}
+}
+
+@media(max-width:390px){
+  #tab-dashboard .grid3 #d-workout-card #d-workout,
+  #tab-dashboard .grid3 #d-workout-card #d-workout.stat,
+  #tab-dashboard .grid3 #d-workout-card #d-workout[style],
+  #d-workout{font-size:22px !important;}
+}
+
+
+
+/* =========================================================
+   FUNDO DESPORTIVO PULSO — MONTANHAS EM CSS PURO, SEM IMAGENS
+   ========================================================= */
+:root{
+  --mountain-sky-1:#020713;
+  --mountain-sky-2:#06101f;
+  --mountain-sky-3:#0a1829;
+  --glass-card:rgba(12,24,38,.58);
+  --glass-card-strong:rgba(13,25,42,.72);
+  --glass-border:rgba(190,226,255,.18);
+  --neon-green:#8dff3f;
+}
+
+html,body{
+  background:
+    radial-gradient(circle at 50% 12%, rgba(141,255,63,.12), transparent 22%),
+    radial-gradient(circle at 18% 18%, rgba(80,150,255,.15), transparent 28%),
+    linear-gradient(180deg,var(--mountain-sky-2) 0%,var(--mountain-sky-1) 56%,#02050c 100%) !important;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:-6;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(2,7,19,.08),rgba(2,7,19,.48) 56%,rgba(2,5,12,.92)),
+    radial-gradient(circle at 54% 27%,rgba(255,255,255,.18),transparent 3.5%),
+    radial-gradient(circle at 37% 22%,rgba(255,255,255,.10),transparent 2.8%),
+    radial-gradient(circle at 76% 24%,rgba(255,255,255,.08),transparent 3%),
+    linear-gradient(115deg,transparent 0 42%,rgba(255,255,255,.045) 42.3%,transparent 43%),
+    linear-gradient(245deg,transparent 0 64%,rgba(141,255,63,.16) 64.2%,transparent 64.8%);
+}
+
+/* Cordilheira principal */
+body::after{
+  content:'';
+  position:fixed;
+  left:-8vw;
+  right:-8vw;
+  top:9vh;
+  height:52vh;
+  z-index:-5;
+  pointer-events:none;
+  opacity:.92;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.02) 9%,transparent 16%) 28% 12%/10vw 24vh no-repeat,
+    linear-gradient(130deg,rgba(255,255,255,.22),rgba(255,255,255,.04) 18%,transparent 36%) 42% 7%/14vw 32vh no-repeat,
+    linear-gradient(230deg,rgba(255,255,255,.16),rgba(255,255,255,.035) 20%,transparent 39%) 62% 18%/13vw 25vh no-repeat,
+    linear-gradient(180deg,#15283b 0%,#0b1726 42%,#040912 100%);
+  clip-path:polygon(
+    0% 80%, 5% 64%, 10% 70%, 15% 48%, 20% 62%, 25% 32%, 31% 66%,
+    37% 25%, 43% 62%, 49% 36%, 55% 72%, 62% 46%, 68% 67%,
+    75% 39%, 82% 68%, 89% 44%, 95% 70%, 100% 52%, 100% 100%, 0% 100%
+  );
+  filter:contrast(1.25) saturate(.88) brightness(.82);
+}
+
+#app-content,
+#app-locked{
+  position:relative;
+  background:transparent !important;
+  isolation:isolate;
+}
+
+/* Montanhas de primeiro plano */
+#app-content::before,
+#app-locked::before{
+  content:'';
+  position:fixed;
+  left:-10vw;
+  right:-10vw;
+  top:30vh;
+  height:48vh;
+  z-index:-4;
+  pointer-events:none;
+  opacity:.72;
+  background:
+    linear-gradient(135deg,rgba(141,255,63,.18),transparent 9%) 9% 42%/26vw 28vh no-repeat,
+    linear-gradient(225deg,rgba(150,220,255,.13),transparent 14%) 80% 28%/30vw 34vh no-repeat,
+    linear-gradient(180deg,#0b1724,#050a12 72%,#02050b 100%);
+  clip-path:polygon(
+    0% 72%, 7% 58%, 14% 75%, 24% 36%, 31% 78%, 42% 50%, 50% 81%,
+    61% 43%, 70% 77%, 80% 35%, 88% 70%, 100% 40%, 100% 100%, 0 100%
+  );
+  filter:blur(.2px) brightness(.72);
+}
+
+/* Linhas topográficas + brilho verde */
+#app-content::after,
+#app-locked::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  pointer-events:none;
+  opacity:.55;
+  background:
+    repeating-radial-gradient(ellipse at 8% 76%, transparent 0 24px, rgba(141,255,63,.16) 25px 26px, transparent 27px 47px),
+    repeating-radial-gradient(ellipse at 94% 20%, transparent 0 20px, rgba(141,255,63,.14) 21px 22px, transparent 23px 42px),
+    linear-gradient(128deg,transparent 0 76%,rgba(141,255,63,.54) 76.1%,rgba(141,255,63,.10) 76.5%,transparent 77%),
+    radial-gradient(circle at 48% 34%,rgba(141,255,63,.14),transparent 28%);
+  mix-blend-mode:screen;
+}
+
+header.top{
+  background:linear-gradient(180deg,rgba(2,7,19,.46),rgba(2,7,19,.12) 72%,transparent) !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border-bottom:0 !important;
+}
+
+main > section{
+  background:transparent !important;
+}
+
+.card,
+.login-card{
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.075),transparent 38%),
+    linear-gradient(180deg,var(--glass-card),rgba(6,13,24,.52)) !important;
+  border:1px solid var(--glass-border) !important;
+  box-shadow:
+    0 20px 55px rgba(0,0,0,.38),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
+  backdrop-filter:blur(14px) saturate(1.2) !important;
+  -webkit-backdrop-filter:blur(14px) saturate(1.2) !important;
+}
+
+.card::before{
+  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 42%) !important;
+}
+
+#tab-dashboard .grid3 .card,
+#tab-dashboard #today-workout-card,
+.kcal-modern-card{
+  background:
+    radial-gradient(circle at 82% 18%,rgba(141,255,63,.10),transparent 32%),
+    linear-gradient(145deg,rgba(255,255,255,.075),transparent 40%),
+    linear-gradient(180deg,rgba(14,29,47,.62),rgba(5,13,24,.58)) !important;
+}
+
+nav.tabbar{
+  background:rgba(2,8,17,.72) !important;
+  border:1px solid rgba(190,226,255,.14) !important;
+  backdrop-filter:blur(22px) saturate(1.25) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.25) !important;
+}
+
+.subtabs{
+  background:rgba(2,8,17,.58) !important;
+  border:1px solid rgba(190,226,255,.12) !important;
+}
+
+input,select,textarea{
+  background:rgba(2,8,17,.58) !important;
+  border-color:rgba(190,226,255,.14) !important;
+}
+
+@media(max-width:520px){
+  body::after{top:7vh;height:44vh;opacity:.98;}
+  #app-content::before,#app-locked::before{top:25vh;height:46vh;opacity:.68;}
+  #app-content::after,#app-locked::after{opacity:.42;}
+  .card,.login-card{backdrop-filter:blur(11px) saturate(1.15) !important;-webkit-backdrop-filter:blur(11px) saturate(1.15) !important;}
+}
+
 </style>
 </head>
 <body>
@@ -1117,33 +2950,18 @@ header.top::after{
 
   <!-- ================= DASHBOARD (só esta rola) ================= -->
   <section id="tab-dashboard" class="active">
-    <div class="card" id="today-workout-card">
-      <div class="row space-between">
-        <h3 style="margin:0;">Treino de hoje</h3>
-        <button class="ghost" id="btn-pick-today" type="button">Escolher</button>
-      </div>
-      <div id="today-workout-body" style="margin-top:8px;"><p class="help" style="margin:0;">Ainda não escolheste o treino de hoje.</p></div>
-    </div>
-
-    <div class="card">
+    <div class="card" id="verdict-main-card">
       <div class="verdict-wrap">
-        <div class="verdict-score" id="verdict-ring"><span class="n" id="verdict-n">—</span><span class="l">/100</span></div>
-        <div style="flex:1; min-width:0;">
+        <div class="verdict-left">
+          <div class="verdict-score" id="verdict-ring"><span class="n" id="verdict-n">—</span></div>
           <p class="verdict-title" id="verdict-title">Ainda sem dados</p>
-          <p class="help" id="verdict-sub">Regista peso, sono e treinos para o assistente avaliar o teu estado.</p>
+          <p class="help" id="verdict-sub" aria-hidden="true">Regista peso, sono e treinos para o assistente avaliar o teu estado.</p>
+        </div>
+        <div class="verdict-right">
+          <ul class="verdict-list" id="verdict-list"></ul>
         </div>
       </div>
-      <ul class="verdict-list" id="verdict-list"></ul>
-      <div id="verdict-gauge-wrap" style="display:none; margin-top:12px;">
-        <div style="position:relative; height:10px; border-radius:6px; overflow:visible;
-          background:linear-gradient(90deg, var(--red) 0%, var(--red) 50%, var(--amber) 50%, var(--amber) 65%, var(--teal) 65%, var(--teal) 80%, #1fae82 80%, #1fae82 100%);">
-          <div id="verdict-gauge-dot" style="position:absolute; top:50%; width:14px; height:14px; border-radius:50%; background:#fff; border:2px solid var(--bg); transform:translate(-50%,-50%); left:0%;"></div>
-        </div>
-        <div class="row space-between" style="margin-top:4px;">
-          <span class="help">0 Atenção</span><span class="help">50 Razoável</span><span class="help">65 Bom</span><span class="help">80 Muito bom</span>
-        </div>
-      </div>
-      <p class="help" style="margin-top:10px;">Leitura informativa — não substitui avaliação médica.</p>
+      <div id="verdict-gauge-wrap" style="display:none;"></div>
     </div>
 
     <div class="grid3">
@@ -1151,8 +2969,17 @@ header.top::after{
       <div class="card"><h3>Sono (última noite)</h3><div class="stat" id="d-sleep">— <small>h</small></div><div class="trend flat" id="d-sleep-trend">sem dados</div><div class="detail" id="d-sleep-detail"></div></div>
       <div class="card"><h3>Hidratação hoje</h3><div class="stat" id="d-hydro">— <small>ml</small></div><div class="trend flat" id="d-hydro-trend">sem dados</div></div>
       <div class="card" id="d-workout-card" style="cursor:pointer;"><h3>Último treino</h3><div class="stat" id="d-workout" style="font-size:14px;">—</div><div class="trend flat" id="d-workout-trend">não ligado</div></div>
-      <div class="card" id="d-race-card" style="cursor:pointer;"><h3>Próxima prova</h3><div class="stat" id="d-race" style="font-size:14px;">—</div><div class="trend flat" id="d-race-trend">sem objetivo</div></div>
     </div>
+
+    <div class="card" id="today-workout-card">
+      <div class="row space-between" style="align-items:flex-start;">
+        <h3 style="margin:0;">Treino de hoje</h3>
+        <button class="ghost" id="btn-pick-today" type="button">Escolher</button>
+      </div>
+      <div id="today-workout-body" style="margin-top:10px;"><p class="help" style="margin:0;">Ainda não escolheste o treino de hoje.</p></div>
+    </div>
+
+    <div class="card" id="d-race-card" style="display:none;"><h3>Próxima prova</h3><div class="stat" id="d-race" style="font-size:14px;">—</div><div class="trend flat" id="d-race-trend">sem objetivo</div></div>
 
   </section>
 
@@ -1165,23 +2992,22 @@ header.top::after{
     </div>
 
     <div class="subview active" id="sub-agua">
-      <div class="card">
-        <div class="hydro-ring-wrap">
-          <div class="hydro-ring">
-            <svg width="104" height="104" viewBox="0 0 130 130">
-              <circle cx="65" cy="65" r="56" fill="none" stroke="#232E4A" stroke-width="12"/>
-              <circle cx="65" cy="65" r="56" fill="none" stroke="#5B8DEF" stroke-width="12" stroke-linecap="round"
-                id="hydro-ring-circle" stroke-dasharray="351.9" stroke-dashoffset="351.9"/>
-            </svg>
-            <div class="center"><span class="val" id="hydro-ring-val">0</span><span class="goal" id="hydro-ring-goal">/ 2000 ml</span></div>
+      <div class="card single-ring-card water-card">
+        <div class="kcal-ring-wrap">
+          <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
+            <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
+            <circle class="single-ring-seg water" id="hydro-ring-circle" cx="110" cy="110" r="86"></circle>
+          </svg>
+          <div class="kcal-center">
+            <div id="hydro-ring-val">0</div>
+            <span>ml</span>
+            <small id="hydro-ring-goal">/ 2000 ml</small>
           </div>
-          <div style="flex:1; min-width:130px;">
-            <div class="chip-row">
-              <button class="chip" data-ml="200" data-type="Água" type="button">+200 ml</button>
-              <button class="chip" data-ml="330" data-type="Água" type="button">+330 ml</button>
-              <button class="chip" data-ml="500" data-type="Água" type="button">+500 ml</button>
-            </div>
-          </div>
+        </div>
+        <div class="single-ring-actions">
+          <button class="chip" data-ml="200" data-type="Água" type="button">+200 ml</button>
+          <button class="chip" data-ml="330" data-type="Água" type="button">+330 ml</button>
+          <button class="chip" data-ml="500" data-type="Água" type="button">+500 ml</button>
         </div>
       </div>
       <div class="card fixed-form">
@@ -1202,26 +3028,23 @@ header.top::after{
     </div>
 
     <div class="subview" id="sub-cafes">
-      <div class="card">
-        <div class="hydro-ring-wrap">
-          <div class="hydro-ring">
-            <svg width="104" height="104" viewBox="0 0 130 130">
-              <circle cx="65" cy="65" r="56" fill="none" stroke="#232E4A" stroke-width="12"/>
-              <circle cx="65" cy="65" r="56" fill="none" stroke="#F2B84B" stroke-width="12" stroke-linecap="round"
-                id="coffee-ring-circle" stroke-dasharray="351.9" stroke-dashoffset="351.9"/>
-            </svg>
-            <div class="center"><span class="val" id="coffee-ring-val">0</span><span class="goal">cafés hoje</span></div>
-          </div>
-          <div style="flex:1; min-width:130px;">
-            <div class="chip-row">
-              <button class="chip" id="btn-add-coffee" type="button">+ 1 café</button>
-              <button class="chip" id="btn-remove-coffee" type="button">− 1 café</button>
-            </div>
-            <p class="help" style="margin-top:8px;">Regista cada café ao longo do dia.</p>
-            <p class="help" style="margin-top:4px;">Cada café simples conta como 2 kcal no total diário.</p>
-            <p class="help" style="margin-top:4px;">Meta visual: 4 cafés/dia.</p>
+      <div class="card single-ring-card coffee-card">
+        <div class="kcal-ring-wrap">
+          <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
+            <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
+            <circle class="single-ring-seg coffee" id="coffee-ring-circle" cx="110" cy="110" r="86"></circle>
+          </svg>
+          <div class="kcal-center">
+            <div id="coffee-ring-val">0</div>
+            <span>cafés</span>
+            <small id="coffee-ring-goal">/ 4 cafés</small>
           </div>
         </div>
+        <div class="single-ring-actions">
+          <button class="chip" id="btn-add-coffee" type="button">+ 1 café</button>
+          <button class="chip" id="btn-remove-coffee" type="button">− 1 café</button>
+        </div>
+        <p class="help single-ring-note">Cada café simples conta como 2 kcal no total diário. Meta visual: 4 cafés/dia.</p>
       </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <h3>Registo de hoje</h3>
@@ -1230,20 +3053,38 @@ header.top::after{
     </div>
 
     <div class="subview" id="sub-kcal">
-      <div class="card">
-        <div class="hydro-ring-wrap">
-          <div class="hydro-ring">
-            <svg width="104" height="104" viewBox="0 0 130 130">
-              <circle cx="65" cy="65" r="56" fill="none" stroke="#232E4A" stroke-width="12"/>
-              <circle cx="65" cy="65" r="56" fill="none" stroke="#F2B84B" stroke-width="12" stroke-linecap="round"
-                id="kcal-ring-circle" stroke-dasharray="351.9" stroke-dashoffset="351.9"/>
-            </svg>
-            <div class="center"><span class="val" id="kcal-ring-val">0</span><span class="goal" id="kcal-ring-goal">/ — kcal</span></div>
+      <div class="card kcal-modern-card">
+        <div class="kcal-ring-wrap">
+          <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
+            <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
+            <circle class="kcal-ring-seg carbs" cx="110" cy="110" r="86"></circle>
+            <circle class="kcal-ring-seg protein" cx="110" cy="110" r="86"></circle>
+            <circle class="kcal-ring-seg fat" cx="110" cy="110" r="86"></circle>
+          </svg>
+          <div class="kcal-center">
+            <div id="kcal-ring-val">0</div>
+            <span>kcal</span>
+            <small id="kcal-ring-goal">/ — kcal líquidos</small>
           </div>
-          <div style="flex:1; min-width:130px; display:flex; flex-direction:column; gap:5px;">
-            <div class="row space-between"><span class="help">Hidratos</span><span class="help" id="kcal-carbs-val">0g</span></div>
-            <div class="row space-between"><span class="help">Proteína</span><span class="help" id="kcal-protein-val">0g</span></div>
-            <div class="row space-between"><span class="help">Gordura</span><span class="help" id="kcal-fat-val">0g</span></div>
+        </div>
+
+        <div class="macro-row">
+          <div class="macro-item carbs">
+            <div class="macro-title"><span></span>Hidratos</div>
+            <strong id="kcal-carbs-val">0 g</strong>
+            <em id="kcal-carbs-ddr">0% <small>(0% da DDR)</small></em>
+          </div>
+
+          <div class="macro-item protein">
+            <div class="macro-title"><span></span>Proteína</div>
+            <strong id="kcal-protein-val">0 g</strong>
+            <em id="kcal-protein-ddr">0% <small>(0% da DDR)</small></em>
+          </div>
+
+          <div class="macro-item fat">
+            <div class="macro-title"><span></span>Gordura</div>
+            <strong id="kcal-fat-val">0 g</strong>
+            <em id="kcal-fat-ddr">0% <small>(0% da DDR)</small></em>
           </div>
         </div>
       </div>
@@ -1310,6 +3151,8 @@ header.top::after{
         <div class="card" style="padding:10px;"><h3 style="font-size:10.5px;">Pace corrida</h3><div class="stat" id="s7-run-speed" style="font-size:16px;">—</div></div>
         <div class="card" style="padding:10px;"><h3 style="font-size:10.5px;">Vel. média bike</h3><div class="stat" id="s7-bike-speed" style="font-size:16px;">—</div></div>
         <div class="card" style="padding:10px;"><h3 style="font-size:10.5px;">Potência bike</h3><div class="stat" id="s7-bike-power" style="font-size:16px;">—</div></div>
+        <div class="card" style="padding:10px;"><h3 style="font-size:10.5px;">VO₂ máx corrida</h3><div class="stat" id="s7-vo2-run" style="font-size:16px;">—</div></div>
+        <div class="card" style="padding:10px;"><h3 style="font-size:10.5px;">VO₂ máx bike</h3><div class="stat" id="s7-vo2-bike" style="font-size:16px;">—</div></div>
       </div>
     </div>
 
@@ -1329,10 +3172,9 @@ header.top::after{
           <div class="field" style="min-width:110px;"><label for="race-date">Data</label><input type="date" id="race-date"></div>
           <div class="field" style="min-width:90px;"><label for="race-dist">Dist. (km)</label><input type="number" step="0.1" id="race-dist"></div>
           <div class="field" style="min-width:90px;"><label for="race-elev">Altim. (m)</label><input type="number" id="race-elev"></div>
-          <div class="field" style="min-width:180px; flex-basis:100%;">
-            <label for="race-photo">Foto de fundo da prova</label>
-            <input type="file" id="race-photo" accept="image/*">
-            <div id="race-photo-preview" class="race-photo-preview" style="margin-top:8px;">Escolhe uma foto para aparecer como fundo no cartão da prova.</div>
+          <div class="field" style="min-width:130px;">
+            <label for="race-peak-hours">Pico máx. (h/sem)</label>
+            <input type="number" step="0.5" min="1" id="race-peak-hours" placeholder="ex: 10">
           </div>
           <button class="primary" type="submit">Guardar</button>
         </form>
@@ -1489,6 +3331,16 @@ header.top::after{
           <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2">Não ligado</span></div>
           <button class="ghost" id="btn-strava-disconnect" type="button">Desligar</button>
         </div>
+        <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
+          <h3>VO₂ máx manual</h3>
+          <p class="help" style="margin:0 0 8px;">Guarda aqui os teus valores de VO₂ máx. A app usa estes valores no resumo de treino.</p>
+          <form class="entry" id="form-strava-vo2">
+            <div class="field" style="min-width:130px;"><label for="vo2-run-manual">VO₂ corrida</label><input type="number" step="0.1" id="vo2-run-manual" placeholder="ex: 58.5"></div>
+            <div class="field" style="min-width:130px;"><label for="vo2-bike-manual">VO₂ bike</label><input type="number" step="0.1" id="vo2-bike-manual" placeholder="ex: 62.0"></div>
+            <button class="primary" type="submit">Guardar VO₂</button>
+          </form>
+          <p class="help" id="vo2-summary" style="margin-top:8px;">Sem VO₂ guardado.</p>
+        </div>
       </div>
       <div class="card fixed-form">
         <p class="help" style="margin:0 0 6px;"><strong>Nutrição IA</strong> (opcional) — permite escrever a refeição em texto e a IA estimar kcal/macros na aba Kcal.</p>
@@ -1585,6 +3437,7 @@ header.top::after{
     toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function escHtml(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function fmtDate(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
   function fmtDateShort(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit'}); }
@@ -1606,29 +3459,50 @@ header.top::after{
   let profile = { name:'', age:null, gender:null, heightCm:null, activityLevel:null };
 
   async function initGate(){
-    profile = await sGet('profile', {name:'', age:null, gender:null, heightCm:null, activityLevel:null});
-    if(profile && profile.name){
-      await unlock();
-    }else{
-      lockedEl.style.display = 'flex';
+    try{
+      profile = await sGet('profile', {name:'', age:null, gender:null, heightCm:null, activityLevel:null});
+    }catch(err){
+      console.error('Erro ao ler o perfil guardado', err);
+      profile = {name:'', age:null, gender:null, heightCm:null, activityLevel:null};
     }
+
+    // Pedido do Jorge: mostrar sempre a janela inicial a pedir o nome.
+    // Se já existir nome guardado, fica pré-preenchido, mas não salta automaticamente.
+    const nameEl = document.getElementById('login-name');
+    if(nameEl && profile && profile.name) nameEl.value = profile.name;
+    if(contentEl) contentEl.style.display = 'none';
+    if(lockedEl) lockedEl.style.display = 'flex';
+    setTimeout(() => { try{ if(nameEl) nameEl.focus({preventScroll:true}); }catch(_){} }, 250);
   }
 
-  document.getElementById('login-form').addEventListener('submit', async (e)=>{
-    e.preventDefault();
+  async function completeLogin(e){
+    if(e){ e.preventDefault(); e.stopPropagation(); }
     const errEl = document.getElementById('login-error');
-    errEl.textContent = '';
-    const name = document.getElementById('login-name').value.trim();
-    if(!name){ errEl.textContent = 'Escreve o teu nome.'; return; }
-    try{
-      profile.name = name;
-      await sSet('profile', profile);
-      await unlock();
-    }catch(err){
-      console.error('Erro ao guardar nome', err);
-      errEl.textContent = 'Ocorreu um erro. Tenta novamente.';
-    }
-  });
+    const nameEl = document.getElementById('login-name');
+    if(errEl) errEl.textContent = '';
+    const name = (nameEl && nameEl.value ? nameEl.value : '').trim();
+    if(!name){ if(errEl) errEl.textContent = 'Escreve o teu nome.'; if(nameEl) nameEl.focus(); return false; }
+    profile.name = name;
+    try{ await sSet('profile', profile); }
+    catch(err){ console.warn('Não consegui guardar localmente o nome; vou abrir a app na mesma.', err); }
+    try{ if(nameEl) nameEl.blur(); }catch(_){}
+    await unlock();
+    return false;
+  }
+
+  const loginForm = document.getElementById('login-form');
+  const loginBtn = document.getElementById('login-submit');
+  const loginName = document.getElementById('login-name');
+  if(loginForm) loginForm.addEventListener('submit', completeLogin);
+  if(loginBtn){
+    loginBtn.addEventListener('click', completeLogin, {passive:false});
+    loginBtn.addEventListener('touchend', completeLogin, {passive:false});
+  }
+  if(loginName){
+    loginName.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') completeLogin(e);
+    });
+  }
 
   async function unlock(){
     lockedEl.style.display = 'none';
@@ -1636,18 +3510,19 @@ header.top::after{
     try{
       await bootApp();
     }catch(err){
+      // Nunca voltar a bloquear a app: um erro no arranque não pode impedir o acesso.
       console.error('Erro ao iniciar a app', err);
-      contentEl.style.display = 'none';
-      lockedEl.style.display = 'flex';
-      document.getElementById('login-error').textContent = 'Ocorreu um erro ao carregar os dados. Tenta novamente.';
+      try{ toast('Alguns dados não carregaram — a app abriu na mesma.'); }catch(e){}
     }
   }
 
+  // Arranque normal com login. No iPhone, o botão também é tratado por touchend/click.
   initGate();
 
   // ================= APP STATE ================= //
   let weightEntries = [], sleepEntries = [], plannedWorkouts = [];
-  let stravaAuth = null, stravaActivities = [];
+  let stravaAuth = null, stravaActivities = [], stravaZones = null, stravaVo2 = {run:null, bike:null};
+  let trainingChartVisible = { Bike:true, Corrida:true, Força:true };
   let hydrationEntries = [], hydrationGoal = 2000;
   let raceGoal = null;
   const charts = {};
@@ -1657,6 +3532,7 @@ header.top::after{
   document.getElementById('tabbar').addEventListener('click', (e)=>{
     const btn = e.target.closest('button[data-tab]');
     if(!btn) return;
+    closeAllFloatingPanels();
     document.querySelectorAll('nav.tabbar button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('main section').forEach(s=>s.classList.remove('active'));
@@ -1669,6 +3545,7 @@ header.top::after{
     subtabsEl.addEventListener('click', (e)=>{
       const btn = e.target.closest('button[data-sub]');
       if(!btn) return;
+      closeWorkoutMenus();
       const container = subtabsEl.closest('section');
       container.querySelectorAll('.subtabs button[data-sub]').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
@@ -1715,18 +3592,19 @@ header.top::after{
 
   // Gráfico combinado — barras positivas por dia + linha a ligar os pontos.
   // series: [{name,color,data:[...]}]. Se houver mais do que uma série, empilha as barras e a linha usa o total diário.
-  function renderBarChart(containerEl, labels, series, showLegend){
+  function renderBarChart(containerEl, labels, series, showLegend, onLegendToggle){
     if(!containerEl) return;
     containerEl.innerHTML = '';
-    if(!labels.length || !series.some(s=>s.data.some(v=>v>0))){
+    const activeSeries = series.filter(s=>s.active !== false);
+    if(!labels.length || !activeSeries.length || !activeSeries.some(s=>s.data.some(v=>v>0))){
       containerEl.innerHTML = '<div class="empty">Ainda sem dados suficientes para o gráfico.</div>';
       return;
     }
     const W = containerEl.clientWidth || 320, H = containerEl.clientHeight || 150;
     const padL = 30, padB = 16, padT = 8, padR = 8;
     const plotW = W - padL - padR, plotH = H - padT - padB;
-    const stacked = series.length > 1;
-    const totals = labels.map((_,i)=> stacked ? series.reduce((s,ser)=>s+(ser.data[i]||0),0) : Math.max(...series.map(ser=>ser.data[i]||0)));
+    const stacked = activeSeries.length > 1;
+    const totals = labels.map((_,i)=> stacked ? activeSeries.reduce((s,ser)=>s+(ser.data[i]||0),0) : Math.max(...activeSeries.map(ser=>ser.data[i]||0)));
     const maxVal = Math.max(1, ...totals) * 1.15;
     const svg = svgEl('svg', {viewBox:`0 0 ${W} ${H}`, width:'100%', height:'100%'});
 
@@ -1748,14 +3626,14 @@ header.top::after{
       const groupX = padL + i*groupW + groupW*0.22;
       let yCursor = padT + plotH;
       if(stacked){
-        series.forEach(ser=>{
+        activeSeries.forEach(ser=>{
           const v = Math.max(0, ser.data[i]||0);
           const h = (v/maxVal)*plotH;
           if(h>0) svg.appendChild(svgEl('rect', {x:groupX, y:yCursor-h, width:barW, height:h, fill:ser.color, rx:3}));
           yCursor -= h;
         });
       }else{
-        series.forEach((ser,si)=>{
+        activeSeries.forEach((ser,si)=>{
           const v = Math.max(0, ser.data[i]||0);
           const h = (v/maxVal)*plotH;
           const x = groupX + si*barW;
@@ -1764,7 +3642,7 @@ header.top::after{
       }
 
       const total = totals[i] || 0;
-      const cx = groupX + (stacked ? barW/2 : (series.length*barW)/2);
+      const cx = groupX + (stacked ? barW/2 : (activeSeries.length*barW)/2);
       const cy = padT + plotH - (total/maxVal)*plotH;
       linePoints.push([cx, cy]);
 
@@ -1785,8 +3663,11 @@ header.top::after{
     if(showLegend && series.length>1){
       const legend = document.createElement('div');
       legend.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; font-size:10px; color:'+SVG_COLORS.muted+';';
-      legend.innerHTML = series.map(s=>`<span style="display:inline-flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block;"></span>${s.name}</span>`).join('');
+      legend.innerHTML = series.map(s=>`<button type="button" data-chart-legend="${s.name}" style="display:inline-flex; align-items:center; gap:5px; background:transparent; border:0; color:${SVG_COLORS.muted}; font-size:10px; padding:4px 6px; border-radius:999px; opacity:${s.active===false ? .35 : 1}; cursor:pointer;"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block;"></span>${s.name}</button>`).join('');
       containerEl.appendChild(legend);
+      if(onLegendToggle){
+        legend.querySelectorAll('[data-chart-legend]').forEach(btn=>btn.addEventListener('click', ()=> onLegendToggle(btn.dataset.chartLegend)));
+      }
     }
   }
 
@@ -1971,9 +3852,10 @@ header.top::after{
     document.getElementById('hydro-ring-val').textContent = total;
     document.getElementById('hydro-ring-goal').textContent = '/ ' + hydrationGoal + ' ml';
     document.getElementById('hydro-goal').value = hydrationGoal;
-    const circumference = 351.9;
-    const pct = Math.min(1, total / hydrationGoal);
-    document.getElementById('hydro-ring-circle').style.strokeDashoffset = (circumference * (1-pct));
+    const circumference = 540.35;
+    const pct = Math.min(1, hydrationGoal ? total / hydrationGoal : 0);
+    document.getElementById('hydro-ring-circle').style.strokeDasharray = (circumference * pct) + ' ' + circumference;
+    document.getElementById('hydro-ring-circle').style.strokeDashoffset = 0;
 
     const listEl = document.getElementById('hydro-today-list');
     if(todays.length===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
@@ -2050,10 +3932,13 @@ header.top::after{
 
     valEl.textContent = total;
 
-    const circumference = 351.9;
+    const circumference = 540.35;
     const goal = 4;
     const pct = Math.min(1, total / goal);
-    ringEl.style.strokeDashoffset = circumference * (1 - pct);
+    ringEl.style.strokeDasharray = (circumference * pct) + ' ' + circumference;
+    ringEl.style.strokeDashoffset = 0;
+    const coffeeGoalEl = document.getElementById('coffee-ring-goal');
+    if(coffeeGoalEl) coffeeGoalEl.textContent = '/ 4 cafés';
 
     if(todays.length === 0){
       listEl.innerHTML = '<div class="empty">Ainda não registaste cafés hoje.</div>';
@@ -2223,7 +4108,7 @@ header.top::after{
   }
 
   const foodListEl = document.getElementById('food-list');
-  Object.keys(FOOD_DB).forEach(name=>{
+  Object.keys(FOOD_DB).sort((a,b)=>a.localeCompare(b,'pt-PT',{sensitivity:'base',ignorePunctuation:true})).forEach(name=>{
     const opt = document.createElement('option');
     opt.value = name;
     foodListEl.appendChild(opt);
@@ -2306,36 +4191,129 @@ header.top::after{
     }
   });
 
+  function lastKnownWeightKg(){
+    if(weightEntries && weightEntries.length){
+      const last = weightEntries[weightEntries.length-1];
+      return last && last.kg ? Number(last.kg) : 75;
+    }
+    return 75;
+  }
+
+  function activityBurnedKcal(a){
+    if(!a) return 0;
+    if(a.calories != null && !isNaN(Number(a.calories)) && Number(a.calories) > 0){
+      return Math.round(Number(a.calories));
+    }
+    const cat = sportCategory(a.type);
+    const weight = lastKnownWeightKg();
+    const hours = (a.movingSec || 0) / 3600;
+    if(cat === 'run' && a.distanceKm){
+      return Math.round(weight * Number(a.distanceKm)); // regra prática: ~1 kcal/kg/km
+    }
+    const met = cat === 'bike' ? 8 : cat === 'forca' ? 5 : 4;
+    return Math.round(met * weight * hours);
+  }
+
+  function todayWorkoutBurnedKcal(){
+    const today = todayStr();
+    return Math.round((stravaActivities || [])
+      .filter(a => a.date && a.date.slice(0,10) === today)
+      .reduce((s,a) => s + activityBurnedKcal(a), 0));
+  }
+
+  function updateKcalModernRing(kcal, goal, carbs, protein, fat){
+    const safeGoal = Number(goal) || 0;
+    const safeKcal = Math.max(0, Number(kcal) || 0);
+    const safeCarbs = Math.max(0, Number(carbs) || 0);
+    const safeProtein = Math.max(0, Number(protein) || 0);
+    const safeFat = Math.max(0, Number(fat) || 0);
+    const totalMacroGrams = safeCarbs + safeProtein + safeFat;
+    const C = 540.35;
+
+    const carbsCircle = document.querySelector('.kcal-ring-seg.carbs');
+    const proteinCircle = document.querySelector('.kcal-ring-seg.protein');
+    const fatCircle = document.querySelector('.kcal-ring-seg.fat');
+
+    if(carbsCircle && proteinCircle && fatCircle){
+      if(totalMacroGrams > 0){
+        const carbsLen = C * (safeCarbs / totalMacroGrams);
+        const proteinLen = C * (safeProtein / totalMacroGrams);
+        const fatLen = C * (safeFat / totalMacroGrams);
+        carbsCircle.style.strokeDasharray = `${carbsLen} ${C - carbsLen}`;
+        carbsCircle.style.strokeDashoffset = '0';
+        proteinCircle.style.strokeDasharray = `${proteinLen} ${C - proteinLen}`;
+        proteinCircle.style.strokeDashoffset = `${-carbsLen}`;
+        fatCircle.style.strokeDasharray = `${fatLen} ${C - fatLen}`;
+        fatCircle.style.strokeDashoffset = `${-(carbsLen + proteinLen)}`;
+      } else {
+        carbsCircle.style.strokeDasharray = `0 ${C}`;
+        proteinCircle.style.strokeDasharray = `0 ${C}`;
+        fatCircle.style.strokeDasharray = `0 ${C}`;
+        carbsCircle.style.strokeDashoffset = '0';
+        proteinCircle.style.strokeDashoffset = '0';
+        fatCircle.style.strokeDashoffset = '0';
+      }
+    }
+
+    const kcalVal = document.getElementById('kcal-ring-val');
+    const kcalGoal = document.getElementById('kcal-ring-goal');
+    if(kcalVal) kcalVal.textContent = Math.round(safeKcal);
+    if(kcalGoal) kcalGoal.textContent = safeGoal ? `/ ${Math.round(safeGoal)} kcal líquidos` : '/ — kcal líquidos';
+
+    const carbsVal = document.getElementById('kcal-carbs-val');
+    const proteinVal = document.getElementById('kcal-protein-val');
+    const fatVal = document.getElementById('kcal-fat-val');
+    if(carbsVal) carbsVal.textContent = `${Math.round(safeCarbs)} g`;
+    if(proteinVal) proteinVal.textContent = `${Math.round(safeProtein)} g`;
+    if(fatVal) fatVal.textContent = `${Math.round(safeFat)} g`;
+
+    const macroPct = (value) => totalMacroGrams > 0 ? Math.round((value / totalMacroGrams) * 100) : 0;
+    const carbsGoal = safeGoal ? (safeGoal * 0.50 / 4) : 0;
+    const proteinGoal = safeGoal ? (safeGoal * 0.25 / 4) : 0;
+    const fatGoal = safeGoal ? (safeGoal * 0.25 / 9) : 0;
+    const ddrPct = (value, target) => target > 0 ? Math.round((value / target) * 100) : 0;
+
+    const carbsDdr = document.getElementById('kcal-carbs-ddr');
+    const proteinDdr = document.getElementById('kcal-protein-ddr');
+    const fatDdr = document.getElementById('kcal-fat-ddr');
+    if(carbsDdr) carbsDdr.innerHTML = `${macroPct(safeCarbs)}% <small>(${ddrPct(safeCarbs, carbsGoal)}% da DDR)</small>`;
+    if(proteinDdr) proteinDdr.innerHTML = `${macroPct(safeProtein)}% <small>(${ddrPct(safeProtein, proteinGoal)}% da DDR)</small>`;
+    if(fatDdr) fatDdr.innerHTML = `${macroPct(safeFat)}% <small>(${ddrPct(safeFat, fatGoal)}% da DDR)</small>`;
+  }
+
   function renderKcal(){
     const today = todayStr();
     const todays = kcalEntries.filter(e=>e.date===today);
     const coffeeTotal = getTodayCoffeeTotal();
     const coffeeKcal = getTodayCoffeeKcal();
-    const totalKcal = todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal;
+    const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal);
+    const workoutKcal = todayWorkoutBurnedKcal();
+    const netKcal = intakeKcal - workoutKcal;
+    const totalKcal = Math.max(0, netKcal);
     const totalCarbs = todays.reduce((s,e)=>s+(e.carbs||0),0);
     const totalProtein = todays.reduce((s,e)=>s+(e.protein||0),0);
     const totalFat = todays.reduce((s,e)=>s+(e.fat||0),0);
 
     const goal = estimateMaintenanceKcal();
-    document.getElementById('kcal-ring-val').textContent = totalKcal;
-    document.getElementById('kcal-ring-goal').textContent = goal ? ('/ ' + goal + ' kcal') : '/ — kcal (completa o perfil)';
-    document.getElementById('kcal-carbs-val').textContent = Math.round(totalCarbs) + 'g';
-    document.getElementById('kcal-protein-val').textContent = Math.round(totalProtein) + 'g';
-    document.getElementById('kcal-fat-val').textContent = Math.round(totalFat) + 'g';
-    const circumference = 351.9;
-    const pct = goal ? Math.min(1, totalKcal/goal) : 0;
-    document.getElementById('kcal-ring-circle').style.strokeDashoffset = (circumference * (1-pct));
+    updateKcalModernRing(totalKcal, goal, totalCarbs, totalProtein, totalFat);
 
     const listEl = document.getElementById('kcal-today-list');
     const coffeeRows = coffeeTotal > 0
-      ? `<tr><td>Hoje</td><td>Café simples (${coffeeTotal}x)</td><td>${coffeeKcal}</td><td>0/0/0</td><td></td></tr>`
+      ? `<tr><td>Hoje</td><td>Café simples (${coffeeTotal}x)</td><td>+${coffeeKcal}</td><td>0/0/0</td><td></td></tr>`
+      : '';
+    const workoutRows = workoutKcal > 0
+      ? `<tr><td>Hoje</td><td>Treinos do dia</td><td>-${workoutKcal}</td><td>défice</td><td></td></tr>`
+      : '';
+    const summaryRows = (intakeKcal || workoutKcal)
+      ? `<tr><td>Total</td><td><strong>Kcal líquidas</strong></td><td><strong>${netKcal}</strong></td><td>${intakeKcal} ingeridas / ${workoutKcal} gastas</td><td></td></tr>`
       : '';
 
-    if(todays.length===0 && coffeeTotal===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
+    if(todays.length===0 && coffeeTotal===0 && workoutKcal===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
     else{
-      listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Alimento</th><th>Kcal</th><th>H/P/G</th><th></th></tr></thead><tbody>' +
+      listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Registo</th><th>Kcal</th><th>H/P/G</th><th></th></tr></thead><tbody>' +
         coffeeRows +
-        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}${e.photo?' 📷':''}</td><td>${e.food||'—'}</td><td>${e.kcal}</td><td>${Math.round(e.carbs||0)}/${Math.round(e.protein||0)}/${Math.round(e.fat||0)}</td><td><button class="icon-btn" data-kdel="${e.id}">✕</button></td></tr>`).join('') +
+        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}${e.photo?' 📷':''}</td><td>${e.food||'—'}</td><td>+${e.kcal}</td><td>${Math.round(e.carbs||0)}/${Math.round(e.protein||0)}/${Math.round(e.fat||0)}</td><td><button class="icon-btn" data-kdel="${e.id}">✕</button></td></tr>`).join('') +
+        workoutRows + summaryRows +
         '</tbody></table>';
       listEl.querySelectorAll('[data-kdel]').forEach(b=>b.addEventListener('click', async ()=>{
         kcalEntries = kcalEntries.filter(x=>x.id!==b.dataset.kdel);
@@ -2350,20 +4328,22 @@ header.top::after{
   function gatherTodayOptions(){
     const options = [];
     if(currentPlan){
-      const wk = currentPlan.weeks.find(w=>{
+      let weekIdx = currentPlan.weeks.findIndex(w=>{
         const s = new Date(w.start), e = new Date(w.end);
         const now = new Date(); now.setHours(0,0,0,0);
         return now >= s && now <= e;
-      }) || currentPlan.weeks[0];
+      });
+      if(weekIdx < 0) weekIdx = 0;
+      const wk = currentPlan.weeks[weekIdx];
       if(wk){
-        wk.sessions.forEach(s=>{
+        wk.sessions.forEach((s, sessionIdx)=>{
           const favMatch = s.title.includes('(teu favorito)');
-          options.push({ title: s.title, detail: s.detail, expectedMinutes: favMatch ? null : 45, source:'plano' });
+          options.push({ title: s.title, detail: s.detail, expectedMinutes: s.minutes || (favMatch ? null : 45), source:'plano', kind:'plan', weekIdx, sessionIdx });
         });
       }
     }
     favoriteWorkouts.forEach(w=>{
-      options.push({ title: w.name, detail: w.desc, expectedMinutes: w.baseMinutes, source:'favorito' });
+      options.push({ title: w.name, detail: w.desc, expectedMinutes: w.baseMinutes, source:'teu treino', kind:'favorite', id:w.id });
     });
     return options;
   }
@@ -2378,86 +4358,209 @@ header.top::after{
   }
 
   function openTodayPicker(){
+    closeAllFloatingPanels();
     let modal = document.getElementById('today-picker-modal');
     if(!modal){
       modal = document.createElement('div');
       modal.id = 'today-picker-modal';
-      modal.style.cssText = 'position:fixed; inset:0; background:var(--bg); z-index:150; display:flex; flex-direction:column; padding:16px;';
+      modal.style.cssText = 'position:fixed; inset:0; background:var(--bg); z-index:150; display:flex; flex-direction:column; padding:16px; overflow:hidden;';
       document.body.appendChild(modal);
     }
     const options = gatherTodayOptions();
     modal.innerHTML = `
       <div class="row space-between" style="flex:0 0 auto; margin-bottom:10px;">
-        <h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Treino de hoje</h2>
+        <h2 style="margin:0; font-family:var(--font-display); font-size:17px;">Treino de hoje</h2>
         <button class="ghost" id="today-picker-close" type="button">Fechar</button>
       </div>
-      <div class="scroll-y" style="flex:1; min-height:0;">
+      <div class="today-picker-list scroll-y" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:110px;">
         ${options.length===0 ? '<div class="empty">Ainda não tens sessões de um plano nem treinos favoritos. Gera um plano em Treinos &gt; Objetivo, ou guarda favoritos em Treinos &gt; Rápido.</div>' : ''}
         ${options.map((o,idx)=>`
-          <div class="card" style="margin-bottom:10px;">
-            <h3 style="font-size:13px; color:var(--text); margin-bottom:2px;">${o.title} <span class="help">(${o.source})</span></h3>
-            <p class="help" style="margin:0 0 8px;">${o.detail}</p>
+          <div class="card today-picker-card" style="margin-bottom:14px; position:relative;">
+            <button class="workout-menu-dot" data-today-option-menu="${idx}" type="button" aria-label="Opções do treino">⋮</button>
+            <h3 style="font-size:17px; color:var(--text); margin:0 44px 6px 0; line-height:1.25;">${escHtml(o.title)} <span class="help">(${escHtml(o.source)})</span></h3>
+            <p class="help" style="margin:0 0 12px; font-size:14px; line-height:1.45;">${escHtml(o.detail || '')}</p>
             <div class="row">
-              <div class="field" style="min-width:110px; flex:0 0 auto;"><label>Duração prevista (min)</label><input type="number" class="today-expected-input" data-idx="${idx}" value="${o.expectedMinutes||''}" placeholder="45"></div>
-              <button class="primary" data-pick="${idx}" type="button" style="align-self:flex-end;">Escolher</button>
+              <div class="field" style="min-width:130px; flex:0 0 auto;"><label>Duração prevista (min)</label><input type="number" class="today-expected-input" data-idx="${idx}" value="${o.expectedMinutes||''}" placeholder="45"></div>
+              <button class="primary" data-pick="${idx}" type="button" style="align-self:flex-end; min-width:106px;">Escolher</button>
             </div>
           </div>`).join('')}
       </div>`;
     document.getElementById('today-picker-close').addEventListener('click', ()=> modal.remove());
+
+    async function selectOption(idx){
+      const o = options[idx];
+      const input = modal.querySelector(`.today-expected-input[data-idx="${idx}"]`);
+      const expectedMinutes = parseInt(input?.value,10) || o.expectedMinutes || 45;
+      todayPlan = { date: todayStr(), title:o.title, detail:o.detail, expectedMinutes, notes:'', completed:null, actualMinutes:null };
+      await sSet('today-plan', todayPlan);
+      modal.remove();
+      renderTodayWorkout();
+      checkTodayPlanAgainstStrava();
+      toast('Treino de hoje escolhido');
+      goToTab('dashboard');
+    }
+
     modal.querySelectorAll('[data-pick]').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const idx = parseInt(btn.dataset.pick,10);
+      btn.addEventListener('click', async ()=> selectOption(parseInt(btn.dataset.pick,10)));
+    });
+
+    modal.querySelectorAll('[data-today-option-menu]').forEach(btn=>{
+      btn.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        closeWorkoutMenus();
+        const idx = parseInt(btn.dataset.todayOptionMenu,10);
         const o = options[idx];
-        const input = modal.querySelector(`.today-expected-input[data-idx="${idx}"]`);
-        const expectedMinutes = parseInt(input.value,10) || 45;
-        todayPlan = { date: todayStr(), title:o.title, detail:o.detail, expectedMinutes, notes:'', completed:null, actualMinutes:null };
-        await sSet('today-plan', todayPlan);
-        modal.remove();
-        renderTodayWorkout();
-        checkTodayPlanAgainstStrava();
-        toast('Treino de hoje escolhido');
+        const menu = document.createElement('div');
+        menu.className = 'workout-action-menu';
+        menu.innerHTML = `
+          <button type="button" data-action="select">Selecionar treino</button>
+          <button type="button" data-action="edit">Editar texto</button>`;
+        btn.parentElement.appendChild(menu);
+        menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const action = item.dataset.action;
+          closeWorkoutMenus();
+          if(action==='select') return selectOption(idx);
+          if(action==='edit') return openTodayOptionEditor(o, ()=>openTodayPicker());
+        }));
       });
     });
   }
 
+  function openTodayOptionEditor(option, afterSave){
+    let modal = document.getElementById('today-option-edit-modal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'today-option-edit-modal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(7,11,20,.97); z-index:210; display:flex; flex-direction:column; padding:16px; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="row space-between" style="flex:0 0 auto; margin-bottom:12px;">
+        <h2 style="margin:0; font-family:var(--font-display); font-size:17px;">Editar treino</h2>
+        <button class="ghost" id="today-option-edit-close" type="button">Fechar</button>
+      </div>
+      <form class="card entry" id="form-today-option-edit" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label>Título</label><input type="text" id="edit-option-title" value="${escHtml(option.title)}" required></div>
+        <div class="field"><label>Descrição</label><textarea id="edit-option-detail" rows="8">${escHtml(option.detail || '')}</textarea></div>
+        <div class="field"><label>Duração prevista (min)</label><input type="number" id="edit-option-minutes" value="${option.expectedMinutes || ''}" placeholder="45"></div>
+        <div class="row" style="justify-content:flex-end;"><button class="primary" type="submit">Guardar alterações</button></div>
+      </form>`;
+    modal.querySelector('#today-option-edit-close').addEventListener('click', ()=> modal.remove());
+    modal.querySelector('#form-today-option-edit').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('edit-option-title').value.trim();
+      const detail = document.getElementById('edit-option-detail').value.trim();
+      const minutes = parseInt(document.getElementById('edit-option-minutes').value,10) || option.expectedMinutes || 45;
+      if(option.kind === 'favorite'){
+        const w = favoriteWorkouts.find(x=>x.id===option.id);
+        if(w){ w.name = title; w.desc = detail; w.baseMinutes = minutes; await sSet('favorite-workouts', favoriteWorkouts); renderFavoritesList(); }
+      } else if(option.kind === 'plan' && currentPlan?.weeks?.[option.weekIdx]?.sessions?.[option.sessionIdx]){
+        const s = currentPlan.weeks[option.weekIdx].sessions[option.sessionIdx];
+        s.title = title; s.detail = detail; s.minutes = minutes;
+        await sSet('training-plan', currentPlan);
+        renderPlanOutput(currentPlan);
+      }
+      modal.remove();
+      toast('Treino atualizado');
+      if(typeof afterSave === 'function') afterSave();
+    });
+  }
+
   document.getElementById('btn-pick-today').addEventListener('click', openTodayPicker);
+  const dashPickBtn = document.getElementById('btn-dashboard-pick-today');
+  if(dashPickBtn) dashPickBtn.addEventListener('click', (e)=>{ e.stopPropagation(); openTodayPicker(); });
+
+  function openTodayMenu(anchor){
+    closeWorkoutMenus();
+    const menu = document.createElement('div');
+    menu.className = 'workout-action-menu';
+    menu.innerHTML = todayPlan && todayPlan.date === todayStr() ? `
+      <button type="button" data-action="choose">Trocar treino</button>
+      <button type="button" data-action="edit">Editar texto</button>
+      <button type="button" data-action="clear">Remover treino</button>` : `
+      <button type="button" data-action="choose">Escolher treino</button>`;
+    anchor.parentElement.appendChild(menu);
+    menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const action = item.dataset.action;
+      closeWorkoutMenus();
+      if(action==='choose') openTodayPicker();
+      if(action==='edit') openTodayEditor();
+      if(action==='clear'){
+        if(!confirm('Remover o treino de hoje?')) return;
+        todayPlan = null;
+        await sSet('today-plan', null);
+        renderTodayWorkout();
+        toast('Treino de hoje removido');
+      }
+    }));
+  }
+
+  function openTodayEditor(){
+    if(!todayPlan || todayPlan.date !== todayStr()) return openTodayPicker();
+    let modal = document.getElementById('today-edit-modal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'today-edit-modal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(7,11,20,.96); z-index:190; display:flex; flex-direction:column; padding:16px; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="row space-between" style="flex:0 0 auto; margin-bottom:12px;">
+        <h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Editar treino de hoje</h2>
+        <button class="ghost" id="today-edit-close" type="button">Fechar</button>
+      </div>
+      <form class="card entry" id="form-today-edit" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label>Título</label><input type="text" id="edit-today-title" value="${escHtml(todayPlan.title)}" required></div>
+        <div class="field"><label>Descrição</label><textarea id="edit-today-detail" rows="7">${escHtml(todayPlan.detail || '')}</textarea></div>
+        <div class="field"><label>Duração prevista (min)</label><input type="number" id="edit-today-minutes" value="${todayPlan.expectedMinutes || ''}" placeholder="45"></div>
+        <div class="row" style="justify-content:flex-end;"><button class="primary" type="submit">Guardar alterações</button></div>
+      </form>`;
+    modal.querySelector('#today-edit-close').addEventListener('click', ()=> modal.remove());
+    modal.querySelector('#form-today-edit').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      todayPlan.title = document.getElementById('edit-today-title').value.trim();
+      todayPlan.detail = document.getElementById('edit-today-detail').value.trim();
+      todayPlan.expectedMinutes = parseInt(document.getElementById('edit-today-minutes').value,10) || todayPlan.expectedMinutes || 45;
+      await sSet('today-plan', todayPlan);
+      modal.remove();
+      renderTodayWorkout();
+      toast('Treino de hoje atualizado');
+    });
+  }
 
   function renderTodayWorkout(){
     const body = document.getElementById('today-workout-body');
+    if(!body) return;
     if(!todayPlan || todayPlan.date !== todayStr()){
-      body.innerHTML = '<p class="help" style="margin:0;">Ainda não escolheste o treino de hoje.</p>';
+      body.innerHTML = `
+        <button class="today-menu-dot" id="btn-today-menu" type="button" aria-label="Opções do treino">⋮</button>
+        <p class="today-workout-title">Sem treino escolhido</p>
+        <p class="today-workout-desc">Toca nos três pontos para escolher o treino de hoje.</p>`;
+      const menuBtn = document.getElementById('btn-today-menu');
+      if(menuBtn) menuBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openTodayMenu(menuBtn); });
       return;
     }
-    let statusHtml;
-    if(todayPlan.completed === true){
-      statusHtml = `<span class="badge normal">✅ Concluído</span> <span class="help">${todayPlan.actualMinutes}min feitos (previsto ${todayPlan.expectedMinutes}min)</span>`;
-    }else if(todayPlan.completed === false){
-      statusHtml = `<span class="badge elevada">⚠️ Feito, duração diferente</span> <span class="help">${todayPlan.actualMinutes}min feitos (previsto ${todayPlan.expectedMinutes}min)</span>`;
-    }else{
-      statusHtml = `<span class="help">Por fazer — previsto ${todayPlan.expectedMinutes}min. Sincroniza o Strava depois do treino para confirmar.</span>`;
+    body.innerHTML = `
+      <button class="today-clear-x" id="btn-clear-today" type="button" aria-label="Remover treino de hoje">×</button>
+      <button class="today-menu-dot" id="btn-today-menu" type="button" aria-label="Opções do treino">⋮</button>
+      <p class="today-workout-title">${todayPlan.title}</p>
+      <p class="today-workout-desc">${todayPlan.detail || ''}</p>
+      <span class="today-workout-badge">✓ Treino de hoje</span>`;
+    const clearBtn = document.getElementById('btn-clear-today');
+    if(clearBtn){
+      clearBtn.addEventListener('click', async (ev)=>{
+        ev.stopPropagation();
+        if(!confirm('Remover o treino de hoje?')) return;
+        todayPlan = null;
+        await sSet('today-plan', null);
+        renderTodayWorkout();
+        toast('Treino de hoje removido');
+      });
     }
-    body.innerHTML = `<h3 style="font-size:13px; color:var(--text); margin-bottom:2px;">${todayPlan.title}</h3>
-      <p class="help" style="margin:0 0 6px;">${todayPlan.detail}</p>
-      <p style="margin:0 0 8px;">${statusHtml}</p>
-      <label style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.3px;">Notas do treino</label>
-      <textarea id="today-notes" rows="3" placeholder="Vai deixando aqui notas ao longo do dia sobre como vai ser o treino..." style="width:100%; margin-top:4px; resize:vertical;">${todayPlan.notes||''}</textarea>
-      <div class="row" style="margin-top:6px;">
-        <button class="ghost" id="btn-clear-today" type="button">Limpar treino de hoje</button>
-      </div>`;
-    const notesEl = document.getElementById('today-notes');
-    let notesSaveTimer = null;
-    notesEl.addEventListener('input', ()=>{
-      clearTimeout(notesSaveTimer);
-      notesSaveTimer = setTimeout(async ()=>{
-        if(todayPlan){ todayPlan.notes = notesEl.value; await sSet('today-plan', todayPlan); }
-      }, 500);
-    });
-    document.getElementById('btn-clear-today').addEventListener('click', async ()=>{
-      todayPlan = null;
-      await sSet('today-plan', null);
-      renderTodayWorkout();
-      toast('Treino de hoje limpo');
-    });
+    const menuBtn = document.getElementById('btn-today-menu');
+    if(menuBtn) menuBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openTodayMenu(menuBtn); });
   }
 
   function checkTodayPlanAgainstStrava(){
@@ -2506,6 +4609,46 @@ header.top::after{
     return `Tens mais tempo do que o habitual (${availableMinutes}min vs ${baseMinutes}min, ~${pct}%). Podes alongar o aquecimento, acrescentar séries/repetições na parte principal, ou prolongar a parte final.`;
   }
 
+  async function openWorkoutEditor(workoutId){
+    const workout = favoriteWorkouts.find(w=>w.id===workoutId);
+    if(!workout) return;
+    let modal = document.getElementById('workout-edit-modal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'workout-edit-modal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(7,11,20,.96); z-index:180; display:flex; flex-direction:column; padding:16px; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="row space-between" style="flex:0 0 auto; margin-bottom:12px;">
+        <h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Editar treino</h2>
+        <button class="ghost" id="workout-edit-close" type="button">Fechar</button>
+      </div>
+      <form class="card entry" id="form-workout-edit" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label>Nome</label><input type="text" id="edit-workout-name" value="${workout.name.replace(/"/g,'&quot;')}" required></div>
+        <div class="field"><label>Tipo</label><select id="edit-workout-type">
+          ${Object.keys(QUICK_TYPE_LABELS).map(type=>`<option value="${type}" ${type===workout.type?'selected':''}>${QUICK_TYPE_LABELS[type]}</option>`).join('')}
+        </select></div>
+        <div class="field"><label>Duração habitual (min)</label><input type="number" id="edit-workout-minutes" value="${workout.baseMinutes}" required></div>
+        <div class="field"><label>Descrição</label><textarea id="edit-workout-desc" rows="6" required>${workout.desc}</textarea></div>
+        <div class="row" style="justify-content:flex-end;">
+          <button class="primary" type="submit">Guardar alterações</button>
+        </div>
+      </form>`;
+    modal.querySelector('#workout-edit-close').addEventListener('click', ()=> modal.remove());
+    modal.querySelector('#form-workout-edit').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      workout.name = document.getElementById('edit-workout-name').value.trim();
+      workout.type = document.getElementById('edit-workout-type').value;
+      workout.baseMinutes = parseInt(document.getElementById('edit-workout-minutes').value,10) || workout.baseMinutes;
+      workout.desc = document.getElementById('edit-workout-desc').value.trim();
+      await sSet('favorite-workouts', favoriteWorkouts);
+      modal.remove();
+      renderFavoritesList();
+      toast('Treino atualizado');
+    });
+  }
+
   document.getElementById('form-quick-pick').addEventListener('submit', (e)=>{
     e.preventDefault();
     const time = parseInt(document.getElementById('quick-time').value,10);
@@ -2517,12 +4660,27 @@ header.top::after{
       out.innerHTML = `<div class="empty">Ainda não tens treinos favoritos guardados em "${QUICK_TYPE_LABELS[type]}". Usa "+ Novo" abaixo para guardares os que costumas fazer.</div>`;
       return;
     }
-    out.innerHTML = matches.map(w=>`
-      <div class="card" style="margin-bottom:8px; cursor:pointer;" data-suggest-pick="${w.id}">
-        <h3 style="font-size:13px; color:var(--text); margin-bottom:2px;">${w.name} <span class="help">(${w.baseMinutes}min habituais)</span></h3>
-        <p class="help" style="margin:0 0 6px;">${w.desc}</p>
-        <p class="help" style="margin:0; color:var(--teal);">${scalingNote(w.baseMinutes, time)}</p>
+    out.innerHTML = `<p class="help" style="margin:0 0 8px;">Toca no treino para o escolheres. Usa os três pontinhos para editar o texto.</p>` + matches.map(w=>`
+      <div class="card" style="margin-bottom:8px; cursor:pointer; position:relative; padding-top:44px;" data-suggest-pick="${w.id}">
+        <button class="fav-del-x" data-fav-del="${w.id}" type="button" aria-label="Eliminar treino">×</button>
+        <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="suggest" type="button" aria-label="Opções do treino">⋮</button>
+        <h3 class="workout-card-title" style="color:var(--text); margin-bottom:4px; padding-right:44px;">${w.name} <span class="help">(${w.baseMinutes}min habituais)</span></h3>
+        <p class="help workout-card-desc" style="margin:0 0 7px;">${w.desc}</p>
+        <p class="help workout-card-desc" style="margin:0; color:var(--teal);">${scalingNote(w.baseMinutes, time)}</p>
       </div>`).join('');
+    attachWorkoutMenuHandlers(out, time);
+    out.querySelectorAll('[data-fav-edit]').forEach(btn=>btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      openWorkoutEditor(btn.dataset.favEdit);
+    }));
+    out.querySelectorAll('[data-fav-del]').forEach(b=>b.addEventListener('click', async (ev)=>{
+      ev.stopPropagation();
+      if(!confirm('Eliminar este treino?')) return;
+      favoriteWorkouts = favoriteWorkouts.filter(x=>x.id!==b.dataset.favDel);
+      await sSet('favorite-workouts', favoriteWorkouts);
+      renderFavoritesList();
+      toast('Treino removido dos favoritos');
+    }));
     out.querySelectorAll('[data-suggest-pick]').forEach(card=>card.addEventListener('click', ()=>{
       const w = matches.find(x=>x.id===card.dataset.suggestPick);
       if(w) pickToday(w.name, w.desc, time);
@@ -2538,18 +4696,25 @@ header.top::after{
     }
     const grouped = {};
     favoriteWorkouts.forEach(w=>{ (grouped[w.type] = grouped[w.type]||[]).push(w); });
-    out.innerHTML = `<p class="help" style="margin:0 0 8px;">Toca num treino para o escolheres como treino de hoje. Preenche tempo + tipo acima e toca em "Sugerir" para veres sugestões ajustadas ao tempo que tens.</p>` +
+    out.innerHTML = `<p class="help" style="margin:0 0 8px;">Toca num treino para o escolheres como treino de hoje. Podes editar ou apagar qualquer treino guardado.</p>` +
       Object.keys(grouped).map(type=>`
         <p class="help" style="margin:8px 0 4px; font-weight:700; text-transform:uppercase; font-size:10px;">${QUICK_TYPE_LABELS[type]}</p>
         ${grouped[type].map(w=>`
-          <div class="card" style="margin-bottom:8px; position:relative; cursor:pointer;" data-fav-pick="${w.id}">
-            <button class="icon-btn" data-fav-del="${w.id}" style="position:absolute; top:8px; right:8px;">✕</button>
-            <h3 style="font-size:13px; color:var(--text); margin:0 0 2px; padding-right:20px;">${w.name} <span class="help">(${w.baseMinutes}min)</span></h3>
-            <p class="help" style="margin:0;">${w.desc}</p>
+          <div class="card workout-pick-card" style="margin-bottom:8px;" data-fav-pick="${w.id}">
+            <button class="fav-del-x" data-fav-del="${w.id}" type="button" aria-label="Eliminar treino">×</button>
+            <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="fav" type="button" aria-label="Opções do treino">⋮</button>
+            <h3 class="workout-card-title">${w.name} <span class="help">${w.baseMinutes}min</span></h3>
+            <p class="help workout-card-desc">${w.desc}</p>
           </div>`).join('')}
       `).join('');
+    attachWorkoutMenuHandlers(out, null);
+    out.querySelectorAll('[data-fav-edit]').forEach(b=>b.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      openWorkoutEditor(b.dataset.favEdit);
+    }));
     out.querySelectorAll('[data-fav-del]').forEach(b=>b.addEventListener('click', async (ev)=>{
       ev.stopPropagation();
+      if(!confirm('Eliminar este treino?')) return;
       favoriteWorkouts = favoriteWorkouts.filter(x=>x.id!==b.dataset.favDel);
       await sSet('favorite-workouts', favoriteWorkouts);
       renderFavoritesList();
@@ -2560,6 +4725,69 @@ header.top::after{
       if(w) pickToday(w.name, w.desc, w.baseMinutes);
     }));
   }
+
+
+  function closeWorkoutMenus(){
+    document.querySelectorAll('.workout-action-menu').forEach(m=>m.remove());
+  }
+
+  function closeAllFloatingPanels(){
+    closeWorkoutMenus();
+    ['today-picker-modal','today-edit-modal','today-option-edit-modal','workout-edit-modal','plan-detail-modal','plan-session-edit-modal'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.remove();
+    });
+  }
+
+  function duplicateWorkout(id){
+    const w = favoriteWorkouts.find(x=>x.id===id);
+    if(!w) return;
+    favoriteWorkouts.push({...w, id:uid(), name:w.name + ' cópia'});
+    sSet('favorite-workouts', favoriteWorkouts).then(()=>{
+      renderFavoritesList();
+      toast('Treino duplicado');
+    });
+  }
+
+  function attachWorkoutMenuHandlers(container, pickMinutes){
+    if(!container) return;
+    container.querySelectorAll('[data-workout-menu]').forEach(btn=>{
+      btn.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        closeWorkoutMenus();
+        const id = btn.dataset.workoutMenu;
+        const w = favoriteWorkouts.find(x=>x.id===id);
+        if(!w) return;
+        const menu = document.createElement('div');
+        menu.className = 'workout-action-menu';
+        menu.innerHTML = `
+          <button type="button" data-action="select">Selecionar treino</button>
+          <button type="button" data-action="edit">Editar</button>
+          <button type="button" data-action="duplicate">Duplicar</button>
+          <button type="button" data-action="delete">Eliminar</button>`;
+        btn.parentElement.appendChild(menu);
+        menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const action = item.dataset.action;
+          closeWorkoutMenus();
+          if(action==='select') pickToday(w.name, w.desc, pickMinutes || w.baseMinutes);
+          if(action==='edit') openWorkoutEditor(w.id);
+          if(action==='duplicate') duplicateWorkout(w.id);
+          if(action==='delete'){
+            if(!confirm('Eliminar este treino?')) return;
+            favoriteWorkouts = favoriteWorkouts.filter(x=>x.id!==w.id);
+            await sSet('favorite-workouts', favoriteWorkouts);
+            renderFavoritesList();
+            toast('Treino removido dos favoritos');
+          }
+        }));
+      });
+    });
+  }
+
+  document.addEventListener('click', (ev)=>{
+    if(!ev.target.closest('.workout-action-menu') && !ev.target.closest('[data-workout-menu]')) closeWorkoutMenus();
+  });
 
   // ================= PLANNED WORKOUTS (manual) ================= //
   document.getElementById('form-plan').addEventListener('submit', async (e)=>{
@@ -2646,6 +4874,43 @@ header.top::after{
     }catch(err){ console.error(err); return false; }
   }
 
+
+  const vo2Form = document.getElementById('form-strava-vo2');
+  if(vo2Form){
+    vo2Form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const runVal = parseFloat(document.getElementById('vo2-run-manual').value);
+      const bikeVal = parseFloat(document.getElementById('vo2-bike-manual').value);
+      stravaVo2 = {
+        run: (!isNaN(runVal) && runVal > 0) ? runVal : null,
+        bike: (!isNaN(bikeVal) && bikeVal > 0) ? bikeVal : null
+      };
+      await sSet('strava-vo2', stravaVo2);
+      renderVo2UI();
+      renderTraining7d();
+      toast('VO₂ guardado');
+    });
+  }
+
+  function renderVo2UI(){
+    const runInput = document.getElementById('vo2-run-manual');
+    const bikeInput = document.getElementById('vo2-bike-manual');
+    const dashRun = document.getElementById('s7-vo2-run');
+    const dashBike = document.getElementById('s7-vo2-bike');
+    const summary = document.getElementById('vo2-summary');
+    const run = stravaVo2 && stravaVo2.run ? stravaVo2.run : null;
+    const bike = stravaVo2 && stravaVo2.bike ? stravaVo2.bike : null;
+    if(runInput && run) runInput.value = run;
+    if(bikeInput && bike) bikeInput.value = bike;
+    if(dashRun) dashRun.textContent = run ? (Number(run).toFixed(1)) : '—';
+    if(dashBike) dashBike.textContent = bike ? (Number(bike).toFixed(1)) : '—';
+    if(summary){
+      summary.textContent = (run || bike)
+        ? ('Corrida: ' + (run ? Number(run).toFixed(1) : '—') + ' · Bike: ' + (bike ? Number(bike).toFixed(1) : '—'))
+        : 'Sem VO₂ guardado.';
+    }
+  }
+
   document.getElementById('btn-strava-sync').addEventListener('click', syncStrava);
 
   async function syncStrava(){
@@ -2664,7 +4929,7 @@ header.top::after{
         elevGain: a.total_elevation_gain || 0, calories: a.calories || null
       }));
       await sSet('strava-activities', stravaActivities);
-      renderWorkouts(); renderTraining7d(); renderRaceAndPlan(); renderDashboard();
+      renderWorkouts(); renderTraining7d(); renderRaceAndPlan(); renderKcal(); renderDashboard(); renderVo2UI();
       checkTodayPlanAgainstStrava();
       toast('Treinos sincronizados: ' + stravaActivities.length);
     }catch(err){ console.error(err); toast('Falha ao sincronizar treinos do Strava.'); }
@@ -2698,7 +4963,7 @@ header.top::after{
     if(stravaActivities.length===0){ list.innerHTML = '<div class="empty">Sem treinos sincronizados ainda.</div>'; return; }
     const table = document.createElement('table');
     table.className = 'log';
-    table.innerHTML = '<thead><tr><th>Data</th><th>Atividade</th><th>Distância</th><th>Duração</th><th>Detalhe</th></tr></thead><tbody></tbody>';
+    table.innerHTML = '<thead><tr><th>Data</th><th>Atividade</th><th>Distância</th><th>Duração</th><th>Kcal</th><th>Detalhe</th></tr></thead><tbody></tbody>';
     const tbody = table.querySelector('tbody');
     stravaActivities.slice(0,25).forEach(a=>{
       const cat = sportCategory(a.type);
@@ -2706,8 +4971,10 @@ header.top::after{
       let detail = '—';
       if(cat==='bike') detail = a.avgWatts ? Math.round(a.avgWatts)+'W méd.' : '—';
       else if(cat==='run') detail = fmtPace(a.avgSpeedKmh);
+      const burned = activityBurnedKcal(a);
+      const kcalLabel = (a.calories != null && !isNaN(Number(a.calories)) && Number(a.calories) > 0) ? burned + ' kcal' : '~' + burned + ' kcal';
       tr.innerHTML = `<td>${fmtDateShort(a.date)}</td><td>${a.name} <span class="badge ${cat==='bike'?'bike':cat==='run'?'run':cat==='forca'?'forca':''}">${catLabel(cat)}</span></td>
-        <td>${a.distanceKm ? a.distanceKm.toFixed(1)+'km' : '—'}</td><td>${Math.round(a.movingSec/60)}min</td><td>${detail}</td>`;
+        <td>${a.distanceKm ? a.distanceKm.toFixed(1)+'km' : '—'}</td><td>${Math.round(a.movingSec/60)}min</td><td>${kcalLabel}</td><td>${detail}</td>`;
       tbody.appendChild(tr);
     });
     list.appendChild(table);
@@ -2755,10 +5022,17 @@ header.top::after{
 
     const ctx = document.getElementById('chart-7d');
     renderBarChart(ctx, days.map(fmtDateShort), [
-      {name:'Bike', color:'#3D6BFF', data: days.map(d=>Math.round(byDayCat[d].bike*10)/10)},
-      {name:'Corrida', color:'#35D9A6', data: days.map(d=>Math.round(byDayCat[d].run*10)/10)},
-      {name:'Força', color:'#F2B84B', data: days.map(d=>Math.round(byDayCat[d].forca*10)/10)}
-    ], true);
+      {name:'Bike', color:'#3D6BFF', data: days.map(d=>Math.round(byDayCat[d].bike*10)/10), active: trainingChartVisible.Bike !== false},
+      {name:'Corrida', color:'#35D9A6', data: days.map(d=>Math.round(byDayCat[d].run*10)/10), active: trainingChartVisible.Corrida !== false},
+      {name:'Força', color:'#F2B84B', data: days.map(d=>Math.round(byDayCat[d].forca*10)/10), active: trainingChartVisible.Força !== false}
+    ], true, (name)=>{
+      const activeCount = Object.values(trainingChartVisible).filter(Boolean).length;
+      if(trainingChartVisible[name] && activeCount <= 1){ toast('Mantém pelo menos uma modalidade visível'); return; }
+      trainingChartVisible[name] = !trainingChartVisible[name];
+      sSet('training-chart-visible', trainingChartVisible);
+      renderTraining7d();
+    });
+    renderVo2UI();
   }
 
   // ================= RACE GOAL + TRAINING PLAN ================= //
@@ -2792,13 +5066,9 @@ header.top::after{
     const date = document.getElementById('race-date').value;
     const distanceKm = parseFloat(document.getElementById('race-dist').value) || null;
     const elevationM = parseFloat(document.getElementById('race-elev').value) || null;
+    const peakHoursManual = parseFloat(document.getElementById('race-peak-hours')?.value) || null;
     if(!name || !date){ toast('Preenche pelo menos o nome e a data da prova'); return; }
-    let photoDataUrl = raceGoal && raceGoal.photoDataUrl ? raceGoal.photoDataUrl : null;
-    const photoInput = document.getElementById('race-photo');
-    if(photoInput && photoInput.files && photoInput.files[0]){
-      photoDataUrl = await fileToDataUrl(photoInput.files[0]);
-    }
-    raceGoal = { name, sport, date, distanceKm, elevationM, photoDataUrl };
+    raceGoal = { name, sport, date, distanceKm, elevationM, peakHoursManual, photoDataUrl: null };
     await sSet('race-goal', raceGoal);
     renderRaceAndPlan(); renderDashboard();
     toast('Objetivo guardado');
@@ -2818,8 +5088,8 @@ header.top::after{
     const weeksLeft = Math.max(1, Math.ceil(daysLeft/7));
     summaryEl.style.display = 'block';
     summaryEl.innerHTML = `<strong>${raceGoal.name}</strong> · ${raceSportLabel(raceGoal.sport)}<br>
-      <span class="help">${fmtDate(raceGoal.date)} · ${raceGoal.distanceKm?raceGoal.distanceKm+'km':'—'}${raceGoal.elevationM?' · '+raceGoal.elevationM+' D+':''} · faltam ${daysLeft>0?daysLeft+' dias':'já passou'}</span>
-      ${raceGoal.photoDataUrl ? '<div class="race-photo-preview has-photo" style="margin-top:10px;background-image:linear-gradient(180deg, rgba(8,13,24,.25), rgba(8,13,24,.72)), url('+raceGoal.photoDataUrl+')">Foto da prova</div>' : ''}`;
+      <span class="help">${fmtDate(raceGoal.date)} · ${raceGoal.distanceKm?raceGoal.distanceKm+'km':'—'}${raceGoal.elevationM?' · '+raceGoal.elevationM+' D+':''}${raceGoal.peakHoursManual?' · pico máx. '+raceGoal.peakHoursManual+'h/sem':''} · faltam ${daysLeft>0?daysLeft+' dias':'já passou'}</span>
+      `;
     planSection.style.display = daysLeft > 0 ? 'flex' : 'none';
     const preview = document.getElementById('race-photo-preview');
     if(preview && raceGoal.photoDataUrl){
@@ -2885,20 +5155,20 @@ header.top::after{
 
   const BIKE_WORKOUTS = {
     Base: [
-      {title:'Rolo Zona 2', detail:'90-120min a 55-70% FTP (RPE 4/10), cadência 85-95rpm. Potenciómetro + cardio ligados para confirmares a zona.'},
-      {title:'Rolo Zona 2 (2)', detail:'60-90min a 55-70% FTP, cadência estável.'},
+      {title:'Rolo Zona 2', detail:'90-120min em Zona 2 (RPE 4/10), cadência 85-95rpm. Potenciómetro + cardio ligados para confirmares a zona.'},
+      {title:'Rolo Zona 2 (2)', detail:'60-90min em Zona 2, cadência estável.'},
       {title:'Saída longa', detail:'2.5-3.5h Zona 2 constante, potência e cardio monitorizados o tempo todo.'}
     ],
     'Construção': [
-      {title:'Rampas', detail:'Aquecimento: 15-20min Zona 2. Principal: 6× 3min subida forte (90-105% FTP, RPE 8/10), 3min recuperação Zona 1. Retorno à calma: 10min Zona 1. Potenciómetro + cardio obrigatórios.'},
-      {title:'Limiar', detail:'Aquecimento: 15-20min Zona 2. Principal: 3× 10min a 95-100% FTP (RPE 7/10), 5min recuperação. Retorno à calma: 10min fácil.'},
-      {title:'Rolo Zona 2', detail:'75-90min a 55-70% FTP.'},
+      {title:'Rampas', detail:'Aquecimento: 15-20min Zona 2. Principal: 6× 3min subida forte (RPE 8/10), 3min recuperação Zona 1. Retorno à calma: 10min Zona 1. Potenciómetro + cardio obrigatórios.'},
+      {title:'Limiar', detail:'Aquecimento: 15-20min Zona 2. Principal: 3× 10min a ritmo de limiar (RPE 7/10), 5min recuperação. Retorno à calma: 10min fácil.'},
+      {title:'Rolo Zona 2', detail:'75-90min em Zona 2.'},
       {title:'Longa', detail:'3-3.5h Zona 2 com 2-3 blocos de 10min ao ritmo de prova.'}
     ],
     Pico: [
-      {title:'Escadas de potência', detail:'Aquecimento: 20min Zona 2. Principal: 3-4-5-4-3min crescendo até 100-110% FTP, recuperação = tempo do bloco. Retorno à calma: 10-15min Zona 1.'},
+      {title:'Escadas de potência', detail:'Aquecimento: 20min Zona 2. Principal: 3-4-5-4-3min em progressão forte, recuperação = tempo do bloco. Retorno à calma: 10-15min Zona 1.'},
       {title:'Simulação de prova', detail:'Percurso com perfil parecido ao da prova — foco em gerir a potência nas subidas, sem picos descontrolados. Potenciómetro + cardio.'},
-      {title:'Rolo Zona 2', detail:'75-90min a 55-70% FTP.'},
+      {title:'Rolo Zona 2', detail:'75-90min em Zona 2.'},
       {title:'Longa', detail:'3.5-4h Zona 2, com o último terço a simular o ritmo de prova.'}
     ],
     Taper: [
@@ -2923,7 +5193,7 @@ header.top::after{
 
   const RECOVERY_SESSION = {
     run: {title:'Recuperação', detail:'Descanso completo ou caminhada leve 20-30min. Faz sempre isto no dia a seguir à sessão mais longa/intensa da semana.'},
-    bike: {title:'Recuperação', detail:'Rolo muito leve 30-45min a baixa potência (Zona 1, <55% FTP), cadência solta. Ou descanso completo. Faz isto no dia a seguir à sessão mais longa/intensa da semana.'}
+    bike: {title:'Recuperação', detail:'Rolo muito leve 30-45min a baixa potência (Zona 1), cadência solta. Ou descanso completo. Faz isto no dia a seguir à sessão mais longa/intensa da semana.'}
   };
 
   function favoriteTypesFor(cat, sport){
@@ -2965,9 +5235,12 @@ header.top::after{
     const weeksLeft = Math.max(1, Math.ceil((raceDate-today)/(7*24*3600*1000)));
     const cat = raceCategory(raceGoal.sport);
 
-    const peakHours = targetPeakHours(cat, raceGoal.distanceKm);
+    const suggestedPeakHours = targetPeakHours(cat, raceGoal.distanceKm);
+    const manualPeakHours = parseFloat(raceGoal.peakHoursManual) || null;
+    const peakHours = manualPeakHours ? Math.max(1, manualPeakHours) : suggestedPeakHours;
     const recentAvg = weeklyHoursAvg(stravaActivities, cat, 8);
-    const startHours = Math.max(recentAvg || 0, minStartHours(cat, raceGoal.distanceKm));
+    const startHoursRaw = Math.max(recentAvg || 0, minStartHours(cat, raceGoal.distanceKm));
+    const startHours = Math.min(startHoursRaw, peakHours * 0.65);
 
     const taperWeeks = weeksLeft >= 10 ? 2 : (weeksLeft >= 4 ? 1 : 0);
     const buildWeeks = weeksLeft - taperWeeks;
@@ -3010,7 +5283,7 @@ header.top::after{
     const out = document.getElementById('plan-output');
     if(!plan){ out.innerHTML = ''; return; }
     const hrNote = HR_ZONE2_NOTE(profile.age);
-    out.innerHTML = `<p class="help">${plan.weeksLeft} semanas · começa perto de ${plan.baseline}h/semana e sobe até um pico de ${plan.peakHours}h/semana antes do taper.${hrNote ? ' '+hrNote : ''}</p>
+    out.innerHTML = `<p class="help">${plan.weeksLeft} semanas · começa perto de ${plan.baseline}h/semana e nunca passa de ${plan.peakHours}h/semana no pico.${hrNote ? ' '+hrNote : ''}</p>
       <p class="help">Recuperação incluída todas as semanas, e uma semana mais leve a cada 4 semanas.</p>
       <p class="help">Toca numa semana para veres os treinos detalhados.</p>
       <div id="plan-weeks-list"></div>`;
@@ -3019,7 +5292,7 @@ header.top::after{
       const row = document.createElement('div');
       row.className = 'row space-between';
       row.style.cssText = 'padding:9px 4px; border-bottom:1px solid var(--border); cursor:pointer;';
-      row.innerHTML = `<div><strong>${fmtDateShort(w.start)}</strong> · <span class="phase-tag phase-${w.phase}">${w.phase}</span></div><div style="color:var(--text-muted); font-size:12px;">${w.hours}h ›</div>`;
+      row.innerHTML = `<div><strong>Semana ${w.week}</strong> · <span class="phase-tag phase-${w.phase}">${w.phase}</span><div class="help" style="margin-top:3px;">Volume alvo: ${w.hours}h</div></div><div style="color:var(--text-muted); font-size:12px;">ver ›</div>`;
       row.addEventListener('click', ()=> openPlanWeekDetail(idx));
       listEl.appendChild(row);
     });
@@ -3032,21 +5305,89 @@ header.top::after{
     if(!modal){
       modal = document.createElement('div');
       modal.id = 'plan-detail-modal';
-      modal.style.cssText = 'position:fixed; inset:0; background:var(--bg); z-index:150; display:flex; flex-direction:column; padding:16px;';
+      modal.style.cssText = 'position:fixed; inset:0; background:var(--bg); z-index:150; display:flex; flex-direction:column; padding:16px; overflow:hidden;';
       document.body.appendChild(modal);
     }
     const hrNote = HR_ZONE2_NOTE(profile.age);
     modal.innerHTML = `
-      <div class="row space-between" style="flex:0 0 auto; margin-bottom:10px;">
+      <div class="row space-between plan-detail-header" style="flex:0 0 auto; margin-bottom:10px;">
         <div><h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Semana ${w.week} · <span class="phase-tag phase-${w.phase}">${w.phase}</span></h2>
-        <p class="help" style="margin:4px 0 0;">${fmtDateShort(w.start)} – ${fmtDateShort(w.end)} · volume alvo ${w.hours}h</p></div>
+        <p class="help" style="margin:4px 0 0;">Volume alvo: ${w.hours}h</p></div>
         <button class="ghost" id="plan-detail-close" type="button">Fechar</button>
       </div>
-      <div class="scroll-y" style="flex:1; min-height:0;">
+      <div class="scroll-y plan-detail-scroll" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;">
         ${hrNote ? `<div class="card" style="margin-bottom:10px;"><p class="help" style="margin:0;">${hrNote}</p></div>` : ''}
-        ${w.sessions.map(s=>`<div class="card" style="margin-bottom:10px;"><h3 style="font-size:13px; color:var(--text); margin-bottom:4px;">${s.title}</h3><p class="help" style="margin:0;">${s.detail}</p></div>`).join('')}
+        ${w.sessions.map((s,sidx)=>`<div class="card workout-pick-card" style="margin-bottom:10px;" data-plan-session="${sidx}">
+          <button class="workout-menu-dot" data-plan-menu="${sidx}" type="button" aria-label="Opções do treino">⋮</button>
+          <h3 class="workout-card-title">${s.title}</h3>
+          <p class="help workout-card-desc">${s.detail}</p>
+        </div>`).join('')}
       </div>`;
     document.getElementById('plan-detail-close').addEventListener('click', ()=>{ modal.remove(); });
+    modal.querySelectorAll('[data-plan-menu]').forEach(btn=>{
+      btn.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        closeWorkoutMenus();
+        const sidx = parseInt(btn.dataset.planMenu,10);
+        const session = w.sessions[sidx];
+        const menu = document.createElement('div');
+        menu.className = 'workout-action-menu';
+        menu.innerHTML = `
+          <button type="button" data-action="select">Selecionar para hoje</button>
+          <button type="button" data-action="edit">Editar texto</button>
+          <button type="button" data-action="favorite">Guardar nos meus treinos</button>`;
+        btn.parentElement.appendChild(menu);
+        menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const action = item.dataset.action;
+          closeWorkoutMenus();
+          if(action==='select') pickToday(session.title, session.detail, Math.round((session.minutes || 45)));
+          if(action==='edit') openPlanSessionEditor(idx, sidx);
+          if(action==='favorite'){
+            favoriteWorkouts.push({id:uid(), name:session.title, type:currentPlan.cat==='bike'?'bike-fora':'trail', baseMinutes:session.minutes || 45, desc:session.detail});
+            await sSet('favorite-workouts', favoriteWorkouts);
+            renderFavoritesList();
+            toast('Treino guardado nos teus treinos');
+          }
+        }));
+      });
+    });
+  }
+
+  function openPlanSessionEditor(weekIdx, sessionIdx){
+    if(!currentPlan) return;
+    const session = currentPlan.weeks[weekIdx].sessions[sessionIdx];
+    let modal = document.getElementById('plan-session-edit-modal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'plan-session-edit-modal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(7,11,20,.96); z-index:190; display:flex; flex-direction:column; padding:16px; overflow-y:auto; -webkit-overflow-scrolling:touch;';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="row space-between" style="flex:0 0 auto; margin-bottom:12px;">
+        <h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Editar sugestão</h2>
+        <button class="ghost" id="plan-session-edit-close" type="button">Fechar</button>
+      </div>
+      <form class="card entry" id="form-plan-session-edit" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="field"><label>Título</label><input type="text" id="edit-plan-session-title" value="${escHtml(session.title)}" required></div>
+        <div class="field"><label>Descrição</label><textarea id="edit-plan-session-detail" rows="7">${escHtml(session.detail || '')}</textarea></div>
+        <div class="field"><label>Duração prevista (min)</label><input type="number" id="edit-plan-session-minutes" value="${session.minutes || ''}" placeholder="45"></div>
+        <div class="row" style="justify-content:flex-end;"><button class="primary" type="submit">Guardar alterações</button></div>
+      </form>`;
+    modal.querySelector('#plan-session-edit-close').addEventListener('click', ()=> modal.remove());
+    modal.querySelector('#form-plan-session-edit').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      session.title = document.getElementById('edit-plan-session-title').value.trim();
+      session.detail = document.getElementById('edit-plan-session-detail').value.trim();
+      session.minutes = parseInt(document.getElementById('edit-plan-session-minutes').value,10) || session.minutes || 45;
+      await sSet('training-plan', currentPlan);
+      modal.remove();
+      document.getElementById('plan-detail-modal')?.remove();
+      renderPlanOutput(currentPlan);
+      openPlanWeekDetail(weekIdx);
+      toast('Sugestão atualizada');
+    });
   }
 
   // ================= DASHBOARD / ASSISTENTE ================= //
@@ -3167,13 +5508,17 @@ header.top::after{
 
     const assessment = computeHealthAssessment();
     if(assessment){
+      const verdictScore = Math.max(0, Math.min(100, assessment.overall));
+      const verdictHue = Math.round((verdictScore / 100) * 135); // 0 vermelho, 135 verde
+      const verdictColor = `hsl(${verdictHue} 78% 56%)`;
+      const verdictRing = document.getElementById('verdict-ring');
       document.getElementById('verdict-n').textContent = assessment.overall;
-      document.getElementById('verdict-ring').style.borderColor = assessment.ringColor;
+      verdictRing.style.setProperty('--verdict-color', verdictColor);
+      verdictRing.style.setProperty('--verdict-pct', verdictScore + '%');
       document.getElementById('verdict-title').textContent = assessment.title;
       document.getElementById('verdict-sub').textContent = 'Com base nos teus registos mais recentes.';
       document.getElementById('verdict-list').innerHTML = assessment.notes.map(n=>`<li>${n}</li>`).join('');
-      document.getElementById('verdict-gauge-wrap').style.display = 'block';
-      document.getElementById('verdict-gauge-dot').style.left = Math.max(1, Math.min(99, assessment.overall)) + '%';
+      document.getElementById('verdict-gauge-wrap').style.display = 'none';
     }
   }
 
@@ -3197,7 +5542,7 @@ header.top::after{
   });
 
   document.getElementById('btn-export').addEventListener('click', ()=>{
-    const payload = { profile, weightEntries, sleepEntries, plannedWorkouts, stravaActivities, hydrationEntries, hydrationGoal, coffeeEntries, kcalEntries, favoriteWorkouts, todayPlan, raceGoal, exportedAt: new Date().toISOString() };
+    const payload = { profile, weightEntries, sleepEntries, plannedWorkouts, stravaActivities, stravaZones, stravaVo2, hydrationEntries, hydrationGoal, coffeeEntries, kcalEntries, favoriteWorkouts, todayPlan, raceGoal, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'pulso-dados.json'; a.click();
@@ -3208,22 +5553,26 @@ header.top::after{
   async function bootApp(){
     if(appBooted) return; appBooted = true;
     const tStr = todayStr();
-    document.getElementById('weight-date').value = tStr;
-    document.getElementById('sleep-date').value = tStr;
-    document.getElementById('plan-date').value = tStr;
+    const setVal = (id, v)=>{ const el = document.getElementById(id); if(el) el.value = v; };
+    setVal('weight-date', tStr);
+    setVal('sleep-date', tStr);
+    setVal('plan-date', tStr);
 
     profile = await sGet('profile', {name:'', age:null, gender:null, heightCm:null, activityLevel:null});
-    document.getElementById('profile-name').value = profile.name || '';
-    document.getElementById('profile-age').value = profile.age || '';
-    document.getElementById('profile-gender').value = profile.gender || '';
-    document.getElementById('profile-height').value = profile.heightCm || '';
-    document.getElementById('profile-activity').value = (profile.activityLevel!=null) ? profile.activityLevel : '';
+    setVal('profile-name', profile.name || '');
+    setVal('profile-age', profile.age || '');
+    setVal('profile-gender', profile.gender || '');
+    setVal('profile-height', profile.heightCm || '');
+    setVal('profile-activity', (profile.activityLevel!=null) ? profile.activityLevel : '');
 
     weightEntries = await sGet('weight-entries', []);
     sleepEntries = await sGet('sleep-entries', []);
     plannedWorkouts = await sGet('planned-workouts', []);
     stravaAuth = await sGet('strava-auth', null);
     stravaActivities = await sGet('strava-activities', []);
+    stravaZones = await sGet('strava-zones', null);
+    stravaVo2 = await sGet('strava-vo2', {run:null, bike:null});
+    trainingChartVisible = await sGet('training-chart-visible', {Bike:true, Corrida:true, Força:true});
     hydrationEntries = await sGet('hydration-entries', []);
     hydrationGoal = await sGet('hydration-goal', 2000);
     coffeeEntries = await sGet('coffee-entries', []);
@@ -3232,22 +5581,25 @@ header.top::after{
     todayPlan = await sGet('today-plan', null);
     raceGoal = await sGet('race-goal', null);
     if(raceGoal){
-      document.getElementById('race-name').value = raceGoal.name || '';
-      document.getElementById('race-sport').value = raceGoal.sport || 'run-road';
-      document.getElementById('race-date').value = raceGoal.date || '';
-      document.getElementById('race-dist').value = raceGoal.distanceKm || '';
-      document.getElementById('race-elev').value = raceGoal.elevationM || '';
+      setVal('race-name', raceGoal.name || '');
+      setVal('race-sport', raceGoal.sport || 'run-road');
+      setVal('race-date', raceGoal.date || '');
+      setVal('race-dist', raceGoal.distanceKm || '');
+      setVal('race-elev', raceGoal.elevationM || '');
+      setVal('race-peak-hours', raceGoal.peakHoursManual || '');
     }
     const savedPlan = await sGet('training-plan', null);
 
-    renderWeight(); renderSleep();
-    renderWorkouts(); renderTraining7d(); renderHydration(); renderCoffee(); renderKcal();
-    renderRaceAndPlan(); renderPlanOutput(savedPlan);
-    updateStravaUI(); renderDashboard();
-    renderTodayWorkout(); checkTodayPlanAgainstStrava();
-    renderFavoritesList();
+    const safe = (name, fn)=>{ try{ fn(); }catch(err){ console.error('Falha em '+name, err); } };
+    safe('renderWeight', renderWeight); safe('renderSleep', renderSleep);
+    safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
+    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderKcal', renderKcal);
+    safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
+    safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderDashboard', renderDashboard);
+    safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
+    safe('renderFavoritesList', renderFavoritesList);
 
-    if(stravaAuth && stravaAuth.accessToken){ syncStrava(); }
+    if(stravaAuth && stravaAuth.accessToken){ try{ syncStrava(); }catch(err){ console.error('Falha no sync Strava', err); } }
   }
 })();
 </script>
