@@ -2733,172 +2733,371 @@ html, body, button, input, select, textarea {
 }
 
 
+/* =========================================================
+   PULSO — CORREÇÃO SCROLL PAINEL + CAFÉ
+   ========================================================= */
+
+/* Garante que a app ocupa o ecrã e deixa as páginas internas rolarem */
+html,
+body{
+  width:100%;
+  height:100%;
+  overflow:hidden !important;
+}
+
+#app-content{
+  height:100svh;
+  height:100dvh;
+  overflow:hidden !important;
+}
+
+main{
+  flex:1 1 auto;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+
+/* 1) Scroll real na página Painel */
+#tab-dashboard{
+  height:100% !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain !important;
+  padding-bottom:calc(170px + env(safe-area-inset-bottom)) !important;
+  scroll-padding-bottom:calc(190px + env(safe-area-inset-bottom)) !important;
+}
+
+/* 2) Scroll real na página Nutrição e especificamente no separador Café */
+#tab-hidratacao{
+  height:100% !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain !important;
+  padding-bottom:calc(170px + env(safe-area-inset-bottom)) !important;
+  scroll-padding-bottom:calc(190px + env(safe-area-inset-bottom)) !important;
+}
+
+#sub-cafes{
+  display:none;
+  min-height:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  padding-bottom:calc(120px + env(safe-area-inset-bottom)) !important;
+}
+
+#sub-cafes.active{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:14px !important;
+}
+
+/* As listas dentro do café deixam de bloquear o scroll da página */
+#sub-cafes .scroll-y,
+#coffee-today-list{
+  max-height:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+
+/* Garante que cartões longos no Café não ficam presos */
+#sub-cafes .card{
+  flex:0 0 auto !important;
+  min-height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+/* Se o teclado abrir, deixa margem extra */
+body.keyboard-open #tab-dashboard,
+body.keyboard-open #tab-hidratacao{
+  padding-bottom:calc(230px + env(safe-area-inset-bottom)) !important;
+}
+
 
 /* =========================================================
-   FUNDO DESPORTIVO PULSO — MONTANHAS EM CSS PURO, SEM IMAGENS
+   PULSO — CAMPOS MAIORES NO TELEMÓVEL
+   Peso, Sono e Perfil
    ========================================================= */
-:root{
-  --mountain-sky-1:#020713;
-  --mountain-sky-2:#06101f;
-  --mountain-sky-3:#0a1829;
-  --glass-card:rgba(12,24,38,.58);
-  --glass-card-strong:rgba(13,25,42,.72);
-  --glass-border:rgba(190,226,255,.18);
-  --neon-green:#8dff3f;
+
+@media (max-width: 520px){
+
+  /* Cartões de formulários mais confortáveis */
+  #tab-saude .card,
+  #tab-perfil .card{
+    padding:20px !important;
+    border-radius:30px !important;
+  }
+
+  /* Formulários de Saúde e Perfil deixam de ficar apertados */
+  #tab-saude form.entry,
+  #tab-perfil form.entry,
+  #tab-saude .entry,
+  #tab-perfil .entry{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:16px !important;
+    align-items:stretch !important;
+  }
+
+  /* Cada campo ocupa a largura toda */
+  #tab-saude .field,
+  #tab-perfil .field{
+    width:100% !important;
+    min-width:0 !important;
+    flex:0 0 auto !important;
+  }
+
+  /* Labels mais legíveis */
+  #tab-saude .field label,
+  #tab-perfil .field label{
+    font-size:12px !important;
+    line-height:1.25 !important;
+    margin-bottom:6px !important;
+    letter-spacing:.35px !important;
+  }
+
+  /* Inputs maiores para Peso, Sono e Perfil */
+  #tab-saude input,
+  #tab-saude select,
+  #tab-saude textarea,
+  #tab-perfil input,
+  #tab-perfil select,
+  #tab-perfil textarea{
+    min-height:58px !important;
+    height:auto !important;
+    padding:16px 15px !important;
+    font-size:18px !important;
+    border-radius:20px !important;
+    line-height:1.25 !important;
+  }
+
+  /* Botões maiores e fáceis de tocar no iPhone */
+  #tab-saude button.primary,
+  #tab-perfil button.primary,
+  #tab-saude button.ghost,
+  #tab-perfil button.ghost{
+    min-height:56px !important;
+    width:100% !important;
+    font-size:16px !important;
+    border-radius:20px !important;
+    padding:14px 18px !important;
+  }
+
+  /* Textareas do perfil mais altos */
+  #tab-perfil textarea,
+  #tab-saude textarea{
+    min-height:120px !important;
+  }
+
+  /* Evita que campos lado a lado voltem a apertar */
+  #tab-saude .grid2,
+  #tab-saude .grid3,
+  #tab-perfil .grid2,
+  #tab-perfil .grid3{
+    grid-template-columns:1fr !important;
+    gap:16px !important;
+  }
+
+  /* Mais espaço no fundo para teclado/menu */
+  #tab-saude,
+  #tab-perfil{
+    padding-bottom:calc(175px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom:calc(210px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.keyboard-open #tab-saude,
+  body.keyboard-open #tab-perfil{
+    padding-bottom:calc(240px + env(safe-area-inset-bottom)) !important;
+  }
 }
 
-html,body{
-  background:
-    radial-gradient(circle at 50% 12%, rgba(141,255,63,.12), transparent 22%),
-    radial-gradient(circle at 18% 18%, rgba(80,150,255,.15), transparent 28%),
-    linear-gradient(180deg,var(--mountain-sky-2) 0%,var(--mountain-sky-1) 56%,#02050c 100%) !important;
+
+/* Layout mobile: Saúde em coluna; Perfil máx. 2 colunas */
+@media (max-width:520px){
+  #tab-saude .grid,
+  #tab-saude .grid2,
+  #tab-saude .grid3,
+  #tab-saude form{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:16px!important;
+  }
+
+  #tab-perfil .grid3,
+  #tab-perfil .grid2{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:16px!important;
+  }
+
+  #tab-perfil .grid3 .full,
+  #tab-perfil .grid2 .full,
+  #tab-perfil textarea,
+  #tab-perfil .field.full{
+    grid-column:1 / -1!important;
+  }
+
+  #tab-perfil form{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:16px!important;
+  }
+
+  #tab-perfil form .field{
+    min-width:0;
+  }
+
+  #tab-saude .field,
+  #tab-perfil .field{
+    width:100%!important;
+  }
 }
 
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  z-index:-6;
-  pointer-events:none;
-  background:
-    linear-gradient(180deg,rgba(2,7,19,.08),rgba(2,7,19,.48) 56%,rgba(2,5,12,.92)),
-    radial-gradient(circle at 54% 27%,rgba(255,255,255,.18),transparent 3.5%),
-    radial-gradient(circle at 37% 22%,rgba(255,255,255,.10),transparent 2.8%),
-    radial-gradient(circle at 76% 24%,rgba(255,255,255,.08),transparent 3%),
-    linear-gradient(115deg,transparent 0 42%,rgba(255,255,255,.045) 42.3%,transparent 43%),
-    linear-gradient(245deg,transparent 0 64%,rgba(141,255,63,.16) 64.2%,transparent 64.8%);
+
+/* =========================================================
+   PULSO — MOBILE: PERFIL, PESO E SONO 2 A 2
+   ========================================================= */
+
+@media (max-width: 760px){
+
+  /* Perfil: formulário em grelha 2 a 2 */
+  #tab-perfil form.entry,
+  #tab-perfil .entry,
+  #tab-perfil .card form{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:16px !important;
+    align-items:end !important;
+  }
+
+  #tab-perfil .field{
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  #tab-perfil .field label{
+    font-size:12px !important;
+    line-height:1.25 !important;
+    min-height:30px !important;
+    display:flex !important;
+    align-items:flex-end !important;
+  }
+
+  #tab-perfil input,
+  #tab-perfil select,
+  #tab-perfil textarea{
+    width:100% !important;
+    min-height:58px !important;
+    font-size:18px !important;
+    padding:15px 14px !important;
+    border-radius:20px !important;
+  }
+
+  #tab-perfil textarea,
+  #tab-perfil .field.full,
+  #tab-perfil .field:has(textarea){
+    grid-column:1 / -1 !important;
+  }
+
+  #tab-perfil button.primary,
+  #tab-perfil button.ghost{
+    width:100% !important;
+    min-height:58px !important;
+    font-size:16px !important;
+    border-radius:20px !important;
+  }
+
+  /* Botões dentro do perfil ocupam uma célula; se for botão único fica na largura toda */
+  #tab-perfil form.entry > button:only-child,
+  #tab-perfil .entry > button:only-child{
+    grid-column:1 / -1 !important;
+  }
+
+  /* Saúde: Peso e Sono também 2 a 2, não tudo na mesma linha */
+  #tab-saude form.entry,
+  #tab-saude .entry,
+  #tab-saude .card form{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:16px !important;
+    align-items:end !important;
+  }
+
+  #tab-saude .field{
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  #tab-saude .field label{
+    font-size:12px !important;
+    line-height:1.25 !important;
+    min-height:30px !important;
+    display:flex !important;
+    align-items:flex-end !important;
+  }
+
+  #tab-saude input,
+  #tab-saude select,
+  #tab-saude textarea{
+    width:100% !important;
+    min-height:58px !important;
+    font-size:18px !important;
+    padding:15px 14px !important;
+    border-radius:20px !important;
+  }
+
+  #tab-saude textarea,
+  #tab-saude .field.full,
+  #tab-saude .field:has(textarea){
+    grid-column:1 / -1 !important;
+  }
+
+  #tab-saude button.primary,
+  #tab-saude button.ghost{
+    width:100% !important;
+    min-height:58px !important;
+    font-size:16px !important;
+    border-radius:20px !important;
+  }
+
+  /* Cartões com mais respiro */
+  #tab-perfil .card,
+  #tab-saude .card{
+    padding:20px !important;
+    border-radius:30px !important;
+  }
 }
 
-/* Cordilheira principal */
-body::after{
-  content:'';
-  position:fixed;
-  left:-8vw;
-  right:-8vw;
-  top:9vh;
-  height:52vh;
-  z-index:-5;
-  pointer-events:none;
-  opacity:.92;
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.02) 9%,transparent 16%) 28% 12%/10vw 24vh no-repeat,
-    linear-gradient(130deg,rgba(255,255,255,.22),rgba(255,255,255,.04) 18%,transparent 36%) 42% 7%/14vw 32vh no-repeat,
-    linear-gradient(230deg,rgba(255,255,255,.16),rgba(255,255,255,.035) 20%,transparent 39%) 62% 18%/13vw 25vh no-repeat,
-    linear-gradient(180deg,#15283b 0%,#0b1726 42%,#040912 100%);
-  clip-path:polygon(
-    0% 80%, 5% 64%, 10% 70%, 15% 48%, 20% 62%, 25% 32%, 31% 66%,
-    37% 25%, 43% 62%, 49% 36%, 55% 72%, 62% 46%, 68% 67%,
-    75% 39%, 82% 68%, 89% 44%, 95% 70%, 100% 52%, 100% 100%, 0% 100%
-  );
-  filter:contrast(1.25) saturate(.88) brightness(.82);
-}
+/* iPhone muito pequeno: continua 2 a 2, mas com menos espaçamento */
+@media (max-width: 390px){
+  #tab-perfil form.entry,
+  #tab-perfil .entry,
+  #tab-perfil .card form,
+  #tab-saude form.entry,
+  #tab-saude .entry,
+  #tab-saude .card form{
+    gap:12px !important;
+  }
 
-#app-content,
-#app-locked{
-  position:relative;
-  background:transparent !important;
-  isolation:isolate;
-}
+  #tab-perfil input,
+  #tab-perfil select,
+  #tab-saude input,
+  #tab-saude select{
+    font-size:17px !important;
+    padding:14px 12px !important;
+  }
 
-/* Montanhas de primeiro plano */
-#app-content::before,
-#app-locked::before{
-  content:'';
-  position:fixed;
-  left:-10vw;
-  right:-10vw;
-  top:30vh;
-  height:48vh;
-  z-index:-4;
-  pointer-events:none;
-  opacity:.72;
-  background:
-    linear-gradient(135deg,rgba(141,255,63,.18),transparent 9%) 9% 42%/26vw 28vh no-repeat,
-    linear-gradient(225deg,rgba(150,220,255,.13),transparent 14%) 80% 28%/30vw 34vh no-repeat,
-    linear-gradient(180deg,#0b1724,#050a12 72%,#02050b 100%);
-  clip-path:polygon(
-    0% 72%, 7% 58%, 14% 75%, 24% 36%, 31% 78%, 42% 50%, 50% 81%,
-    61% 43%, 70% 77%, 80% 35%, 88% 70%, 100% 40%, 100% 100%, 0 100%
-  );
-  filter:blur(.2px) brightness(.72);
-}
-
-/* Linhas topográficas + brilho verde */
-#app-content::after,
-#app-locked::after{
-  content:'';
-  position:fixed;
-  inset:0;
-  z-index:-3;
-  pointer-events:none;
-  opacity:.55;
-  background:
-    repeating-radial-gradient(ellipse at 8% 76%, transparent 0 24px, rgba(141,255,63,.16) 25px 26px, transparent 27px 47px),
-    repeating-radial-gradient(ellipse at 94% 20%, transparent 0 20px, rgba(141,255,63,.14) 21px 22px, transparent 23px 42px),
-    linear-gradient(128deg,transparent 0 76%,rgba(141,255,63,.54) 76.1%,rgba(141,255,63,.10) 76.5%,transparent 77%),
-    radial-gradient(circle at 48% 34%,rgba(141,255,63,.14),transparent 28%);
-  mix-blend-mode:screen;
-}
-
-header.top{
-  background:linear-gradient(180deg,rgba(2,7,19,.46),rgba(2,7,19,.12) 72%,transparent) !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
-  border-bottom:0 !important;
-}
-
-main > section{
-  background:transparent !important;
-}
-
-.card,
-.login-card{
-  background:
-    linear-gradient(145deg,rgba(255,255,255,.075),transparent 38%),
-    linear-gradient(180deg,var(--glass-card),rgba(6,13,24,.52)) !important;
-  border:1px solid var(--glass-border) !important;
-  box-shadow:
-    0 20px 55px rgba(0,0,0,.38),
-    inset 0 1px 0 rgba(255,255,255,.08) !important;
-  backdrop-filter:blur(14px) saturate(1.2) !important;
-  -webkit-backdrop-filter:blur(14px) saturate(1.2) !important;
-}
-
-.card::before{
-  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 42%) !important;
-}
-
-#tab-dashboard .grid3 .card,
-#tab-dashboard #today-workout-card,
-.kcal-modern-card{
-  background:
-    radial-gradient(circle at 82% 18%,rgba(141,255,63,.10),transparent 32%),
-    linear-gradient(145deg,rgba(255,255,255,.075),transparent 40%),
-    linear-gradient(180deg,rgba(14,29,47,.62),rgba(5,13,24,.58)) !important;
-}
-
-nav.tabbar{
-  background:rgba(2,8,17,.72) !important;
-  border:1px solid rgba(190,226,255,.14) !important;
-  backdrop-filter:blur(22px) saturate(1.25) !important;
-  -webkit-backdrop-filter:blur(22px) saturate(1.25) !important;
-}
-
-.subtabs{
-  background:rgba(2,8,17,.58) !important;
-  border:1px solid rgba(190,226,255,.12) !important;
-}
-
-input,select,textarea{
-  background:rgba(2,8,17,.58) !important;
-  border-color:rgba(190,226,255,.14) !important;
-}
-
-@media(max-width:520px){
-  body::after{top:7vh;height:44vh;opacity:.98;}
-  #app-content::before,#app-locked::before{top:25vh;height:46vh;opacity:.68;}
-  #app-content::after,#app-locked::after{opacity:.42;}
-  .card,.login-card{backdrop-filter:blur(11px) saturate(1.15) !important;-webkit-backdrop-filter:blur(11px) saturate(1.15) !important;}
+  #tab-perfil .field label,
+  #tab-saude .field label{
+    font-size:11px !important;
+  }
 }
 
 </style>
