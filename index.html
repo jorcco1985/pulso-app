@@ -5123,6 +5123,131 @@ nav.tabbar button.active svg{
 }
 </style>
 
+
+
+<style id="pulso-v3-tabs-text-final">
+/* =========================================================
+   PULSO V3 — textos superiores dos separadores maiores
+   - Aumento ligeiro dos textos nas barras superiores
+   - Mantém o aspeto premium e não mexe na barra inferior
+   ========================================================= */
+
+.subtabs{
+  padding:8px !important;
+  gap:8px !important;
+  border-radius:999px !important;
+}
+
+.subtabs button.ghost{
+  min-height:46px !important;
+  padding:0 12px !important;
+  font-size:14.5px !important;
+  line-height:1.05 !important;
+  font-weight:900 !important;
+  letter-spacing:.015em !important;
+  color:#AEBBD0 !important;
+}
+
+.subtabs button.ghost.active{
+  font-size:15.5px !important;
+  font-weight:950 !important;
+  color:#07110D !important;
+}
+
+/* Perfil tem mais opções, por isso fica em grelha limpa */
+#profile-subtabs{
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+  gap:8px !important;
+  padding:8px !important;
+}
+
+#profile-subtabs button.ghost{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:50px !important;
+  padding:0 8px !important;
+  font-size:14px !important;
+  white-space:normal !important;
+  text-align:center !important;
+}
+
+#profile-subtabs button.ghost.active{
+  font-size:14.8px !important;
+}
+
+/* Separadores de 4 opções: Resumo / Objetivo / Histórico / Treinos */
+#tab-treinos > .subtabs button.ghost,
+#tab-hidratacao > .subtabs button.ghost,
+#tab-saude > .subtabs button.ghost{
+  font-size:14.8px !important;
+}
+
+#tab-treinos > .subtabs button.ghost.active,
+#tab-hidratacao > .subtabs button.ghost.active,
+#tab-saude > .subtabs button.ghost.active{
+  font-size:15.8px !important;
+}
+
+@media(max-width:430px){
+  .subtabs{
+    padding:7px !important;
+    gap:6px !important;
+  }
+
+  .subtabs button.ghost{
+    min-height:44px !important;
+    padding:0 8px !important;
+    font-size:14px !important;
+  }
+
+  .subtabs button.ghost.active{
+    font-size:14.8px !important;
+  }
+
+  #tab-treinos > .subtabs button.ghost,
+  #tab-hidratacao > .subtabs button.ghost,
+  #tab-saude > .subtabs button.ghost{
+    font-size:14px !important;
+  }
+
+  #tab-treinos > .subtabs button.ghost.active,
+  #tab-hidratacao > .subtabs button.ghost.active,
+  #tab-saude > .subtabs button.ghost.active{
+    font-size:14.8px !important;
+  }
+
+  #profile-subtabs{
+    grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+    gap:6px !important;
+  }
+
+  #profile-subtabs button.ghost{
+    min-height:48px !important;
+    font-size:13.2px !important;
+    padding:0 6px !important;
+  }
+
+  #profile-subtabs button.ghost.active{
+    font-size:13.8px !important;
+  }
+}
+
+@media(max-width:370px){
+  .subtabs button.ghost{
+    font-size:13.2px !important;
+  }
+
+  .subtabs button.ghost.active{
+    font-size:13.8px !important;
+  }
+
+  #profile-subtabs button.ghost{
+    font-size:12.6px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
