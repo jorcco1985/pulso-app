@@ -5532,13 +5532,13 @@ nav.tabbar button.active svg{
           </svg>
           <div class="kcal-center">
             <div id="alcohol-ring-val">0</div>
-            <span>unid.</span>
-            <small id="alcohol-ring-goal">/ recomendado 0</small>
+            <span>ml</span>
+            <small id="alcohol-ring-goal">/ objetivo 0 ml</small>
           </div>
         </div>
         <div class="alcohol-summary">
           <div class="mini"><strong id="alcohol-drinks-total">0</strong><span>bebidas hoje</span></div>
-          <div class="mini"><strong id="alcohol-units-total">0</strong><span>unidades</span></div>
+          <div class="mini"><strong id="alcohol-units-total">0</strong><span>ml</span></div>
           <div class="mini"><strong id="alcohol-kcal-total">0</strong><span>kcal álcool</span></div>
         </div>
         <div class="single-ring-actions">
@@ -5549,7 +5549,7 @@ nav.tabbar button.active svg{
           <button class="chip" data-alcohol="wine" type="button">🍷 Copo de vinho</button>
           <button class="chip" data-alcohol="gin" type="button">🍸 Gin</button>
         </div>
-        <p class="help single-ring-note">Ideal visual: 0 unidades. O álcool soma às kcal do dia e penaliza a pontuação principal.</p>
+        <p class="help single-ring-note">Ideal visual: 0 ml. O álcool soma às kcal do dia e penaliza a pontuação principal.</p>
       </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <h3>Registo de hoje</h3>
@@ -6074,7 +6074,7 @@ nav.tabbar button.active svg{
                 <option value="protein">Proteína</option>
                 <option value="workoutMin">Minutos de treino</option>
                 <option value="workoutKm">Distância treino</option>
-                <option value="alcoholUnits">Álcool</option>
+                <option value="alcoholMl">Álcool</option>
               </select>
             </div>
             <div id="athlete-trend-chart" class="athlete-trend-chart"><div class="empty">Ainda sem dados suficientes para tendência.</div></div>
@@ -6781,13 +6781,29 @@ nav.tabbar button.active svg{
   // ================= ALCOOL ================= //
   let alcoholEntries = [];
   const ALCOHOL_DB = {
-    beer200: {label:'Cerveja 200 ml', volume:'200 ml', units:0.8, kcal:80},
-    beer330: {label:'Cerveja 330 ml', volume:'330 ml', units:1.3, kcal:130},
-    somersby200: {label:'Somersby 200 ml', volume:'200 ml', units:0.9, kcal:110},
-    somersby330: {label:'Somersby 330 ml', volume:'330 ml', units:1.5, kcal:180},
-    wine: {label:'Copo de vinho', volume:'1 copo', units:1.4, kcal:125},
-    gin: {label:'Gin', volume:'1 copo', units:1.2, kcal:100}
+    beer200: {label:'Cerveja 200 ml', volume:'200 ml', ml:200, units:0.8, kcal:80},
+    beer330: {label:'Cerveja 330 ml', volume:'330 ml', ml:330, units:1.3, kcal:130},
+    somersby200: {label:'Somersby 200 ml', volume:'200 ml', ml:200, units:0.9, kcal:110},
+    somersby330: {label:'Somersby 330 ml', volume:'330 ml', ml:330, units:1.5, kcal:180},
+    wine: {label:'Copo de vinho 150 ml', volume:'150 ml', ml:150, units:1.4, kcal:125},
+    gin: {label:'Gin 200 ml', volume:'200 ml', ml:200, units:1.2, kcal:100}
   };
+
+  function getAlcoholMl(e){
+    if(!e) return 0;
+    if(e.ml != null) return Math.round(Number(e.ml) || 0);
+    const volumeText = String(e.volume || '');
+    const match = volumeText.match(/(\d+(?:[\.,]\d+)?)\s*ml/i);
+    if(match) return Math.round(Number(match[1].replace(',', '.')) || 0);
+    const type = String(e.type || e.label || '').toLowerCase();
+    if(type.includes('330')) return 330;
+    if(type.includes('200')) return 200;
+    if(type.includes('vinho')) return 150;
+    if(type.includes('gin')) return 200;
+    return 0;
+  }
+
+  window.PulsoGetAlcoholMl = getAlcoholMl;
 
   function getTodayAlcoholEntries(){
     const today = todayStr();
@@ -6798,6 +6814,7 @@ nav.tabbar button.active svg{
     const todays = getTodayAlcoholEntries();
     return {
       drinks: todays.length,
+      ml: Math.round(todays.reduce((s,e)=>s+getAlcoholMl(e),0)),
       units: Math.round(todays.reduce((s,e)=>s+(Number(e.units)||0),0)*10)/10,
       kcal: Math.round(todays.reduce((s,e)=>s+(Number(e.kcal)||0),0))
     };
@@ -6814,9 +6831,10 @@ nav.tabbar button.active svg{
   }
 
   function alcoholNoteText(units){
-    const u = Number(units) || 0;
-    if(u <= 0) return 'Álcool: 0 unidades hoje — sem impacto na recuperação.';
-    return `Álcool: ${u.toFixed(1)} unidades hoje — pode prejudicar sono, recuperação e hidratação.`;
+    const totals = getTodayAlcoholTotals();
+    const ml = totals.ml || 0;
+    if(ml <= 0) return 'Álcool: 0 ml hoje — sem impacto na recuperação.';
+    return `Álcool: ${ml} ml hoje — pode prejudicar sono, recuperação e hidratação.`;
   }
 
   function alcoholColor(units){
@@ -6838,6 +6856,7 @@ nav.tabbar button.active svg{
         time: new Date().toISOString(),
         type: item.label,
         volume: item.volume,
+        ml: item.ml,
         units: item.units,
         kcal: item.kcal
       });
@@ -6859,13 +6878,13 @@ nav.tabbar button.active svg{
     const histEl = document.getElementById('alcohol-history-list');
     if(!ringVal || !ring || !listEl) return;
 
-    ringVal.textContent = totals.units % 1 === 0 ? String(totals.units) : totals.units.toFixed(1);
+    ringVal.textContent = String(totals.ml);
     if(drinksEl) drinksEl.textContent = totals.drinks;
-    if(unitsEl) unitsEl.textContent = totals.units % 1 === 0 ? String(totals.units) : totals.units.toFixed(1);
+    if(unitsEl) unitsEl.textContent = String(totals.ml);
     if(kcalEl) kcalEl.textContent = totals.kcal;
 
     const circumference = 540.35;
-    const pct = Math.min(1, totals.units / 4);
+    const pct = Math.min(1, totals.ml / 1000);
     ring.style.strokeDasharray = (circumference * pct) + ' ' + circumference;
     ring.style.strokeDashoffset = 0;
     ring.style.stroke = alcoholColor(totals.units);
@@ -6873,8 +6892,8 @@ nav.tabbar button.active svg{
     if(todays.length === 0){
       listEl.innerHTML = '<div class="empty">Ainda não registaste álcool hoje.</div>';
     }else{
-      listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>Unid.</th><th>Kcal</th><th></th></tr></thead><tbody>' +
-        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${e.type}</td><td>${Number(e.units).toFixed(1)}</td><td>${Math.round(e.kcal)}</td><td><button class="icon-btn" data-adel="${e.id}">✕</button></td></tr>`).join('') +
+      listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>ml</th><th>Kcal</th><th></th></tr></thead><tbody>' +
+        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${e.type}</td><td>${getAlcoholMl(e)}</td><td>${Math.round(e.kcal)}</td><td><button class="icon-btn" data-adel="${e.id}">✕</button></td></tr>`).join('') +
         '</tbody></table>';
       listEl.querySelectorAll('[data-adel]').forEach(b=>b.addEventListener('click', async ()=>{
         alcoholEntries = alcoholEntries.filter(x=>x.id!==b.dataset.adel);
@@ -6886,19 +6905,20 @@ nav.tabbar button.active svg{
     if(histEl){
       const byDate = {};
       (alcoholEntries || []).forEach(e=>{
-        if(!byDate[e.date]) byDate[e.date] = {drinks:0, units:0, kcal:0, labels:{}};
+        if(!byDate[e.date]) byDate[e.date] = {drinks:0, ml:0, units:0, kcal:0, labels:{}};
         byDate[e.date].drinks += 1;
+        byDate[e.date].ml += getAlcoholMl(e);
         byDate[e.date].units += Number(e.units)||0;
         byDate[e.date].kcal += Number(e.kcal)||0;
         byDate[e.date].labels[e.type] = (byDate[e.date].labels[e.type] || 0) + 1;
       });
       const dates = Object.keys(byDate).sort().reverse().slice(0,30);
       if(!dates.length) histEl.innerHTML = '<div class="empty">Ainda não há histórico.</div>';
-      else histEl.innerHTML = '<table class="log"><thead><tr><th>Data</th><th>Bebidas</th><th>Unid.</th><th>Kcal</th></tr></thead><tbody>' +
+      else histEl.innerHTML = '<table class="log"><thead><tr><th>Data</th><th>Bebidas</th><th>ml</th><th>Kcal</th></tr></thead><tbody>' +
         dates.map(d=>{
           const x = byDate[d];
           const labels = Object.entries(x.labels).map(([k,v])=>`${v}x ${k}`).join(', ');
-          return `<tr><td>${fmtDate(d)}</td><td>${labels}</td><td>${x.units.toFixed(1)}</td><td>${Math.round(x.kcal)}</td></tr>`;
+          return `<tr><td>${fmtDate(d)}</td><td>${labels}</td><td>${Math.round(x.ml)}</td><td>${Math.round(x.kcal)}</td></tr>`;
         }).join('') + '</tbody></table>';
     }
   }
@@ -7332,7 +7352,7 @@ nav.tabbar button.active svg{
       ? `<tr><td>Hoje</td><td>Café simples (${coffeeTotal}x)</td><td>+${coffeeKcal}</td><td>0/0/0</td><td></td></tr>`
       : '';
     const alcoholRows = alcoholKcal > 0
-      ? `<tr><td>Hoje</td><td>Álcool (${alcoholTotals.drinks} bebida${alcoholTotals.drinks===1?'':'s'})</td><td>+${alcoholKcal}</td><td>${alcoholTotals.units} unid.</td><td></td></tr>`
+      ? `<tr><td>Hoje</td><td>Álcool (${alcoholTotals.ml} ml)</td><td>+${alcoholKcal}</td><td>${alcoholTotals.ml} ml</td><td></td></tr>`
       : '';
     const workoutRows = workoutKcal > 0
       ? `<tr><td>Hoje</td><td>Treinos do dia</td><td>-${workoutKcal}</td><td>défice</td><td></td></tr>`
@@ -9106,6 +9126,7 @@ nav.tabbar button.active svg{
     const planned = readPulsoJson('planned-workouts', []).filter(e=>sameDay(e.date, day));
 
     const alcoholUnits = Math.round(sum(alcohol, e=>e.units) * 10) / 10;
+    const alcoholMl = Math.round(sum(alcohol, e=>(typeof getAlcoholMl === 'function' ? getAlcoholMl(e) : (typeof window !== 'undefined' && window.PulsoGetAlcoholMl ? window.PulsoGetAlcoholMl(e) : (Number(e.ml)||0)))));
     const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
     const foodKcal = Math.round(sum(kcal, e=>e.kcal));
     const protein = Math.round(sum(kcal, e=>e.protein));
@@ -9134,6 +9155,7 @@ nav.tabbar button.active svg{
         coffeeCount,
         foodKcal,
         alcoholUnits,
+        alcoholMl,
         alcoholKcal,
         totalKcal: foodKcal + alcoholKcal,
         protein,
@@ -10937,6 +10959,7 @@ nav.tabbar button.active svg{
     const planned = read('planned-workouts', []).filter(e=>sameDay(e.date, day));
 
     const alcoholUnits = Math.round(sum(alcohol, e=>e.units) * 10) / 10;
+    const alcoholMl = Math.round(sum(alcohol, e=>(typeof getAlcoholMl === 'function' ? getAlcoholMl(e) : (typeof window !== 'undefined' && window.PulsoGetAlcoholMl ? window.PulsoGetAlcoholMl(e) : (Number(e.ml)||0)))));
     const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
     const foodKcal = Math.round(sum(kcal, e=>e.kcal));
     const protein = Math.round(sum(kcal, e=>e.protein));
@@ -10954,7 +10977,7 @@ nav.tabbar button.active svg{
       date:day,
       savedAt:new Date().toISOString(),
       score:Math.max(0, 80 - penalty),
-      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null },
+      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholMl, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null },
       details:{ meals:kcal, alcohol, hydration, coffee, workouts, planned }
     };
   }
@@ -10993,7 +11016,7 @@ nav.tabbar button.active svg{
     protein:{label:'Proteína', unit:' g', get:function(rec){return rec.totals ? Number(rec.totals.protein)||0 : 0;}},
     workoutMin:{label:'Minutos de treino', unit:' min', get:function(rec){return rec.totals ? Number(rec.totals.workoutMin)||0 : 0;}},
     workoutKm:{label:'Distância treino', unit:' km', get:function(rec){return rec.totals ? Number(rec.totals.workoutKm)||0 : 0;}},
-    alcoholUnits:{label:'Álcool', unit:' unid.', get:function(rec){return rec.totals ? Number(rec.totals.alcoholUnits)||0 : 0;}}
+    alcoholMl:{label:'Álcool', unit:' ml', get:function(rec){return rec.totals ? Number(rec.totals.alcoholMl)||0 : 0;}}
   };
 
   function renderAthleteTrend(){
@@ -11069,7 +11092,7 @@ nav.tabbar button.active svg{
         t.workoutMin ? (t.workoutMin + ' min treino') : null,
         t.totalKcal ? (Math.round(t.totalKcal) + ' kcal') : null,
         t.waterMl ? fmtL(t.waterMl) + ' água' : null,
-        t.alcoholUnits ? fmtUnits(t.alcoholUnits) + ' unid. álcool' : '0 álcool'
+        t.alcoholMl ? Math.round(t.alcoholMl) + ' ml álcool' : '0 álcool'
       ].filter(Boolean).join(' · ');
       return '<div class="athlete-day-card" data-day-card="'+rec.date+'">'+
         '<button class="athlete-day-head" type="button" data-toggle-day="'+rec.date+'">'+
@@ -11082,7 +11105,7 @@ nav.tabbar button.active svg{
             metric('Peso', t.weightKg ? Number(t.weightKg).toFixed(1).replace('.', ',') + ' kg' : '—')+
             metric('Água', fmtL(t.waterMl))+
             metric('Cafés', t.coffeeCount || 0)+
-            metric('Álcool', fmtUnits(t.alcoholUnits) + ' unid.')+
+            metric('Álcool', Math.round(t.alcoholMl || 0) + ' ml')+
             metric('Kcal totais', Math.round(t.totalKcal || 0))+
             metric('Proteína', Math.round(t.protein || 0) + ' g')+
             metric('Hidratos', Math.round(t.carbs || 0) + ' g')+
