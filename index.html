@@ -1510,6 +1510,25 @@ body.keyboard-open main > section.active{
 .strava-zone-bar{height:8px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden;}
 .strava-zone-fill{height:100%; border-radius:99px; background:var(--teal); opacity:.75;}
 @media(max-width:520px){.strava-zone-row{grid-template-columns:48px 1fr;}.strava-zone-row span:last-child{grid-column:2;font-size:11px;color:var(--text-muted);}}
+/* Zonas cardio manuais: versão compacta para iPhone */
+.manual-hr-zone-form{display:grid !important; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:8px !important; align-items:end;}
+.manual-hr-zone-form .field{min-width:0 !important;}
+.manual-hr-zone-form input{text-align:center; padding-left:6px !important; padding-right:6px !important;}
+.manual-hr-zone-form button.primary{grid-column:1 / -1; width:100%;}
+.strava-zone-list.manual-ref-list{gap:8px;}
+.strava-zone-row{grid-template-columns:52px 1fr 86px;}
+@media(max-width:520px){
+  .manual-hr-zone-form{grid-template-columns:repeat(5, minmax(0, 1fr)); gap:6px !important;}
+  .manual-hr-zone-form label{font-size:9px !important; white-space:nowrap;}
+  .manual-hr-zone-form input{font-size:15px !important; min-height:42px !important;}
+  .strava-zone-row{grid-template-columns:44px 1fr 74px !important; gap:6px !important; font-size:11.5px !important;}
+  .strava-zone-row span:last-child{grid-column:auto !important; font-size:11px !important; color:var(--text-muted); text-align:right;}
+}
+@media(max-width:380px){
+  .manual-hr-zone-form{grid-template-columns:repeat(3, minmax(0, 1fr));}
+  .manual-hr-zone-form button.primary{grid-column:1 / -1;}
+}
+
 
 
 
@@ -3676,6 +3695,229 @@ label[for="race-peak-hours"],
 }
 .wb-chip.active{background:rgba(53,217,166,.16); border-color:rgba(53,217,166,.5); color:var(--teal);}
 .workout-card-desc{white-space:pre-line;}
+
+
+/* ================= PERFIL COM SUBGRUPOS + ZONAS CARDIO COLORIDAS ================= */
+.profile-subtabs{
+  position:sticky;
+  top:0;
+  z-index:45;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.profile-subtabs::-webkit-scrollbar{display:none;}
+.profile-subtabs button{
+  flex:0 0 auto;
+  min-width:92px;
+  white-space:nowrap;
+}
+.profile-content{gap:12px;}
+.profile-subview{display:none; flex-direction:column; gap:12px; width:100%;}
+.profile-subview.active{display:flex;}
+.profile-group-head{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+.profile-group-icon{
+  width:44px; height:44px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(53,217,166,.12);
+  border:1px solid rgba(53,217,166,.18);
+  font-size:22px;
+  flex:0 0 auto;
+}
+.profile-group-head h3{margin:0 0 2px !important; color:var(--text) !important; font-size:15px !important; text-transform:none !important; letter-spacing:0 !important;}
+.profile-zones-card{overflow:visible !important;}
+.zone-ref-grid{
+  display:grid !important;
+  grid-template-columns:repeat(5, minmax(0, 1fr));
+  gap:10px !important;
+  align-items:end;
+}
+.zone-ref-grid .field{min-width:0 !important;}
+.zone-ref-grid .field label{font-size:10px !important; text-align:center; white-space:nowrap;}
+.zone-ref-grid input{text-align:center; font-weight:800; padding-left:6px !important; padding-right:6px !important;}
+.zone-ref-grid button.primary{grid-column:1 / -1; width:100%;}
+.zone-input{border-radius:18px; padding:8px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.07);}
+.zone-input.z1{border-color:rgba(79,210,92,.28);}
+.zone-input.z2{border-color:rgba(53,120,255,.30);}
+.zone-input.z3{border-color:rgba(255,197,39,.30);}
+.zone-input.z4{border-color:rgba(255,125,33,.30);}
+.zone-input.z5{border-color:rgba(255,59,67,.34);}
+.zone-color-list{display:flex; flex-direction:column; gap:8px;}
+.zone-card-row{
+  display:grid;
+  grid-template-columns:76px 1fr 86px;
+  align-items:center;
+  gap:10px;
+  min-height:70px;
+  border-radius:22px;
+  overflow:hidden;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.08);
+}
+.zone-card-badge{
+  height:100%; min-height:70px;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:900; font-size:22px;
+  letter-spacing:.3px;
+}
+.zone-card-main strong{display:block; font-size:15px; margin-bottom:2px; color:var(--text);}
+.zone-card-main span{display:block; color:var(--text-muted); font-size:12px;}
+.zone-card-value{text-align:right; padding-right:12px; font-size:19px; font-weight:900; color:var(--text);}
+.zone-card-value small{display:block; font-size:11px; font-weight:700; color:var(--text-muted); margin-top:2px;}
+.zone-z1 .zone-card-badge{background:linear-gradient(135deg,#52c94c,#2fa946);}
+.zone-z2 .zone-card-badge{background:linear-gradient(135deg,#2f7bff,#2755f0);}
+.zone-z3 .zone-card-badge{background:linear-gradient(135deg,#ffd43a,#f0a900);}
+.zone-z4 .zone-card-badge{background:linear-gradient(135deg,#ff8a2a,#ff5f1a);}
+.zone-z5 .zone-card-badge{background:linear-gradient(135deg,#ff424a,#e51f34);}
+.profile-note-card{background:rgba(7,11,20,.35) !important; border-radius:22px !important;}
+@media(max-width:520px){
+  .profile-subtabs{gap:5px; padding:5px; margin-bottom:0;}
+  .profile-subtabs button{min-width:86px; font-size:11px; padding-left:10px; padding-right:10px;}
+  .profile-group-icon{width:40px; height:40px; border-radius:14px; font-size:20px;}
+  .zone-ref-grid{grid-template-columns:repeat(2, minmax(0, 1fr)); gap:9px !important;}
+  .zone-ref-grid button.primary{grid-column:1 / -1;}
+  .zone-card-row{grid-template-columns:64px 1fr 72px; min-height:64px; gap:8px; border-radius:20px;}
+  .zone-card-badge{min-height:64px; font-size:20px;}
+  .zone-card-main strong{font-size:14px;}
+  .zone-card-main span{font-size:11.5px;}
+  .zone-card-value{font-size:17px; padding-right:10px;}
+}
+@media(max-width:380px){
+  .zone-ref-grid{grid-template-columns:1fr;}
+  .zone-card-row{grid-template-columns:56px 1fr 66px;}
+  .zone-card-main strong{font-size:13px;}
+}
+
+
+
+/* ================= DIÁRIO DO ATLETA / HISTÓRICO ================= */
+.athlete-history-list{display:flex; flex-direction:column; gap:10px;}
+.athlete-day-card{border-radius:24px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); overflow:hidden;}
+.athlete-day-head{width:100%; border:0; background:transparent; color:var(--text); display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 14px; text-align:left; cursor:pointer;}
+.athlete-day-title strong{display:block; font-size:16px; margin-bottom:3px;}
+.athlete-day-title span{display:block; color:var(--text-muted); font-size:12px;}
+.athlete-day-score{width:56px; height:56px; border-radius:999px; display:flex; align-items:center; justify-content:center; flex-direction:column; border:2px solid var(--teal); color:var(--teal); font-weight:900; flex:0 0 auto;}
+.athlete-day-score small{font-size:9px; color:var(--text-muted); font-weight:700;}
+.athlete-day-detail{display:none; padding:0 14px 14px;}
+.athlete-day-card.open .athlete-day-detail{display:block;}
+.athlete-metrics-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px;}
+.athlete-metric{border-radius:16px; background:rgba(7,11,20,.35); border:1px solid rgba(255,255,255,.07); padding:10px;}
+.athlete-metric strong{display:block; font-size:15px; color:var(--text);}
+.athlete-metric span{display:block; color:var(--text-muted); font-size:10.5px; margin-top:3px;}
+.athlete-detail-section{margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);}
+.athlete-detail-section h4{margin:0 0 6px; font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);}
+.athlete-detail-section p{margin:0; color:var(--text-muted); font-size:12px; line-height:1.45;}
+@media(max-width:520px){.athlete-metrics-grid{grid-template-columns:1fr 1fr;}.athlete-day-head{padding:13px 12px;}.athlete-day-score{width:50px;height:50px;}.athlete-metric{padding:9px;}}
+
+
+
+/* ================= TREINOS — menu escuro + cartões com ícones ================= */
+.workout-pick-card,
+#quick-suggestions .card[data-suggest-pick],
+.training-generated-card,
+.training-filtered-card,
+.training-engine-card{
+  position:relative !important;
+}
+.workout-pick-card.has-workout-icon,
+#quick-suggestions .card.has-workout-icon{
+  display:grid !important;
+  grid-template-columns:82px minmax(0,1fr) 44px;
+  gap:14px;
+  align-items:center;
+  padding:18px 58px 18px 72px !important;
+  min-height:126px;
+  text-align:left !important;
+}
+.workout-type-icon{
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  font-weight:900;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 26px rgba(0,0,0,.22);
+  grid-column:1;
+}
+.workout-type-icon.run{background:rgba(53,217,166,.13); color:var(--teal);}
+.workout-type-icon.bike{background:rgba(91,141,239,.14); color:#6EA0FF;}
+.workout-type-icon.force{background:rgba(242,132,75,.14); color:#ff9a4b;}
+.workout-type-icon.trail{background:rgba(167,139,250,.14); color:#b794ff;}
+.workout-type-icon.walk{background:rgba(242,184,75,.14); color:var(--amber);}
+.workout-card-main{
+  min-width:0;
+  grid-column:2;
+}
+.workout-pick-card.has-workout-icon .workout-card-title,
+#quick-suggestions .card.has-workout-icon .workout-card-title{
+  padding:0 !important;
+  margin:0 0 7px !important;
+  text-align:left !important;
+  font-size:18px !important;
+}
+.workout-pick-card.has-workout-icon .workout-card-desc,
+#quick-suggestions .card.has-workout-icon .workout-card-desc{
+  padding:0 !important;
+  margin:0 0 8px !important;
+  text-align:left !important;
+}
+.workout-card-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+.workout-card-tags span{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:3px 9px;
+  border-radius:999px;
+  background:rgba(53,217,166,.12);
+  color:var(--teal);
+  font-size:11px;
+  font-weight:800;
+}
+.fav-del-x{
+  top:14px !important;
+  left:14px !important;
+  background:rgba(7,11,20,.42) !important;
+}
+.workout-action-menu{
+  border-radius:22px !important;
+  background:rgba(17,24,39,.96) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.workout-action-menu button{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  color:var(--text) !important;
+}
+.workout-action-menu button .menu-ico{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(53,217,166,.12);
+  color:var(--teal);
+}
+@media(max-width:520px){
+  .workout-pick-card.has-workout-icon,
+  #quick-suggestions .card.has-workout-icon{
+    grid-template-columns:64px minmax(0,1fr) 38px;
+    gap:12px;
+    padding:16px 48px 16px 58px !important;
+    min-height:116px;
+  }
+  .workout-type-icon{width:54px; height:54px; font-size:26px;}
+  .workout-pick-card.has-workout-icon .workout-card-title,
+  #quick-suggestions .card.has-workout-icon .workout-card-title{font-size:16px !important;}
+  .workout-pick-card.has-workout-icon .workout-card-desc,
+  #quick-suggestions .card.has-workout-icon .workout-card-desc{font-size:12.5px !important;}
+}
+
 </style>
 </head>
 <body>
@@ -3859,10 +4101,6 @@ label[for="race-peak-hours"],
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <h3>Registo de hoje</h3>
         <div id="alcohol-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste álcool hoje.</div></div>
-      </div>
-      <div class="card">
-        <h3>Histórico</h3>
-        <div id="alcohol-history-list" class="scroll-y"><div class="empty">Ainda não há histórico.</div></div>
       </div>
     </div>
 
@@ -4224,68 +4462,93 @@ label[for="race-peak-hours"],
     <div class="section-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg></div>
   </section>
 
-  <!-- ================= PERFIL (fixo) ================= -->
+  <!-- ================= PERFIL (com subgrupos) ================= -->
   <section id="tab-perfil">
     <h2 class="section-title">Perfil</h2>
-    <div class="fill scroll-y">
-      <div class="card fixed-form">
-        <form class="entry" id="form-profile">
-          <div class="field"><label for="profile-name">Nome</label><input type="text" id="profile-name"></div>
-          <div class="field"><label for="profile-age">Idade</label><input type="number" id="profile-age" placeholder="34"></div>
-          <div class="field">
-            <label for="profile-gender">Género</label>
-            <select id="profile-gender"><option value="">—</option><option value="M">Masculino</option><option value="F">Feminino</option></select>
+
+    <div class="subtabs profile-subtabs" id="profile-subtabs">
+      <button class="ghost active" data-profile-tab="atleta" type="button">Atleta</button>
+      <button class="ghost" data-profile-tab="strava" type="button">Strava</button>
+      <button class="ghost" data-profile-tab="zonas" type="button">Zonas cardio</button>
+      <button class="ghost" data-profile-tab="nutricao" type="button">Nutrição IA</button>
+      <button class="ghost" data-profile-tab="dados" type="button">Dados</button>
+      <button class="ghost" data-profile-tab="historico" type="button">Histórico</button>
+    </div>
+
+    <div class="fill scroll-y profile-content">
+      <div class="profile-subview active" id="profile-sub-atleta">
+        <div class="card fixed-form profile-hero-card">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">👤</div>
+            <div>
+              <h3>Informação do atleta</h3>
+              <p class="help" style="margin:0;">Dados base usados para contexto, leitura de treino e nutrição.</p>
+            </div>
           </div>
-          <div class="field"><label for="profile-height">Altura (cm)</label><input type="number" id="profile-height" placeholder="178"></div>
-          <div class="field"><label for="profile-activity">Nível atividade (0-10)</label><input type="number" min="0" max="10" id="profile-activity" placeholder="6"></div>
-          <button class="primary" type="submit">Guardar</button>
-        </form>
-      </div>
-      <div class="card fixed-form">
-        <p class="help">Cria uma app em <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a>.</p>
-        <form class="entry" id="form-strava-creds">
-          <div class="field" style="min-width:110px;"><label for="strava-client-id">Client ID</label><input type="text" id="strava-client-id"></div>
-          <div class="field" style="min-width:150px;"><label for="strava-client-secret">Client Secret</label><input type="text" id="strava-client-secret"></div>
-        </form>
-        <ol class="help" style="padding-left:16px; margin:8px 0;">
-          <li>Abre a autorização Strava e inicia sessão.</li>
-          <li>O browser tenta abrir <code>localhost/...&code=XXXX</code> e falha — copia o valor depois de <code>code=</code>.</li>
-          <li>Cola o código abaixo e conclui.</li>
-          <li>As zonas cardio são preenchidas manualmente abaixo, copiadas do Strava.</li>
-        </ol>
-        <div class="row"><button class="ghost" id="btn-strava-auth" type="button">1. Abrir autorização</button></div>
-        <div class="row" style="margin-top:8px;">
-          <div class="field" style="min-width:160px;"><label for="strava-code">Código</label><input type="text" id="strava-code"></div>
-          <button class="primary" id="btn-strava-finish" type="button">2. Concluir</button>
-        </div>
-        <div class="row space-between" style="margin-top:10px;">
-          <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2">Não ligado</span></div>
-          <button class="ghost" id="btn-strava-disconnect" type="button">Desligar</button>
-        </div>
-        <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
-          <h3>Zonas cardio manuais</h3>
-          <p class="help" style="margin:0 0 10px;">Preenche aqui as zonas de frequência cardíaca retiradas do Strava. Estes valores ficam guardados no Perfil do atleta.</p>
-          <form class="entry" id="form-manual-hr-zones">
-            <div class="field"><label for="hr-z1-min">Z1 mín.</label><input type="number" id="hr-z1-min" placeholder="0"></div>
-            <div class="field"><label for="hr-z1-max">Z1 máx.</label><input type="number" id="hr-z1-max" placeholder="118"></div>
-            <div class="field"><label for="hr-z2-min">Z2 mín.</label><input type="number" id="hr-z2-min" placeholder="119"></div>
-            <div class="field"><label for="hr-z2-max">Z2 máx.</label><input type="number" id="hr-z2-max" placeholder="145"></div>
-            <div class="field"><label for="hr-z3-min">Z3 mín.</label><input type="number" id="hr-z3-min" placeholder="146"></div>
-            <div class="field"><label for="hr-z3-max">Z3 máx.</label><input type="number" id="hr-z3-max" placeholder="160"></div>
-            <div class="field"><label for="hr-z4-min">Z4 mín.</label><input type="number" id="hr-z4-min" placeholder="161"></div>
-            <div class="field"><label for="hr-z4-max">Z4 máx.</label><input type="number" id="hr-z4-max" placeholder="174"></div>
-            <div class="field"><label for="hr-z5-min">Z5 mín.</label><input type="number" id="hr-z5-min" placeholder="175"></div>
-            <div class="field"><label for="hr-z5-max">Z5 máx.</label><input type="number" id="hr-z5-max" placeholder="205"></div>
-            <button class="primary" type="submit">Guardar zonas</button>
+          <form class="entry" id="form-profile">
+            <div class="field"><label for="profile-name">Nome</label><input type="text" id="profile-name"></div>
+            <div class="field"><label for="profile-age">Idade</label><input type="number" id="profile-age" placeholder="34"></div>
+            <div class="field">
+              <label for="profile-gender">Género</label>
+              <select id="profile-gender"><option value="">—</option><option value="M">Masculino</option><option value="F">Feminino</option></select>
+            </div>
+            <div class="field"><label for="profile-height">Altura (cm)</label><input type="number" id="profile-height" placeholder="178"></div>
+            <div class="field"><label for="profile-activity">Nível atividade (0-10)</label><input type="number" min="0" max="10" id="profile-activity" placeholder="6"></div>
+            <button class="primary" type="submit">Guardar atleta</button>
           </form>
-          <div id="strava-hr-zones" class="strava-zone-list" style="margin-top:12px;">
-            <div class="empty">Sem zonas guardadas.</div>
-          </div>
-          <p class="help" id="strava-zones-note" style="margin-top:8px;">Atalho no Strava: Perfil &gt; Definições &gt; Zonas de treino &gt; Frequência cardíaca. Copia os limites de Z1 a Z5 para estes campos.</p>
         </div>
-        <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
-          <h3>VO₂ máx manual</h3>
-          <p class="help" style="margin:0 0 8px;">Guarda aqui os teus valores de VO₂ máx. A app usa estes valores no resumo de treino.</p>
+      </div>
+
+      <div class="profile-subview" id="profile-sub-strava">
+        <div class="card fixed-form">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🔗</div>
+            <div>
+              <h3>Ligação Strava</h3>
+              <p class="help" style="margin:0;">Sincronização de atividades e dados de treino.</p>
+            </div>
+          </div>
+          <p class="help">Cria uma app em <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a>.</p>
+          <form class="entry" id="form-strava-creds">
+            <div class="field" style="min-width:110px;"><label for="strava-client-id">Client ID</label><input type="text" id="strava-client-id"></div>
+            <div class="field" style="min-width:150px;"><label for="strava-client-secret">Client Secret</label><input type="text" id="strava-client-secret"></div>
+          </form>
+          <ol class="help" style="padding-left:16px; margin:8px 0;">
+            <li>Abre a autorização Strava e inicia sessão.</li>
+            <li>O browser tenta abrir <code>localhost/...&code=XXXX</code> e falha — copia o valor depois de <code>code=</code>.</li>
+            <li>Cola o código abaixo e conclui.</li>
+            <li>As zonas cardio e o VO₂ máx ficam no separador <strong>Zonas cardio</strong>.</li>
+          </ol>
+          <div class="row"><button class="ghost" id="btn-strava-auth" type="button">1. Abrir autorização</button></div>
+          <div class="row" style="margin-top:8px;">
+            <div class="field" style="min-width:160px;"><label for="strava-code">Código</label><input type="text" id="strava-code"></div>
+            <button class="primary" id="btn-strava-finish" type="button">2. Concluir</button>
+          </div>
+          <div class="row space-between" style="margin-top:10px;">
+            <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2">Não ligado</span></div>
+            <button class="ghost" id="btn-strava-disconnect" type="button">Desligar</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="profile-subview" id="profile-sub-zonas">
+        <div class="card fixed-form profile-zones-card">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">❤️</div>
+            <div>
+              <h3>Zonas de frequência cardíaca</h3>
+              <p class="help" style="margin:0;">Preenche só os valores de referência retirados do Strava.</p>
+            </div>
+          </div>
+        <div class="card fixed-form profile-note-card" style="margin-top:14px; padding:14px; box-shadow:none;">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🫁</div>
+            <div>
+              <h3>VO₂ máx</h3>
+              <p class="help" style="margin:0;">Valores manuais colocados junto às zonas cardio.</p>
+            </div>
+          </div>
           <form class="entry" id="form-strava-vo2">
             <div class="field" style="min-width:130px;"><label for="vo2-run-manual">VO₂ corrida</label><input type="number" step="0.1" id="vo2-run-manual" placeholder="ex: 58.5"></div>
             <div class="field" style="min-width:130px;"><label for="vo2-bike-manual">VO₂ bike</label><input type="number" step="0.1" id="vo2-bike-manual" placeholder="ex: 62.0"></div>
@@ -4293,18 +4556,73 @@ label[for="race-peak-hours"],
           </form>
           <p class="help" id="vo2-summary" style="margin-top:8px;">Sem VO₂ guardado.</p>
         </div>
-      </div>
-      <div class="card fixed-form">
-        <p class="help" style="margin:0 0 6px;"><strong>Nutrição IA</strong> (opcional) — permite escrever a refeição em texto e a IA estimar kcal/macros na aba Kcal.</p>
-        <p class="help">Precisa de uma <em>Netlify Function</em> própria com uma chave de API da Anthropic (console.anthropic.com — diferente da tua conta de chat). Nota que este ficheiro simples não a inclui; é preciso publicar o site com essa função configurada.</p>
-        <div class="row" style="margin-top:6px;">
-          <button class="ghost" id="btn-test-nutrition" type="button">Testar ligação</button>
+
+          <form class="manual-hr-zone-form zone-ref-grid" id="form-manual-hr-zones">
+            <div class="field zone-input z1"><label for="hr-z1-ref">Z1 até</label><input type="number" id="hr-z1-ref" placeholder="138"></div>
+            <div class="field zone-input z2"><label for="hr-z2-ref">Z2 até</label><input type="number" id="hr-z2-ref" placeholder="151"></div>
+            <div class="field zone-input z3"><label for="hr-z3-ref">Z3 até</label><input type="number" id="hr-z3-ref" placeholder="164"></div>
+            <div class="field zone-input z4"><label for="hr-z4-ref">Z4 até</label><input type="number" id="hr-z4-ref" placeholder="174"></div>
+            <div class="field zone-input z5"><label for="hr-z5-ref">Z5 desde</label><input type="number" id="hr-z5-ref" placeholder="175"></div>
+            <button class="primary" type="submit">Guardar zonas</button>
+          </form>
+
+          <div id="strava-hr-zones" class="strava-zone-list zone-color-list" style="margin-top:14px;">
+            <div class="empty">Sem zonas guardadas.</div>
+          </div>
+
+          <div class="card profile-note-card" style="margin-top:14px; padding:14px; box-shadow:none;">
+            <p class="help" id="strava-zones-note" style="margin:0;"><strong>Atalho no Strava:</strong> Perfil &gt; Definições &gt; Zonas de treino &gt; Frequência cardíaca. Copia apenas os valores de referência: Z1 até, Z2 até, Z3 até, Z4 até e Z5 desde.</p>
+          </div>
         </div>
-        <p class="help" id="nutrition-test-note" style="margin-top:6px;"></p>
       </div>
-      <div class="card fixed-form">
-        <div class="row">
-          <button class="ghost" id="btn-export" type="button">Exportar dados (.json)</button>
+
+      <div class="profile-subview" id="profile-sub-nutricao">
+        <div class="card fixed-form">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🥗</div>
+            <div>
+              <h3>Ligação Nutrição IA</h3>
+              <p class="help" style="margin:0;">Opcional: estimar refeições em texto livre na aba Kcal.</p>
+            </div>
+          </div>
+          <p class="help">Precisa de uma <em>Netlify Function</em> própria com uma chave de API da Anthropic. Este ficheiro simples não a inclui; é necessário publicar o site com essa função configurada.</p>
+          <div class="row" style="margin-top:6px;">
+            <button class="ghost" id="btn-test-nutrition" type="button">Testar ligação</button>
+          </div>
+          <p class="help" id="nutrition-test-note" style="margin-top:6px;"></p>
+        </div>
+      </div>
+
+      <div class="profile-subview" id="profile-sub-historico">
+        <div class="card fixed-form athlete-history-card">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">📈</div>
+            <div>
+              <h3>Diário do atleta</h3>
+              <p class="help" style="margin:0;">Resumo automático dos dias antes do reset diário.</p>
+            </div>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <button class="ghost" id="btn-archive-today" type="button">Guardar resumo de hoje</button>
+            <button class="ghost" id="btn-clear-athlete-history" type="button">Limpar histórico</button>
+          </div>
+          <p class="help" style="margin:0 0 12px;"><strong>Como funciona:</strong> quando o dia muda, o Pulso guarda os totais do dia e depois limpa os campos diários. O histórico fica aqui para consulta futura.</p>
+          <div id="athlete-history-list" class="athlete-history-list"><div class="empty">Ainda não há histórico guardado.</div></div>
+        </div>
+      </div>
+
+      <div class="profile-subview" id="profile-sub-dados">
+        <div class="card fixed-form">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">💾</div>
+            <div>
+              <h3>Dados da aplicação</h3>
+              <p class="help" style="margin:0;">Exportação e cópia de segurança.</p>
+            </div>
+          </div>
+          <div class="row">
+            <button class="ghost" id="btn-export" type="button">Exportar dados (.json)</button>
+          </div>
         </div>
       </div>
     </div>
@@ -4328,6 +4646,16 @@ label[for="race-peak-hours"],
 <script>
 (function(){
   "use strict";
+
+
+  // Perfil com subgrupos
+  document.querySelectorAll('#profile-subtabs [data-profile-tab]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.getAttribute('data-profile-tab');
+      document.querySelectorAll('#profile-subtabs [data-profile-tab]').forEach(b=>b.classList.toggle('active', b===btn));
+      document.querySelectorAll('#tab-perfil .profile-subview').forEach(view=>view.classList.toggle('active', view.id === 'profile-sub-' + key));
+    });
+  });
 
   window.addEventListener('error', function(e){
     try{
@@ -4389,6 +4717,68 @@ label[for="race-peak-hours"],
     toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function workoutVisualType(type, name){
+    const t = String(type || '').toLowerCase();
+    const n = String(name || '').toLowerCase();
+    if(t.includes('bike') || t.includes('cicl') || n.includes('bike') || n.includes('bicicleta') || n.includes('rolo')) return {cls:'bike', icon:'🚴', label:'Bike'};
+    if(t.includes('for') || t.includes('gym') || n.includes('força') || n.includes('muscul') || n.includes('kettlebell')) return {cls:'force', icon:'🏋️', label:'Força'};
+    if(t.includes('trail') || n.includes('trail') || n.includes('serra')) return {cls:'trail', icon:'🏃‍♂️', label:'Trail'};
+    if(t.includes('walk') || t.includes('camin') || n.includes('caminhada')) return {cls:'walk', icon:'🚶', label:'Caminhada'};
+    return {cls:'run', icon:'🏃', label:'Corrida'};
+  }
+  function workoutIconHtml(type, name){
+    const v = workoutVisualType(type, name);
+    return `<div class="workout-type-icon ${v.cls}" aria-hidden="true">${v.icon}</div>`;
+  }
+  function workoutTagsHtml(w, extra){
+    const tags = [];
+    const v = workoutVisualType(w.type || w.name || w.title, w.name || w.title);
+    if(w.baseMinutes) tags.push(`${w.baseMinutes} min`);
+    tags.push(v.label);
+    if(extra) tags.push(extra);
+    return `<div class="workout-card-tags">${tags.slice(0,3).map(t=>`<span>${t}</span>`).join('')}</div>`;
+  }
+
+  function openWorkoutTextModal(initialTitle, initialDesc, onSave){
+    const old = document.getElementById('workout-text-modal');
+    if(old) old.remove();
+    const modal = document.createElement('div');
+    modal.id = 'workout-text-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.68);display:flex;align-items:flex-end;justify-content:center;padding:18px 14px calc(24px + env(safe-area-inset-bottom));';
+    modal.innerHTML = `
+      <form class="card" id="workout-text-form" style="width:100%;max-width:560px;display:flex;flex-direction:column;gap:12px;">
+        <div class="row space-between"><h3 style="margin:0;color:var(--text);font-size:16px;">Editar treino</h3><button class="ghost" type="button" id="workout-text-close">Fechar</button></div>
+        <div class="field"><label>Nome do treino</label><input id="workout-text-title" type="text" value="${String(initialTitle||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" required></div>
+        <div class="field"><label>Descrição</label><textarea id="workout-text-desc" rows="5" required>${String(initialDesc||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea></div>
+        <button class="primary" type="submit">Guardar</button>
+      </form>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#workout-text-close').addEventListener('click', ()=> modal.remove());
+    modal.addEventListener('click', ev=>{ if(ev.target===modal) modal.remove(); });
+    modal.querySelector('#workout-text-form').addEventListener('submit', ev=>{
+      ev.preventDefault();
+      const t = modal.querySelector('#workout-text-title').value.trim();
+      const d = modal.querySelector('#workout-text-desc').value.trim();
+      modal.remove();
+      onSave(t || initialTitle, d || initialDesc);
+    });
+    setTimeout(()=>modal.querySelector('#workout-text-title')?.focus(), 50);
+  }
+
+  function openMiniWorkoutMenu(btn, actions){
+    closeWorkoutMenus();
+    const menu = document.createElement('div');
+    menu.className = 'workout-action-menu';
+    menu.innerHTML = actions.map(a=>`<button type="button" data-action="${a.id}"><span class="menu-ico">${a.icon}</span>${a.label}</button>`).join('');
+    btn.parentElement.appendChild(menu);
+    menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const found = actions.find(a=>a.id===item.dataset.action);
+      closeWorkoutMenus();
+      if(found && typeof found.run === 'function') found.run();
+    }));
+  }
+
   function escHtml(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function fmtDate(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
@@ -6068,12 +6458,15 @@ label[for="race-peak-hours"],
       return;
     }
     out.innerHTML = `<p class="help" style="margin:0 0 8px;">Toca no treino para o escolheres. Usa os três pontinhos para editar o texto.</p>` + matches.map(w=>`
-      <div class="card" style="margin-bottom:8px; cursor:pointer; position:relative; padding-top:44px;" data-suggest-pick="${w.id}">
+      <div class="card has-workout-icon" style="margin-bottom:8px; cursor:pointer; position:relative;" data-suggest-pick="${w.id}">
         <button class="fav-del-x" data-fav-del="${w.id}" type="button" aria-label="Eliminar treino">×</button>
+        ${workoutIconHtml(w.type, w.name)}
+        <div class="workout-card-main">
+          <h3 class="workout-card-title" style="color:var(--text);">${w.name}</h3>
+          <p class="help workout-card-desc">${w.desc}</p>
+          ${workoutTagsHtml(w, scalingNote(w.baseMinutes, time))}
+        </div>
         <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="suggest" type="button" aria-label="Opções do treino">⋮</button>
-        <h3 class="workout-card-title" style="color:var(--text); margin-bottom:4px; padding-right:44px;">${w.name} <span class="help">(${w.baseMinutes}min habituais)</span></h3>
-        <p class="help workout-card-desc" style="margin:0 0 7px;">${w.desc}</p>
-        <p class="help workout-card-desc" style="margin:0; color:var(--teal);">${scalingNote(w.baseMinutes, time)}</p>
       </div>`).join('');
     attachWorkoutMenuHandlers(out, time);
     out.querySelectorAll('[data-fav-edit]').forEach(btn=>btn.addEventListener('click', (ev)=>{
@@ -6107,11 +6500,15 @@ label[for="race-peak-hours"],
       Object.keys(grouped).map(type=>`
         <p class="help" style="margin:8px 0 4px; font-weight:700; text-transform:uppercase; font-size:10px;">${QUICK_TYPE_LABELS[type]}</p>
         ${grouped[type].map(w=>`
-          <div class="card workout-pick-card" style="margin-bottom:8px;" data-fav-pick="${w.id}">
+          <div class="card workout-pick-card has-workout-icon" style="margin-bottom:8px;" data-fav-pick="${w.id}">
             <button class="fav-del-x" data-fav-del="${w.id}" type="button" aria-label="Eliminar treino">×</button>
+            ${workoutIconHtml(w.type, w.name)}
+            <div class="workout-card-main">
+              <h3 class="workout-card-title">${w.name}</h3>
+              <p class="help workout-card-desc">${w.desc}</p>
+              ${workoutTagsHtml(w)}
+            </div>
             <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="fav" type="button" aria-label="Opções do treino">⋮</button>
-            <h3 class="workout-card-title">${w.name} <span class="help">${w.baseMinutes}min</span></h3>
-            <p class="help workout-card-desc">${w.desc}</p>
           </div>`).join('')}
       `).join('');
     attachWorkoutMenuHandlers(out, null);
@@ -6165,29 +6562,10 @@ label[for="race-peak-hours"],
         const id = btn.dataset.workoutMenu;
         const w = favoriteWorkouts.find(x=>x.id===id);
         if(!w) return;
-        const menu = document.createElement('div');
-        menu.className = 'workout-action-menu';
-        menu.innerHTML = `
-          <button type="button" data-action="select">Selecionar treino</button>
-          <button type="button" data-action="edit">Editar</button>
-          <button type="button" data-action="duplicate">Duplicar</button>
-          <button type="button" data-action="delete">Eliminar</button>`;
-        btn.parentElement.appendChild(menu);
-        menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
-          e.stopPropagation();
-          const action = item.dataset.action;
-          closeWorkoutMenus();
-          if(action==='select') pickToday(w.name, w.desc, pickMinutes || w.baseMinutes);
-          if(action==='edit') openWorkoutEditor(w.id);
-          if(action==='duplicate') duplicateWorkout(w.id);
-          if(action==='delete'){
-            if(!confirm('Eliminar este treino?')) return;
-            favoriteWorkouts = favoriteWorkouts.filter(x=>x.id!==w.id);
-            await sSet('favorite-workouts', favoriteWorkouts);
-            renderFavoritesList();
-            toast('Treino removido dos favoritos');
-          }
-        }));
+        openMiniWorkoutMenu(btn, [
+          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> pickToday(w.name, w.desc, pickMinutes || w.baseMinutes)},
+          {id:'edit', icon:'✎', label:'Editar treino', run:()=> openWorkoutEditor(w.id)}
+        ]);
       });
     });
   }
@@ -6292,35 +6670,51 @@ label[for="race-peak-hours"],
   if(manualHrZonesForm){
     manualHrZonesForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const zones = [];
+      const refs = [];
       for(let i=1;i<=5;i++){
-        const minEl = document.getElementById('hr-z' + i + '-min');
-        const maxEl = document.getElementById('hr-z' + i + '-max');
-        const min = minEl && minEl.value !== '' ? Number(minEl.value) : null;
-        const max = maxEl && maxEl.value !== '' ? Number(maxEl.value) : null;
-        if(min!==null || max!==null){ zones.push({ name:'Z' + i, min, max }); }
+        const el = document.getElementById('hr-z' + i + '-ref');
+        const val = el && el.value !== '' ? Number(el.value) : null;
+        refs.push(Number.isFinite(val) ? val : null);
       }
-      if(!zones.length){
+      if(refs.every(v=>v===null)){
         stravaZones = null;
         await sSet('strava-zones', null);
         renderStravaZonesUI();
         toast('Zonas cardio apagadas');
         return;
       }
-      stravaZones = { source:'manual', heartRate:zones, updatedAt:new Date().toISOString() };
+      const zones = [];
+      if(refs[0]!=null) zones.push({ name:'Z1', min:null, max:refs[0], ref:refs[0] });
+      if(refs[1]!=null) zones.push({ name:'Z2', min:refs[0]!=null ? refs[0] + 1 : null, max:refs[1], ref:refs[1] });
+      if(refs[2]!=null) zones.push({ name:'Z3', min:refs[1]!=null ? refs[1] + 1 : null, max:refs[2], ref:refs[2] });
+      if(refs[3]!=null) zones.push({ name:'Z4', min:refs[2]!=null ? refs[2] + 1 : null, max:refs[3], ref:refs[3] });
+      if(refs[4]!=null) zones.push({ name:'Z5', min:refs[4], max:null, ref:refs[4] });
+      stravaZones = { source:'manual_refs', heartRate:zones, refs, updatedAt:new Date().toISOString() };
       await sSet('strava-zones', stravaZones);
       renderStravaZonesUI();
       toast('Zonas cardio guardadas');
     });
   }
 
+  function getManualHrRefs(zones){
+    if(stravaZones && Array.isArray(stravaZones.refs) && stravaZones.refs.length){
+      return stravaZones.refs;
+    }
+    const out = [null,null,null,null,null];
+    if(Array.isArray(zones)){
+      zones.forEach((z, idx)=>{
+        if(idx < 4) out[idx] = z && z.max!=null ? Math.round(z.max) : null;
+        if(idx === 4) out[idx] = z && z.min!=null ? Math.round(z.min) : (z && z.max!=null ? Math.round(z.max) : null);
+      });
+    }
+    return out;
+  }
+
   function fillManualHrZoneInputs(zones){
+    const refs = getManualHrRefs(zones);
     for(let i=1;i<=5;i++){
-      const z = zones && zones[i-1] ? zones[i-1] : null;
-      const minEl = document.getElementById('hr-z' + i + '-min');
-      const maxEl = document.getElementById('hr-z' + i + '-max');
-      if(minEl) minEl.value = z && z.min!=null ? Math.round(z.min) : '';
-      if(maxEl) maxEl.value = z && z.max!=null ? Math.round(z.max) : '';
+      const el = document.getElementById('hr-z' + i + '-ref');
+      if(el) el.value = refs[i-1]!=null ? Math.round(refs[i-1]) : '';
     }
   }
 
@@ -6331,87 +6725,32 @@ label[for="race-peak-hours"],
     const zones = stravaZones && Array.isArray(stravaZones.heartRate) ? stravaZones.heartRate : [];
     fillManualHrZoneInputs(zones);
     box.innerHTML = '';
+    box.classList.add('manual-ref-list');
     if(!zones.length){
       box.innerHTML = '<div class="empty">Sem zonas guardadas.</div>';
-      if(note) note.textContent = 'Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca. Copia os limites de Z1 a Z5 para estes campos.';
+      if(note) note.textContent = 'Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca. Copia apenas os valores de referência: Z1 até, Z2 até, Z3 até, Z4 até e Z5 desde.';
       return;
     }
-    const maxRef = Math.max(...zones.map(z=>z.max || z.min || 1), 1);
+    const maxRef = Math.max(...zones.map(z=>z.max || z.min || z.ref || 1), 1);
     zones.forEach(z=>{
-      const range = (z.min!=null && z.max!=null) ? (Math.round(z.min) + '–' + Math.round(z.max) + ' bpm') :
-                    (z.min!=null ? (Math.round(z.min) + '+ bpm') : ('até ' + Math.round(z.max) + ' bpm'));
-      const width = Math.max(8, Math.min(100, ((z.max || z.min || 1) / maxRef) * 100));
+      let range = '';
+      let main = '';
+      let detail = '';
+      if(z.name === 'Z1') { range = 'até ' + Math.round(z.max) + ' bpm'; main = Math.round(z.max); detail = 'Recuperação / muito leve'; }
+      else if(z.name === 'Z5') { range = Math.round(z.min) + '+ bpm'; main = Math.round(z.min) + '+'; detail = 'Máximo / muito intenso'; }
+      else if(z.min!=null && z.max!=null) { range = Math.round(z.min) + '–' + Math.round(z.max) + ' bpm'; main = Math.round(z.max); detail = z.name === 'Z2' ? 'Resistência / leve' : (z.name === 'Z3' ? 'Ritmo / moderado' : 'Limiar / intenso'); }
+      else { range = (z.max!=null ? 'até ' + Math.round(z.max) : Math.round(z.min) + '+') + ' bpm'; main = z.max!=null ? Math.round(z.max) : Math.round(z.min) + '+'; detail = 'Zona cardio'; }
       const row = document.createElement('div');
-      row.className = 'strava-zone-row';
-      row.innerHTML = '<strong>' + z.name + '</strong><div class="strava-zone-bar"><div class="strava-zone-fill" style="width:' + width.toFixed(0) + '%"></div></div><span>' + range + '</span>';
+      row.className = 'zone-card-row zone-' + String(z.name || '').toLowerCase();
+      row.innerHTML = '<div class="zone-card-badge">' + z.name + '</div><div class="zone-card-main"><strong>' + range + '</strong><span>' + detail + '</span></div><div class="zone-card-value">' + main + '<small>bpm</small></div>';
       box.appendChild(row);
     });
     if(note){
       const d = stravaZones.updatedAt ? new Date(stravaZones.updatedAt) : null;
-      note.textContent = 'Guardado manualmente: ' + (d ? d.toLocaleString('pt-PT') : '—') + '. Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca.';
+      note.textContent = 'Guardado manualmente: ' + (d ? d.toLocaleString('pt-PT') : '—') + '. Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca. No Pulso basta preencher os valores de referência.';
     }
   }
 
-
-  const vo2Form = document.getElementById('form-strava-vo2');
-  if(vo2Form){
-    vo2Form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const runVal = parseFloat(document.getElementById('vo2-run-manual').value);
-      const bikeVal = parseFloat(document.getElementById('vo2-bike-manual').value);
-      stravaVo2 = {
-        run: (!isNaN(runVal) && runVal > 0) ? runVal : null,
-        bike: (!isNaN(bikeVal) && bikeVal > 0) ? bikeVal : null
-      };
-      await sSet('strava-vo2', stravaVo2);
-      renderVo2UI();
-      renderTraining7d();
-      toast('VO₂ guardado');
-    });
-  }
-
-  function renderVo2UI(){
-    const runInput = document.getElementById('vo2-run-manual');
-    const bikeInput = document.getElementById('vo2-bike-manual');
-    const dashRun = document.getElementById('s7-vo2-run');
-    const dashBike = document.getElementById('s7-vo2-bike');
-    const summary = document.getElementById('vo2-summary');
-    const run = stravaVo2 && stravaVo2.run ? stravaVo2.run : null;
-    const bike = stravaVo2 && stravaVo2.bike ? stravaVo2.bike : null;
-    if(runInput && run) runInput.value = run;
-    if(bikeInput && bike) bikeInput.value = bike;
-    if(dashRun) dashRun.textContent = run ? (Number(run).toFixed(1)) : '—';
-    if(dashBike) dashBike.textContent = bike ? (Number(bike).toFixed(1)) : '—';
-    if(summary){
-      summary.textContent = (run || bike)
-        ? ('Corrida: ' + (run ? Number(run).toFixed(1) : '—') + ' · Bike: ' + (bike ? Number(bike).toFixed(1) : '—'))
-        : 'Sem VO₂ guardado.';
-    }
-  }
-
-  document.getElementById('btn-strava-sync').addEventListener('click', syncStrava);
-
-  async function syncStrava(){
-    if(!stravaAuth || !stravaAuth.accessToken){ toast('Liga o Strava em Perfil'); return; }
-    const ok = await ensureFreshToken();
-    if(!ok){ toast('Sessão do Strava expirou. Liga novamente em Perfil.'); return; }
-    try{
-      const res = await fetchStrava('https://www.strava.com/api/v3/athlete/activities?per_page=60', { headers:{ 'Authorization': 'Bearer ' + stravaAuth.accessToken } });
-      if(!res.ok) throw new Error('activities fetch failed ' + res.status);
-      const data = await res.json();
-      stravaActivities = data.map(a=>({
-        id: String(a.id), name: a.name, type: a.type, date: a.start_date_local,
-        distanceKm: (a.distance/1000), movingSec: a.moving_time,
-        avgSpeedKmh: a.average_speed ? (a.average_speed*3.6) : null,
-        avgWatts: a.average_watts || null,
-        elevGain: a.total_elevation_gain || 0, calories: a.calories || null
-      }));
-      await sSet('strava-activities', stravaActivities);
-      renderWorkouts(); renderTraining7d(); renderRaceAndPlan(); renderKcal(); renderDashboard(); renderVo2UI(); renderStravaZonesUI();
-      checkTodayPlanAgainstStrava();
-      toast('Treinos sincronizados: ' + stravaActivities.length);
-    }catch(err){ console.error(err); toast('Falha ao sincronizar treinos do Strava.'); }
-  }
 
   function updateStravaUI(){
     const connected = !!(stravaAuth && stravaAuth.accessToken);
@@ -7077,7 +7416,7 @@ label[for="race-peak-hours"],
     const safe = (name, fn)=>{ try{ fn(); }catch(err){ console.error('Falha em '+name, err); } };
     safe('renderWeight', renderWeight); safe('renderSleep', renderSleep);
     safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
-    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal);
+    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal); if(window.PulsoRenderAthleteHistory) safe('renderAthleteHistory', window.PulsoRenderAthleteHistory);
     safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
     safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderStravaZonesUI', renderStravaZonesUI); safe('renderDashboard', renderDashboard);
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
@@ -7163,6 +7502,98 @@ label[for="race-peak-hours"],
     });
 
     localStorage.setItem(key, JSON.stringify(filtered));
+  }
+
+
+  function readPulsoJson(key, fallback){
+    try{
+      const raw = localStorage.getItem('pulso:' + key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+
+  function writePulsoJson(key, value){
+    try{ localStorage.setItem('pulso:' + key, JSON.stringify(value)); }catch(e){}
+  }
+
+  function sameDay(value, day){
+    if(!value) return false;
+    return String(value).slice(0,10) === day;
+  }
+
+  function sum(arr, fn){
+    return (arr || []).reduce((s,x)=>s + (Number(fn(x)) || 0), 0);
+  }
+
+  function archiveDay(day){
+    if(!day) return;
+    const history = readPulsoJson('athlete-history', []);
+    if(!Array.isArray(history)) return;
+
+    const hydration = readPulsoJson('hydration-entries', []).filter(e=>sameDay(e.date, day));
+    const coffee = readPulsoJson('coffee-entries', []).filter(e=>sameDay(e.date, day));
+    const alcohol = readPulsoJson('alcohol-entries', []).filter(e=>sameDay(e.date, day));
+    const kcal = readPulsoJson('kcal-entries', []).filter(e=>sameDay(e.date, day));
+    const weight = readPulsoJson('weight-entries', []).filter(e=>sameDay(e.date, day));
+    const sleep = readPulsoJson('sleep-entries', []).filter(e=>sameDay(e.date, day));
+    const workouts = readPulsoJson('strava-activities', []).filter(e=>sameDay(e.date || e.start_date || e.time, day));
+    const planned = readPulsoJson('planned-workouts', []).filter(e=>sameDay(e.date, day));
+
+    const alcoholUnits = Math.round(sum(alcohol, e=>e.units) * 10) / 10;
+    const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
+    const foodKcal = Math.round(sum(kcal, e=>e.kcal));
+    const protein = Math.round(sum(kcal, e=>e.protein));
+    const carbs = Math.round(sum(kcal, e=>e.carbs));
+    const fat = Math.round(sum(kcal, e=>e.fat));
+    const waterMl = Math.round(sum(hydration, e=>e.ml));
+    const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
+    const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
+    const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
+    const workoutKcal = Math.round(sum(workouts, e=>e.calories));
+
+    const hasData = hydration.length || coffee.length || alcohol.length || kcal.length || weight.length || sleep.length || workouts.length || planned.length;
+    if(!hasData) return;
+
+    const baseScore = 80;
+    const penalty = alcoholUnits <= 0 ? 0 : alcoholUnits <= 1 ? 3 : alcoholUnits <= 2 ? 7 : alcoholUnits <= 3 ? 12 : alcoholUnits <= 4 ? 18 : 25;
+    const score = Math.max(0, baseScore - penalty);
+
+    const record = {
+      id: 'day-' + day,
+      date: day,
+      savedAt: new Date().toISOString(),
+      score,
+      totals: {
+        waterMl,
+        coffeeCount,
+        foodKcal,
+        alcoholUnits,
+        alcoholKcal,
+        totalKcal: foodKcal + alcoholKcal,
+        protein,
+        carbs,
+        fat,
+        workoutMin,
+        workoutKm,
+        workoutKcal,
+        weightKg: weight.length ? Number(weight[weight.length-1].kg) : null,
+        sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null,
+        restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null
+      },
+      details: {
+        meals: kcal,
+        alcohol,
+        hydration,
+        coffee,
+        workouts,
+        planned
+      }
+    };
+
+    const next = history.filter(x=>x && x.date !== day);
+    next.push(record);
+    next.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    writePulsoJson('athlete-history', next.slice(0, 365));
   }
 
   function resetDailyData(){
@@ -7280,6 +7711,7 @@ label[for="race-peak-hours"],
     }
 
     if(lastDay !== today){
+      archiveDay(lastDay);
       resetDailyData();
     }
   }
@@ -7610,18 +8042,10 @@ label[for="race-peak-hours"],
         const idx = Number(btn.dataset.generatedMenu);
         const w = workouts[idx];
         if(!w) return;
-
-        const action = prompt(
-          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Duplicar para os meus treinos\n\nEscreve 1, 2 ou 3.`
-        );
-
-        if(action === '1'){
-          saveGeneratedWorkoutAsToday(w);
-        }else if(action === '2'){
-          editGeneratedWorkout(w);
-        }else if(action === '3'){
-          saveGeneratedWorkoutToFavorites(w);
-        }
+        openMiniWorkoutMenu(btn, [
+          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> saveGeneratedWorkoutAsToday(w)},
+          {id:'edit', icon:'✎', label:'Editar treino', run:()=> editGeneratedWorkout(w)}
+        ]);
       });
     });
   }
@@ -7653,16 +8077,12 @@ label[for="race-peak-hours"],
   }
 
   function editGeneratedWorkout(w){
-    const title = prompt('Nome do treino:', w.title);
-    if(title === null) return;
-    const desc = prompt('Descrição do treino:', w.desc);
-    if(desc === null) return;
-
-    w.title = title.trim() || w.title;
-    w.desc = desc.trim() || w.desc;
-
-    saveGeneratedWorkoutToFavorites(w);
-    renderGeneratedTrainingSuggestions();
+    openWorkoutTextModal(w.title, w.desc, (title, desc)=>{
+      w.title = title || w.title;
+      w.desc = desc || w.desc;
+      saveGeneratedWorkoutToFavorites(w);
+      renderGeneratedTrainingSuggestions();
+    });
   }
 
   function saveGeneratedWorkoutToFavorites(w){
@@ -7971,14 +8391,10 @@ label[for="race-peak-hours"],
         ev.stopPropagation();
         const w = workouts[Number(btn.dataset.filteredMenu)];
         if(!w) return;
-
-        const action = prompt(
-          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Guardar nos meus treinos\n\nEscreve 1, 2 ou 3.`
-        );
-
-        if(action === '1') saveToday(w, ctx);
-        if(action === '2') editWorkout(w, ctx);
-        if(action === '3') saveUserWorkout(w, ctx);
+        openMiniWorkoutMenu(btn, [
+          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> saveToday(w, ctx)},
+          {id:'edit', icon:'✎', label:'Editar treino', run:()=> editWorkout(w, ctx)}
+        ]);
       });
     });
   }
@@ -8024,11 +8440,9 @@ label[for="race-peak-hours"],
   }
 
   function editWorkout(w, ctx){
-    const title = prompt('Nome do treino:', w.title);
-    if(title === null) return;
-    const desc = prompt('Descrição do treino:', w.desc);
-    if(desc === null) return;
-    saveUserWorkout({...w, title:title.trim() || w.title, desc:desc.trim() || w.desc}, ctx);
+    openWorkoutTextModal(w.title, w.desc, (title, desc)=>{
+      saveUserWorkout({...w, title:title || w.title, desc:desc || w.desc}, ctx);
+    });
   }
 
   function bind(){
@@ -8341,14 +8755,10 @@ label[for="race-peak-hours"],
         ev.stopPropagation();
         const w = list[Number(btn.dataset.engineMenu)];
         if(!w) return;
-
-        const action = prompt(
-          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Guardar nos meus treinos\n\nEscreve 1, 2 ou 3.`
-        );
-
-        if(action === '1') selectWorkoutForToday(w, ctx);
-        if(action === '2') editWorkout(w, ctx);
-        if(action === '3') saveUserWorkout(w, ctx);
+        openMiniWorkoutMenu(btn, [
+          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> selectWorkoutForToday(w, ctx)},
+          {id:'edit', icon:'✎', label:'Editar treino', run:()=> editWorkout(w, ctx)}
+        ]);
       });
     });
   }
@@ -8453,11 +8863,9 @@ label[for="race-peak-hours"],
   }
 
   function editWorkout(w, ctx){
-    const title = prompt('Nome do treino:', w.title);
-    if(title === null) return;
-    const desc = prompt('Descrição do treino:', w.desc);
-    if(desc === null) return;
-    saveUserWorkout({...w, title:title.trim() || w.title, desc:desc.trim() || w.desc}, ctx);
+    openWorkoutTextModal(w.title, w.desc, (title, desc)=>{
+      saveUserWorkout({...w, title:title || w.title, desc:desc || w.desc}, ctx);
+    });
   }
 
   function bind(){
@@ -8868,6 +9276,163 @@ label[for="race-peak-hours"],
     refreshStravaDots: refreshStravaDots,
     updateObjective: function(){ updatePhaseNote(); rewritePlan(); }
   };
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   PULSO — DIÁRIO DO ATLETA / HISTÓRICO NO PERFIL
+   ========================================================= */
+(function(){
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function read(key, fallback){
+    try{ const raw = localStorage.getItem('pulso:' + key); return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; }
+  }
+  function write(key, value){ try{ localStorage.setItem('pulso:' + key, JSON.stringify(value)); }catch(e){} }
+  function sameDay(value, day){ return value && String(value).slice(0,10) === day; }
+  function sum(arr, fn){ return (arr || []).reduce((s,x)=>s + (Number(fn(x)) || 0), 0); }
+  function fmtDate(d){
+    try{ return new Date(d + 'T12:00:00').toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'}); }catch(e){ return d; }
+  }
+  function fmtHours(v){ return v ? Number(v).toFixed(1).replace('.', ',') + ' h' : '—'; }
+  function fmtL(ml){ return ml ? (ml/1000).toFixed(1).replace('.', ',') + ' L' : '0 L'; }
+  function fmtUnits(v){ return (Number(v)||0).toFixed(1).replace('.', ','); }
+  function metric(label, value){ return '<div class="athlete-metric"><strong>'+value+'</strong><span>'+label+'</span></div>'; }
+
+  function buildDayRecord(day){
+    const hydration = read('hydration-entries', []).filter(e=>sameDay(e.date, day));
+    const coffee = read('coffee-entries', []).filter(e=>sameDay(e.date, day));
+    const alcohol = read('alcohol-entries', []).filter(e=>sameDay(e.date, day));
+    const kcal = read('kcal-entries', []).filter(e=>sameDay(e.date, day));
+    const weight = read('weight-entries', []).filter(e=>sameDay(e.date, day));
+    const sleep = read('sleep-entries', []).filter(e=>sameDay(e.date, day));
+    const workouts = read('strava-activities', []).filter(e=>sameDay(e.date || e.start_date || e.time, day));
+    const planned = read('planned-workouts', []).filter(e=>sameDay(e.date, day));
+
+    const alcoholUnits = Math.round(sum(alcohol, e=>e.units) * 10) / 10;
+    const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
+    const foodKcal = Math.round(sum(kcal, e=>e.kcal));
+    const protein = Math.round(sum(kcal, e=>e.protein));
+    const carbs = Math.round(sum(kcal, e=>e.carbs));
+    const fat = Math.round(sum(kcal, e=>e.fat));
+    const waterMl = Math.round(sum(hydration, e=>e.ml));
+    const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
+    const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
+    const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
+    const workoutKcal = Math.round(sum(workouts, e=>e.calories));
+    const penalty = alcoholUnits <= 0 ? 0 : alcoholUnits <= 1 ? 3 : alcoholUnits <= 2 ? 7 : alcoholUnits <= 3 ? 12 : alcoholUnits <= 4 ? 18 : 25;
+
+    return {
+      id:'day-' + day,
+      date:day,
+      savedAt:new Date().toISOString(),
+      score:Math.max(0, 80 - penalty),
+      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null },
+      details:{ meals:kcal, alcohol, hydration, coffee, workouts, planned }
+    };
+  }
+
+  function saveDay(day){
+    const rec = buildDayRecord(day);
+    const hasData = rec.details.meals.length || rec.details.alcohol.length || rec.details.hydration.length || rec.details.coffee.length || rec.details.workouts.length || rec.details.planned.length || rec.totals.weightKg || rec.totals.sleepHours;
+    if(!hasData) return false;
+    const hist = read('athlete-history', []);
+    const next = Array.isArray(hist) ? hist.filter(x=>x && x.date !== day) : [];
+    next.push(rec);
+    next.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    write('athlete-history', next.slice(0,365));
+    renderAthleteHistory();
+    return true;
+  }
+
+  function compactDetails(rec){
+    const t = rec.totals || {};
+    const d = rec.details || {};
+    const meals = (d.meals || []).slice(-8).map(x=>x.food || x.name || (Math.round(x.kcal||0)+' kcal')).join(', ') || 'Sem refeições detalhadas.';
+    const alc = (d.alcohol || []).map(x=>x.type || x.label || 'Bebida').join(', ') || '0 álcool.';
+    const workouts = (d.workouts || []).map(x=>x.name || x.type || 'Treino').join(', ') || ((d.planned||[]).map(x=>x.goal || x.type || 'Treino planeado').join(', ') || 'Sem treino registado.');
+    return '<div class="athlete-detail-section"><h4>Nutrição</h4><p>'+meals+'</p></div>'+
+      '<div class="athlete-detail-section"><h4>Álcool</h4><p>'+alc+'</p></div>'+
+      '<div class="athlete-detail-section"><h4>Treino</h4><p>'+workouts+'</p></div>';
+  }
+
+  function renderAthleteHistory(){
+    const el = document.getElementById('athlete-history-list');
+    if(!el) return;
+    const hist = read('athlete-history', []);
+    if(!Array.isArray(hist) || !hist.length){
+      el.innerHTML = '<div class="empty">Ainda não há histórico guardado.</div>';
+      return;
+    }
+    el.innerHTML = hist.slice(0,90).map(function(rec){
+      const t = rec.totals || {};
+      const subtitle = [
+        t.workoutMin ? (t.workoutMin + ' min treino') : null,
+        t.totalKcal ? (Math.round(t.totalKcal) + ' kcal') : null,
+        t.waterMl ? fmtL(t.waterMl) + ' água' : null,
+        t.alcoholUnits ? fmtUnits(t.alcoholUnits) + ' unid. álcool' : '0 álcool'
+      ].filter(Boolean).join(' · ');
+      return '<div class="athlete-day-card" data-day-card="'+rec.date+'">'+
+        '<button class="athlete-day-head" type="button" data-toggle-day="'+rec.date+'">'+
+          '<div class="athlete-day-title"><strong>'+fmtDate(rec.date)+'</strong><span>'+subtitle+'</span></div>'+
+          '<div class="athlete-day-score">'+(rec.score || 0)+'<small>score</small></div>'+
+        '</button>'+
+        '<div class="athlete-day-detail">'+
+          '<div class="athlete-metrics-grid">'+
+            metric('Sono', fmtHours(t.sleepHours))+
+            metric('Peso', t.weightKg ? Number(t.weightKg).toFixed(1).replace('.', ',') + ' kg' : '—')+
+            metric('Água', fmtL(t.waterMl))+
+            metric('Cafés', t.coffeeCount || 0)+
+            metric('Álcool', fmtUnits(t.alcoholUnits) + ' unid.')+
+            metric('Kcal totais', Math.round(t.totalKcal || 0))+
+            metric('Proteína', Math.round(t.protein || 0) + ' g')+
+            metric('Hidratos', Math.round(t.carbs || 0) + ' g')+
+            metric('Gorduras', Math.round(t.fat || 0) + ' g')+
+            metric('Treino', (t.workoutMin || 0) + ' min')+
+            metric('Distância', (t.workoutKm || 0).toFixed(1).replace('.', ',') + ' km')+
+            metric('Kcal treino', Math.round(t.workoutKcal || 0))+
+          '</div>'+ compactDetails(rec) +
+        '</div>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-toggle-day]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const card = btn.closest('.athlete-day-card');
+        if(card) card.classList.toggle('open');
+      });
+    });
+  }
+
+  window.PulsoRenderAthleteHistory = renderAthleteHistory;
+  window.PulsoSaveAthleteDay = saveDay;
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const archiveBtn = document.getElementById('btn-archive-today');
+    if(archiveBtn){
+      archiveBtn.addEventListener('click', function(){
+        const ok = saveDay(todayKey());
+        if(window.toast) window.toast(ok ? 'Resumo de hoje guardado' : 'Ainda não há dados para guardar');
+      });
+    }
+    const clearBtn = document.getElementById('btn-clear-athlete-history');
+    if(clearBtn){
+      clearBtn.addEventListener('click', function(){
+        if(!confirm('Limpar todo o histórico do atleta?')) return;
+        write('athlete-history', []);
+        renderAthleteHistory();
+      });
+    }
+    document.querySelectorAll('[data-profile-tab]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(btn.dataset.profileTab === 'historico') setTimeout(renderAthleteHistory, 50);
+      });
+    });
+    setTimeout(renderAthleteHistory, 700);
+  });
 })();
 </script>
 
