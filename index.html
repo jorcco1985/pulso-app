@@ -3649,6 +3649,26 @@ label[for="race-peak-hours"],
   display:none !important;
 }
 
+/* ---------- Sugestões de alimentos (substitui o datalist, que não abre no iPhone) ---------- */
+#food-suggest{
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:60;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  max-height:220px; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  box-shadow:0 14px 34px rgba(0,0,0,.45);
+}
+.food-suggest-item{
+  padding:11px 13px; font-size:14px; color:var(--text); cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.food-suggest-item:last-child{border-bottom:none;}
+.food-suggest-item:active{background:rgba(53,217,166,.14);}
+/* ---------- Construtor de Treinos ---------- */
+.wb-chip{
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  border-radius:999px; padding:8px 13px; font-size:12.5px; cursor:pointer;
+}
+.wb-chip.active{background:rgba(53,217,166,.16); border-color:rgba(53,217,166,.5); color:var(--teal);}
+.workout-card-desc{white-space:pre-line;}
 </style>
 </head>
 <body>
@@ -3840,8 +3860,10 @@ label[for="race-peak-hours"],
         <div class="entry" id="kcal-food-fields">
           <div class="field" style="min-width:140px;">
             <label for="kcal-food">Alimento</label>
-            <input type="text" id="kcal-food" list="food-list" placeholder="ex: arroz cozido" autocomplete="off">
-            <datalist id="food-list"></datalist>
+            <div style="position:relative;">
+              <input type="text" id="kcal-food" placeholder="ex: arroz cozido" autocomplete="off" style="width:100%;">
+              <div id="food-suggest" style="display:none;"></div>
+            </div>
           </div>
           <div class="field" style="min-width:80px;"><label for="kcal-grams">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150"></div>
         </div>
@@ -3977,19 +3999,133 @@ label[for="race-peak-hours"],
           <h3 style="margin:0;">Guardar treino favorito</h3>
           <button class="ghost" type="button" id="btn-toggle-favorite-form">+ Novo</button>
         </div>
-        <form class="entry" id="form-favorite" style="display:none; margin-top:8px;">
-          <div class="field" style="min-width:130px;"><label for="fav-name">Nome</label><input type="text" id="fav-name" placeholder="ex: Pista 400s" required></div>
-          <div class="field" style="min-width:130px;">
-            <label for="fav-type">Tipo</label>
-            <select id="fav-type">
-              <option value="estrada">Corrida — Estrada</option>
-              <option value="trail">Corrida — Trail</option>
-              <option value="bike-indoor">Bicicleta — Indoor</option>
-              <option value="bike-fora">Bicicleta — Rua</option>
-            </select>
+        <form class="entry" id="form-favorite" style="display:none; margin-top:8px; flex-direction:column; align-items:stretch; gap:10px;">
+          <input type="hidden" id="wb-edit-id" value="">
+          <div class="field"><label for="fav-name">Nome do treino</label><input type="text" id="fav-name" placeholder="ex: Trail VO₂ Curto" required></div>
+
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <div class="field" style="flex:1; min-width:150px;">
+              <label for="wb-mod">Modalidade</label>
+              <select id="wb-mod">
+                <option value="estrada">Corrida Estrada</option>
+                <option value="trail">Trail</option>
+                <option value="bike-indoor">Bike Indoor</option>
+                <option value="bike-fora">Bike Exterior</option>
+                <option value="forca">Força</option>
+                <option value="mobilidade">Mobilidade</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1; min-width:150px;" id="wb-goal-wrap">
+              <label for="wb-goal">Objetivo</label>
+              <select id="wb-goal">
+                <option>Recuperação</option><option>Base</option><option>Endurance</option><option>Tempo</option>
+                <option>Limiar</option><option>VO₂</option><option>Sprint</option><option>Subidas</option>
+                <option>Fartlek</option><option>Pirâmide</option><option>Cadência</option><option>Técnica</option>
+                <option>Longo</option><option>Potência</option><option>Livre</option>
+              </select>
+            </div>
           </div>
-          <div class="field" style="min-width:90px;"><label for="fav-minutes">Duração base (min)</label><input type="number" id="fav-minutes" placeholder="45" required></div>
-          <div class="field" style="min-width:180px;"><label for="fav-desc">Descrição</label><input type="text" id="fav-desc" placeholder="ex: 8x400m ritmo 5K, rec 90s" required></div>
+
+          <!-- Aquecimento -->
+          <div class="card" style="padding:11px 12px;" id="wb-warm-card">
+            <label class="row" style="gap:8px; align-items:center; cursor:pointer;"><input type="checkbox" id="wb-warm" style="width:20px; height:20px;"> <strong style="font-size:13px;">Aquecimento</strong></label>
+            <div id="wb-warm-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:90px;"><label>Tempo</label><select id="wb-warm-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label>Tipo</label><select id="wb-warm-type"><option>Corrida fácil</option><option>Trail fácil</option><option>Bike leve</option><option>Caminhada</option><option>Mobilidade dinâmica</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label>Zona</label><select id="wb-warm-zone"><option>Z1</option><option selected>Z2</option><option>Livre</option></select></div>
+            </div>
+          </div>
+
+          <!-- Bloco principal (corrida/bike) -->
+          <div class="card" style="padding:11px 12px;" id="wb-main-card">
+            <div class="field"><label for="wb-main">Bloco principal</label>
+              <select id="wb-main">
+                <option>Tempo</option><option>Intervalos</option><option>Repetições</option>
+                <option>Subidas</option><option>Pirâmide</option><option>Fartlek</option><option>Livre</option>
+              </select>
+            </div>
+
+            <div id="wb-int-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:80px;"><label>Séries</label><select id="wb-int-series"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Esforço</label><select id="wb-int-effort"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
+              <div class="field" style="flex:1; min-width:110px;" id="wb-int-ex-wrap"><label>Exercício</label><select id="wb-int-ex"></select></div>
+              <div class="field" style="flex:1; min-width:90px;"><label>Intensidade</label><select id="wb-int-int"><option>Z3</option><option>Z4</option><option selected>Z5</option><option>FTP</option><option>RPE</option><option>Livre</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Recuperação</label><select id="wb-int-rec"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
+              <div class="field" style="flex:1; min-width:110px;"><label>Tipo recuperação</label><select id="wb-int-rectype"><option>Parado</option><option>Caminhada</option><option selected>Trote</option><option>Bike leve</option></select></div>
+            </div>
+
+            <div id="wb-time-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:100px;"><label>Tempo contínuo</label><select id="wb-time-dur"><option value="20">20 min</option><option value="30">30 min</option><option value="40" selected>40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label>Zona</label><select id="wb-time-zone"><option>Z1</option><option>Z2</option><option selected>Z3</option><option>Z4</option><option>Livre</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label>RPE</label><select id="wb-time-rpe"><option value="">—</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+            </div>
+
+            <div id="wb-long-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:100px;"><label>Tempo</label><select id="wb-long-dur"><option value="60">60 min</option><option value="75">75 min</option><option value="90" selected>90 min</option><option value="120">120 min</option><option value="150">150 min</option><option value="180">180 min</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label>Zona</label><select id="wb-long-zone"><option>Z1</option><option selected>Z2</option><option>Z3</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label>Final mais forte</label><select id="wb-long-strong"><option value="">Não</option><option value="10">Últimos 10 min</option><option value="15">Últimos 15 min</option><option value="20">Últimos 20 min</option><option value="30">Últimos 30 min</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label>Nutrição</label><select id="wb-long-nutri"><option value="">Sem plano</option><option>Gel a cada 30 min</option><option>Gel a cada 45 min</option><option>Barrita a cada 60 min</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label>Hidratação</label><select id="wb-long-hydro"><option value="">Sem plano</option><option>2 goles a cada 15 min</option><option>500 ml por hora</option></select></div>
+            </div>
+
+            <div id="wb-sub-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:90px;"><label>Repetições</label><select id="wb-sub-reps"><option>3</option><option>4</option><option>5</option><option selected>6</option><option>8</option><option>10</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Tempo subida</label><select id="wb-sub-time"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option></select></div>
+              <div class="field" style="flex:1; min-width:110px;" id="wb-sub-ex-wrap"><label>Exercício</label><select id="wb-sub-ex"></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Inclinação</label><select id="wb-sub-inc"><option value="">Livre</option><option>4%</option><option>6%</option><option>8%</option><option>9%</option><option>10%</option><option>12%</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Recuperação</label><select id="wb-sub-rec"><option value="30">30 s</option><option value="60">1 min</option><option value="90">90 s</option><option value="120" selected>2 min</option><option value="180">3 min</option></select></div>
+              <div class="field" style="flex:1; min-width:110px;"><label>Tipo recuperação</label><select id="wb-sub-rectype"><option>Parado</option><option selected>Caminhada</option><option>Trote</option><option>Bike leve</option></select></div>
+            </div>
+
+            <div id="wb-pyr-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:130px;"><label>Modelo</label><select id="wb-pyr-model"><option selected>1-2-3-2-1</option><option>2-3-4-3-2</option><option value="custom">Personalizada</option></select></div>
+              <div class="field" style="flex:1; min-width:150px; display:none;" id="wb-pyr-custom-wrap"><label>Degraus (min)</label><input type="text" id="wb-pyr-custom" placeholder="ex: 1-3-5-3-1"></div>
+              <div class="field" style="flex:1; min-width:90px;"><label>Intensidade</label><select id="wb-pyr-int"><option>Z3</option><option selected>Z4</option><option>Z5</option><option>Livre</option></select></div>
+            </div>
+
+            <div id="wb-free-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:100px;"><label>Tempo</label><select id="wb-free-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
+            </div>
+          </div>
+
+          <!-- Força -->
+          <div class="card" style="padding:11px 12px; display:none;" id="wb-forca-card">
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <div class="field" style="flex:1; min-width:120px;"><label>Grupo muscular</label><select id="wb-fx-group"><option>Core</option><option selected>Pernas</option><option>Glúteos</option><option>Posterior</option><option>Tronco</option><option>Superior</option><option>Corpo inteiro</option></select></div>
+              <div class="field" style="flex:1; min-width:120px;"><label>Tipo</label><select id="wb-fx-equip"><option selected>Peso corporal</option><option>Halteres</option><option>Barra</option><option>Kettlebell</option><option>Elásticos</option><option>Máquinas</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label>Séries</label><select id="wb-fx-series"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Descanso</label><select id="wb-fx-rest"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label>Carga</label><select id="wb-fx-load"><option value="">Opcional</option><option>Sem carga</option><option>Leve</option><option>Moderada</option><option>Pesada</option></select></div>
+            </div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; display:block; margin:10px 0 6px;">Exercícios (toca para adicionar)</label>
+            <div id="wb-fx-ex" class="row" style="gap:6px; flex-wrap:wrap;"></div>
+          </div>
+
+          <!-- Mobilidade -->
+          <div class="card" style="padding:11px 12px; display:none;" id="wb-mob-card">
+            <div class="row" style="gap:10px; flex-wrap:wrap;">
+              <div class="field" style="flex:1; min-width:140px;"><label>Tipo</label><select id="wb-mob-type"><option>Antes do treino</option><option>Depois do treino</option><option selected>Recuperação</option><option>Alongamentos</option><option>Foam Roller</option><option>Respiração</option><option>Mobilidade dinâmica</option></select></div>
+              <div class="field" style="flex:1; min-width:90px;"><label>Tempo</label><select id="wb-mob-dur"><option value="5">5 min</option><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
+              <div class="field" style="flex:1; min-width:120px;"><label>Zona corporal</label><select id="wb-mob-zone"><option>Anca</option><option>Tornozelo</option><option>Lombar</option><option>Ombros</option><option>Pescoço</option><option selected>Corpo inteiro</option></select></div>
+            </div>
+          </div>
+
+          <!-- Desaquecimento -->
+          <div class="card" style="padding:11px 12px;" id="wb-cool-card">
+            <label class="row" style="gap:8px; align-items:center; cursor:pointer;"><input type="checkbox" id="wb-cool" style="width:20px; height:20px;"> <strong style="font-size:13px;">Desaquecimento</strong></label>
+            <div id="wb-cool-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
+              <div class="field" style="flex:1; min-width:90px;"><label>Tempo</label><select id="wb-cool-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label>Tipo</label><select id="wb-cool-type"><option>Corrida leve</option><option>Bike leve</option><option>Caminhada</option><option>Alongamentos</option></select></div>
+            </div>
+          </div>
+
+          <!-- Pré-visualização -->
+          <div class="card" style="padding:12px 13px; border-color:rgba(53,217,166,.28);">
+            <h3 style="margin:0 0 6px;">Pré-visualização</h3>
+            <div id="wb-preview" style="white-space:pre-line; font-size:13px; line-height:1.6;"></div>
+            <p class="help" id="wb-preview-min" style="margin:6px 0 0;"></p>
+          </div>
+
           <button class="primary" type="submit">Guardar</button>
         </form>
       </div>
@@ -4855,17 +4991,53 @@ label[for="race-peak-hours"],
     return key ? {food:FOOD_DB[key], name:key} : null;
   }
 
-  const foodListEl = document.getElementById('food-list');
-  Object.keys(FOOD_DB).sort((a,b)=>a.localeCompare(b,'pt-PT',{sensitivity:'base',ignorePunctuation:true})).forEach(name=>{
-    const opt = document.createElement('option');
-    opt.value = name;
-    foodListEl.appendChild(opt);
+  // Sugestões de alimentos próprias (o datalist nativo não aparece no iPhone/Safari)
+  const FOOD_NAMES_SORTED = Object.keys(FOOD_DB).sort((a,b)=>a.localeCompare(b,'pt-PT',{sensitivity:'base',ignorePunctuation:true}));
+  const foodSuggestEl = document.getElementById('food-suggest');
+  const foodInputEl = document.getElementById('kcal-food');
+  const normTxt = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+  function showFoodSuggestions(){
+    const q = normTxt(foodInputEl.value.trim());
+    const matches = (q ? FOOD_NAMES_SORTED.filter(n=>normTxt(n).includes(q)) : FOOD_NAMES_SORTED).slice(0,8);
+    if(!matches.length){ foodSuggestEl.style.display='none'; foodSuggestEl.innerHTML=''; return; }
+    foodSuggestEl.innerHTML = matches.map(n=>`<div class="food-suggest-item" data-food="${n}">${n}</div>`).join('');
+    foodSuggestEl.style.display = 'block';
+  }
+  function hideFoodSuggestions(){ foodSuggestEl.style.display='none'; foodSuggestEl.innerHTML=''; }
+
+  foodInputEl.addEventListener('focus', showFoodSuggestions);
+  foodInputEl.addEventListener('input', showFoodSuggestions);
+  foodInputEl.addEventListener('blur', ()=> setTimeout(hideFoodSuggestions, 200)); // atraso para o toque registar
+  // pointerdown dispara antes do blur — garante que o toque na sugestão funciona no telemóvel
+  foodSuggestEl.addEventListener('pointerdown', (e)=>{
+    const item = e.target.closest('.food-suggest-item');
+    if(!item) return;
+    e.preventDefault();
+    foodInputEl.value = item.dataset.food;
+    hideFoodSuggestions();
+    applyFoodEstimate();
   });
+
+  let kcalAiBase = null; // {desc, grams, kcal, carbs, protein, fat} — base da última estimativa da IA
 
   function applyFoodEstimate(){
     const rawName = document.getElementById('kcal-food').value;
     const gramsInput = document.getElementById('kcal-grams');
     const noteEl = document.getElementById('kcal-food-note');
+    // Se há uma estimativa da IA ativa para este texto, escalar proporcionalmente à quantidade
+    if(kcalAiBase && rawName.trim() === kcalAiBase.desc){
+      const grams = parseFloat(gramsInput.value);
+      if(!grams){ noteEl.textContent = 'Indica a quantidade em gramas para ajustar os valores da IA.'; return; }
+      const f = grams / kcalAiBase.grams;
+      document.getElementById('kcal-value').value = Math.round(kcalAiBase.kcal*f);
+      document.getElementById('kcal-carbs').value = Math.round(kcalAiBase.carbs*f*10)/10;
+      document.getElementById('kcal-protein').value = Math.round(kcalAiBase.protein*f*10)/10;
+      document.getElementById('kcal-fat').value = Math.round(kcalAiBase.fat*f*10)/10;
+      noteEl.textContent = 'Estimativa da IA ajustada para ' + grams + 'g (base: ' + kcalAiBase.grams + 'g). Muda a quantidade e os macros acompanham.';
+      return;
+    }
+    if(kcalAiBase && rawName.trim() !== kcalAiBase.desc){ kcalAiBase = null; }
     if(!rawName.trim()){
       noteEl.textContent = 'Escreve o alimento — a quantidade típica e os macros são preenchidos automaticamente (estimativa). Podes sempre ajustar à mão.';
       return;
@@ -4903,6 +5075,7 @@ label[for="race-peak-hours"],
     kcalEntries.push({id:uid(), date: todayStr(), time: new Date().toISOString(), kcal, carbs, protein, fat, food: foodName || null});
     await sSet('kcal-entries', kcalEntries);
     e.target.reset();
+    kcalAiBase = null;
     document.getElementById('kcal-food').value = '';
     document.getElementById('kcal-grams').value = '';
     document.getElementById('kcal-ai-desc').value = '';
@@ -4927,13 +5100,18 @@ label[for="race-peak-hours"],
         return;
       }
       const data = await res.json();
-      document.getElementById('kcal-value').value = Math.round(data.kcal);
-      document.getElementById('kcal-carbs').value = Math.round((data.carbs||0)*10)/10;
-      document.getElementById('kcal-protein').value = Math.round((data.protein||0)*10)/10;
-      document.getElementById('kcal-fat').value = Math.round((data.fat||0)*10)/10;
+      const gramsInput = document.getElementById('kcal-grams');
+      const baseGrams = (data.gramas && Number(data.gramas) > 0) ? Math.round(Number(data.gramas))
+        : (parseFloat(gramsInput.value) > 0 ? parseFloat(gramsInput.value) : 100);
+      kcalAiBase = { desc, grams: baseGrams, kcal: Number(data.kcal)||0, carbs: Number(data.carbs)||0, protein: Number(data.protein)||0, fat: Number(data.fat)||0 };
+      gramsInput.value = baseGrams;
+      document.getElementById('kcal-value').value = Math.round(kcalAiBase.kcal);
+      document.getElementById('kcal-carbs').value = Math.round(kcalAiBase.carbs*10)/10;
+      document.getElementById('kcal-protein').value = Math.round(kcalAiBase.protein*10)/10;
+      document.getElementById('kcal-fat').value = Math.round(kcalAiBase.fat*10)/10;
       document.getElementById('kcal-food').value = desc;
       const itensTxt = (data.itens||[]).map(i=>i.nome+' ('+Math.round(i.kcal)+'kcal)').join(', ');
-      noteEl.textContent = 'IA estimou: ' + (itensTxt || (data.kcal+' kcal')) + '. Confirma/ajusta e grava abaixo.';
+      noteEl.textContent = 'IA estimou (para ~' + baseGrams + 'g): ' + (itensTxt || (kcalAiBase.kcal+' kcal')) + '. Se mudares a quantidade, os valores ajustam-se sozinhos.';
     }catch(err){
       noteEl.textContent = 'Não foi possível ligar à IA (função não encontrada ou sem internet). Preenche à mão abaixo, ou configura a Netlify Function em Perfil > Nutrição IA.';
     }
@@ -5327,26 +5505,256 @@ label[for="race-peak-hours"],
 
   // ================= TREINOS FAVORITOS (Rápido) ================= //
   let favoriteWorkouts = [];
-  const QUICK_TYPE_LABELS = {'estrada':'Corrida — Estrada','trail':'Corrida — Trail','bike-indoor':'Bicicleta — Indoor','bike-fora':'Bicicleta — Rua'};
+  const QUICK_TYPE_LABELS = {'estrada':'Corrida — Estrada','trail':'Corrida — Trail','bike-indoor':'Bicicleta — Indoor','bike-fora':'Bicicleta — Rua','forca':'Força','mobilidade':'Mobilidade'};
+
+  // ================= CONSTRUTOR DE TREINOS ================= //
+  const WB_EX = {
+    intervalosRun: ['Tempo livre','200 m','400 m','800 m','1000 m','Tempo Run'],
+    subidasTrail: ['Rampa curta','Rampa longa','Escadas','Rampa técnica'],
+    subidasRun: ['Rampa curta','Rampa longa','Escadas'],
+    forca: {
+      'Core': ['Prancha','Side Plank','Bird Dog','Dead Bug'],
+      'Pernas': ['Agachamento','Lunges','Step Up','Gémeos','Afundos búlgaros'],
+      'Glúteos': ['Ponte de glúteos','Hip Thrust','Abdução'],
+      'Posterior': ['Deadlift romeno','Nordic curl','Good morning'],
+      'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação'],
+      'Superior': ['Flexões','Remada','Press ombros'],
+      'Corpo inteiro': ['Agachamento','Lunges','Deadlift romeno','Prancha','Step Up','Flexões']
+    },
+    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','default':'10' }
+  };
+  let wbForcaSelected = [];
+
+  const wbEl = id => document.getElementById(id);
+  const wbVal = id => { const el = wbEl(id); return el ? el.value : ''; };
+  const wbShow = (id, on) => { const el = wbEl(id); if(el) el.style.display = on ? '' : 'none'; };
+  const wbFmtSec = s => { s = parseInt(s,10)||0; return s < 120 ? s+' s' : (s%60===0 ? (s/60)+' min' : Math.round(s/60*10)/10+' min'); };
+
+  function wbFillSelect(id, items){
+    const el = wbEl(id); if(!el) return;
+    const cur = el.value;
+    el.innerHTML = items.map(x=>`<option>${x}</option>`).join('');
+    if(items.includes(cur)) el.value = cur;
+  }
+
+  function wbRenderForcaEx(){
+    const group = wbVal('wb-fx-group');
+    const list = WB_EX.forca[group] || [];
+    wbForcaSelected = wbForcaSelected.filter(x=>list.includes(x));
+    if(!wbForcaSelected.length) wbForcaSelected = list.slice(0,3);
+    wbEl('wb-fx-ex').innerHTML = list.map(x=>`<button type="button" class="wb-chip${wbForcaSelected.includes(x)?' active':''}" data-ex="${x}">${x}</button>`).join('');
+  }
+
+  function wbRefresh(){
+    const mod = wbVal('wb-mod');
+    const goal = wbVal('wb-goal');
+    const main = wbVal('wb-main');
+    const isForca = mod==='forca', isMob = mod==='mobilidade', isSport = !isForca && !isMob;
+    const isLongo = isSport && goal==='Longo';
+
+    wbShow('wb-goal-wrap', isSport);
+    wbShow('wb-forca-card', isForca);
+    wbShow('wb-mob-card', isMob);
+    wbShow('wb-warm-card', !isMob);
+    wbShow('wb-cool-card', !isMob);
+    wbShow('wb-main-card', isSport && !isLongo);
+
+    wbShow('wb-warm-fields', wbEl('wb-warm').checked);
+    wbShow('wb-cool-fields', wbEl('wb-cool').checked);
+
+    wbShow('wb-int-fields', isSport && !isLongo && (main==='Intervalos' || main==='Repetições'));
+    wbShow('wb-time-fields', isSport && !isLongo && (main==='Tempo' || main==='Fartlek'));
+    wbShow('wb-sub-fields', isSport && !isLongo && main==='Subidas');
+    wbShow('wb-pyr-fields', isSport && !isLongo && main==='Pirâmide');
+    wbShow('wb-free-fields', isSport && !isLongo && main==='Livre');
+    // O bloco Longo aparece quando o Objetivo é Longo
+    const mainCard = wbEl('wb-main-card');
+    wbShow('wb-long-fields', isLongo);
+    if(isLongo && mainCard){ mainCard.style.display=''; mainCard.querySelector('.field').style.display='none'; }
+    else if(mainCard){ mainCard.querySelector('.field').style.display=''; }
+
+    wbShow('wb-pyr-custom-wrap', wbVal('wb-pyr-model')==='custom');
+
+    // Exercícios contextuais
+    const isRun = mod==='estrada' || mod==='trail';
+    wbShow('wb-int-ex-wrap', isRun && main!=='Repetições' ? true : isRun);
+    wbFillSelect('wb-int-ex', isRun ? WB_EX.intervalosRun : ['Tempo livre']);
+    wbFillSelect('wb-sub-ex', mod==='trail' ? ['Livre'].concat(WB_EX.subidasTrail) : (mod==='estrada' ? ['Livre'].concat(WB_EX.subidasRun) : ['Livre']));
+    if(isForca) wbRenderForcaEx();
+
+    wbUpdatePreview();
+  }
+
+  function wbPyramidSteps(){
+    const model = wbVal('wb-pyr-model');
+    const raw = model==='custom' ? (wbVal('wb-pyr-custom')||'1-2-3-2-1') : model;
+    return raw.split('-').map(x=>parseFloat(String(x).trim())).filter(x=>x>0);
+  }
+
+  function wbBuild(){
+    const mod = wbVal('wb-mod');
+    const goal = wbVal('wb-goal');
+    const main = wbVal('wb-main');
+    const lines = [];
+    let minutes = 0;
+
+    if(mod!=='mobilidade' && wbEl('wb-warm').checked){
+      const t = parseInt(wbVal('wb-warm-time'),10);
+      const z = wbVal('wb-warm-zone');
+      lines.push(`${t} min aquecimento${z!=='Livre'?' '+z:''} · ${wbVal('wb-warm-type')}`);
+      minutes += t;
+    }
+
+    if(mod==='forca'){
+      const s = parseInt(wbVal('wb-fx-series'),10);
+      const rest = parseInt(wbVal('wb-fx-rest'),10);
+      lines.push(`Força — ${wbVal('wb-fx-group')} (${wbVal('wb-fx-equip')})`);
+      lines.push(`${s} séries:`);
+      wbForcaSelected.forEach(ex=>{
+        const reps = WB_EX.forcaReps[ex] || WB_EX.forcaReps['default'];
+        lines.push(`• ${reps} ${ex}`);
+      });
+      lines.push(`Descanso ${wbFmtSec(rest)} entre séries${wbVal('wb-fx-load')?' · Carga: '+wbVal('wb-fx-load'):''}`);
+      minutes += Math.round(s * (wbForcaSelected.length*0.75 + rest/60));
+    }else if(mod==='mobilidade'){
+      const d = parseInt(wbVal('wb-mob-dur'),10);
+      lines.push(`${d} min ${wbVal('wb-mob-type')} — ${wbVal('wb-mob-zone')}`);
+      minutes += d;
+    }else if(goal==='Longo'){
+      const d = parseInt(wbVal('wb-long-dur'),10);
+      lines.push(`${d} min ${wbVal('wb-long-zone')}`);
+      if(wbVal('wb-long-strong')) lines.push(`Últimos ${wbVal('wb-long-strong')} min mais fortes`);
+      if(wbVal('wb-long-nutri')) lines.push(`Nutrição: ${wbVal('wb-long-nutri')}`);
+      if(wbVal('wb-long-hydro')) lines.push(`Hidratação: ${wbVal('wb-long-hydro')}`);
+      minutes += d;
+    }else if(main==='Intervalos' || main==='Repetições'){
+      const n = parseInt(wbVal('wb-int-series'),10);
+      const eff = parseInt(wbVal('wb-int-effort'),10);
+      const rec = parseInt(wbVal('wb-int-rec'),10);
+      const ex = wbVal('wb-int-ex');
+      const intn = wbVal('wb-int-int');
+      const unit = (ex && ex!=='Tempo livre') ? ex : wbFmtSec(eff);
+      lines.push(`${n} × ${unit}${intn!=='Livre'?' '+intn:''}`);
+      lines.push(`Recuperação ${wbFmtSec(rec)} — ${wbVal('wb-int-rectype')}`);
+      minutes += Math.round(n * (eff + rec) / 60);
+    }else if(main==='Subidas'){
+      const n = parseInt(wbVal('wb-sub-reps'),10);
+      const t = parseInt(wbVal('wb-sub-time'),10);
+      const rec = parseInt(wbVal('wb-sub-rec'),10);
+      const ex = wbVal('wb-sub-ex');
+      lines.push(`${n} × ${wbFmtSec(t)} subida${wbVal('wb-sub-inc')?' ('+wbVal('wb-sub-inc')+')':''}${ex && ex!=='Livre'?' — '+ex:''}`);
+      lines.push(`Recuperação ${wbFmtSec(rec)} — ${wbVal('wb-sub-rectype')}`);
+      minutes += Math.round(n * (t + rec) / 60);
+    }else if(main==='Pirâmide'){
+      const steps = wbPyramidSteps();
+      lines.push(`Pirâmide ${steps.join('-')} min ${wbVal('wb-pyr-int')}`);
+      lines.push(`Recuperação = tempo do degrau anterior`);
+      minutes += Math.round(steps.reduce((a,b)=>a+b,0) * 2);
+    }else if(main==='Fartlek'){
+      const d = parseInt(wbVal('wb-time-dur'),10);
+      lines.push(`${d} min fartlek ${wbVal('wb-time-zone')!=='Livre'?wbVal('wb-time-zone'):''} — variações livres de ritmo`.replace('  ',' '));
+      minutes += d;
+    }else if(main==='Livre'){
+      const d = parseInt(wbVal('wb-free-dur'),10);
+      lines.push(`${d} min livre`);
+      minutes += d;
+    }else{ // Tempo
+      const d = parseInt(wbVal('wb-time-dur'),10);
+      const rpe = wbVal('wb-time-rpe');
+      lines.push(`${d} min contínuo ${wbVal('wb-time-zone')}${rpe?' (RPE '+rpe+')':''}`);
+      minutes += d;
+    }
+
+    if(mod!=='mobilidade' && wbEl('wb-cool').checked){
+      const t = parseInt(wbVal('wb-cool-time'),10);
+      lines.push(`${t} min desaquecimento (${wbVal('wb-cool-type')})`);
+      minutes += t;
+    }
+    minutes = Math.max(10, Math.round(minutes/5)*5);
+    return { lines, minutes };
+  }
+
+  function wbUpdatePreview(){
+    const { lines, minutes } = wbBuild();
+    wbEl('wb-preview').textContent = lines.join('\n');
+    wbEl('wb-preview-min').textContent = 'Duração estimada: ' + minutes + ' min';
+  }
+
+  function wbCollectState(){
+    const state = { forcaEx: [...wbForcaSelected] };
+    document.querySelectorAll('#form-favorite select, #form-favorite input[type=text], #form-favorite input[type=checkbox]').forEach(el=>{
+      if(!el.id || el.id==='wb-edit-id') return;
+      state[el.id] = el.type==='checkbox' ? el.checked : el.value;
+    });
+    return state;
+  }
+  function wbApplyState(state){
+    if(!state) return;
+    document.querySelectorAll('#form-favorite select, #form-favorite input[type=text], #form-favorite input[type=checkbox]').forEach(el=>{
+      if(!el.id || !(el.id in state)) return;
+      if(el.type==='checkbox') el.checked = !!state[el.id];
+      else el.value = state[el.id];
+    });
+    wbForcaSelected = Array.isArray(state.forcaEx) ? [...state.forcaEx] : [];
+  }
+
+  function openWorkoutBuilder(workoutId){
+    const form = document.getElementById('form-favorite');
+    form.reset();
+    wbEl('wb-edit-id').value = '';
+    wbForcaSelected = [];
+    if(workoutId){
+      const w = favoriteWorkouts.find(x=>x.id===workoutId);
+      if(w){
+        wbEl('wb-edit-id').value = w.id;
+        wbEl('fav-name').value = w.name || '';
+        if(w.builder){ wbApplyState(w.builder); }
+        else if(w.type){ const m = wbEl('wb-mod'); if([...m.options].some(o=>o.value===w.type)) m.value = w.type; }
+      }
+    }
+    form.style.display = 'flex';
+    wbRefresh();
+    form.scrollIntoView({behavior:'smooth', block:'start'});
+  }
 
   document.getElementById('btn-toggle-favorite-form').addEventListener('click', ()=>{
     const form = document.getElementById('form-favorite');
-    form.style.display = form.style.display==='none' ? 'flex' : 'none';
+    if(form.style.display==='none'){ openWorkoutBuilder(null); }
+    else{ form.style.display = 'none'; }
+  });
+
+  document.getElementById('form-favorite').addEventListener('change', wbRefresh);
+  document.getElementById('form-favorite').addEventListener('input', (e)=>{ if(e.target.id!=='fav-name') wbUpdatePreview(); });
+  document.getElementById('wb-fx-ex').addEventListener('click', (e)=>{
+    const chip = e.target.closest('.wb-chip'); if(!chip) return;
+    const ex = chip.dataset.ex;
+    if(wbForcaSelected.includes(ex)) wbForcaSelected = wbForcaSelected.filter(x=>x!==ex);
+    else wbForcaSelected.push(ex);
+    chip.classList.toggle('active');
+    wbUpdatePreview();
   });
 
   document.getElementById('form-favorite').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const name = document.getElementById('fav-name').value.trim();
-    const type = document.getElementById('fav-type').value;
-    const baseMinutes = parseInt(document.getElementById('fav-minutes').value,10);
-    const desc = document.getElementById('fav-desc').value.trim();
-    if(!name || !baseMinutes || !desc) return;
-    favoriteWorkouts.push({id:uid(), name, type, baseMinutes, desc});
+    if(!name){ toast('Dá um nome ao treino'); return; }
+    const mod = wbVal('wb-mod');
+    if(mod==='forca' && wbForcaSelected.length===0){ toast('Escolhe pelo menos um exercício'); return; }
+    const { lines, minutes } = wbBuild();
+    const desc = lines.join('\n');
+    const builder = wbCollectState();
+    const editId = wbEl('wb-edit-id').value;
+    if(editId){
+      const w = favoriteWorkouts.find(x=>x.id===editId);
+      if(w){ w.name = name; w.type = mod; w.baseMinutes = minutes; w.desc = desc; w.builder = builder; }
+    }else{
+      favoriteWorkouts.push({id:uid(), name, type: mod, baseMinutes: minutes, desc, builder});
+    }
     await sSet('favorite-workouts', favoriteWorkouts);
     e.target.reset();
     document.getElementById('form-favorite').style.display = 'none';
     renderFavoritesList();
-    toast('Treino guardado nos favoritos');
+    toast(editId ? 'Treino atualizado' : 'Treino guardado nos favoritos');
   });
 
   function scalingNote(baseMinutes, availableMinutes){
@@ -5360,6 +5768,10 @@ label[for="race-peak-hours"],
   async function openWorkoutEditor(workoutId){
     const workout = favoriteWorkouts.find(w=>w.id===workoutId);
     if(!workout) return;
+    // Edição estruturada: abre sempre o Construtor de Treinos com os campos restaurados.
+    goToSubTab('treinos','rapido');
+    openWorkoutBuilder(workoutId);
+    return;
     let modal = document.getElementById('workout-edit-modal');
     if(!modal){
       modal = document.createElement('div');
