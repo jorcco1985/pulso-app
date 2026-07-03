@@ -5365,15 +5365,15 @@ nav.tabbar button.active svg{
 
 
 
-<style id="pulso-perfil-tabs-atividade-v3">
+
+<style id="pulso-atividade-automatica-v4">
 /* =====================================================
-   PERFIL v3
-   - 6 botões no topo, em retângulos, sem ficar fixo
-   - atividade física só dentro da área Atleta
-   - barra funcional de 1 a 10
+   Perfil v4
+   - Botões do perfil no topo, sem ficarem fixos
+   - Nível de atividade só na área Atleta
+   - Valor automático, calculado pelos treinos detetados
 ====================================================== */
 
-/* Os 6 botões deixam de ser sticky/fixos */
 #tab-perfil .subtabs,
 #tab-perfil #profile-subtabs,
 #tab-perfil .profile-subtabs{
@@ -5394,7 +5394,6 @@ nav.tabbar button.active svg{
   -webkit-backdrop-filter:none !important;
 }
 
-/* Só aplica aos botões das subtabs do perfil */
 #tab-perfil .subtabs button,
 #tab-perfil #profile-subtabs button,
 #tab-perfil .profile-subtabs button{
@@ -5422,7 +5421,6 @@ nav.tabbar button.active svg{
   transform:none !important;
 }
 
-/* Ícones diferentes apenas no topo */
 #tab-perfil .subtabs button::before,
 #tab-perfil #profile-subtabs button::before,
 #tab-perfil .profile-subtabs button::before{
@@ -5480,10 +5478,31 @@ nav.tabbar button.active svg{
   display:none !important;
 }
 
-/* Painel atividade */
+/* Garante que painéis repetidos não aparecem */
+#tab-perfil #activity-level-panel ~ #activity-level-panel{
+  display:none !important;
+}
+
+/* Painel automático */
 #activity-level-panel{
   margin-top:16px;
   overflow:visible !important;
+}
+
+.activity-auto-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin:10px 0 0;
+  padding:7px 11px;
+  border-radius:999px;
+  background:rgba(53,217,166,.12);
+  border:1px solid rgba(53,217,166,.22);
+  color:var(--teal);
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.5px;
 }
 
 .activity-slider-wrap{
@@ -5501,34 +5520,37 @@ nav.tabbar button.active svg{
   letter-spacing:.8px;
 }
 
-#activityLevelRange{
-  display:block !important;
-  width:100% !important;
-  min-width:100% !important;
-  max-width:100% !important;
-  padding:0 !important;
-  min-height:38px !important;
-  background:transparent !important;
-  border:0 !important;
-  accent-color:var(--teal);
+.activity-auto-bar{
+  position:relative;
+  width:100%;
+  height:38px;
+  display:flex;
+  align-items:center;
 }
 
-#activityLevelRange::-webkit-slider-runnable-track{
+.activity-auto-track{
+  position:absolute;
+  left:0;
+  right:0;
   height:8px;
   border-radius:999px;
-  background:linear-gradient(90deg,var(--teal) 0%,var(--teal) var(--activity-progress, 56%),rgba(120,135,160,.28) var(--activity-progress, 56%),rgba(120,135,160,.28) 100%) !important;
+  background:linear-gradient(90deg,var(--teal) 0%,var(--teal) var(--activity-progress,56%),rgba(120,135,160,.28) var(--activity-progress,56%),rgba(120,135,160,.28) 100%);
 }
 
-#activityLevelRange::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  appearance:none;
+.activity-auto-thumb{
+  position:absolute;
+  top:50%;
+  left:var(--activity-progress,56%);
   width:30px;
   height:30px;
   border-radius:50%;
   background:#f2f4f7;
-  border:0;
-  margin-top:-11px;
+  transform:translate(-50%,-50%);
   box-shadow:0 4px 18px rgba(0,0,0,.35);
+}
+
+#activityLevelRange{
+  display:none !important;
 }
 
 .activity-numbers{
@@ -6418,15 +6440,21 @@ nav.tabbar button.active svg{
 
   <h2 class="section-title">Nível de Atividade Física</h2>
 
-  <p class="detail" style="margin-bottom:18px;">
-    Este fator é utilizado para calcular o teu gasto energético diário (TDEE),
-    ajustar as calorias recomendadas e melhorar as sugestões de treino.
+  <p class="detail" style="margin-bottom:10px;">
+    Este valor é automático e sobe conforme os treinos que a app vai detetando.
+    É usado para ajustar o teu gasto energético diário (TDEE), calorias e sugestões de treino.
   </p>
 
-  <div class="activity-slider-wrap">
-    <label for="activityLevelRange">Nível de atividade</label>
+  <div class="activity-auto-badge">Automático pelos treinos</div>
 
-    <input type="range" id="activityLevelRange" min="1" max="10" step="1" value="6">
+  <div class="activity-slider-wrap">
+    <label>Nível de atividade</label>
+
+    <div class="activity-auto-bar" id="activityAutoBar">
+      <div class="activity-auto-track"></div>
+      <div class="activity-auto-thumb"></div>
+    </div>
+
     <input type="hidden" id="activityLevel" value="6">
 
     <div class="activity-numbers">
@@ -6469,7 +6497,10 @@ nav.tabbar button.active svg{
 
   <div class="activity-info">
     <div class="activity-info-icon">i</div>
-    <div>Escolhe o nível que melhor descreve a tua rotina atual. Podes ajustar sempre que a tua atividade mudar.</div>
+    <div>
+      O cálculo usa os treinos registados/detetados nos últimos 7 dias.
+      Quanto mais treinos e volume, maior o nível.
+    </div>
   </div>
 
 </div>
@@ -12305,10 +12336,96 @@ nav.tabbar button.active svg{
 
 
 
-<script id="pulso-atividade-v3-js">
+
+<script id="pulso-atividade-automatica-v4-js">
 (function(){
+  function readLS(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+
+  function asArray(x){
+    return Array.isArray(x) ? x : [];
+  }
+
+  function getAllWorkouts(){
+    let out = [];
+
+    [
+      'strava-activities',
+      'pulso-strava-activities',
+      'workouts',
+      'pulso-workouts',
+      'athlete-workouts',
+      'training-log',
+      'pulso-training-log'
+    ].forEach(function(key){
+      out = out.concat(asArray(readLS(key, [])));
+    });
+
+    const hist = asArray(readLS('athlete-history', []));
+    hist.forEach(function(day){
+      if(day && day.details){
+        out = out.concat(asArray(day.details.workouts));
+        out = out.concat(asArray(day.details.planned));
+      }
+    });
+
+    return out.filter(Boolean);
+  }
+
+  function dateOf(w){
+    const raw = w.date || w.start_date || w.startDate || w.day || w.savedAt || w.createdAt || w.time;
+    if(!raw) return null;
+    const d = new Date(raw);
+    if(isNaN(d.getTime())) return null;
+    return d;
+  }
+
+  function workoutMinutes(w){
+    return Number(
+      w.minutes || w.min || w.durationMin || w.duration_minutes ||
+      ((w.moving_time || w.elapsed_time || w.duration || 0) / 60)
+    ) || 0;
+  }
+
+  function workoutKm(w){
+    const d = Number(w.distanceKm || w.km || w.distance_km || 0);
+    if(d) return d;
+    const meters = Number(w.distance || w.distance_m || 0);
+    return meters > 100 ? meters / 1000 : meters;
+  }
+
+  function calculateActivityLevel(){
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const recent = getAllWorkouts().filter(function(w){
+      const d = dateOf(w);
+      return d && d >= weekAgo && d <= now;
+    });
+
+    const count = recent.length;
+    const minutes = recent.reduce(function(s,w){ return s + workoutMinutes(w); }, 0);
+    const km = recent.reduce(function(s,w){ return s + workoutKm(w); }, 0);
+
+    let level = 1;
+
+    if(count >= 1) level = 2;
+    if(count >= 3 || minutes >= 120 || km >= 15) level = 4;
+    if(count >= 4 || minutes >= 180 || km >= 25) level = 5;
+    if(count >= 5 || minutes >= 240 || km >= 35) level = 6;
+    if(count >= 6 || minutes >= 360 || km >= 50) level = 7;
+    if(count >= 7 || minutes >= 480 || km >= 70) level = 8;
+    if(count >= 9 || minutes >= 600 || km >= 90) level = 9;
+    if(count >= 10 || minutes >= 720 || km >= 110) level = 10;
+
+    return {level:level, count:count, minutes:minutes, km:km};
+  }
+
   function activityName(v){
-    v = Number(v) || 6;
     if(v <= 1) return 'Sedentário';
     if(v <= 2) return 'Ligeiramente ativo';
     if(v <= 5) return 'Moderadamente ativo';
@@ -12326,9 +12443,12 @@ nav.tabbar button.active svg{
     });
   }
 
-  function ensurePanelOnlyInAthlete(){
-    const panel = document.getElementById('activity-level-panel');
-    if(!panel) return;
+  function keepOnlyOnePanelInAtleta(){
+    const panels = Array.from(document.querySelectorAll('#activity-level-panel'));
+    if(!panels.length) return;
+
+    const panel = panels[0];
+    panels.slice(1).forEach(function(p){ p.remove(); });
 
     const athleteArea =
       document.querySelector('#tab-perfil [data-profile-view="atleta"]') ||
@@ -12344,59 +12464,45 @@ nav.tabbar button.active svg{
   }
 
   function updateActivity(){
-    const range = document.getElementById('activityLevelRange');
+    const result = calculateActivityLevel();
+    const level = result.level;
+    const pct = ((level - 1) / 9) * 100;
+
+    const panel = document.getElementById('activity-level-panel');
     const hidden = document.getElementById('activityLevel');
     const name = document.getElementById('activityLevelName');
     const factor = document.getElementById('activityLevelFactor');
+    const bar = document.getElementById('activityAutoBar');
 
-    if(!range) return;
+    if(panel) panel.style.setProperty('--activity-progress', pct + '%');
+    if(bar) bar.style.setProperty('--activity-progress', pct + '%');
 
-    range.min = '1';
-    range.max = '10';
-    range.step = '1';
-
-    let v = Math.round(Number(range.value) || 6);
-    v = Math.max(1, Math.min(10, v));
-    range.value = String(v);
-
-    const pct = ((v - 1) / 9) * 100;
-    range.style.setProperty('--activity-progress', pct + '%');
-
-    if(hidden) hidden.value = String(v);
-    if(name) name.textContent = activityName(v);
-    if(factor) factor.textContent = 'Nível ' + v;
+    if(hidden) hidden.value = String(level);
+    if(name) name.textContent = activityName(level);
+    if(factor) factor.textContent = 'Nível ' + level + ' · ' + result.count + ' treino' + (result.count === 1 ? '' : 's') + ' / 7 dias';
 
     try{
-      localStorage.setItem('pulso-activity-level-1-10', String(v));
+      localStorage.setItem('pulso-activity-level-1-10', String(level));
+      localStorage.setItem('pulso-activity-level-auto', JSON.stringify(result));
     }catch(e){}
   }
 
   document.addEventListener('DOMContentLoaded', function(){
     fixOldActivityField();
-    ensurePanelOnlyInAthlete();
-
-    const range = document.getElementById('activityLevelRange');
-    if(range){
-      try{
-        const saved = localStorage.getItem('pulso-activity-level-1-10');
-        if(saved) range.value = saved;
-      }catch(e){}
-
-      updateActivity();
-      range.addEventListener('input', updateActivity);
-      range.addEventListener('change', updateActivity);
-      range.addEventListener('touchend', updateActivity);
-    }
+    keepOnlyOnePanelInAtleta();
+    updateActivity();
 
     document.querySelectorAll('#tab-perfil .subtabs button, #tab-perfil [data-profile-tab]').forEach(function(btn){
       btn.addEventListener('click', function(){
         setTimeout(function(){
           fixOldActivityField();
-          ensurePanelOnlyInAthlete();
+          keepOnlyOnePanelInAtleta();
           updateActivity();
-        }, 80);
+        }, 100);
       });
     });
+
+    setInterval(updateActivity, 4000);
   });
 })();
 </script>
