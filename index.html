@@ -4251,7 +4251,7 @@ label[for="race-peak-hours"],
           <li>Abre a autorização Strava e inicia sessão.</li>
           <li>O browser tenta abrir <code>localhost/...&code=XXXX</code> e falha — copia o valor depois de <code>code=</code>.</li>
           <li>Cola o código abaixo e conclui.</li>
-          <li>Para importar zonas cardio, a autorização inclui <code>profile:read_all</code>.</li>
+          <li>As zonas cardio são preenchidas manualmente abaixo, copiadas do Strava.</li>
         </ol>
         <div class="row"><button class="ghost" id="btn-strava-auth" type="button">1. Abrir autorização</button></div>
         <div class="row" style="margin-top:8px;">
@@ -4263,17 +4263,25 @@ label[for="race-peak-hours"],
           <button class="ghost" id="btn-strava-disconnect" type="button">Desligar</button>
         </div>
         <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
-          <div class="row space-between">
-            <div>
-              <h3>Zonas cardio Strava</h3>
-              <p class="help" style="margin:0;">Importa automaticamente as zonas de frequência cardíaca definidas no Strava.</p>
-            </div>
-            <button class="ghost" id="btn-strava-zones" type="button">Sincronizar zonas</button>
-          </div>
+          <h3>Zonas cardio manuais</h3>
+          <p class="help" style="margin:0 0 10px;">Preenche aqui as zonas de frequência cardíaca retiradas do Strava. Estes valores ficam guardados no Perfil do atleta.</p>
+          <form class="entry" id="form-manual-hr-zones">
+            <div class="field"><label for="hr-z1-min">Z1 mín.</label><input type="number" id="hr-z1-min" placeholder="0"></div>
+            <div class="field"><label for="hr-z1-max">Z1 máx.</label><input type="number" id="hr-z1-max" placeholder="118"></div>
+            <div class="field"><label for="hr-z2-min">Z2 mín.</label><input type="number" id="hr-z2-min" placeholder="119"></div>
+            <div class="field"><label for="hr-z2-max">Z2 máx.</label><input type="number" id="hr-z2-max" placeholder="145"></div>
+            <div class="field"><label for="hr-z3-min">Z3 mín.</label><input type="number" id="hr-z3-min" placeholder="146"></div>
+            <div class="field"><label for="hr-z3-max">Z3 máx.</label><input type="number" id="hr-z3-max" placeholder="160"></div>
+            <div class="field"><label for="hr-z4-min">Z4 mín.</label><input type="number" id="hr-z4-min" placeholder="161"></div>
+            <div class="field"><label for="hr-z4-max">Z4 máx.</label><input type="number" id="hr-z4-max" placeholder="174"></div>
+            <div class="field"><label for="hr-z5-min">Z5 mín.</label><input type="number" id="hr-z5-min" placeholder="175"></div>
+            <div class="field"><label for="hr-z5-max">Z5 máx.</label><input type="number" id="hr-z5-max" placeholder="205"></div>
+            <button class="primary" type="submit">Guardar zonas</button>
+          </form>
           <div id="strava-hr-zones" class="strava-zone-list" style="margin-top:12px;">
-            <div class="empty">Sem zonas importadas.</div>
+            <div class="empty">Sem zonas guardadas.</div>
           </div>
-          <p class="help" id="strava-zones-note" style="margin-top:8px;">Para funcionar, liga o Strava com a permissão profile:read_all.</p>
+          <p class="help" id="strava-zones-note" style="margin-top:8px;">Atalho no Strava: Perfil &gt; Definições &gt; Zonas de treino &gt; Frequência cardíaca. Copia os limites de Z1 a Z5 para estes campos.</p>
         </div>
         <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
           <h3>VO₂ máx manual</h3>
@@ -6231,7 +6239,7 @@ label[for="race-peak-hours"],
   document.getElementById('btn-strava-auth').addEventListener('click', ()=>{
     const clientId = document.getElementById('strava-client-id').value.trim();
     if(!clientId){ toast('Introduz primeiro o Client ID'); return; }
-    const url = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA_REDIRECT)}&approval_prompt=auto&scope=activity:read_all,profile:read_all`;
+    const url = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA_REDIRECT)}&approval_prompt=auto&scope=activity:read_all`;
     window.open(url, '_blank');
   });
 
@@ -6280,44 +6288,39 @@ label[for="race-peak-hours"],
   }
 
 
-  const zonesBtn = document.getElementById('btn-strava-zones');
-  if(zonesBtn){
-    zonesBtn.addEventListener('click', async ()=>{
-      await fetchStravaZones(true);
+  const manualHrZonesForm = document.getElementById('form-manual-hr-zones');
+  if(manualHrZonesForm){
+    manualHrZonesForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const zones = [];
+      for(let i=1;i<=5;i++){
+        const minEl = document.getElementById('hr-z' + i + '-min');
+        const maxEl = document.getElementById('hr-z' + i + '-max');
+        const min = minEl && minEl.value !== '' ? Number(minEl.value) : null;
+        const max = maxEl && maxEl.value !== '' ? Number(maxEl.value) : null;
+        if(min!==null || max!==null){ zones.push({ name:'Z' + i, min, max }); }
+      }
+      if(!zones.length){
+        stravaZones = null;
+        await sSet('strava-zones', null);
+        renderStravaZonesUI();
+        toast('Zonas cardio apagadas');
+        return;
+      }
+      stravaZones = { source:'manual', heartRate:zones, updatedAt:new Date().toISOString() };
+      await sSet('strava-zones', stravaZones);
+      renderStravaZonesUI();
+      toast('Zonas cardio guardadas');
     });
   }
 
-  function normaliseHrZones(payload){
-    const zones = payload && payload.heart_rate && Array.isArray(payload.heart_rate.zones) ? payload.heart_rate.zones : [];
-    return zones.map((z, idx)=>{
-      const min = (z.min!=null) ? Number(z.min) : null;
-      const maxRaw = (z.max!=null) ? Number(z.max) : null;
-      const max = (maxRaw && maxRaw > 0) ? maxRaw : null;
-      return { name:'Z' + (idx+1), min, max };
-    }).filter(z=>z.min!=null || z.max!=null);
-  }
-
-  async function fetchStravaZones(showToast){
-    if(!stravaAuth || !stravaAuth.accessToken){ if(showToast) toast('Liga primeiro o Strava em Perfil'); return null; }
-    const ok = await ensureFreshToken();
-    if(!ok){ if(showToast) toast('Sessão do Strava expirada. Liga novamente.'); return null; }
-    try{
-      const res = await fetchStrava('https://www.strava.com/api/v3/athlete/zones', { headers:{ 'Authorization': 'Bearer ' + stravaAuth.accessToken } });
-      if(!res.ok) throw new Error('zones fetch failed ' + res.status);
-      const data = await res.json();
-      stravaZones = {
-        raw:data,
-        heartRate: normaliseHrZones(data),
-        updatedAt: new Date().toISOString()
-      };
-      await sSet('strava-zones', stravaZones);
-      renderStravaZonesUI();
-      if(showToast) toast('Zonas cardio importadas do Strava');
-      return stravaZones;
-    }catch(err){
-      console.error(err);
-      if(showToast) toast('Não foi possível importar as zonas. Confirma a permissão profile:read_all.');
-      return null;
+  function fillManualHrZoneInputs(zones){
+    for(let i=1;i<=5;i++){
+      const z = zones && zones[i-1] ? zones[i-1] : null;
+      const minEl = document.getElementById('hr-z' + i + '-min');
+      const maxEl = document.getElementById('hr-z' + i + '-max');
+      if(minEl) minEl.value = z && z.min!=null ? Math.round(z.min) : '';
+      if(maxEl) maxEl.value = z && z.max!=null ? Math.round(z.max) : '';
     }
   }
 
@@ -6326,10 +6329,11 @@ label[for="race-peak-hours"],
     const note = document.getElementById('strava-zones-note');
     if(!box) return;
     const zones = stravaZones && Array.isArray(stravaZones.heartRate) ? stravaZones.heartRate : [];
+    fillManualHrZoneInputs(zones);
     box.innerHTML = '';
     if(!zones.length){
-      box.innerHTML = '<div class="empty">Sem zonas importadas.</div>';
-      if(note) note.textContent = 'Liga o Strava com profile:read_all e carrega em Sincronizar zonas.';
+      box.innerHTML = '<div class="empty">Sem zonas guardadas.</div>';
+      if(note) note.textContent = 'Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca. Copia os limites de Z1 a Z5 para estes campos.';
       return;
     }
     const maxRef = Math.max(...zones.map(z=>z.max || z.min || 1), 1);
@@ -6344,7 +6348,7 @@ label[for="race-peak-hours"],
     });
     if(note){
       const d = stravaZones.updatedAt ? new Date(stravaZones.updatedAt) : null;
-      note.textContent = 'Última importação: ' + (d ? d.toLocaleString('pt-PT') : '—') + '.';
+      note.textContent = 'Guardado manualmente: ' + (d ? d.toLocaleString('pt-PT') : '—') + '. Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca.';
     }
   }
 
@@ -6403,7 +6407,6 @@ label[for="race-peak-hours"],
         elevGain: a.total_elevation_gain || 0, calories: a.calories || null
       }));
       await sSet('strava-activities', stravaActivities);
-      await fetchStravaZones(false);
       renderWorkouts(); renderTraining7d(); renderRaceAndPlan(); renderKcal(); renderDashboard(); renderVo2UI(); renderStravaZonesUI();
       checkTodayPlanAgainstStrava();
       toast('Treinos sincronizados: ' + stravaActivities.length);
