@@ -5366,14 +5366,37 @@ nav.tabbar button.active svg{
 
 
 
-<style id="pulso-atividade-automatica-v4">
+
+<style id="pulso-atividade-so-atleta">
 /* =====================================================
-   Perfil v4
-   - Botões do perfil no topo, sem ficarem fixos
-   - Nível de atividade só na área Atleta
-   - Valor automático, calculado pelos treinos detetados
+   Nível de atividade física — só na área Atleta
 ====================================================== */
 
+/* Se aparecer fora da área Atleta, fica escondido */
+#activity-level-panel{
+  display:none !important;
+}
+
+/* Mostra apenas quando está dentro da área do atleta */
+#profile-atleta #activity-level-panel,
+#sub-atleta #activity-level-panel,
+[data-profile-view="atleta"] #activity-level-panel,
+.profile-view-atleta #activity-level-panel,
+.profile-atleta #activity-level-panel{
+  display:block !important;
+}
+
+/* Retira o campo antigo "Nível atividade (0-10)" do formulário */
+#tab-perfil .field:has(#profile-activity),
+#tab-perfil .field:has(#athlete-activity),
+#tab-perfil .field:has(input[id*="activity"]),
+#tab-perfil .field:has(input[id*="atividade"]),
+#tab-perfil .field:has(input[name*="activity"]),
+#tab-perfil .field:has(input[name*="atividade"]){
+  display:none !important;
+}
+
+/* Os 6 botões ficam no topo, mas sem ficar fixos */
 #tab-perfil .subtabs,
 #tab-perfil #profile-subtabs,
 #tab-perfil .profile-subtabs{
@@ -5416,7 +5439,6 @@ nav.tabbar button.active svg{
   font-size:13.5px !important;
   line-height:1.15 !important;
   font-weight:800 !important;
-  letter-spacing:.1px !important;
   white-space:normal !important;
   transform:none !important;
 }
@@ -5428,7 +5450,6 @@ nav.tabbar button.active svg{
   color:var(--teal);
   font-size:32px;
   line-height:1;
-  font-weight:400;
   text-shadow:0 0 18px rgba(53,217,166,.22);
 }
 
@@ -5464,23 +5485,6 @@ nav.tabbar button.active svg{
     radial-gradient(circle at 50% -18%, rgba(53,217,166,.22), transparent 56%),
     linear-gradient(180deg, rgba(29,42,68,.98), rgba(16,24,39,.98)) !important;
   border-color:rgba(53,217,166,.32) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.055),
-    0 0 24px rgba(53,217,166,.10) !important;
-}
-
-/* Retira o campo antigo "Nível atividade (0-10)" */
-#tab-perfil .field:has(#profile-activity),
-#tab-perfil .field:has(#athlete-activity),
-#tab-perfil .field:has(input[name="activityLevel"]),
-#tab-perfil .field:has(input[id*="activity"]),
-#tab-perfil .field:has(input[id*="atividade"]){
-  display:none !important;
-}
-
-/* Garante que painéis repetidos não aparecem */
-#tab-perfil #activity-level-panel ~ #activity-level-panel{
-  display:none !important;
 }
 
 /* Painel automático */
@@ -5547,10 +5551,6 @@ nav.tabbar button.active svg{
   background:#f2f4f7;
   transform:translate(-50%,-50%);
   box-shadow:0 4px 18px rgba(0,0,0,.35);
-}
-
-#activityLevelRange{
-  display:none !important;
 }
 
 .activity-numbers{
@@ -5668,9 +5668,6 @@ nav.tabbar button.active svg{
     gap:10px;
     padding:13px 12px;
   }
-
-  .activity-guide-row strong{font-size:15px;}
-  .activity-guide-row p{font-size:12.5px;}
 }
 </style>
 
@@ -6469,38 +6466,16 @@ nav.tabbar button.active svg{
   </div>
 
   <div class="activity-guide">
-    <div class="activity-guide-row">
-      <div><span class="activity-pill">1</span></div>
-      <div><strong>Sedentário</strong><p>Pouco ou nenhum exercício. Trabalho maioritariamente sentado.</p></div>
-    </div>
-
-    <div class="activity-guide-row">
-      <div><span class="activity-pill">2</span></div>
-      <div><strong>Ligeiramente ativo</strong><p>1 a 3 treinos por semana ou atividade física ocasional.</p></div>
-    </div>
-
-    <div class="activity-guide-row">
-      <div><span class="activity-pill">3–5</span></div>
-      <div><strong>Moderadamente ativo</strong><p>3 a 5 treinos por semana. A maioria dos praticantes regulares enquadra-se aqui.</p></div>
-    </div>
-
-    <div class="activity-guide-row">
-      <div><span class="activity-pill">6–7</span></div>
-      <div><strong>Muito ativo</strong><p>6 a 7 treinos por semana ou profissão fisicamente exigente.</p></div>
-    </div>
-
-    <div class="activity-guide-row">
-      <div><span class="activity-pill">8–10</span></div>
-      <div><strong>Atleta</strong><p>Treino intenso diário ou duas sessões por dia. Elevado volume de treino.</p></div>
-    </div>
+    <div class="activity-guide-row"><div><span class="activity-pill">1</span></div><div><strong>Sedentário</strong><p>Pouco ou nenhum exercício. Trabalho maioritariamente sentado.</p></div></div>
+    <div class="activity-guide-row"><div><span class="activity-pill">2</span></div><div><strong>Ligeiramente ativo</strong><p>1 a 3 treinos por semana ou atividade física ocasional.</p></div></div>
+    <div class="activity-guide-row"><div><span class="activity-pill">3–5</span></div><div><strong>Moderadamente ativo</strong><p>3 a 5 treinos por semana. A maioria dos praticantes regulares enquadra-se aqui.</p></div></div>
+    <div class="activity-guide-row"><div><span class="activity-pill">6–7</span></div><div><strong>Muito ativo</strong><p>6 a 7 treinos por semana ou profissão fisicamente exigente.</p></div></div>
+    <div class="activity-guide-row"><div><span class="activity-pill">8–10</span></div><div><strong>Atleta</strong><p>Treino intenso diário ou duas sessões por dia. Elevado volume de treino.</p></div></div>
   </div>
 
   <div class="activity-info">
     <div class="activity-info-icon">i</div>
-    <div>
-      O cálculo usa os treinos registados/detetados nos últimos 7 dias.
-      Quanto mais treinos e volume, maior o nível.
-    </div>
+    <div>O cálculo usa os treinos registados/detetados nos últimos 7 dias.</div>
   </div>
 
 </div>
@@ -12337,7 +12312,8 @@ nav.tabbar button.active svg{
 
 
 
-<script id="pulso-atividade-automatica-v4-js">
+
+<script id="pulso-atividade-so-atleta-js">
 (function(){
   function readLS(key, fallback){
     try{
@@ -12346,27 +12322,15 @@ nav.tabbar button.active svg{
     }catch(e){ return fallback; }
   }
 
-  function asArray(x){
-    return Array.isArray(x) ? x : [];
-  }
+  function asArray(x){ return Array.isArray(x) ? x : []; }
 
   function getAllWorkouts(){
     let out = [];
-
-    [
-      'strava-activities',
-      'pulso-strava-activities',
-      'workouts',
-      'pulso-workouts',
-      'athlete-workouts',
-      'training-log',
-      'pulso-training-log'
-    ].forEach(function(key){
+    ['strava-activities','pulso-strava-activities','workouts','pulso-workouts','athlete-workouts','training-log','pulso-training-log'].forEach(function(key){
       out = out.concat(asArray(readLS(key, [])));
     });
 
-    const hist = asArray(readLS('athlete-history', []));
-    hist.forEach(function(day){
+    asArray(readLS('athlete-history', [])).forEach(function(day){
       if(day && day.details){
         out = out.concat(asArray(day.details.workouts));
         out = out.concat(asArray(day.details.planned));
@@ -12380,20 +12344,16 @@ nav.tabbar button.active svg{
     const raw = w.date || w.start_date || w.startDate || w.day || w.savedAt || w.createdAt || w.time;
     if(!raw) return null;
     const d = new Date(raw);
-    if(isNaN(d.getTime())) return null;
-    return d;
+    return isNaN(d.getTime()) ? null : d;
   }
 
   function workoutMinutes(w){
-    return Number(
-      w.minutes || w.min || w.durationMin || w.duration_minutes ||
-      ((w.moving_time || w.elapsed_time || w.duration || 0) / 60)
-    ) || 0;
+    return Number(w.minutes || w.min || w.durationMin || w.duration_minutes || ((w.moving_time || w.elapsed_time || w.duration || 0) / 60)) || 0;
   }
 
   function workoutKm(w){
-    const d = Number(w.distanceKm || w.km || w.distance_km || 0);
-    if(d) return d;
+    const km = Number(w.distanceKm || w.km || w.distance_km || 0);
+    if(km) return km;
     const meters = Number(w.distance || w.distance_m || 0);
     return meters > 100 ? meters / 1000 : meters;
   }
@@ -12401,7 +12361,6 @@ nav.tabbar button.active svg{
   function calculateActivityLevel(){
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
     const recent = getAllWorkouts().filter(function(w){
       const d = dateOf(w);
       return d && d >= weekAgo && d <= now;
@@ -12412,7 +12371,6 @@ nav.tabbar button.active svg{
     const km = recent.reduce(function(s,w){ return s + workoutKm(w); }, 0);
 
     let level = 1;
-
     if(count >= 1) level = 2;
     if(count >= 3 || minutes >= 120 || km >= 15) level = 4;
     if(count >= 4 || minutes >= 180 || km >= 25) level = 5;
@@ -12433,7 +12391,7 @@ nav.tabbar button.active svg{
     return 'Atleta';
   }
 
-  function fixOldActivityField(){
+  function hideOldField(){
     document.querySelectorAll('#tab-perfil label').forEach(function(label){
       const t = (label.textContent || '').toLowerCase();
       if(t.includes('nível atividade') || t.includes('nível de atividade (0-10)')){
@@ -12443,24 +12401,39 @@ nav.tabbar button.active svg{
     });
   }
 
-  function keepOnlyOnePanelInAtleta(){
+  function findAthleteArea(){
+    return document.querySelector('#profile-atleta') ||
+           document.querySelector('#sub-atleta') ||
+           document.querySelector('[data-profile-view="atleta"]') ||
+           document.querySelector('.profile-view-atleta') ||
+           document.querySelector('.profile-atleta');
+  }
+
+  function enforceOnlyAthlete(){
     const panels = Array.from(document.querySelectorAll('#activity-level-panel'));
     if(!panels.length) return;
 
     const panel = panels[0];
     panels.slice(1).forEach(function(p){ p.remove(); });
 
-    const athleteArea =
-      document.querySelector('#tab-perfil [data-profile-view="atleta"]') ||
-      document.querySelector('#tab-perfil #profile-atleta') ||
-      document.querySelector('#tab-perfil #sub-atleta') ||
-      document.querySelector('#tab-perfil .profile-view.active') ||
-      document.querySelector('#tab-perfil .subview.active') ||
-      document.querySelector('#tab-perfil');
+    const athleteArea = findAthleteArea();
 
-    if(athleteArea && !athleteArea.contains(panel)){
-      athleteArea.appendChild(panel);
+    if(athleteArea){
+      if(!athleteArea.contains(panel)) athleteArea.appendChild(panel);
+      panel.style.display = 'block';
+    }else{
+      /* se não encontrar a área Atleta, não mostra fora dela */
+      panel.style.display = 'none';
     }
+
+    /* esconder qualquer cartão que tenha este título fora do atleta */
+    document.querySelectorAll('#tab-perfil .card').forEach(function(card){
+      if(card === panel || card.closest('#activity-level-panel')) return;
+      const title = (card.textContent || '').toLowerCase();
+      if(title.includes('nível de atividade física')){
+        card.style.display = 'none';
+      }
+    });
   }
 
   function updateActivity(){
@@ -12476,7 +12449,6 @@ nav.tabbar button.active svg{
 
     if(panel) panel.style.setProperty('--activity-progress', pct + '%');
     if(bar) bar.style.setProperty('--activity-progress', pct + '%');
-
     if(hidden) hidden.value = String(level);
     if(name) name.textContent = activityName(level);
     if(factor) factor.textContent = 'Nível ' + level + ' · ' + result.count + ' treino' + (result.count === 1 ? '' : 's') + ' / 7 dias';
@@ -12487,22 +12459,18 @@ nav.tabbar button.active svg{
     }catch(e){}
   }
 
-  document.addEventListener('DOMContentLoaded', function(){
-    fixOldActivityField();
-    keepOnlyOnePanelInAtleta();
+  function run(){
+    hideOldField();
+    enforceOnlyAthlete();
     updateActivity();
+  }
 
+  document.addEventListener('DOMContentLoaded', function(){
+    run();
     document.querySelectorAll('#tab-perfil .subtabs button, #tab-perfil [data-profile-tab]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        setTimeout(function(){
-          fixOldActivityField();
-          keepOnlyOnePanelInAtleta();
-          updateActivity();
-        }, 100);
-      });
+      btn.addEventListener('click', function(){ setTimeout(run, 100); });
     });
-
-    setInterval(updateActivity, 4000);
+    setInterval(run, 3000);
   });
 })();
 </script>
