@@ -3223,6 +3223,432 @@ main > section.active{
   }
 }
 
+
+/* =========================================================
+   PULSO — GERADOR DE TREINOS POR INTENSIDADE
+   ========================================================= */
+
+.training-mode-card{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.training-mode-title{
+  font-size:13px;
+  font-weight:800;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  margin:0;
+}
+
+.training-mode-options{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.training-mode-btn{
+  min-height:64px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.045);
+  color:var(--text);
+  font-family:var(--font-main, var(--font-body));
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+}
+
+.training-mode-btn small{
+  font-size:11px;
+  font-weight:600;
+  color:var(--text-muted);
+}
+
+.training-mode-btn.active{
+  background:rgba(53,217,166,.16);
+  border-color:rgba(53,217,166,.45);
+  color:var(--teal);
+  box-shadow:0 0 28px rgba(53,217,166,.10) inset;
+}
+
+.training-suggestion-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.training-generated-card{
+  position:relative;
+  border-radius:26px;
+  padding:18px;
+  background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(14,22,38,.98));
+  border:1px solid rgba(255,255,255,.085);
+}
+
+.training-generated-card h4{
+  margin:0 38px 8px 0;
+  font-size:18px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+.training-generated-card p{
+  margin:0;
+  font-size:13.5px;
+  line-height:1.45;
+  color:var(--text-muted);
+}
+
+.training-generated-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:12px;
+}
+
+.training-generated-meta span{
+  border-radius:999px;
+  padding:5px 9px;
+  background:rgba(255,255,255,.06);
+  color:var(--text-muted);
+  font-size:11px;
+  font-weight:700;
+}
+
+.training-mode-note{
+  font-size:12px;
+  line-height:1.45;
+  color:var(--text-muted);
+  margin:0;
+}
+
+@media(max-width:520px){
+  .training-mode-options{
+    grid-template-columns:1fr;
+  }
+
+  .training-mode-btn{
+    min-height:58px;
+    flex-direction:row;
+    justify-content:space-between;
+    padding:0 16px;
+  }
+
+  .training-generated-card h4{
+    font-size:17px;
+  }
+}
+
+
+/* =========================================================
+   PULSO — TREINOS v2: SEMANAS AUTO + SUGESTÕES POR TEMPO/TIPO
+   ========================================================= */
+
+.plan-auto-info{
+  margin-top:8px;
+  font-size:12px;
+  line-height:1.45;
+  color:var(--text-muted);
+}
+
+.plan-auto-info strong{
+  color:var(--teal);
+}
+
+.quick-context-card{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.quick-context-summary{
+  font-size:12px;
+  line-height:1.45;
+  color:var(--text-muted);
+  margin:0;
+}
+
+.training-generated-card.is-specific{
+  border-color:rgba(53,217,166,.22) !important;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(53,217,166,.14), transparent 55%),
+    linear-gradient(180deg, rgba(24,34,56,.97), rgba(14,22,38,.98)) !important;
+}
+
+.training-generated-card .specific-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  padding:4px 8px;
+  background:rgba(53,217,166,.14);
+  color:var(--teal);
+  font-size:10.5px;
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+
+/* =========================================================
+   PULSO — GERADOR DE TREINOS FILTRADO POR TEMPO/TIPO/INTENSIDADE
+   ========================================================= */
+
+.training-filtered-card{
+  position:relative;
+  border-radius:26px;
+  padding:18px !important;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(53,217,166,.13), transparent 55%),
+    linear-gradient(180deg, rgba(24,34,56,.97), rgba(14,22,38,.98)) !important;
+  border:1px solid rgba(53,217,166,.18) !important;
+}
+
+.training-filtered-card h4{
+  margin:0 42px 8px 0;
+  font-size:18px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+.training-filtered-card p{
+  margin:0;
+  color:var(--text-muted);
+  font-size:13.5px;
+  line-height:1.45;
+}
+
+.training-filtered-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:12px;
+}
+
+.training-filtered-meta span{
+  border-radius:999px;
+  padding:5px 9px;
+  background:rgba(255,255,255,.06);
+  color:var(--text-muted);
+  font-size:11px;
+  font-weight:800;
+}
+
+.training-filtered-badge{
+  display:inline-flex;
+  margin-bottom:8px;
+  border-radius:999px;
+  padding:4px 9px;
+  background:rgba(53,217,166,.14);
+  color:var(--teal);
+  font-size:10.5px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.training-filter-summary{
+  margin:0 0 12px;
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.training-filter-summary strong{
+  color:var(--teal);
+}
+
+/* Esconde sugestões antigas genéricas para não aparecerem treinos fora do tempo escolhido */
+#pulso-generated-workouts,
+#pulso-specific-workouts{
+  display:none !important;
+}
+
+
+/* =========================================================
+   PULSO — TRAINING ENGINE 1.0
+   Mais modalidades + seleção direta para Treino de Hoje
+   ========================================================= */
+
+.training-engine-card{
+  position:relative;
+  border-radius:26px;
+  padding:18px !important;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(53,217,166,.13), transparent 55%),
+    linear-gradient(180deg, rgba(24,34,56,.97), rgba(14,22,38,.98)) !important;
+  border:1px solid rgba(53,217,166,.18) !important;
+}
+
+.training-engine-card h4{
+  margin:0 42px 8px 0;
+  font-size:18px;
+  line-height:1.2;
+  font-weight:800;
+}
+
+.training-engine-card p{
+  margin:0;
+  color:var(--text-muted);
+  font-size:13.5px;
+  line-height:1.45;
+}
+
+.training-engine-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:12px;
+}
+
+.training-engine-meta span{
+  border-radius:999px;
+  padding:5px 9px;
+  background:rgba(255,255,255,.06);
+  color:var(--text-muted);
+  font-size:11px;
+  font-weight:800;
+}
+
+.training-engine-badge{
+  display:inline-flex;
+  margin-bottom:8px;
+  border-radius:999px;
+  padding:4px 9px;
+  background:rgba(53,217,166,.14);
+  color:var(--teal);
+  font-size:10.5px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+
+.training-engine-score{
+  position:absolute;
+  right:16px;
+  bottom:14px;
+  color:var(--amber);
+  font-size:12px;
+  font-weight:900;
+}
+
+.training-engine-summary{
+  margin:0 0 12px;
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.training-engine-summary strong{
+  color:var(--teal);
+}
+
+/* Garante que novas opções aparecem no seletor */
+#quick-type option[value="forca"],
+#quick-type option[value="mobilidade"]{
+  display:block;
+}
+
+/* Esconde blocos antigos para evitar duplicação de sugestões */
+#pulso-filtered-workouts,
+#pulso-generated-workouts,
+#pulso-specific-workouts{
+  display:none !important;
+}
+
+
+/* =========================================================
+   PULSO — CORREÇÃO TRAINING ENGINE
+   - Remove duplicação da intenção do treino
+   - Último treino continua a ser apenas Strava
+   ========================================================= */
+
+/* Esconde cartões antigos/repetidos de intenção do treino */
+#training-mode-card{
+  display:none !important;
+}
+
+/* Mantém apenas o Training Engine principal */
+#training-engine-mode-card{
+  display:flex !important;
+}
+
+/* Esconde resultados antigos para não duplicar sugestões */
+#pulso-filtered-workouts,
+#pulso-generated-workouts,
+#pulso-specific-workouts{
+  display:none !important;
+}
+
+
+/* =========================================================
+   PULSO — FIX ESTÁVEL
+   Strava por atividade + objetivo automático por data
+   ========================================================= */
+
+.pulso-strava-activity{
+  position:relative !important;
+  padding-right:54px !important;
+}
+
+.pulso-strava-dot{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:36px;
+  height:36px;
+  min-width:36px;
+  min-height:36px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(7,11,20,.58);
+  color:var(--text-muted);
+  font-size:22px;
+  font-weight:900;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:8;
+  cursor:pointer;
+}
+
+.pulso-strava-dot:hover{
+  color:var(--teal);
+  border-color:rgba(53,217,166,.45);
+}
+
+#race-date{
+  pointer-events:auto !important;
+  opacity:1 !important;
+  visibility:visible !important;
+}
+
+.plan-phase-auto-note{
+  margin-top:8px;
+  color:var(--text-muted);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.plan-phase-auto-note strong{
+  color:var(--teal);
+}
+
+/* Semanas de pico manuais deixam de ser necessárias */
+#race-peak-hours,
+label[for="race-peak-hours"],
+#plan-auto-info{
+  display:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -6141,6 +6567,1571 @@ main > section.active{
     periodicamente se já mudou o dia.
   */
   setInterval(checkDailyReset, 60 * 1000);
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   PULSO — ALGORITMO GERADOR DE TREINOS
+   Modo: Pouco / Normal / Intenso
+   ========================================================= */
+(function(){
+  const MODE_KEY = 'pulso:training-mode';
+
+  const MODE_CONFIG = {
+    pouco: {
+      label: 'Pouco',
+      factor: 0.70,
+      intensity: 'leve',
+      description: 'Menos volume, foco em Z1/Z2 e recuperação.'
+    },
+    normal: {
+      label: 'Normal',
+      factor: 1.00,
+      intensity: 'equilibrado',
+      description: 'Volume equilibrado, com algum trabalho de qualidade.'
+    },
+    intenso: {
+      label: 'Intenso',
+      factor: 1.25,
+      intensity: 'forte',
+      description: 'Mais volume e intensidade, respeitando recuperação.'
+    }
+  };
+
+  function getStoredMode(){
+    return localStorage.getItem(MODE_KEY) || 'normal';
+  }
+
+  function setStoredMode(mode){
+    if(!MODE_CONFIG[mode]) mode = 'normal';
+    localStorage.setItem(MODE_KEY, mode);
+    renderTrainingModeUI();
+    renderGeneratedTrainingSuggestions();
+  }
+
+  function numberFromInput(ids, fallback){
+    for(const id of ids){
+      const el = document.getElementById(id);
+      if(el && el.value !== ''){
+        const n = Number(el.value);
+        if(Number.isFinite(n) && n > 0) return n;
+      }
+    }
+    return fallback;
+  }
+
+  function getRaceData(){
+    const sportEl = document.getElementById('race-sport');
+    const nameEl = document.getElementById('race-name');
+
+    return {
+      name: nameEl && nameEl.value ? nameEl.value.trim() : 'Objetivo',
+      sport: sportEl ? sportEl.value : 'run-road',
+      distanceKm: numberFromInput(['race-dist'], 10),
+      elevationM: numberFromInput(['race-elev'], 0),
+      peakHours: numberFromInput(['race-peak-hours','peak-hours','racePeakHours'], 8)
+    };
+  }
+
+  function getReadinessScore(){
+    const el = document.getElementById('verdict-n');
+    if(el){
+      const n = Number(String(el.textContent || '').replace(/[^\d.]/g,''));
+      if(Number.isFinite(n) && n > 0) return n;
+    }
+    return 75;
+  }
+
+  function clamp(n, min, max){
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function round05(n){
+    return Math.round(n * 2) / 2;
+  }
+
+  function estimateWeekVolume(mode, race, readiness){
+    const modeCfg = MODE_CONFIG[mode] || MODE_CONFIG.normal;
+    let volume = race.peakHours * 0.72 * modeCfg.factor;
+
+    if(readiness < 55) volume *= 0.72;
+    else if(readiness < 70) volume *= 0.88;
+    else if(readiness > 88 && mode === 'intenso') volume *= 1.06;
+
+    return clamp(round05(volume), 2, race.peakHours);
+  }
+
+  function isBike(sport){
+    return String(sport || '').includes('bike');
+  }
+
+  function isTrail(sport){
+    return String(sport || '').includes('trail');
+  }
+
+  function buildWorkoutLibrary(mode, race, readiness){
+    const modeCfg = MODE_CONFIG[mode] || MODE_CONFIG.normal;
+    const bike = isBike(race.sport);
+    const trail = isTrail(race.sport);
+    const weekHours = estimateWeekVolume(mode, race, readiness);
+    const longTime = clamp(round05(weekHours * (mode === 'intenso' ? 0.36 : mode === 'pouco' ? 0.28 : 0.32)), 0.75, 5);
+    const qualityTime = clamp(round05(weekHours * (mode === 'intenso' ? 0.20 : mode === 'pouco' ? 0.10 : 0.16)), 0.5, 2.5);
+    const easyTime = clamp(round05(weekHours * 0.18), 0.5, 2);
+    const elevationFocus = race.elevationM > 500 || trail;
+
+    if(readiness < 55){
+      return [
+        {
+          title: bike ? 'Recuperação ativa' : 'Corrida muito leve',
+          desc: bike ? 'Rolo ou estrada em Z1/Z2 baixa. Cadência solta, sem séries.' : 'Corrida em Z1/Z2 baixa. Terminar com sensação de facilidade.',
+          type: bike ? 'Bike' : 'Corrida',
+          time: '35–50 min',
+          zone: 'Z1/Z2',
+          reason: 'Estado diário baixo — reduzir carga.'
+        },
+        {
+          title: 'Mobilidade + força leve',
+          desc: 'Core, glúteos, mobilidade de anca/tornozelo e trabalho preventivo. Sem carga pesada.',
+          type: 'Força',
+          time: '20–30 min',
+          zone: 'Leve',
+          reason: 'Mantém consistência sem aumentar fadiga.'
+        }
+      ];
+    }
+
+    const workouts = [];
+
+    if(mode === 'pouco'){
+      workouts.push({
+        title: bike ? 'Base curta em Z2' : elevationFocus ? 'Trail leve em Z2' : 'Corrida base curta',
+        desc: bike ? 'Pedalada contínua em Z2 confortável. Evitar picos de potência.' : elevationFocus ? 'Trilho fácil, subidas caminhadas se necessário. Foco em técnica e consistência.' : 'Corrida confortável em Z2. Ritmo controlado e conversa possível.',
+        type: bike ? 'Bike' : 'Corrida',
+        time: `${Math.round(easyTime * 60)}–${Math.round((easyTime + .25) * 60)} min`,
+        zone: 'Z2',
+        reason: 'Modo Pouco — manter estímulo sem acumular fadiga.'
+      });
+      workouts.push({
+        title: 'Força curta',
+        desc: 'Circuito simples: core, agachamento, ponte glúteo, gémeos e estabilidade. 2–3 voltas.',
+        type: 'Força',
+        time: '20–30 min',
+        zone: 'Leve',
+        reason: 'Suporte muscular com pouco impacto.'
+      });
+      return workouts;
+    }
+
+    if(mode === 'normal'){
+      workouts.push({
+        title: bike ? 'Endurance Z2' : elevationFocus ? 'Trail progressivo' : 'Corrida Z2 + progressivos',
+        desc: bike ? 'Trabalho contínuo em Z2. Últimos 10 min ligeiramente mais fortes, sem entrar em Z4.' : elevationFocus ? 'Z2 em terreno ondulado. Subidas controladas e descidas técnicas sem forçar.' : 'Z2 confortável + 4 a 6 progressivos curtos no fim.',
+        type: bike ? 'Bike' : 'Corrida',
+        time: `${Math.round(longTime * 60)} min`,
+        zone: 'Z2/Z3',
+        reason: 'Modo Normal — base aeróbia com estímulo moderado.'
+      });
+      workouts.push({
+        title: bike ? 'Séries de potência controlada' : 'Séries controladas',
+        desc: bike ? '5–6 x 3 min forte controlado, recuperação 3 min leve. Não esgotar.' : '5–6 x 3 min em ritmo forte controlado, recuperação 2–3 min leve.',
+        type: bike ? 'Bike' : 'Corrida',
+        time: `${Math.round(qualityTime * 60)} min`,
+        zone: 'Z3/Z4',
+        reason: 'Qualidade sem excesso de carga.'
+      });
+      workouts.push({
+        title: 'Força funcional',
+        desc: 'Core, posterior, gémeos e estabilidade unilateral. Carga moderada, técnica perfeita.',
+        type: 'Força',
+        time: '35–45 min',
+        zone: 'Moderado',
+        reason: 'Prevenção e transferência para prova.'
+      });
+      return workouts;
+    }
+
+    workouts.push({
+      title: bike ? 'Longo forte controlado' : elevationFocus ? 'Longo com subida' : 'Longo progressivo',
+      desc: bike ? 'Z2 dominante com blocos em Z3. Nutrição e hidratação como em prova.' : elevationFocus ? 'Trilho com desnível. Subidas em esforço sustentável e descidas técnicas controladas.' : 'Corrida longa, últimos 20–30 min progressivos se estiveres bem.',
+      type: bike ? 'Bike' : 'Corrida',
+      time: `${Math.round(longTime * 60)}–${Math.round((longTime + .5) * 60)} min`,
+      zone: 'Z2/Z3',
+      reason: 'Modo Intenso — maior estímulo específico.'
+    });
+    workouts.push({
+      title: bike ? 'Intervalos VO₂ / potência' : 'Intervalos VO₂',
+      desc: bike ? '6 x 3 min forte, recuperação 3 min. Potência alta mas sustentável.' : '6 x 3 min forte, recuperação 3 min. Ritmo duro mas sem sprintar.',
+      type: bike ? 'Bike' : 'Corrida',
+      time: `${Math.round(qualityTime * 60)}–${Math.round((qualityTime + .25) * 60)} min`,
+      zone: 'Z4/Z5',
+      reason: 'Desenvolver capacidade alta com controlo.'
+    });
+    workouts.push({
+      title: 'Força + pliometria leve',
+      desc: 'Força de pernas, core e estabilidade. Incluir saltos leves só se não houver dores.',
+      type: 'Força',
+      time: '40–55 min',
+      zone: 'Moderado/Forte',
+      reason: 'Aumenta robustez para suportar mais carga.'
+    });
+
+    return workouts;
+  }
+
+  function renderTrainingModeUI(){
+    const target =
+      document.getElementById('quick-suggestions') ||
+      document.getElementById('sub-rapido') ||
+      document.getElementById('tab-treinos');
+
+    if(!target) return;
+
+    if(document.getElementById('training-mode-card')) return;
+
+    const card = document.createElement('div');
+    card.className = 'card training-mode-card';
+    card.id = 'training-mode-card';
+    card.innerHTML = `
+      <p class="training-mode-title">Intenção do treino</p>
+      <div class="training-mode-options">
+        <button class="training-mode-btn" type="button" data-training-mode="pouco">
+          Pouco <small>leve / recuperar</small>
+        </button>
+        <button class="training-mode-btn" type="button" data-training-mode="normal">
+          Normal <small>equilibrado</small>
+        </button>
+        <button class="training-mode-btn" type="button" data-training-mode="intenso">
+          Intenso <small>mais carga</small>
+        </button>
+      </div>
+      <p class="training-mode-note" id="training-mode-note"></p>
+    `;
+
+    if(target.id === 'quick-suggestions'){
+      target.parentElement && target.parentElement.insertBefore(card, target);
+    }else{
+      target.prepend(card);
+    }
+
+    card.querySelectorAll('[data-training-mode]').forEach(btn => {
+      btn.addEventListener('click', () => setStoredMode(btn.dataset.trainingMode));
+    });
+
+    updateTrainingModeButtons();
+  }
+
+  function updateTrainingModeButtons(){
+    const mode = getStoredMode();
+    document.querySelectorAll('[data-training-mode]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.trainingMode === mode);
+    });
+
+    const note = document.getElementById('training-mode-note');
+    if(note){
+      const cfg = MODE_CONFIG[mode] || MODE_CONFIG.normal;
+      note.textContent = `${cfg.label}: ${cfg.description}`;
+    }
+  }
+
+  function renderGeneratedTrainingSuggestions(){
+    updateTrainingModeButtons();
+
+    const container = document.getElementById('quick-suggestions');
+    if(!container) return;
+
+    const mode = getStoredMode();
+    const race = getRaceData();
+    const readiness = getReadinessScore();
+    const workouts = buildWorkoutLibrary(mode, race, readiness);
+
+    let block = document.getElementById('pulso-generated-workouts');
+    if(!block){
+      block = document.createElement('div');
+      block.id = 'pulso-generated-workouts';
+      block.className = 'training-suggestion-list';
+      container.prepend(block);
+    }
+
+    block.innerHTML = workouts.map((w, idx) => `
+      <div class="training-generated-card" data-generated-workout="${idx}">
+        <button class="workout-menu-dot" type="button" data-generated-menu="${idx}" aria-label="Opções do treino">⋮</button>
+        <h4>${w.title}</h4>
+        <p>${w.desc}</p>
+        <div class="training-generated-meta">
+          <span>${w.type}</span>
+          <span>${w.time}</span>
+          <span>${w.zone}</span>
+        </div>
+        <p class="training-mode-note" style="margin-top:10px;">${w.reason}</p>
+      </div>
+    `).join('');
+
+    block.querySelectorAll('[data-generated-menu]').forEach(btn => {
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        const idx = Number(btn.dataset.generatedMenu);
+        const w = workouts[idx];
+        if(!w) return;
+
+        const action = prompt(
+          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Duplicar para os meus treinos\n\nEscreve 1, 2 ou 3.`
+        );
+
+        if(action === '1'){
+          saveGeneratedWorkoutAsToday(w);
+        }else if(action === '2'){
+          editGeneratedWorkout(w);
+        }else if(action === '3'){
+          saveGeneratedWorkoutToFavorites(w);
+        }
+      });
+    });
+  }
+
+  function saveGeneratedWorkoutAsToday(w){
+    const todayWorkout = {
+      id: 'generated-' + Date.now(),
+      title: w.title,
+      name: w.title,
+      desc: w.desc,
+      description: w.desc,
+      type: w.type,
+      duration: w.time,
+      zone: w.zone,
+      source: 'Pulso',
+      date: new Date().toISOString().slice(0,10)
+    };
+
+    try{
+      localStorage.setItem('pulsoTodayWorkout', JSON.stringify(todayWorkout));
+      localStorage.setItem('todayWorkout', JSON.stringify(todayWorkout));
+    }catch(e){}
+
+    if(typeof window.showToast === 'function') window.showToast('Treino selecionado para hoje.');
+    else alert('Treino selecionado para hoje.');
+
+    if(typeof window.renderDashboard === 'function') window.renderDashboard();
+    if(typeof window.renderTodayWorkout === 'function') window.renderTodayWorkout();
+  }
+
+  function editGeneratedWorkout(w){
+    const title = prompt('Nome do treino:', w.title);
+    if(title === null) return;
+    const desc = prompt('Descrição do treino:', w.desc);
+    if(desc === null) return;
+
+    w.title = title.trim() || w.title;
+    w.desc = desc.trim() || w.desc;
+
+    saveGeneratedWorkoutToFavorites(w);
+    renderGeneratedTrainingSuggestions();
+  }
+
+  function saveGeneratedWorkoutToFavorites(w){
+    const key = 'pulsoUserWorkouts';
+    let arr = [];
+    try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = []; }
+
+    arr.push({
+      id: 'user-' + Date.now(),
+      title: w.title,
+      name: w.title,
+      desc: w.desc,
+      description: w.desc,
+      type: w.type,
+      duration: w.time,
+      zone: w.zone,
+      source: 'Pulso',
+      createdAt: new Date().toISOString()
+    });
+
+    try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){}
+
+    if(typeof window.showToast === 'function') window.showToast('Treino guardado nos teus treinos.');
+    else alert('Treino guardado nos teus treinos.');
+  }
+
+  function addPeakHoursField(){
+    const form = document.getElementById('form-race');
+    if(!form || document.getElementById('race-peak-hours')) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'field';
+    wrap.style.minWidth = '120px';
+    wrap.innerHTML = `
+      <label for="race-peak-hours">Pico máx. (h/sem)</label>
+      <input type="number" step="0.5" id="race-peak-hours" placeholder="8" value="8">
+    `;
+
+    const submit = form.querySelector('button[type="submit"], button.primary');
+    if(submit) form.insertBefore(wrap, submit);
+    else form.appendChild(wrap);
+  }
+
+  function init(){
+    addPeakHoursField();
+    renderTrainingModeUI();
+    renderGeneratedTrainingSuggestions();
+
+    ['race-sport','race-dist','race-elev','race-peak-hours'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('input', renderGeneratedTrainingSuggestions);
+      if(el) el.addEventListener('change', renderGeneratedTrainingSuggestions);
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  }else{
+    init();
+  }
+
+  window.PulsoTrainingGenerator = {
+    setMode: setStoredMode,
+    getMode: getStoredMode,
+    generate: renderGeneratedTrainingSuggestions
+  };
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   PULSO — GERADOR DE TREINOS v3
+   Regra principal:
+   1) tempo escolhido
+   2) tipo/modalidade
+   3) intensidade
+   Só depois varia a sessão.
+   ========================================================= */
+(function(){
+  const MODE_KEY = 'pulso:training-mode';
+
+  const modeLabels = {
+    pouco:'Pouco',
+    normal:'Normal',
+    intenso:'Intenso'
+  };
+
+  const typeLabels = {
+    estrada:'Corrida — Estrada',
+    trail:'Corrida — Trail',
+    'bike-indoor':'Bicicleta — Indoor',
+    'bike-fora':'Bicicleta — Rua'
+  };
+
+  function $(id){ return document.getElementById(id); }
+
+  function getMode(){
+    return localStorage.getItem(MODE_KEY) || 'normal';
+  }
+
+  function setMode(mode){
+    if(!modeLabels[mode]) mode = 'normal';
+    localStorage.setItem(MODE_KEY, mode);
+    updateModeButtons();
+    renderFilteredWorkouts();
+  }
+
+  function num(id, fallback){
+    const el = $(id);
+    if(!el || el.value === '') return fallback;
+    const n = Number(el.value);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  }
+
+  function val(id, fallback){
+    const el = $(id);
+    return el && el.value ? el.value : fallback;
+  }
+
+  function getQuickContext(){
+    return {
+      minutes: Math.max(10, Math.round(num('quick-time', 30))),
+      type: val('quick-type', 'estrada'),
+      mode: getMode()
+    };
+  }
+
+  function makeTimeText(minutes){
+    const min = Math.max(10, minutes - 5);
+    const max = minutes + 5;
+    return `${min}–${max} min`;
+  }
+
+  function buildWorkoutDatabase(){
+    return [
+      /* ===================== ESTRADA 30 ===================== */
+      {type:'estrada', mode:'pouco', min:20, max:35, title:'Corrida leve curta', desc:'Ritmo confortável, conversa possível. Sem séries, sem forçar. Termina com sensação de frescura.', zone:'Z1/Z2'},
+      {type:'estrada', mode:'pouco', min:20, max:35, title:'Rodagem regenerativa', desc:'Corrida fácil em terreno plano. Mantém respiração controlada e passada solta.', zone:'Z1/Z2'},
+      {type:'estrada', mode:'normal', min:20, max:35, title:'Z2 + progressivos', desc:'20 min em Z2 confortável + 4 progressivos de 15 s com recuperação completa.', zone:'Z2'},
+      {type:'estrada', mode:'normal', min:20, max:35, title:'Fartlek leve estrada', desc:'Aquecimento curto. Alterna 1 min vivo / 2 min leve durante a parte central.', zone:'Z2/Z3'},
+      {type:'estrada', mode:'intenso', min:20, max:35, title:'Intervalado curto estrada', desc:'8 min aquecer. Depois 8 x 45 s forte / 75 s leve. Termina a soltar.', zone:'Z4/Z5'},
+      {type:'estrada', mode:'intenso', min:20, max:35, title:'Tempo run curto', desc:'8 min leve + 12 min forte controlado + 5–8 min leve. Ritmo duro mas sustentável.', zone:'Z3/Z4'},
+      {type:'estrada', mode:'intenso', min:20, max:35, title:'10 x 30 segundos rápido', desc:'Aquecimento. Depois 10 x 30 s rápido / 60 s leve. Boa técnica, sem sprintar.', zone:'Z4/Z5'},
+
+      /* ===================== TRAIL 30 ===================== */
+      {type:'trail', mode:'pouco', min:20, max:35, title:'Trail leve regenerativo', desc:'Trilho fácil. Caminha nas subidas se precisares. Objetivo: recuperar e manter tempo de pé.', zone:'Z1/Z2'},
+      {type:'trail', mode:'pouco', min:20, max:35, title:'Caminha/corre em trilho', desc:'Alterna corrida leve com caminhada nas subidas. Técnica e calma, sem esforço intenso.', zone:'Z1/Z2'},
+      {type:'trail', mode:'normal', min:20, max:35, title:'Trail Z2 técnico', desc:'Trilho confortável. Nas subidas mantém cadência curta; nas descidas trabalha apoio e fluidez.', zone:'Z2'},
+      {type:'trail', mode:'normal', min:20, max:35, title:'Trail fartlek suave', desc:'Em terreno ondulado, alterna 2 min vivo / 3 min leve. Tudo controlado.', zone:'Z2/Z3'},
+      {type:'trail', mode:'intenso', min:20, max:35, title:'Subidas curtas fortes', desc:'8 min aquecer. Depois 8 x 1 min subida forte, recupera a descer/caminhar. Soltar no fim.', zone:'Z4/Z5'},
+      {type:'trail', mode:'intenso', min:20, max:35, title:'Trail VO₂ curto', desc:'Aquecimento. Faz 6 x 2 min forte em trilho ondulado, com 2 min leves entre blocos.', zone:'Z4/Z5'},
+      {type:'trail', mode:'intenso', min:20, max:35, title:'Fartlek técnico intenso', desc:'Alterna 90 s forte / 90 s leve em trilho. Mantém controlo nas descidas e força nas subidas.', zone:'Z4'},
+      {type:'trail', mode:'intenso', min:20, max:35, title:'10 rampas explosivas', desc:'Aquecimento. 10 subidas de 30–45 s fortes. Recuperação total a descer. Técnica limpa.', zone:'Z5'},
+
+      /* ===================== BIKE INDOOR 30 ===================== */
+      {type:'bike-indoor', mode:'pouco', min:20, max:35, title:'Rolo solto', desc:'Pedalada fácil, cadência confortável, sem picos. Ideal para recuperar.', zone:'Z1/Z2'},
+      {type:'bike-indoor', mode:'normal', min:20, max:35, title:'Rolo cadência', desc:'Z2 com 5 blocos de 1 min cadência alta. Potência controlada, técnica limpa.', zone:'Z2/Z3'},
+      {type:'bike-indoor', mode:'intenso', min:20, max:35, title:'Rolo VO₂ curto', desc:'8 min aquecer. Depois 6 x 2 min forte / 2 min leve. Soltar no fim.', zone:'Z4/Z5'},
+      {type:'bike-indoor', mode:'intenso', min:20, max:35, title:'Sweet spot curto', desc:'Aquecimento + 2 x 7 min forte controlado, recuperação 3 min. Termina leve.', zone:'Z3/Z4'},
+
+      /* ===================== BIKE RUA 30 ===================== */
+      {type:'bike-fora', mode:'pouco', min:20, max:35, title:'Volta fácil curta', desc:'Pedalada leve, sem picos, cadência solta. Ideal para recuperar.', zone:'Z1/Z2'},
+      {type:'bike-fora', mode:'normal', min:20, max:35, title:'Bike endurance curta', desc:'Z2 contínuo. Se estiveres bem, últimos 5 min progressivos.', zone:'Z2/Z3'},
+      {type:'bike-fora', mode:'intenso', min:20, max:35, title:'Blocos fortes curtos', desc:'Aquecimento. 5 x 2 min fortes em subida/falso plano, recuperação 2 min.', zone:'Z4'},
+      {type:'bike-fora', mode:'intenso', min:20, max:35, title:'Ataques controlados', desc:'Durante 30 min faz 8 acelerações de 30 s fortes com recuperação completa.', zone:'Z4/Z5'},
+
+      /* ===================== 40-60 MIN ===================== */
+      {type:'estrada', mode:'pouco', min:36, max:60, title:'Rodagem confortável', desc:'Corrida contínua em Z2 baixa. Conversa possível o tempo todo.', zone:'Z2'},
+      {type:'estrada', mode:'normal', min:36, max:60, title:'Estrada Z2 + técnica', desc:'Z2 confortável + 6 progressivos curtos. Foco em postura e cadência.', zone:'Z2/Z3'},
+      {type:'estrada', mode:'intenso', min:36, max:60, title:'Séries de 3 minutos', desc:'12 min aquecer. 6 x 3 min forte / 2 min leve. Soltar no fim.', zone:'Z4'},
+
+      {type:'trail', mode:'pouco', min:36, max:60, title:'Trail fácil', desc:'Trilho em Z2 baixa, subidas controladas e descidas sem forçar.', zone:'Z2'},
+      {type:'trail', mode:'normal', min:36, max:60, title:'Trail progressivo', desc:'Primeira metade fácil, segunda metade ligeiramente mais forte nas subidas.', zone:'Z2/Z3'},
+      {type:'trail', mode:'intenso', min:36, max:60, title:'Subidas sustentadas', desc:'Aquecimento. 5 x 4 min subida forte controlada, recuperação a descer.', zone:'Z4'},
+
+      {type:'bike-indoor', mode:'pouco', min:36, max:60, title:'Rolo recuperação', desc:'Z1/Z2 fácil, cadência livre. Sem séries.', zone:'Z1/Z2'},
+      {type:'bike-indoor', mode:'normal', min:36, max:60, title:'Rolo tempo controlado', desc:'2 x 10 min em Z3, recuperação 5 min. Resto leve.', zone:'Z3'},
+      {type:'bike-indoor', mode:'intenso', min:36, max:60, title:'Rolo limiar curto', desc:'3 x 8 min forte controlado, recuperação 4 min. Sem rebentar.', zone:'Z4'},
+
+      {type:'bike-fora', mode:'pouco', min:36, max:60, title:'Bike fácil', desc:'Volta em Z2 baixa, sem picos.', zone:'Z2'},
+      {type:'bike-fora', mode:'normal', min:36, max:60, title:'Endurance com progressivo', desc:'Z2 contínuo, últimos 10–15 min em Z3 controlado.', zone:'Z2/Z3'},
+      {type:'bike-fora', mode:'intenso', min:36, max:60, title:'Subidas fortes bike', desc:'4–6 subidas de 3 min fortes. Recuperar bem entre blocos.', zone:'Z4'},
+
+      /* ===================== 60+ MIN ===================== */
+      {type:'estrada', mode:'pouco', min:61, max:1000, title:'Longo fácil estrada', desc:'Z2 baixa, ritmo confortável, foco em acumular volume.', zone:'Z2'},
+      {type:'estrada', mode:'normal', min:61, max:1000, title:'Longo progressivo estrada', desc:'Longo em Z2, últimos 20 min ligeiramente progressivos se estiveres bem.', zone:'Z2/Z3'},
+      {type:'estrada', mode:'intenso', min:61, max:1000, title:'Longo com bloco tempo', desc:'Z2 dominante com 20–30 min em Z3/Z4 controlado na parte final.', zone:'Z2/Z4'},
+
+      {type:'trail', mode:'pouco', min:61, max:1000, title:'Trail longo fácil', desc:'Tempo de pé em trilho. Caminhar subidas e correr fácil no resto.', zone:'Z2'},
+      {type:'trail', mode:'normal', min:61, max:1000, title:'Trail longo progressivo', desc:'Z2 em terreno ondulado, subidas sustentadas sem passar do limite.', zone:'Z2/Z3'},
+      {type:'trail', mode:'intenso', min:61, max:1000, title:'Trail longo com subida forte', desc:'Z2 dominante com blocos de subida em Z3/Z4. Nutrição como em prova.', zone:'Z2/Z4'},
+
+      {type:'bike-indoor', mode:'pouco', min:61, max:1000, title:'Rolo endurance fácil', desc:'Z2 baixa, constante, sem séries.', zone:'Z2'},
+      {type:'bike-indoor', mode:'normal', min:61, max:1000, title:'Rolo endurance + tempo', desc:'Z2 com 2 blocos de 12–15 min em Z3.', zone:'Z2/Z3'},
+      {type:'bike-indoor', mode:'intenso', min:61, max:1000, title:'Rolo forte estruturado', desc:'Blocos em sweet spot/limiar com recuperação completa. Controlar fadiga.', zone:'Z3/Z4'},
+
+      {type:'bike-fora', mode:'pouco', min:61, max:1000, title:'Volta endurance fácil', desc:'Z2 baixa, sem picos, foco em volume.', zone:'Z2'},
+      {type:'bike-fora', mode:'normal', min:61, max:1000, title:'Volta endurance progressiva', desc:'Z2 contínuo com progressão final se estiveres bem.', zone:'Z2/Z3'},
+      {type:'bike-fora', mode:'intenso', min:61, max:1000, title:'Volta forte com subidas', desc:'Z2 dominante com blocos fortes em subida/falso plano.', zone:'Z3/Z4'}
+    ];
+  }
+
+  function getFilteredWorkouts(ctx){
+    const db = buildWorkoutDatabase();
+
+    let filtered = db.filter(w =>
+      w.type === ctx.type &&
+      w.mode === ctx.mode &&
+      ctx.minutes >= w.min &&
+      ctx.minutes <= w.max
+    );
+
+    /* fallback com tolerância pequena se não houver match exato */
+    if(!filtered.length){
+      filtered = db.filter(w =>
+        w.type === ctx.type &&
+        w.mode === ctx.mode &&
+        ctx.minutes >= (w.min - 10) &&
+        ctx.minutes <= (w.max + 10)
+      );
+    }
+
+    /* fallback final nunca deixa sair da modalidade/intensidade */
+    if(!filtered.length){
+      filtered = db.filter(w => w.type === ctx.type && w.mode === ctx.mode);
+    }
+
+    return filtered.slice(0, 6).map(w => ({
+      ...w,
+      time:`${ctx.minutes} min`
+    }));
+  }
+
+  function ensureModeUI(){
+    const target = document.getElementById('quick-suggestions');
+    if(!target || document.getElementById('training-mode-card')) return;
+
+    const card = document.createElement('div');
+    card.className = 'card training-mode-card';
+    card.id = 'training-mode-card';
+    card.innerHTML = `
+      <p class="training-mode-title">Intenção do treino</p>
+      <div class="training-mode-options">
+        <button class="training-mode-btn" type="button" data-training-mode="pouco">Pouco <small>leve / recuperar</small></button>
+        <button class="training-mode-btn" type="button" data-training-mode="normal">Normal <small>equilibrado</small></button>
+        <button class="training-mode-btn" type="button" data-training-mode="intenso">Intenso <small>mais carga</small></button>
+      </div>
+      <p class="training-filter-summary" id="training-filter-summary"></p>
+    `;
+
+    if(target.parentElement) target.parentElement.insertBefore(card, target);
+    else target.prepend(card);
+
+    card.querySelectorAll('[data-training-mode]').forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.dataset.trainingMode));
+    });
+  }
+
+  function updateModeButtons(){
+    const mode = getMode();
+    document.querySelectorAll('[data-training-mode]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.trainingMode === mode);
+    });
+  }
+
+  function renderFilteredWorkouts(){
+    ensureModeUI();
+    updateModeButtons();
+
+    const container = document.getElementById('quick-suggestions');
+    if(!container) return;
+
+    const ctx = getQuickContext();
+    const workouts = getFilteredWorkouts(ctx);
+
+    const summary = document.getElementById('training-filter-summary');
+    if(summary){
+      summary.innerHTML =
+        `Opções filtradas por <strong>${ctx.minutes} min</strong> · <strong>${typeLabels[ctx.type] || ctx.type}</strong> · <strong>${modeLabels[ctx.mode]}</strong>.`;
+    }
+
+    let block = document.getElementById('pulso-filtered-workouts');
+    if(!block){
+      block = document.createElement('div');
+      block.id = 'pulso-filtered-workouts';
+      block.className = 'training-suggestion-list';
+      container.prepend(block);
+    }
+
+    block.innerHTML = workouts.map((w, i) => `
+      <div class="training-filtered-card" data-filtered-workout="${i}">
+        <button class="workout-menu-dot" type="button" data-filtered-menu="${i}" aria-label="Opções do treino">⋮</button>
+        <span class="training-filtered-badge">${typeLabels[ctx.type] || ctx.type} · ${modeLabels[ctx.mode]}</span>
+        <h4>${w.title}</h4>
+        <p>${w.desc}</p>
+        <div class="training-filtered-meta">
+          <span>${w.time}</span>
+          <span>${w.zone}</span>
+        </div>
+      </div>
+    `).join('');
+
+    block.querySelectorAll('[data-filtered-menu]').forEach(btn => {
+      btn.addEventListener('click', ev => {
+        ev.stopPropagation();
+        const w = workouts[Number(btn.dataset.filteredMenu)];
+        if(!w) return;
+
+        const action = prompt(
+          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Guardar nos meus treinos\n\nEscreve 1, 2 ou 3.`
+        );
+
+        if(action === '1') saveToday(w, ctx);
+        if(action === '2') editWorkout(w, ctx);
+        if(action === '3') saveUserWorkout(w, ctx);
+      });
+    });
+  }
+
+  function workoutObject(w, ctx){
+    return {
+      id:'workout-' + Date.now(),
+      title:w.title,
+      name:w.title,
+      desc:w.desc,
+      description:w.desc,
+      type:typeLabels[ctx.type] || ctx.type,
+      duration:w.time,
+      zone:w.zone,
+      source:'Pulso',
+      date:new Date().toISOString().slice(0,10)
+    };
+  }
+
+  function saveToday(w, ctx){
+    const obj = workoutObject(w, ctx);
+    try{
+      localStorage.setItem('pulsoTodayWorkout', JSON.stringify(obj));
+      localStorage.setItem('todayWorkout', JSON.stringify(obj));
+    }catch(e){}
+
+    if(typeof window.showToast === 'function') window.showToast('Treino selecionado para hoje.');
+    else alert('Treino selecionado para hoje.');
+
+    if(typeof window.renderDashboard === 'function') window.renderDashboard();
+    if(typeof window.renderTodayWorkout === 'function') window.renderTodayWorkout();
+  }
+
+  function saveUserWorkout(w, ctx){
+    const key = 'pulsoUserWorkouts';
+    let arr = [];
+    try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = []; }
+    arr.push({...workoutObject(w, ctx), createdAt:new Date().toISOString()});
+    try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){}
+
+    if(typeof window.showToast === 'function') window.showToast('Treino guardado.');
+    else alert('Treino guardado.');
+  }
+
+  function editWorkout(w, ctx){
+    const title = prompt('Nome do treino:', w.title);
+    if(title === null) return;
+    const desc = prompt('Descrição do treino:', w.desc);
+    if(desc === null) return;
+    saveUserWorkout({...w, title:title.trim() || w.title, desc:desc.trim() || w.desc}, ctx);
+  }
+
+  function bind(){
+    ['quick-time','quick-type'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el){
+        el.addEventListener('input', renderFilteredWorkouts);
+        el.addEventListener('change', renderFilteredWorkouts);
+      }
+    });
+
+    const form = document.getElementById('form-quick-pick');
+    if(form && !form.dataset.pulsoFilteredBound){
+      form.dataset.pulsoFilteredBound = '1';
+      form.addEventListener('submit', ev => {
+        setTimeout(renderFilteredWorkouts, 30);
+      });
+    }
+  }
+
+  function init(){
+    ensureModeUI();
+    bind();
+    renderFilteredWorkouts();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  window.PulsoTrainingFiltered = {
+    render: renderFilteredWorkouts,
+    setMode,
+    getMode
+  };
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   PULSO — TRAINING ENGINE 1.0
+   - Biblioteca própria de treinos
+   - Corrida, Trail, Bike, Força e Mobilidade
+   - Filtra primeiro por tempo, depois modalidade, depois intensidade
+   - Selecionar para hoje atualiza Painel e muda para Painel
+   ========================================================= */
+(function(){
+  const MODE_KEY = 'pulso:training-mode';
+
+  const MODES = {
+    pouco:'Pouco',
+    normal:'Normal',
+    intenso:'Intenso'
+  };
+
+  const TYPES = {
+    estrada:'Corrida — Estrada',
+    trail:'Corrida — Trail',
+    'bike-indoor':'Bike Indoor',
+    'bike-fora':'Bike Rua',
+    forca:'Força',
+    mobilidade:'Mobilidade'
+  };
+
+  function $(id){ return document.getElementById(id); }
+
+  function getMode(){
+    return localStorage.getItem(MODE_KEY) || 'normal';
+  }
+
+  function setMode(mode){
+    if(!MODES[mode]) mode = 'normal';
+    localStorage.setItem(MODE_KEY, mode);
+    updateModeUI();
+    renderTrainingEngine();
+  }
+
+  function getNumber(id, fallback){
+    const el = $(id);
+    if(!el || el.value === '') return fallback;
+    const n = Number(el.value);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  }
+
+  function getValue(id, fallback){
+    const el = $(id);
+    return el && el.value ? el.value : fallback;
+  }
+
+  function getContext(){
+    return {
+      minutes: Math.max(10, Math.round(getNumber('quick-time', 30))),
+      type: getValue('quick-type', 'estrada'),
+      mode: getMode()
+    };
+  }
+
+  function addForcaMobilidadeOptions(){
+    const select = $('quick-type');
+    if(!select) return;
+
+    const hasForca = Array.from(select.options).some(o => o.value === 'forca');
+    const hasMob = Array.from(select.options).some(o => o.value === 'mobilidade');
+
+    if(!hasForca){
+      const opt = document.createElement('option');
+      opt.value = 'forca';
+      opt.textContent = 'Força';
+      select.appendChild(opt);
+    }
+
+    if(!hasMob){
+      const opt = document.createElement('option');
+      opt.value = 'mobilidade';
+      opt.textContent = 'Mobilidade';
+      select.appendChild(opt);
+    }
+  }
+
+  function W(type, mode, min, max, title, desc, zone, tags){
+    return {type, mode, min, max, title, desc, zone, tags:tags || []};
+  }
+
+  function library(){
+    return [
+      /* ESTRADA curta */
+      W('estrada','pouco',10,25,'Corrida regenerativa curta','Corrida muito fácil, respiração controlada. Termina melhor do que começaste.','Z1/Z2',['recuperação']),
+      W('estrada','pouco',20,35,'Rodagem leve estrada','Ritmo confortável e plano. Sem progressivos, sem séries.','Z1/Z2',['base']),
+      W('estrada','normal',20,35,'Z2 + progressivos','Corrida Z2 confortável + 4 a 6 progressivos de 15 s no final.','Z2',['técnica']),
+      W('estrada','normal',20,35,'Fartlek leve estrada','Alterna 1 min vivo / 2 min leve durante a parte central.','Z2/Z3',['fartlek']),
+      W('estrada','intenso',20,35,'Intervalado 30 minutos','8 min aquecer. 10 x 30 s forte / 60 s leve. Soltar no fim.','Z4/Z5',['vo2']),
+      W('estrada','intenso',20,35,'Tempo run curto','8 min leve + 12 min ritmo forte controlado + soltar.','Z3/Z4',['tempo']),
+      W('estrada','intenso',20,35,'8 x 1 minuto estrada','Aquecimento curto. 8 x 1 min forte / 1 min leve. Ritmo rápido mas controlado.','Z4',['intervalos']),
+
+      /* ESTRADA média/longa */
+      W('estrada','pouco',36,60,'Rodagem confortável','Corrida contínua em Z2 baixa, conversa possível.','Z2',['base']),
+      W('estrada','normal',36,60,'Z2 com técnica','Z2 contínuo + exercícios de técnica e 6 progressivos curtos.','Z2/Z3',['técnica']),
+      W('estrada','normal',36,60,'Fartlek 3-2-1','Repetir 3 min vivo, 2 min moderado, 1 min forte, recuperando leve.','Z3/Z4',['fartlek']),
+      W('estrada','intenso',36,60,'6 x 3 minutos','12 min aquecer. 6 x 3 min forte / 2 min leve. Soltar no fim.','Z4',['limiar']),
+      W('estrada','intenso',36,60,'Pirâmide estrada','1-2-3-4-3-2-1 min forte, recuperações iguais em trote leve.','Z4/Z5',['vo2']),
+      W('estrada','pouco',61,999,'Longo fácil estrada','Z2 baixa, foco em acumular volume sem fadiga excessiva.','Z2',['longo']),
+      W('estrada','normal',61,999,'Longo progressivo','Z2 dominante, últimos 20 min ligeiramente progressivos.','Z2/Z3',['longo']),
+      W('estrada','intenso',61,999,'Longo com bloco tempo','Z2 dominante com 20 a 30 min em Z3/Z4 controlado.','Z2/Z4',['longo','tempo']),
+
+      /* TRAIL curto */
+      W('trail','pouco',10,25,'Trail regenerativo curto','Trilho fácil. Caminha nas subidas. Foco em recuperar e mexer.','Z1/Z2',['recuperação']),
+      W('trail','pouco',20,35,'Caminha/corre trail','Alterna corrida leve e caminhada nas subidas. Técnica e calma.','Z1/Z2',['técnica']),
+      W('trail','normal',20,35,'Trail técnico Z2','Trilho confortável. Trabalha apoio nas descidas e cadência nas subidas.','Z2',['técnica']),
+      W('trail','normal',20,35,'Trail fartlek suave','2 min vivo / 3 min leve em terreno ondulado, sempre controlado.','Z2/Z3',['fartlek']),
+      W('trail','intenso',20,35,'Subidas 8 x 1 minuto','8 min aquecer. 8 x 1 min subida forte, recuperação a descer/caminhar.','Z4/Z5',['subida']),
+      W('trail','intenso',20,35,'Trail VO₂ curto','6 x 2 min forte em trilho ondulado, com 2 min leves entre blocos.','Z4/Z5',['vo2']),
+      W('trail','intenso',20,35,'10 rampas explosivas','10 subidas de 30–45 s fortes. Recuperação total a descer. Técnica limpa.','Z5',['potência']),
+      W('trail','intenso',20,35,'Escadas trail curto','Aquecimento. 10–12 repetições em escadas/rampa curta. Recupera bem.','Z4/Z5',['escadas']),
+
+      /* TRAIL médio/longo */
+      W('trail','pouco',36,60,'Trail fácil','Trilho em Z2 baixa. Subidas controladas, descidas sem forçar.','Z2',['base']),
+      W('trail','normal',36,60,'Trail progressivo','Primeira metade fácil, segunda metade mais forte nas subidas.','Z2/Z3',['progressivo']),
+      W('trail','normal',36,60,'Trail técnico downhill','Trilho moderado com foco em técnica de descida, sem entrar em esforço máximo.','Z2/Z3',['downhill']),
+      W('trail','intenso',36,60,'Subidas sustentadas','5 x 4 min subida forte controlada, recuperação a descer.','Z4',['subida']),
+      W('trail','intenso',36,60,'Trail fartlek forte','Alterna 3 min forte / 2 min leve em terreno ondulado.','Z4',['fartlek']),
+      W('trail','pouco',61,999,'Trail longo fácil','Tempo de pé em trilho. Caminhar subidas e correr fácil no resto.','Z2',['longo']),
+      W('trail','normal',61,999,'Trail longo progressivo','Z2 em terreno ondulado, subidas sustentadas sem passar do limite.','Z2/Z3',['longo']),
+      W('trail','intenso',61,999,'Trail longo com subida forte','Z2 dominante com blocos de subida em Z3/Z4. Nutrição como em prova.','Z2/Z4',['longo','subida']),
+
+      /* BIKE INDOOR */
+      W('bike-indoor','pouco',10,35,'Rolo solto','Pedalada fácil, cadência confortável, sem picos.','Z1/Z2',['recuperação']),
+      W('bike-indoor','normal',20,35,'Rolo cadência','Z2 com 5 blocos de 1 min cadência alta. Potência controlada.','Z2/Z3',['cadência']),
+      W('bike-indoor','intenso',20,35,'Rolo VO₂ curto','8 min aquecer. 6 x 2 min forte / 2 min leve.','Z4/Z5',['vo2']),
+      W('bike-indoor','intenso',20,35,'Sweet spot curto','2 x 7 min forte controlado, recuperação 3 min.','Z3/Z4',['sweetspot']),
+      W('bike-indoor','pouco',36,60,'Rolo recuperação','Z1/Z2 fácil, cadência livre. Sem séries.','Z1/Z2',['recuperação']),
+      W('bike-indoor','normal',36,60,'Rolo tempo controlado','2 x 10 min em Z3, recuperação 5 min. Resto leve.','Z3',['tempo']),
+      W('bike-indoor','intenso',36,60,'Rolo limiar curto','3 x 8 min forte controlado, recuperação 4 min.','Z4',['limiar']),
+      W('bike-indoor','pouco',61,999,'Rolo endurance fácil','Z2 baixa, constante, sem séries.','Z2',['endurance']),
+      W('bike-indoor','normal',61,999,'Endurance + tempo','Z2 com 2 blocos de 12–15 min em Z3.','Z2/Z3',['endurance']),
+      W('bike-indoor','intenso',61,999,'Rolo forte estruturado','Blocos em sweet spot/limiar com recuperação completa.','Z3/Z4',['ftp']),
+
+      /* BIKE RUA */
+      W('bike-fora','pouco',10,35,'Volta fácil curta','Pedalada leve, sem picos, cadência solta.','Z1/Z2',['recuperação']),
+      W('bike-fora','normal',20,35,'Bike endurance curta','Z2 contínuo. Se estiveres bem, últimos 5 min progressivos.','Z2/Z3',['endurance']),
+      W('bike-fora','intenso',20,35,'Blocos fortes curtos','5 x 2 min fortes em subida/falso plano, recuperação 2 min.','Z4',['subida']),
+      W('bike-fora','intenso',20,35,'Ataques controlados','8 acelerações de 30 s fortes com recuperação completa.','Z4/Z5',['sprint']),
+      W('bike-fora','pouco',36,60,'Bike fácil','Volta em Z2 baixa, sem picos.','Z2',['base']),
+      W('bike-fora','normal',36,60,'Endurance progressiva','Z2 contínuo com progressão final se estiveres bem.','Z2/Z3',['endurance']),
+      W('bike-fora','intenso',36,60,'Subidas fortes bike','4–6 subidas de 3 min fortes. Recuperar bem entre blocos.','Z4',['subida']),
+      W('bike-fora','pouco',61,999,'Volta endurance fácil','Z2 baixa, sem picos, foco em volume.','Z2',['longo']),
+      W('bike-fora','normal',61,999,'Volta endurance progressiva','Z2 contínuo com progressão final.','Z2/Z3',['longo']),
+      W('bike-fora','intenso',61,999,'Volta forte com subidas','Z2 dominante com blocos fortes em subida/falso plano.','Z3/Z4',['subida']),
+
+      /* FORÇA */
+      W('forca','pouco',10,25,'Core curto','Prancha, dead bug, ponte glúteo e bird-dog. 2 voltas, tudo controlado.','Leve',['core']),
+      W('forca','pouco',20,35,'Força preventiva leve','Gémeos, glúteos, core e mobilidade. Sem carga pesada.','Leve',['prevenção']),
+      W('forca','normal',20,35,'Força corrida/trail','Agachamento, lunges, gémeos, core e estabilidade unilateral. 3 voltas.','Moderado',['pernas']),
+      W('forca','normal',36,60,'Força funcional completa','Pernas, core, posterior e tronco. Carga moderada, técnica perfeita.','Moderado',['funcional']),
+      W('forca','intenso',20,35,'Força pernas curta intensa','Agachamento, split squat, gémeos excêntricos e core. Pouco descanso.','Forte',['pernas']),
+      W('forca','intenso',36,60,'Força trail forte','Pernas, posterior, core e estabilidade. Inclui step-ups e gémeos.','Forte',['trail']),
+      W('forca','intenso',36,60,'Kettlebell força','Swing, goblet squat, clean, press e core. Técnica primeiro.','Forte',['kettlebell']),
+      W('forca','pouco',36,60,'Força leve geral','Sessão leve de manutenção: core, glúteos, mobilidade e estabilidade.','Leve',['geral']),
+
+      /* MOBILIDADE */
+      W('mobilidade','pouco',10,25,'Mobilidade recuperação','Anca, lombar, gémeos e respiração. Sessão calma para recuperar.','Leve',['recuperação']),
+      W('mobilidade','pouco',20,35,'Alongamentos pós-treino','Gémeos, isquios, glúteos, flexores da anca e lombar.','Leve',['alongamento']),
+      W('mobilidade','normal',10,25,'Mobilidade pré-corrida','Tornozelo, anca, skipping leve, ativações de glúteo e gémeos.','Leve/Moderado',['pré-treino']),
+      W('mobilidade','normal',20,35,'Mobilidade completa','Anca, tornozelo, lombar, ombros e core leve.','Moderado',['geral']),
+      W('mobilidade','intenso',10,25,'Ativação dinâmica','Mobilidade ativa, skipping, saltitos leves e core. Preparar treino intenso.','Moderado',['ativação']),
+      W('mobilidade','intenso',20,35,'Mobilidade + core ativo','Mobilidade dinâmica com core e estabilidade. Sem fadigar demasiado.','Moderado',['core']),
+      W('mobilidade','pouco',36,60,'Recuperação profunda','Sessão longa de mobilidade, respiração e alongamentos suaves.','Leve',['recuperação']),
+      W('mobilidade','normal',36,60,'Mobilidade atleta completa','Trabalho longo de anca, tornozelo, coluna, ombros e estabilidade.','Moderado',['geral'])
+    ];
+  }
+
+  function filtered(ctx){
+    let arr = library().filter(w =>
+      w.type === ctx.type &&
+      w.mode === ctx.mode &&
+      ctx.minutes >= w.min &&
+      ctx.minutes <= w.max
+    );
+
+    if(!arr.length){
+      arr = library().filter(w =>
+        w.type === ctx.type &&
+        w.mode === ctx.mode &&
+        ctx.minutes >= w.min - 10 &&
+        ctx.minutes <= w.max + 10
+      );
+    }
+
+    if(!arr.length){
+      arr = library().filter(w => w.type === ctx.type && w.mode === ctx.mode);
+    }
+
+    return arr.slice(0, 12).map(w => ({...w, time:`${ctx.minutes} min`}));
+  }
+
+  function ensureUI(){
+    addForcaMobilidadeOptions();
+
+    const target = $('quick-suggestions');
+    if(!target) return;
+
+    if(!$('training-engine-mode-card')){
+      const card = document.createElement('div');
+      card.className = 'card training-mode-card';
+      card.id = 'training-engine-mode-card';
+      card.innerHTML = `
+        <p class="training-mode-title">Intenção do treino</p>
+        <div class="training-mode-options">
+          <button class="training-mode-btn" type="button" data-training-mode="pouco">Pouco <small>leve / recuperar</small></button>
+          <button class="training-mode-btn" type="button" data-training-mode="normal">Normal <small>equilibrado</small></button>
+          <button class="training-mode-btn" type="button" data-training-mode="intenso">Intenso <small>mais carga</small></button>
+        </div>
+        <p class="training-engine-summary" id="training-engine-summary"></p>
+      `;
+      if(target.parentElement) target.parentElement.insertBefore(card, target);
+      else target.prepend(card);
+
+      card.querySelectorAll('[data-training-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.dataset.trainingMode));
+      });
+    }
+  }
+
+  function updateModeUI(){
+    const mode = getMode();
+    document.querySelectorAll('[data-training-mode]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.trainingMode === mode);
+    });
+  }
+
+  function renderTrainingEngine(){
+    ensureUI();
+    updateModeUI();
+
+    const container = $('quick-suggestions');
+    if(!container) return;
+
+    const ctx = getContext();
+    const list = filtered(ctx);
+
+    const summary = $('training-engine-summary');
+    if(summary){
+      summary.innerHTML = `A mostrar até <strong>${list.length}</strong> opções para <strong>${ctx.minutes} min</strong> · <strong>${TYPES[ctx.type] || ctx.type}</strong> · <strong>${MODES[ctx.mode]}</strong>.`;
+    }
+
+    let block = $('pulso-training-engine-results');
+    if(!block){
+      block = document.createElement('div');
+      block.id = 'pulso-training-engine-results';
+      block.className = 'training-suggestion-list';
+      container.prepend(block);
+    }
+
+    block.innerHTML = list.map((w, i) => `
+      <div class="training-engine-card" data-engine-workout="${i}">
+        <button class="workout-menu-dot" type="button" data-engine-menu="${i}" aria-label="Opções do treino">⋮</button>
+        <span class="training-engine-badge">${TYPES[ctx.type] || ctx.type} · ${MODES[ctx.mode]}</span>
+        <h4>${w.title}</h4>
+        <p>${w.desc}</p>
+        <div class="training-engine-meta">
+          <span>${w.time}</span>
+          <span>${w.zone}</span>
+          ${(w.tags || []).slice(0,2).map(t => `<span>${t}</span>`).join('')}
+        </div>
+        <div class="training-engine-score">★★★★★</div>
+      </div>
+    `).join('');
+
+    block.querySelectorAll('[data-engine-menu]').forEach(btn => {
+      btn.addEventListener('click', ev => {
+        ev.stopPropagation();
+        const w = list[Number(btn.dataset.engineMenu)];
+        if(!w) return;
+
+        const action = prompt(
+          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Guardar nos meus treinos\n\nEscreve 1, 2 ou 3.`
+        );
+
+        if(action === '1') selectWorkoutForToday(w, ctx);
+        if(action === '2') editWorkout(w, ctx);
+        if(action === '3') saveUserWorkout(w, ctx);
+      });
+    });
+  }
+
+  function workoutObject(w, ctx){
+    return {
+      id:'pulso-training-' + Date.now(),
+      title:w.title,
+      name:w.title,
+      desc:w.desc,
+      description:w.desc,
+      type:TYPES[ctx.type] || ctx.type,
+      duration:w.time,
+      zone:w.zone,
+      source:'Pulso Training Engine',
+      date:new Date().toISOString().slice(0,10)
+    };
+  }
+
+  function selectWorkoutForToday(w, ctx){
+    const obj = workoutObject(w, ctx);
+
+    try{
+      localStorage.setItem('pulsoTodayWorkout', JSON.stringify(obj));
+      localStorage.setItem('todayWorkout', JSON.stringify(obj));
+      localStorage.setItem('pulso:today-workout', JSON.stringify(obj));
+      localStorage.setItem('selectedTodayWorkout', JSON.stringify(obj));
+    }catch(e){}
+
+    updateTodayWorkoutDOM(obj);
+    goToDashboard();
+
+    if(typeof window.showToast === 'function') window.showToast('Treino selecionado para hoje.');
+  }
+
+  function updateTodayWorkoutDOM(w){
+    const title = w.title || w.name || 'Treino de hoje';
+
+    const descParts = [];
+    if(w.type) descParts.push(w.type);
+    if(w.duration) descParts.push(w.duration);
+    if(w.zone) descParts.push(w.zone);
+
+    const desc = w.description || w.desc || descParts.join(' · ');
+
+    /*
+      IMPORTANTE:
+      Não atualizar d-workout nem d-workout-trend.
+      Esses campos pertencem ao cartão "Último treino",
+      que deve continuar a vir do Strava.
+    */
+
+    const body = $('today-workout-body');
+    if(body){
+      body.innerHTML = `
+        <div class="today-workout-title">${title}</div>
+        <div class="today-workout-desc">${desc}</div>
+        <span class="today-workout-badge">Treino de hoje</span>
+      `;
+    }
+  }
+
+  function goToDashboard(){
+    /* Fecha modais/menus se existirem */
+    document.querySelectorAll('.workout-action-menu').forEach(el => el.remove());
+    document.querySelectorAll('[id*="modal"], .modal').forEach(el => {
+      if(el.style) el.style.display = 'none';
+    });
+
+    /* Ativar separador Painel */
+    document.querySelectorAll('main > section').forEach(sec => sec.classList.remove('active'));
+    const dash = $('tab-dashboard');
+    if(dash){
+      dash.classList.add('active');
+      setTimeout(() => dash.scrollTo({top:0, behavior:'smooth'}), 50);
+    }
+
+    /* Botão da tabbar */
+    document.querySelectorAll('nav.tabbar button').forEach(btn => btn.classList.remove('active'));
+    const dashBtn = document.querySelector('nav.tabbar button[data-tab="dashboard"], nav.tabbar button[data-target="dashboard"], nav.tabbar button[data-tab="tab-dashboard"], nav.tabbar button[data-target="tab-dashboard"]');
+    if(dashBtn) dashBtn.classList.add('active');
+
+    /* fallback: procurar botão cujo texto seja painel */
+    if(!dashBtn){
+      document.querySelectorAll('nav.tabbar button').forEach(btn => {
+        if((btn.textContent || '').toLowerCase().includes('painel')){
+          btn.classList.add('active');
+        }
+      });
+    }
+  }
+
+  function saveUserWorkout(w, ctx){
+    const key = 'pulsoUserWorkouts';
+    let arr = [];
+    try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ arr = []; }
+    arr.push({...workoutObject(w, ctx), createdAt:new Date().toISOString()});
+    try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){}
+
+    if(typeof window.showToast === 'function') window.showToast('Treino guardado.');
+    else alert('Treino guardado.');
+  }
+
+  function editWorkout(w, ctx){
+    const title = prompt('Nome do treino:', w.title);
+    if(title === null) return;
+    const desc = prompt('Descrição do treino:', w.desc);
+    if(desc === null) return;
+    saveUserWorkout({...w, title:title.trim() || w.title, desc:desc.trim() || w.desc}, ctx);
+  }
+
+  function bind(){
+    ['quick-time','quick-type'].forEach(id => {
+      const el = $(id);
+      if(el){
+        el.addEventListener('input', renderTrainingEngine);
+        el.addEventListener('change', renderTrainingEngine);
+      }
+    });
+
+    const form = $('form-quick-pick');
+    if(form && !form.dataset.trainingEngineBound){
+      form.dataset.trainingEngineBound = '1';
+      form.addEventListener('submit', () => setTimeout(renderTrainingEngine, 30));
+    }
+  }
+
+  function init(){
+    ensureUI();
+    bind();
+    renderTrainingEngine();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  window.PulsoTrainingEngine = {
+    render: renderTrainingEngine,
+    selectWorkoutForToday,
+    setMode,
+    getMode
+  };
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   PULSO — PATCH ESTÁVEL
+   Não interfere com login.
+   ========================================================= */
+(function(){
+  function byId(id){ return document.getElementById(id); }
+
+  function cleanText(value){
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function isSingleStravaActivity(card){
+    if(!card) return false;
+
+    // Não aplicar a contentores com outros cartões dentro
+    if(card.querySelector('.card')) return false;
+
+    const txt = cleanText(card.textContent);
+    const lower = txt.toLowerCase();
+
+    if(txt.length < 20 || txt.length > 650) return false;
+
+    const hasMetric =
+      /\d+(?:[,.]\d+)?\s*km/i.test(txt) ||
+      /\d+\s*bpm/i.test(txt) ||
+      /\d{1,2}:\d{2}(?::\d{2})?/.test(txt) ||
+      /\d+\s*m\+/i.test(txt);
+
+    const hasSport =
+      lower.includes('strava') ||
+      lower.includes('corrida') ||
+      lower.includes('run') ||
+      lower.includes('trail') ||
+      lower.includes('bike') ||
+      lower.includes('ciclismo') ||
+      lower.includes('atividade') ||
+      lower.includes('activity');
+
+    const isContainer =
+      lower.includes('intenção do treino') ||
+      lower.includes('os teus treinos') ||
+      lower.includes('objetivo') ||
+      lower.includes('perfil') ||
+      lower.includes('nutrição') ||
+      lower.includes('hidratação') ||
+      lower.includes('sono') ||
+      lower.includes('peso') ||
+      lower.includes('base') && lower.includes('taper') ||
+      lower.includes('pico') && lower.includes('construção');
+
+    return hasMetric && hasSport && !isContainer;
+  }
+
+  function parseStravaWorkout(card){
+    const titleEl = card.querySelector('h3,h4,strong,.title,.activity-title,.workout-card-title');
+    let title = titleEl ? cleanText(titleEl.textContent) : '';
+
+    if(!title){
+      const lines = String(card.textContent || '')
+        .split('\n')
+        .map(cleanText)
+        .filter(Boolean);
+      title = lines[0] || 'Treino Strava';
+    }
+
+    const txt = cleanText(card.textContent);
+    const distance = txt.match(/(\d+(?:[,.]\d+)?)\s*km/i);
+    const duration = txt.match(/(\d+\s*h\s*\d*|\d+\s*min|\d{1,2}:\d{2}(?::\d{2})?)/i);
+    const elev = txt.match(/(\d+)\s*(?:m\+|D\+|m D\+)/i);
+    const bpm = txt.match(/(\d+)\s*bpm/i);
+
+    const parts = [];
+    if(distance) parts.push(distance[0].replace(',', '.'));
+    if(duration) parts.push(duration[0]);
+    if(elev) parts.push(elev[0]);
+    if(bpm) parts.push(bpm[0]);
+
+    return {
+      id: 'strava-today-' + Date.now(),
+      title: title,
+      name: title,
+      desc: parts.length ? parts.join(' · ') : 'Selecionado a partir do Strava.',
+      description: parts.length ? parts.join(' · ') : 'Selecionado a partir do Strava.',
+      type: 'Strava',
+      duration: duration ? duration[0] : '',
+      zone: '',
+      source: 'Strava',
+      date: new Date().toISOString().slice(0,10)
+    };
+  }
+
+  function updateTodayWorkout(workout){
+    try{
+      localStorage.setItem('pulsoTodayWorkout', JSON.stringify(workout));
+      localStorage.setItem('todayWorkout', JSON.stringify(workout));
+      localStorage.setItem('pulso:today-workout', JSON.stringify(workout));
+      localStorage.setItem('selectedTodayWorkout', JSON.stringify(workout));
+    }catch(e){}
+
+    // Não mexer no último treino do Strava: d-workout, d-workout-trend, lastWorkoutName ficam intocados
+    const body = byId('today-workout-body');
+    if(body){
+      body.innerHTML =
+        '<div class="today-workout-title">' + (workout.title || workout.name || 'Treino de hoje') + '</div>' +
+        '<div class="today-workout-desc">' + (workout.description || workout.desc || 'Selecionado para hoje') + '</div>' +
+        '<span class="today-workout-badge">Treino de hoje</span>';
+    }
+
+    openDashboard();
+
+    if(typeof window.showToast === 'function'){
+      window.showToast('Treino selecionado para hoje.');
+    }
+  }
+
+  function openDashboard(){
+    document.querySelectorAll('.workout-action-menu').forEach(function(el){ el.remove(); });
+
+    document.querySelectorAll('main > section').forEach(function(sec){
+      sec.classList.remove('active');
+    });
+
+    const dash = byId('tab-dashboard');
+    if(dash){
+      dash.classList.add('active');
+      setTimeout(function(){
+        try{ dash.scrollTo({top:0, behavior:'smooth'}); }catch(e){ dash.scrollTop = 0; }
+      }, 60);
+    }
+
+    document.querySelectorAll('nav.tabbar button').forEach(function(btn){
+      const txt = cleanText(btn.textContent).toLowerCase();
+      const data = ((btn.dataset.tab || '') + ' ' + (btn.dataset.target || '')).toLowerCase();
+      btn.classList.toggle('active', txt.includes('painel') || data.includes('dashboard') || data.includes('painel'));
+    });
+  }
+
+  function openStravaMenu(card, dot){
+    document.querySelectorAll('.workout-action-menu').forEach(function(el){ el.remove(); });
+
+    const menu = document.createElement('div');
+    menu.className = 'workout-action-menu';
+    menu.innerHTML =
+      '<button type="button" data-a="today">Selecionar para hoje</button>' +
+      '<button type="button" data-a="save">Guardar nos meus treinos</button>';
+
+    dot.insertAdjacentElement('afterend', menu);
+
+    menu.querySelector('[data-a="today"]').addEventListener('click', function(){
+      const workout = parseStravaWorkout(card);
+      menu.remove();
+      updateTodayWorkout(workout);
+    });
+
+    menu.querySelector('[data-a="save"]').addEventListener('click', function(){
+      const workout = parseStravaWorkout(card);
+      let arr = [];
+      try{ arr = JSON.parse(localStorage.getItem('pulsoUserWorkouts') || '[]'); }catch(e){ arr = []; }
+      arr.push(Object.assign({}, workout, {createdAt:new Date().toISOString()}));
+      localStorage.setItem('pulsoUserWorkouts', JSON.stringify(arr));
+      menu.remove();
+      if(typeof window.showToast === 'function') window.showToast('Treino guardado.');
+    });
+  }
+
+  function refreshStravaDots(){
+    // remove dots errados
+    document.querySelectorAll('.pulso-strava-dot').forEach(function(dot){
+      const card = dot.closest('.card');
+      if(!isSingleStravaActivity(card)){
+        dot.remove();
+        if(card) card.classList.remove('pulso-strava-activity');
+      }
+    });
+
+    const cards = Array.prototype.slice.call(document.querySelectorAll(
+      '#sub-strava .card, #strava-activities .card, #strava-list .card, #strava-workouts .card, [data-strava-activity], .strava-activity-card, .activity-card'
+    ));
+
+    cards.forEach(function(card){
+      if(!isSingleStravaActivity(card)) return;
+      if(card.querySelector('.pulso-strava-dot')) return;
+
+      card.classList.add('pulso-strava-activity');
+
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'pulso-strava-dot';
+      dot.setAttribute('aria-label', 'Opções da atividade Strava');
+      dot.textContent = '⋮';
+      dot.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        openStravaMenu(card, dot);
+      });
+
+      card.appendChild(dot);
+    });
+  }
+
+  /* Objetivo automático pela data */
+
+  function daysUntilRace(){
+    const el = byId('race-date');
+    if(!el || !el.value) return null;
+    const today = new Date();
+    const race = new Date(el.value + 'T12:00:00');
+    if(isNaN(race.getTime())) return null;
+    today.setHours(12,0,0,0);
+    return Math.max(0, Math.ceil((race - today) / 86400000));
+  }
+
+  function weeksUntilRace(){
+    const d = daysUntilRace();
+    if(d === null) return null;
+    return Math.max(1, Math.ceil(d / 7));
+  }
+
+  function phaseForWeek(week, total){
+    if(week >= total) return 'Prova';
+    if(total <= 4){
+      if(week === total - 1) return 'Taper';
+      if(week === total - 2) return 'Pico';
+      return 'Construção';
+    }
+    const p = week / total;
+    if(p <= 0.35) return 'Base';
+    if(p <= 0.72) return 'Construção';
+    if(p <= 0.88) return 'Pico';
+    return 'Taper';
+  }
+
+  function estimatedPeakHours(){
+    const dist = Number((byId('race-dist') && byId('race-dist').value) || 0);
+    const elev = Number((byId('race-elev') && byId('race-elev').value) || 0);
+    const sport = ((byId('race-sport') && byId('race-sport').value) || '').toLowerCase();
+
+    let peak = sport.includes('bike') ? 7 : 6;
+    if(sport.includes('trail')) peak = 8;
+    if(dist >= 21) peak += 1;
+    if(dist >= 42) peak += 2;
+    if(dist >= 80) peak += 3;
+    if(dist >= 120) peak += 4;
+    if(elev >= 1000) peak += 1;
+    if(elev >= 3000) peak += 2;
+    if(elev >= 6000) peak += 3;
+
+    return Math.max(4, Math.min(16, peak));
+  }
+
+  function phaseFactor(phase){
+    if(phase === 'Base') return 0.60;
+    if(phase === 'Construção') return 0.78;
+    if(phase === 'Pico') return 0.95;
+    if(phase === 'Taper') return 0.55;
+    if(phase === 'Prova') return 0.35;
+    return 0.70;
+  }
+
+  function ensurePhaseNote(){
+    const form = byId('form-race');
+    if(!form) return null;
+
+    let note = byId('auto-phase-note');
+    if(!note){
+      note = document.createElement('p');
+      note.id = 'auto-phase-note';
+      note.className = 'plan-phase-auto-note';
+      form.appendChild(note);
+    }
+    return note;
+  }
+
+  function updatePhaseNote(){
+    const note = ensurePhaseNote();
+    if(!note) return;
+
+    const weeks = weeksUntilRace();
+    if(!weeks){
+      note.textContent = 'Escolhe a data da prova para o Pulso calcular automaticamente Base, Construção, Pico e Taper.';
+      return;
+    }
+
+    const peakWeeks = [];
+    const taperWeeks = [];
+    for(let i=1; i<=weeks; i++){
+      const phase = phaseForWeek(i, weeks);
+      if(phase === 'Pico') peakWeeks.push(i);
+      if(phase === 'Taper') taperWeeks.push(i);
+    }
+
+    note.innerHTML =
+      '<strong>' + weeks + ' semanas</strong> até à prova · ' +
+      'pico automático: <strong>' + (peakWeeks.length ? peakWeeks.join(', ') : Math.max(1,weeks-2)) + '</strong> · ' +
+      'taper: <strong>' + (taperWeeks.length ? taperWeeks.join(', ') : Math.max(1,weeks-1)) + '</strong> · ' +
+      'volume pico estimado: <strong>' + estimatedPeakHours() + ' h/sem</strong>.';
+  }
+
+  function rewritePlan(){
+    const total = weeksUntilRace();
+    if(!total) return;
+
+    const peak = estimatedPeakHours();
+    const nodes = Array.prototype.slice.call(document.querySelectorAll('#plan-output tr, #plan-output .card, #plan-output li, #plan-output div'));
+    let auto = 0;
+
+    nodes.forEach(function(node){
+      const txt = cleanText(node.textContent);
+      let week = null;
+      const m = txt.match(/semana\s+(\d+)/i);
+      if(m) week = Number(m[1]);
+      else if(/\d{1,2}[\/.-]\d{1,2}/.test(txt) && txt.length < 130) week = ++auto;
+      if(!week || week > total) return;
+
+      const phase = phaseForWeek(week, total);
+      const volume = Math.round(peak * phaseFactor(phase) * 10) / 10;
+      const label = 'Semana ' + week + ' · ' + phase + ' · Volume alvo: ' + volume + ' h';
+
+      const firstText = Array.prototype.slice.call(node.childNodes).find(function(n){
+        return n.nodeType === 3 && cleanText(n.textContent);
+      });
+
+      if(firstText) firstText.textContent = label + ' ';
+      else if(node.children.length === 0) node.textContent = label;
+    });
+  }
+
+  function bindObjective(){
+    ['race-date','race-dist','race-elev','race-sport'].forEach(function(id){
+      const el = byId(id);
+      if(!el || el.dataset.pulsoStableObjective) return;
+      el.dataset.pulsoStableObjective = '1';
+      el.addEventListener('input', function(){ updatePhaseNote(); setTimeout(rewritePlan, 80); });
+      el.addEventListener('change', function(){ updatePhaseNote(); setTimeout(rewritePlan, 80); });
+    });
+
+    const date = byId('race-date');
+    if(date){
+      date.disabled = false;
+      date.readOnly = false;
+    }
+
+    const form = byId('form-race');
+    if(form && !form.dataset.pulsoStableSubmit){
+      form.dataset.pulsoStableSubmit = '1';
+      form.addEventListener('submit', function(){
+        setTimeout(function(){ updatePhaseNote(); rewritePlan(); }, 120);
+      });
+    }
+  }
+
+  function init(){
+    bindObjective();
+    updatePhaseNote();
+    rewritePlan();
+    refreshStravaDots();
+
+    const observer = new MutationObserver(function(){
+      refreshStravaDots();
+    });
+    observer.observe(document.body, {childList:true, subtree:true});
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  }else{
+    init();
+  }
+
+  window.PulsoStablePatch = {
+    refreshStravaDots: refreshStravaDots,
+    updateObjective: function(){ updatePhaseNote(); rewritePlan(); }
+  };
 })();
 </script>
 
