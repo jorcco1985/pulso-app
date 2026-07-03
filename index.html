@@ -5364,52 +5364,27 @@ nav.tabbar button.active svg{
 
 
 
-<style id="pulso-perfil-atividade-final">
+
+<style id="pulso-perfil-tabs-atividade-v3">
 /* =====================================================
-   PERFIL — retirar campo antigo + atividade física em painel com scroll
+   PERFIL v3
+   - 6 botões no topo, em retângulos, sem ficar fixo
+   - atividade física só dentro da área Atleta
+   - barra funcional de 1 a 10
 ====================================================== */
 
-/* Esconde o campo antigo "Nível atividade (0-10)" do formulário do atleta */
-#tab-perfil label,
-#tab-perfil .field label{
-  position:relative;
-}
-
-#tab-perfil .field:has(label){
-  position:relative;
-}
-
-#tab-perfil .field:has(label:nth-child(1)){
-  position:relative;
-}
-
-/* Safari/iPhone suporta :has. Remove só o campo antigo que contém o input numérico. */
-#tab-perfil .field:has(input#profile-activity),
-#tab-perfil .field:has(input[name="activity"]),
-#tab-perfil .field:has(input[id*="activity"]),
-#tab-perfil .field:has(input[id*="atividade"]),
-#tab-perfil .field:has(input[name*="atividade"]){
-  display:none !important;
-}
-
-/* Caso o texto esteja em label solto */
-#tab-perfil label[for="profile-activity"],
-#tab-perfil label[for="activity"],
-#tab-perfil label[for="atividade"],
-#tab-perfil #profile-activity,
-#tab-perfil #activity,
-#tab-perfil #atividade{
-  display:none !important;
-}
-
-/* Menu das 6 seleções em retângulos iguais */
+/* Os 6 botões deixam de ser sticky/fixos */
+#tab-perfil .subtabs,
 #tab-perfil #profile-subtabs,
 #tab-perfil .profile-subtabs{
+  position:relative !important;
+  top:auto !important;
+  z-index:1 !important;
   display:grid !important;
   grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
   gap:10px !important;
   padding:12px !important;
-  margin:10px 0 18px !important;
+  margin:0 0 18px !important;
   background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(14,22,38,.98)) !important;
   border:1px solid rgba(255,255,255,.085) !important;
   border-radius:26px !important;
@@ -5419,13 +5394,15 @@ nav.tabbar button.active svg{
   -webkit-backdrop-filter:none !important;
 }
 
+/* Só aplica aos botões das subtabs do perfil */
+#tab-perfil .subtabs button,
 #tab-perfil #profile-subtabs button,
 #tab-perfil .profile-subtabs button{
   width:100% !important;
   min-width:0 !important;
-  height:118px !important;
-  min-height:118px !important;
-  padding:12px 6px !important;
+  height:104px !important;
+  min-height:104px !important;
+  padding:10px 6px !important;
   border-radius:20px !important;
   border:1px solid rgba(255,255,255,.085) !important;
   background:linear-gradient(180deg, rgba(24,34,56,.88), rgba(15,23,39,.96)) !important;
@@ -5436,8 +5413,8 @@ nav.tabbar button.active svg{
   align-items:center !important;
   justify-content:center !important;
   text-align:center !important;
-  gap:10px !important;
-  font-size:14px !important;
+  gap:8px !important;
+  font-size:13.5px !important;
   line-height:1.15 !important;
   font-weight:800 !important;
   letter-spacing:.1px !important;
@@ -5445,35 +5422,43 @@ nav.tabbar button.active svg{
   transform:none !important;
 }
 
-/* Icons diferentes para os 6 botões, sem mexer no HTML */
+/* Ícones diferentes apenas no topo */
+#tab-perfil .subtabs button::before,
 #tab-perfil #profile-subtabs button::before,
 #tab-perfil .profile-subtabs button::before{
   display:block;
   color:var(--teal);
-  font-size:34px;
+  font-size:32px;
   line-height:1;
   font-weight:400;
   text-shadow:0 0 18px rgba(53,217,166,.22);
 }
 
+#tab-perfil .subtabs button:nth-child(1)::before,
 #tab-perfil #profile-subtabs button:nth-child(1)::before,
 #tab-perfil .profile-subtabs button:nth-child(1)::before{content:"🏃";}
 
+#tab-perfil .subtabs button:nth-child(2)::before,
 #tab-perfil #profile-subtabs button:nth-child(2)::before,
-#tab-perfil .profile-subtabs button:nth-child(2)::before{content:"♡"; font-size:42px;}
+#tab-perfil .profile-subtabs button:nth-child(2)::before{content:"♡"; font-size:40px;}
 
+#tab-perfil .subtabs button:nth-child(3)::before,
 #tab-perfil #profile-subtabs button:nth-child(3)::before,
-#tab-perfil .profile-subtabs button:nth-child(3)::before{content:"⌖"; font-size:42px;}
+#tab-perfil .profile-subtabs button:nth-child(3)::before{content:"⌖"; font-size:40px;}
 
+#tab-perfil .subtabs button:nth-child(4)::before,
 #tab-perfil #profile-subtabs button:nth-child(4)::before,
 #tab-perfil .profile-subtabs button:nth-child(4)::before{content:"🧠";}
 
+#tab-perfil .subtabs button:nth-child(5)::before,
 #tab-perfil #profile-subtabs button:nth-child(5)::before,
-#tab-perfil .profile-subtabs button:nth-child(5)::before{content:"▥"; font-size:40px;}
+#tab-perfil .profile-subtabs button:nth-child(5)::before{content:"▥"; font-size:38px;}
 
+#tab-perfil .subtabs button:nth-child(6)::before,
 #tab-perfil #profile-subtabs button:nth-child(6)::before,
-#tab-perfil .profile-subtabs button:nth-child(6)::before{content:"↺"; font-size:42px;}
+#tab-perfil .profile-subtabs button:nth-child(6)::before{content:"↺"; font-size:40px;}
 
+#tab-perfil .subtabs button.active,
 #tab-perfil #profile-subtabs button.active,
 #tab-perfil .profile-subtabs button.active{
   color:var(--teal) !important;
@@ -5484,11 +5469,20 @@ nav.tabbar button.active svg{
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.055),
     0 0 24px rgba(53,217,166,.10) !important;
-  font-weight:900 !important;
 }
 
-/* Painel novo de atividade */
-.activity-level-card{
+/* Retira o campo antigo "Nível atividade (0-10)" */
+#tab-perfil .field:has(#profile-activity),
+#tab-perfil .field:has(#athlete-activity),
+#tab-perfil .field:has(input[name="activityLevel"]),
+#tab-perfil .field:has(input[id*="activity"]),
+#tab-perfil .field:has(input[id*="atividade"]){
+  display:none !important;
+}
+
+/* Painel atividade */
+#activity-level-panel{
+  margin-top:16px;
   overflow:visible !important;
 }
 
@@ -5508,7 +5502,10 @@ nav.tabbar button.active svg{
 }
 
 #activityLevelRange{
-  width:100%;
+  display:block !important;
+  width:100% !important;
+  min-width:100% !important;
+  max-width:100% !important;
   padding:0 !important;
   min-height:38px !important;
   background:transparent !important;
@@ -5519,7 +5516,7 @@ nav.tabbar button.active svg{
 #activityLevelRange::-webkit-slider-runnable-track{
   height:8px;
   border-radius:999px;
-  background:linear-gradient(90deg, var(--teal) 0%, var(--teal) 60%, rgba(120,135,160,.28) 60%, rgba(120,135,160,.28) 100%);
+  background:linear-gradient(90deg,var(--teal) 0%,var(--teal) var(--activity-progress, 56%),rgba(120,135,160,.28) var(--activity-progress, 56%),rgba(120,135,160,.28) 100%) !important;
 }
 
 #activityLevelRange::-webkit-slider-thumb{
@@ -5537,7 +5534,6 @@ nav.tabbar button.active svg{
 .activity-numbers{
   display:grid;
   grid-template-columns:repeat(10, 1fr);
-  gap:0;
   margin-top:-8px;
   color:#E7ECF5;
   font-size:12px;
@@ -5556,16 +5552,8 @@ nav.tabbar button.active svg{
   border:1px solid rgba(53,217,166,.22);
 }
 
-.activity-current strong{
-  font-size:18px;
-  line-height:1.15;
-}
-
-.activity-current span{
-  font-size:13px;
-  color:var(--text-muted);
-  font-weight:800;
-}
+.activity-current strong{font-size:18px; line-height:1.15;}
+.activity-current span{font-size:13px; color:var(--text-muted); font-weight:800;}
 
 .activity-guide{
   margin-top:18px;
@@ -5584,9 +5572,7 @@ nav.tabbar button.active svg{
   align-items:center;
 }
 
-.activity-guide-row:last-child{
-  border-bottom:none;
-}
+.activity-guide-row:last-child{border-bottom:none;}
 
 .activity-pill{
   display:inline-flex;
@@ -5602,18 +5588,8 @@ nav.tabbar button.active svg{
   font-size:14px;
 }
 
-.activity-guide-row strong{
-  display:block;
-  font-size:16px;
-  margin-bottom:4px;
-}
-
-.activity-guide-row p{
-  margin:0;
-  color:var(--text-muted);
-  font-size:13px;
-  line-height:1.42;
-}
+.activity-guide-row strong{display:block; font-size:16px; margin-bottom:4px;}
+.activity-guide-row p{margin:0; color:var(--text-muted); font-size:13px; line-height:1.42;}
 
 .activity-info{
   display:grid;
@@ -5641,6 +5617,7 @@ nav.tabbar button.active svg{
 }
 
 @media(max-width:430px){
+  #tab-perfil .subtabs,
   #tab-perfil #profile-subtabs,
   #tab-perfil .profile-subtabs{
     gap:8px !important;
@@ -5648,18 +5625,20 @@ nav.tabbar button.active svg{
     border-radius:24px !important;
   }
 
+  #tab-perfil .subtabs button,
   #tab-perfil #profile-subtabs button,
   #tab-perfil .profile-subtabs button{
-    height:102px !important;
-    min-height:102px !important;
+    height:92px !important;
+    min-height:92px !important;
     border-radius:18px !important;
-    font-size:12.5px !important;
+    font-size:12px !important;
     padding:8px 4px !important;
   }
 
+  #tab-perfil .subtabs button::before,
   #tab-perfil #profile-subtabs button::before,
   #tab-perfil .profile-subtabs button::before{
-    font-size:30px;
+    font-size:28px;
   }
 
   .activity-guide-row{
@@ -5668,13 +5647,8 @@ nav.tabbar button.active svg{
     padding:13px 12px;
   }
 
-  .activity-guide-row strong{
-    font-size:15px;
-  }
-
-  .activity-guide-row p{
-    font-size:12.5px;
-  }
+  .activity-guide-row strong{font-size:15px;}
+  .activity-guide-row p{font-size:12.5px;}
 }
 </style>
 
@@ -6435,7 +6409,6 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-  
 
 
 <!-- =====================================================
@@ -6470,51 +6443,33 @@ nav.tabbar button.active svg{
   <div class="activity-guide">
     <div class="activity-guide-row">
       <div><span class="activity-pill">1</span></div>
-      <div>
-        <strong>Sedentário</strong>
-        <p>Pouco ou nenhum exercício. Trabalho maioritariamente sentado.</p>
-      </div>
+      <div><strong>Sedentário</strong><p>Pouco ou nenhum exercício. Trabalho maioritariamente sentado.</p></div>
     </div>
 
     <div class="activity-guide-row">
       <div><span class="activity-pill">2</span></div>
-      <div>
-        <strong>Ligeiramente ativo</strong>
-        <p>1 a 3 treinos por semana ou atividade física ocasional.</p>
-      </div>
+      <div><strong>Ligeiramente ativo</strong><p>1 a 3 treinos por semana ou atividade física ocasional.</p></div>
     </div>
 
     <div class="activity-guide-row">
       <div><span class="activity-pill">3–5</span></div>
-      <div>
-        <strong>Moderadamente ativo</strong>
-        <p>3 a 5 treinos por semana. A maioria dos praticantes regulares enquadra-se aqui.</p>
-      </div>
+      <div><strong>Moderadamente ativo</strong><p>3 a 5 treinos por semana. A maioria dos praticantes regulares enquadra-se aqui.</p></div>
     </div>
 
     <div class="activity-guide-row">
       <div><span class="activity-pill">6–7</span></div>
-      <div>
-        <strong>Muito ativo</strong>
-        <p>6 a 7 treinos por semana ou profissão fisicamente exigente.</p>
-      </div>
+      <div><strong>Muito ativo</strong><p>6 a 7 treinos por semana ou profissão fisicamente exigente.</p></div>
     </div>
 
     <div class="activity-guide-row">
       <div><span class="activity-pill">8–10</span></div>
-      <div>
-        <strong>Atleta</strong>
-        <p>Treino intenso diário ou duas sessões por dia. Elevado volume de treino.</p>
-      </div>
+      <div><strong>Atleta</strong><p>Treino intenso diário ou duas sessões por dia. Elevado volume de treino.</p></div>
     </div>
   </div>
 
   <div class="activity-info">
     <div class="activity-info-icon">i</div>
-    <div>
-      Escolhe o nível que melhor descreve a tua rotina atual.
-      Podes ajustar sempre que a tua atividade mudar.
-    </div>
+    <div>Escolhe o nível que melhor descreve a tua rotina atual. Podes ajustar sempre que a tua atividade mudar.</div>
   </div>
 
 </div>
@@ -12349,76 +12304,99 @@ nav.tabbar button.active svg{
 </script>
 
 
-<script id="pulso-atividade-final-js">
+
+<script id="pulso-atividade-v3-js">
 (function(){
-  const levels = [
-    {min:1, max:1, name:'Sedentário'},
-    {min:2, max:2, name:'Ligeiramente ativo'},
-    {min:3, max:5, name:'Moderadamente ativo'},
-    {min:6, max:7, name:'Muito ativo'},
-    {min:8, max:10, name:'Atleta'}
-  ];
-
-  function nameForValue(v){
-    return (levels.find(l => v >= l.min && v <= l.max) || levels[2]).name;
+  function activityName(v){
+    v = Number(v) || 6;
+    if(v <= 1) return 'Sedentário';
+    if(v <= 2) return 'Ligeiramente ativo';
+    if(v <= 5) return 'Moderadamente ativo';
+    if(v <= 7) return 'Muito ativo';
+    return 'Atleta';
   }
 
-  function updateActivityUI(){
-    const range = document.getElementById('activityLevelRange');
-    const hidden = document.getElementById('activityLevel');
-    const name = document.getElementById('activityLevelName');
-    const factor = document.getElementById('activityLevelFactor');
-    if(!range) return;
-
-    const value = Math.max(1, Math.min(10, Number(range.value) || 6));
-    const pct = ((value - 1) / 9) * 100;
-
-    range.style.background = 'transparent';
-    range.style.setProperty('--activity-progress', pct + '%');
-
-    const styleId = 'activity-range-dynamic-style';
-    let style = document.getElementById(styleId);
-    if(!style){
-      style = document.createElement('style');
-      style.id = styleId;
-      document.head.appendChild(style);
-    }
-    style.textContent = '#activityLevelRange::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--teal) 0%,var(--teal) '+pct+'%,rgba(120,135,160,.28) '+pct+'%,rgba(120,135,160,.28) 100%) !important;}';
-
-    if(hidden) hidden.value = String(value);
-    if(name) name.textContent = nameForValue(value);
-    if(factor) factor.textContent = 'Nível ' + value;
-
-    try{
-      localStorage.setItem('pulso-activity-level-1-10', String(value));
-    }catch(e){}
-  }
-
-  function removeOldActivityField(){
-    const labels = Array.from(document.querySelectorAll('#tab-perfil label'));
-    labels.forEach(label => {
-      const txt = (label.textContent || '').trim().toLowerCase();
-      if(txt.includes('nível atividade') || txt.includes('nível de atividade (0-10)')){
+  function fixOldActivityField(){
+    document.querySelectorAll('#tab-perfil label').forEach(function(label){
+      const t = (label.textContent || '').toLowerCase();
+      if(t.includes('nível atividade') || t.includes('nível de atividade (0-10)')){
         const field = label.closest('.field');
         if(field && !field.closest('#activity-level-panel')) field.style.display = 'none';
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function(){
-    removeOldActivityField();
+  function ensurePanelOnlyInAthlete(){
+    const panel = document.getElementById('activity-level-panel');
+    if(!panel) return;
 
+    const athleteArea =
+      document.querySelector('#tab-perfil [data-profile-view="atleta"]') ||
+      document.querySelector('#tab-perfil #profile-atleta') ||
+      document.querySelector('#tab-perfil #sub-atleta') ||
+      document.querySelector('#tab-perfil .profile-view.active') ||
+      document.querySelector('#tab-perfil .subview.active') ||
+      document.querySelector('#tab-perfil');
+
+    if(athleteArea && !athleteArea.contains(panel)){
+      athleteArea.appendChild(panel);
+    }
+  }
+
+  function updateActivity(){
     const range = document.getElementById('activityLevelRange');
+    const hidden = document.getElementById('activityLevel');
+    const name = document.getElementById('activityLevelName');
+    const factor = document.getElementById('activityLevelFactor');
+
     if(!range) return;
 
-    try{
-      const saved = localStorage.getItem('pulso-activity-level-1-10');
-      if(saved) range.value = saved;
-    }catch(e){}
+    range.min = '1';
+    range.max = '10';
+    range.step = '1';
 
-    updateActivityUI();
-    range.addEventListener('input', updateActivityUI);
-    range.addEventListener('change', updateActivityUI);
+    let v = Math.round(Number(range.value) || 6);
+    v = Math.max(1, Math.min(10, v));
+    range.value = String(v);
+
+    const pct = ((v - 1) / 9) * 100;
+    range.style.setProperty('--activity-progress', pct + '%');
+
+    if(hidden) hidden.value = String(v);
+    if(name) name.textContent = activityName(v);
+    if(factor) factor.textContent = 'Nível ' + v;
+
+    try{
+      localStorage.setItem('pulso-activity-level-1-10', String(v));
+    }catch(e){}
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    fixOldActivityField();
+    ensurePanelOnlyInAthlete();
+
+    const range = document.getElementById('activityLevelRange');
+    if(range){
+      try{
+        const saved = localStorage.getItem('pulso-activity-level-1-10');
+        if(saved) range.value = saved;
+      }catch(e){}
+
+      updateActivity();
+      range.addEventListener('input', updateActivity);
+      range.addEventListener('change', updateActivity);
+      range.addEventListener('touchend', updateActivity);
+    }
+
+    document.querySelectorAll('#tab-perfil .subtabs button, #tab-perfil [data-profile-tab]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        setTimeout(function(){
+          fixOldActivityField();
+          ensurePanelOnlyInAthlete();
+          updateActivity();
+        }, 80);
+      });
+    });
   });
 })();
 </script>
