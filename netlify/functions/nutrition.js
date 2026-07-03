@@ -1,3 +1,8 @@
+// netlify/functions/nutrition.js
+// Recebe { description: "texto da refeição" } e devolve uma estimativa de kcal/macros
+// usando a API da Anthropic. A chave de API fica só aqui no servidor (variável de ambiente
+// ANTHROPIC_API_KEY no Netlify) — nunca é enviada ao browser.
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Método não permitido.' }) };
@@ -23,10 +28,11 @@ exports.handler = async function (event) {
   const prompt = `Estima os valores nutricionais totais desta refeição descrita em português: "${description}".
 
 Responde APENAS com um objeto JSON válido, sem nenhum texto antes ou depois, exatamente neste formato:
-{"kcal": number, "carbs": number, "protein": number, "fat": number, "itens": [{"nome": string, "kcal": number}]}
+{"kcal": number, "carbs": number, "protein": number, "fat": number, "gramas": number, "itens": [{"nome": string, "kcal": number}]}
 
 Regras:
 - kcal, carbs, protein e fat são o TOTAL da refeição inteira (kcal em quilocalorias; carbs/protein/fat em gramas).
+- "gramas" é a tua estimativa do peso TOTAL da refeição descrita, em gramas.
 - "itens" é uma lista curta (um por alimento identificado) com o nome e a estimativa de kcal de cada um.
 - Usa valores nutricionais realistas e conhecidos. Se a quantidade não for indicada, assume uma porção normal para um adulto.
 - Não incluas nenhum texto fora do JSON.`;
