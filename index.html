@@ -5248,6 +5248,101 @@ nav.tabbar button.active svg{
 }
 </style>
 
+
+
+<!-- PULSO V3 - ajuste final: menu Perfil maior e consistente -->
+<style id="pulso-v3-profile-tabs-final">
+  /* Menu Perfil / menus em grelha com 2 linhas */
+  .profile-tabs,
+  #tab-perfil .profile-tabs,
+  #tab-perfil .subtabs,
+  #tab-perfil .segmented-tabs,
+  #tab-perfil .segmented-control{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:16px !important;
+    padding:18px !important;
+    margin:22px 0 !important;
+    background:linear-gradient(180deg,rgba(22,30,46,.98),rgba(14,20,34,.98)) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    border-radius:42px !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 30px rgba(0,0,0,.35) !important;
+  }
+
+  .profile-tabs button,
+  #tab-perfil .profile-tabs button,
+  #tab-perfil .subtabs button,
+  #tab-perfil .segmented-tabs button,
+  #tab-perfil .segmented-control button{
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    text-align:center !important;
+    width:100% !important;
+    height:82px !important;
+    min-height:82px !important;
+    padding:0 10px !important;
+    border:0 !important;
+    border-radius:999px !important;
+    background:transparent !important;
+    color:#B8C3D8 !important;
+    font-size:22px !important;
+    font-weight:800 !important;
+    line-height:1.12 !important;
+    letter-spacing:.2px !important;
+    white-space:normal !important;
+    transition:all .25s ease !important;
+  }
+
+  .profile-tabs button.active,
+  #tab-perfil .profile-tabs button.active,
+  #tab-perfil .subtabs button.active,
+  #tab-perfil .segmented-tabs button.active,
+  #tab-perfil .segmented-control button.active{
+    background:linear-gradient(135deg,#3BE98D,#67F3AB) !important;
+    color:#07110D !important;
+    font-size:23px !important;
+    font-weight:900 !important;
+    box-shadow:0 8px 22px rgba(59,233,141,.28),inset 0 1px 1px rgba(255,255,255,.22) !important;
+  }
+
+  .profile-tabs button:not(.active):hover,
+  #tab-perfil .profile-tabs button:not(.active):hover,
+  #tab-perfil .subtabs button:not(.active):hover,
+  #tab-perfil .segmented-tabs button:not(.active):hover,
+  #tab-perfil .segmented-control button:not(.active):hover{
+    background:rgba(255,255,255,.04) !important;
+    color:#FFFFFF !important;
+  }
+
+  @media(max-width:430px){
+    .profile-tabs,
+    #tab-perfil .profile-tabs,
+    #tab-perfil .subtabs,
+    #tab-perfil .segmented-tabs,
+    #tab-perfil .segmented-control{
+      gap:14px !important;
+      padding:16px !important;
+    }
+    .profile-tabs button,
+    #tab-perfil .profile-tabs button,
+    #tab-perfil .subtabs button,
+    #tab-perfil .segmented-tabs button,
+    #tab-perfil .segmented-control button{
+      height:76px !important;
+      min-height:76px !important;
+      font-size:20px !important;
+    }
+    .profile-tabs button.active,
+    #tab-perfil .profile-tabs button.active,
+    #tab-perfil .subtabs button.active,
+    #tab-perfil .segmented-tabs button.active,
+    #tab-perfil .segmented-control button.active{
+      font-size:21px !important;
+    }
+  }
+</style>
+
 </head>
 <body>
 
