@@ -3809,115 +3809,6 @@ label[for="race-peak-hours"],
 .athlete-detail-section p{margin:0; color:var(--text-muted); font-size:12px; line-height:1.45;}
 @media(max-width:520px){.athlete-metrics-grid{grid-template-columns:1fr 1fr;}.athlete-day-head{padding:13px 12px;}.athlete-day-score{width:50px;height:50px;}.athlete-metric{padding:9px;}}
 
-
-
-/* ================= TREINOS — menu escuro + cartões com ícones ================= */
-.workout-pick-card,
-#quick-suggestions .card[data-suggest-pick],
-.training-generated-card,
-.training-filtered-card,
-.training-engine-card{
-  position:relative !important;
-}
-.workout-pick-card.has-workout-icon,
-#quick-suggestions .card.has-workout-icon{
-  display:grid !important;
-  grid-template-columns:82px minmax(0,1fr) 44px;
-  gap:14px;
-  align-items:center;
-  padding:18px 58px 18px 72px !important;
-  min-height:126px;
-  text-align:left !important;
-}
-.workout-type-icon{
-  width:62px;
-  height:62px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:30px;
-  font-weight:900;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 26px rgba(0,0,0,.22);
-  grid-column:1;
-}
-.workout-type-icon.run{background:rgba(53,217,166,.13); color:var(--teal);}
-.workout-type-icon.bike{background:rgba(91,141,239,.14); color:#6EA0FF;}
-.workout-type-icon.force{background:rgba(242,132,75,.14); color:#ff9a4b;}
-.workout-type-icon.trail{background:rgba(167,139,250,.14); color:#b794ff;}
-.workout-type-icon.walk{background:rgba(242,184,75,.14); color:var(--amber);}
-.workout-card-main{
-  min-width:0;
-  grid-column:2;
-}
-.workout-pick-card.has-workout-icon .workout-card-title,
-#quick-suggestions .card.has-workout-icon .workout-card-title{
-  padding:0 !important;
-  margin:0 0 7px !important;
-  text-align:left !important;
-  font-size:18px !important;
-}
-.workout-pick-card.has-workout-icon .workout-card-desc,
-#quick-suggestions .card.has-workout-icon .workout-card-desc{
-  padding:0 !important;
-  margin:0 0 8px !important;
-  text-align:left !important;
-}
-.workout-card-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
-.workout-card-tags span{
-  display:inline-flex;
-  align-items:center;
-  min-height:24px;
-  padding:3px 9px;
-  border-radius:999px;
-  background:rgba(53,217,166,.12);
-  color:var(--teal);
-  font-size:11px;
-  font-weight:800;
-}
-.fav-del-x{
-  top:14px !important;
-  left:14px !important;
-  background:rgba(7,11,20,.42) !important;
-}
-.workout-action-menu{
-  border-radius:22px !important;
-  background:rgba(17,24,39,.96) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
-}
-.workout-action-menu button{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  color:var(--text) !important;
-}
-.workout-action-menu button .menu-ico{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  background:rgba(53,217,166,.12);
-  color:var(--teal);
-}
-@media(max-width:520px){
-  .workout-pick-card.has-workout-icon,
-  #quick-suggestions .card.has-workout-icon{
-    grid-template-columns:64px minmax(0,1fr) 38px;
-    gap:12px;
-    padding:16px 48px 16px 58px !important;
-    min-height:116px;
-  }
-  .workout-type-icon{width:54px; height:54px; font-size:26px;}
-  .workout-pick-card.has-workout-icon .workout-card-title,
-  #quick-suggestions .card.has-workout-icon .workout-card-title{font-size:16px !important;}
-  .workout-pick-card.has-workout-icon .workout-card-desc,
-  #quick-suggestions .card.has-workout-icon .workout-card-desc{font-size:12.5px !important;}
-}
-
 </style>
 </head>
 <body>
@@ -4717,68 +4608,6 @@ label[for="race-peak-hours"],
     toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
   }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function workoutVisualType(type, name){
-    const t = String(type || '').toLowerCase();
-    const n = String(name || '').toLowerCase();
-    if(t.includes('bike') || t.includes('cicl') || n.includes('bike') || n.includes('bicicleta') || n.includes('rolo')) return {cls:'bike', icon:'🚴', label:'Bike'};
-    if(t.includes('for') || t.includes('gym') || n.includes('força') || n.includes('muscul') || n.includes('kettlebell')) return {cls:'force', icon:'🏋️', label:'Força'};
-    if(t.includes('trail') || n.includes('trail') || n.includes('serra')) return {cls:'trail', icon:'🏃‍♂️', label:'Trail'};
-    if(t.includes('walk') || t.includes('camin') || n.includes('caminhada')) return {cls:'walk', icon:'🚶', label:'Caminhada'};
-    return {cls:'run', icon:'🏃', label:'Corrida'};
-  }
-  function workoutIconHtml(type, name){
-    const v = workoutVisualType(type, name);
-    return `<div class="workout-type-icon ${v.cls}" aria-hidden="true">${v.icon}</div>`;
-  }
-  function workoutTagsHtml(w, extra){
-    const tags = [];
-    const v = workoutVisualType(w.type || w.name || w.title, w.name || w.title);
-    if(w.baseMinutes) tags.push(`${w.baseMinutes} min`);
-    tags.push(v.label);
-    if(extra) tags.push(extra);
-    return `<div class="workout-card-tags">${tags.slice(0,3).map(t=>`<span>${t}</span>`).join('')}</div>`;
-  }
-
-  function openWorkoutTextModal(initialTitle, initialDesc, onSave){
-    const old = document.getElementById('workout-text-modal');
-    if(old) old.remove();
-    const modal = document.createElement('div');
-    modal.id = 'workout-text-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.68);display:flex;align-items:flex-end;justify-content:center;padding:18px 14px calc(24px + env(safe-area-inset-bottom));';
-    modal.innerHTML = `
-      <form class="card" id="workout-text-form" style="width:100%;max-width:560px;display:flex;flex-direction:column;gap:12px;">
-        <div class="row space-between"><h3 style="margin:0;color:var(--text);font-size:16px;">Editar treino</h3><button class="ghost" type="button" id="workout-text-close">Fechar</button></div>
-        <div class="field"><label>Nome do treino</label><input id="workout-text-title" type="text" value="${String(initialTitle||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" required></div>
-        <div class="field"><label>Descrição</label><textarea id="workout-text-desc" rows="5" required>${String(initialDesc||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea></div>
-        <button class="primary" type="submit">Guardar</button>
-      </form>`;
-    document.body.appendChild(modal);
-    modal.querySelector('#workout-text-close').addEventListener('click', ()=> modal.remove());
-    modal.addEventListener('click', ev=>{ if(ev.target===modal) modal.remove(); });
-    modal.querySelector('#workout-text-form').addEventListener('submit', ev=>{
-      ev.preventDefault();
-      const t = modal.querySelector('#workout-text-title').value.trim();
-      const d = modal.querySelector('#workout-text-desc').value.trim();
-      modal.remove();
-      onSave(t || initialTitle, d || initialDesc);
-    });
-    setTimeout(()=>modal.querySelector('#workout-text-title')?.focus(), 50);
-  }
-
-  function openMiniWorkoutMenu(btn, actions){
-    closeWorkoutMenus();
-    const menu = document.createElement('div');
-    menu.className = 'workout-action-menu';
-    menu.innerHTML = actions.map(a=>`<button type="button" data-action="${a.id}"><span class="menu-ico">${a.icon}</span>${a.label}</button>`).join('');
-    btn.parentElement.appendChild(menu);
-    menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', ev=>{
-      ev.stopPropagation();
-      const found = actions.find(a=>a.id===item.dataset.action);
-      closeWorkoutMenus();
-      if(found && typeof found.run === 'function') found.run();
-    }));
-  }
-
   function escHtml(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function fmtDate(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
@@ -6458,15 +6287,12 @@ label[for="race-peak-hours"],
       return;
     }
     out.innerHTML = `<p class="help" style="margin:0 0 8px;">Toca no treino para o escolheres. Usa os três pontinhos para editar o texto.</p>` + matches.map(w=>`
-      <div class="card has-workout-icon" style="margin-bottom:8px; cursor:pointer; position:relative;" data-suggest-pick="${w.id}">
+      <div class="card" style="margin-bottom:8px; cursor:pointer; position:relative; padding-top:44px;" data-suggest-pick="${w.id}">
         <button class="fav-del-x" data-fav-del="${w.id}" type="button" aria-label="Eliminar treino">×</button>
-        ${workoutIconHtml(w.type, w.name)}
-        <div class="workout-card-main">
-          <h3 class="workout-card-title" style="color:var(--text);">${w.name}</h3>
-          <p class="help workout-card-desc">${w.desc}</p>
-          ${workoutTagsHtml(w, scalingNote(w.baseMinutes, time))}
-        </div>
         <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="suggest" type="button" aria-label="Opções do treino">⋮</button>
+        <h3 class="workout-card-title" style="color:var(--text); margin-bottom:4px; padding-right:44px;">${w.name} <span class="help">(${w.baseMinutes}min habituais)</span></h3>
+        <p class="help workout-card-desc" style="margin:0 0 7px;">${w.desc}</p>
+        <p class="help workout-card-desc" style="margin:0; color:var(--teal);">${scalingNote(w.baseMinutes, time)}</p>
       </div>`).join('');
     attachWorkoutMenuHandlers(out, time);
     out.querySelectorAll('[data-fav-edit]').forEach(btn=>btn.addEventListener('click', (ev)=>{
@@ -6500,15 +6326,11 @@ label[for="race-peak-hours"],
       Object.keys(grouped).map(type=>`
         <p class="help" style="margin:8px 0 4px; font-weight:700; text-transform:uppercase; font-size:10px;">${QUICK_TYPE_LABELS[type]}</p>
         ${grouped[type].map(w=>`
-          <div class="card workout-pick-card has-workout-icon" style="margin-bottom:8px;" data-fav-pick="${w.id}">
+          <div class="card workout-pick-card" style="margin-bottom:8px;" data-fav-pick="${w.id}">
             <button class="fav-del-x" data-fav-del="${w.id}" type="button" aria-label="Eliminar treino">×</button>
-            ${workoutIconHtml(w.type, w.name)}
-            <div class="workout-card-main">
-              <h3 class="workout-card-title">${w.name}</h3>
-              <p class="help workout-card-desc">${w.desc}</p>
-              ${workoutTagsHtml(w)}
-            </div>
             <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="fav" type="button" aria-label="Opções do treino">⋮</button>
+            <h3 class="workout-card-title">${w.name} <span class="help">${w.baseMinutes}min</span></h3>
+            <p class="help workout-card-desc">${w.desc}</p>
           </div>`).join('')}
       `).join('');
     attachWorkoutMenuHandlers(out, null);
@@ -6562,10 +6384,29 @@ label[for="race-peak-hours"],
         const id = btn.dataset.workoutMenu;
         const w = favoriteWorkouts.find(x=>x.id===id);
         if(!w) return;
-        openMiniWorkoutMenu(btn, [
-          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> pickToday(w.name, w.desc, pickMinutes || w.baseMinutes)},
-          {id:'edit', icon:'✎', label:'Editar treino', run:()=> openWorkoutEditor(w.id)}
-        ]);
+        const menu = document.createElement('div');
+        menu.className = 'workout-action-menu';
+        menu.innerHTML = `
+          <button type="button" data-action="select">Selecionar treino</button>
+          <button type="button" data-action="edit">Editar</button>
+          <button type="button" data-action="duplicate">Duplicar</button>
+          <button type="button" data-action="delete">Eliminar</button>`;
+        btn.parentElement.appendChild(menu);
+        menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const action = item.dataset.action;
+          closeWorkoutMenus();
+          if(action==='select') pickToday(w.name, w.desc, pickMinutes || w.baseMinutes);
+          if(action==='edit') openWorkoutEditor(w.id);
+          if(action==='duplicate') duplicateWorkout(w.id);
+          if(action==='delete'){
+            if(!confirm('Eliminar este treino?')) return;
+            favoriteWorkouts = favoriteWorkouts.filter(x=>x.id!==w.id);
+            await sSet('favorite-workouts', favoriteWorkouts);
+            renderFavoritesList();
+            toast('Treino removido dos favoritos');
+          }
+        }));
       });
     });
   }
@@ -8042,10 +7883,18 @@ label[for="race-peak-hours"],
         const idx = Number(btn.dataset.generatedMenu);
         const w = workouts[idx];
         if(!w) return;
-        openMiniWorkoutMenu(btn, [
-          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> saveGeneratedWorkoutAsToday(w)},
-          {id:'edit', icon:'✎', label:'Editar treino', run:()=> editGeneratedWorkout(w)}
-        ]);
+
+        const action = prompt(
+          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Duplicar para os meus treinos\n\nEscreve 1, 2 ou 3.`
+        );
+
+        if(action === '1'){
+          saveGeneratedWorkoutAsToday(w);
+        }else if(action === '2'){
+          editGeneratedWorkout(w);
+        }else if(action === '3'){
+          saveGeneratedWorkoutToFavorites(w);
+        }
       });
     });
   }
@@ -8077,12 +7926,16 @@ label[for="race-peak-hours"],
   }
 
   function editGeneratedWorkout(w){
-    openWorkoutTextModal(w.title, w.desc, (title, desc)=>{
-      w.title = title || w.title;
-      w.desc = desc || w.desc;
-      saveGeneratedWorkoutToFavorites(w);
-      renderGeneratedTrainingSuggestions();
-    });
+    const title = prompt('Nome do treino:', w.title);
+    if(title === null) return;
+    const desc = prompt('Descrição do treino:', w.desc);
+    if(desc === null) return;
+
+    w.title = title.trim() || w.title;
+    w.desc = desc.trim() || w.desc;
+
+    saveGeneratedWorkoutToFavorites(w);
+    renderGeneratedTrainingSuggestions();
   }
 
   function saveGeneratedWorkoutToFavorites(w){
@@ -8391,10 +8244,14 @@ label[for="race-peak-hours"],
         ev.stopPropagation();
         const w = workouts[Number(btn.dataset.filteredMenu)];
         if(!w) return;
-        openMiniWorkoutMenu(btn, [
-          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> saveToday(w, ctx)},
-          {id:'edit', icon:'✎', label:'Editar treino', run:()=> editWorkout(w, ctx)}
-        ]);
+
+        const action = prompt(
+          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Guardar nos meus treinos\n\nEscreve 1, 2 ou 3.`
+        );
+
+        if(action === '1') saveToday(w, ctx);
+        if(action === '2') editWorkout(w, ctx);
+        if(action === '3') saveUserWorkout(w, ctx);
       });
     });
   }
@@ -8440,9 +8297,11 @@ label[for="race-peak-hours"],
   }
 
   function editWorkout(w, ctx){
-    openWorkoutTextModal(w.title, w.desc, (title, desc)=>{
-      saveUserWorkout({...w, title:title || w.title, desc:desc || w.desc}, ctx);
-    });
+    const title = prompt('Nome do treino:', w.title);
+    if(title === null) return;
+    const desc = prompt('Descrição do treino:', w.desc);
+    if(desc === null) return;
+    saveUserWorkout({...w, title:title.trim() || w.title, desc:desc.trim() || w.desc}, ctx);
   }
 
   function bind(){
@@ -8755,10 +8614,14 @@ label[for="race-peak-hours"],
         ev.stopPropagation();
         const w = list[Number(btn.dataset.engineMenu)];
         if(!w) return;
-        openMiniWorkoutMenu(btn, [
-          {id:'select', icon:'✓', label:'Selecionar treino', run:()=> selectWorkoutForToday(w, ctx)},
-          {id:'edit', icon:'✎', label:'Editar treino', run:()=> editWorkout(w, ctx)}
-        ]);
+
+        const action = prompt(
+          `Opções para "${w.title}":\n\n1 - Selecionar para hoje\n2 - Editar texto\n3 - Guardar nos meus treinos\n\nEscreve 1, 2 ou 3.`
+        );
+
+        if(action === '1') selectWorkoutForToday(w, ctx);
+        if(action === '2') editWorkout(w, ctx);
+        if(action === '3') saveUserWorkout(w, ctx);
       });
     });
   }
@@ -8863,9 +8726,11 @@ label[for="race-peak-hours"],
   }
 
   function editWorkout(w, ctx){
-    openWorkoutTextModal(w.title, w.desc, (title, desc)=>{
-      saveUserWorkout({...w, title:title || w.title, desc:desc || w.desc}, ctx);
-    });
+    const title = prompt('Nome do treino:', w.title);
+    if(title === null) return;
+    const desc = prompt('Descrição do treino:', w.desc);
+    if(desc === null) return;
+    saveUserWorkout({...w, title:title.trim() || w.title, desc:desc.trim() || w.desc}, ctx);
   }
 
   function bind(){
