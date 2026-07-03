@@ -4251,6 +4251,7 @@ label[for="race-peak-hours"],
           <li>Abre a autorização Strava e inicia sessão.</li>
           <li>O browser tenta abrir <code>localhost/...&code=XXXX</code> e falha — copia o valor depois de <code>code=</code>.</li>
           <li>Cola o código abaixo e conclui.</li>
+          <li>Para importar zonas cardio, a autorização inclui <code>profile:read_all</code>.</li>
         </ol>
         <div class="row"><button class="ghost" id="btn-strava-auth" type="button">1. Abrir autorização</button></div>
         <div class="row" style="margin-top:8px;">
@@ -4260,6 +4261,19 @@ label[for="race-peak-hours"],
         <div class="row space-between" style="margin-top:10px;">
           <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2">Não ligado</span></div>
           <button class="ghost" id="btn-strava-disconnect" type="button">Desligar</button>
+        </div>
+        <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
+          <div class="row space-between">
+            <div>
+              <h3>Zonas cardio Strava</h3>
+              <p class="help" style="margin:0;">Importa automaticamente as zonas de frequência cardíaca definidas no Strava.</p>
+            </div>
+            <button class="ghost" id="btn-strava-zones" type="button">Sincronizar zonas</button>
+          </div>
+          <div id="strava-hr-zones" class="strava-zone-list" style="margin-top:12px;">
+            <div class="empty">Sem zonas importadas.</div>
+          </div>
+          <p class="help" id="strava-zones-note" style="margin-top:8px;">Para funcionar, liga o Strava com a permissão profile:read_all.</p>
         </div>
         <div class="card" style="margin-top:12px; padding:14px; box-shadow:none;">
           <h3>VO₂ máx manual</h3>
@@ -6217,7 +6231,7 @@ label[for="race-peak-hours"],
   document.getElementById('btn-strava-auth').addEventListener('click', ()=>{
     const clientId = document.getElementById('strava-client-id').value.trim();
     if(!clientId){ toast('Introduz primeiro o Client ID'); return; }
-    const url = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA_REDIRECT)}&approval_prompt=auto&scope=activity:read_all`;
+    const url = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA_REDIRECT)}&approval_prompt=auto&scope=activity:read_all,profile:read_all`;
     window.open(url, '_blank');
   });
 
@@ -6241,7 +6255,13 @@ label[for="race-peak-hours"],
   });
 
   document.getElementById('btn-strava-disconnect').addEventListener('click', async ()=>{
-    stravaAuth = null; await sSet('strava-auth', null); updateStravaUI(); toast('Strava desligado');
+    stravaAuth = null;
+    stravaZones = null;
+    await sSet('strava-auth', null);
+    await sSet('strava-zones', null);
+    updateStravaUI();
+    renderStravaZonesUI();
+    toast('Strava desligado');
   });
 
   async function ensureFreshToken(){
@@ -6257,6 +6277,75 @@ label[for="race-peak-hours"],
       await sSet('strava-auth', stravaAuth);
       return true;
     }catch(err){ console.error(err); return false; }
+  }
+
+
+  const zonesBtn = document.getElementById('btn-strava-zones');
+  if(zonesBtn){
+    zonesBtn.addEventListener('click', async ()=>{
+      await fetchStravaZones(true);
+    });
+  }
+
+  function normaliseHrZones(payload){
+    const zones = payload && payload.heart_rate && Array.isArray(payload.heart_rate.zones) ? payload.heart_rate.zones : [];
+    return zones.map((z, idx)=>{
+      const min = (z.min!=null) ? Number(z.min) : null;
+      const maxRaw = (z.max!=null) ? Number(z.max) : null;
+      const max = (maxRaw && maxRaw > 0) ? maxRaw : null;
+      return { name:'Z' + (idx+1), min, max };
+    }).filter(z=>z.min!=null || z.max!=null);
+  }
+
+  async function fetchStravaZones(showToast){
+    if(!stravaAuth || !stravaAuth.accessToken){ if(showToast) toast('Liga primeiro o Strava em Perfil'); return null; }
+    const ok = await ensureFreshToken();
+    if(!ok){ if(showToast) toast('Sessão do Strava expirada. Liga novamente.'); return null; }
+    try{
+      const res = await fetchStrava('https://www.strava.com/api/v3/athlete/zones', { headers:{ 'Authorization': 'Bearer ' + stravaAuth.accessToken } });
+      if(!res.ok) throw new Error('zones fetch failed ' + res.status);
+      const data = await res.json();
+      stravaZones = {
+        raw:data,
+        heartRate: normaliseHrZones(data),
+        updatedAt: new Date().toISOString()
+      };
+      await sSet('strava-zones', stravaZones);
+      renderStravaZonesUI();
+      if(showToast) toast('Zonas cardio importadas do Strava');
+      return stravaZones;
+    }catch(err){
+      console.error(err);
+      if(showToast) toast('Não foi possível importar as zonas. Confirma a permissão profile:read_all.');
+      return null;
+    }
+  }
+
+  function renderStravaZonesUI(){
+    const box = document.getElementById('strava-hr-zones');
+    const note = document.getElementById('strava-zones-note');
+    if(!box) return;
+    const zones = stravaZones && Array.isArray(stravaZones.heartRate) ? stravaZones.heartRate : [];
+    box.innerHTML = '';
+    if(!zones.length){
+      box.innerHTML = '<div class="empty">Sem zonas importadas.</div>';
+      if(note) note.textContent = 'Liga o Strava com profile:read_all e carrega em Sincronizar zonas.';
+      return;
+    }
+    const maxRef = Math.max(...zones.map(z=>z.max || z.min || 1), 1);
+    zones.forEach(z=>{
+      const range = (z.min!=null && z.max!=null) ? (Math.round(z.min) + '–' + Math.round(z.max) + ' bpm') :
+                    (z.min!=null ? (Math.round(z.min) + '+ bpm') : ('até ' + Math.round(z.max) + ' bpm'));
+      const width = Math.max(8, Math.min(100, ((z.max || z.min || 1) / maxRef) * 100));
+      const row = document.createElement('div');
+      row.className = 'strava-zone-row';
+      row.innerHTML = '<strong>' + z.name + '</strong><div class="strava-zone-bar"><div class="strava-zone-fill" style="width:' + width.toFixed(0) + '%"></div></div><span>' + range + '</span>';
+      box.appendChild(row);
+    });
+    if(note){
+      const d = stravaZones.updatedAt ? new Date(stravaZones.updatedAt) : null;
+      note.textContent = 'Última importação: ' + (d ? d.toLocaleString('pt-PT') : '—') + '.';
+    }
   }
 
 
@@ -6314,7 +6403,8 @@ label[for="race-peak-hours"],
         elevGain: a.total_elevation_gain || 0, calories: a.calories || null
       }));
       await sSet('strava-activities', stravaActivities);
-      renderWorkouts(); renderTraining7d(); renderRaceAndPlan(); renderKcal(); renderDashboard(); renderVo2UI();
+      await fetchStravaZones(false);
+      renderWorkouts(); renderTraining7d(); renderRaceAndPlan(); renderKcal(); renderDashboard(); renderVo2UI(); renderStravaZonesUI();
       checkTodayPlanAgainstStrava();
       toast('Treinos sincronizados: ' + stravaActivities.length);
     }catch(err){ console.error(err); toast('Falha ao sincronizar treinos do Strava.'); }
@@ -6986,7 +7076,7 @@ label[for="race-peak-hours"],
     safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
     safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal);
     safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
-    safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderDashboard', renderDashboard);
+    safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderStravaZonesUI', renderStravaZonesUI); safe('renderDashboard', renderDashboard);
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
     safe('renderFavoritesList', renderFavoritesList);
 
