@@ -2519,6 +2519,13 @@ body.keyboard-open main > section.active{
 }
 .single-ring-seg.water{stroke:#5B8DEF;}
 .single-ring-seg.coffee{stroke:#F2B84B;}
+.single-ring-seg.alcohol{stroke:#35D9A6;}
+.alcohol-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;}
+.alcohol-summary .mini{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:12px;text-align:center;}
+.alcohol-summary .mini strong{display:block;font-family:var(--font-display);font-size:22px;line-height:1.05;}
+.alcohol-summary .mini span{display:block;color:var(--text-muted);font-size:11px;margin-top:4px;}
+.alcohol-card .single-ring-actions{margin-top:12px;}
+@media(max-width:430px){.alcohol-summary{grid-template-columns:1fr 1fr;}.alcohol-summary .mini:last-child{grid-column:1 / -1;}}
 .single-ring-actions{
   display:flex;
   justify-content:center;
@@ -3757,6 +3764,7 @@ label[for="race-peak-hours"],
       <button class="ghost active" data-sub="agua" type="button">Água</button>
       <button class="ghost" data-sub="cafes" type="button">Cafés</button>
       <button class="ghost" data-sub="kcal" type="button">Kcal</button>
+      <button class="ghost" data-sub="alcool" type="button">Álcool</button>
     </div>
 
     <div class="subview active" id="sub-agua">
@@ -3820,6 +3828,44 @@ label[for="race-peak-hours"],
       </div>
     </div>
 
+    <div class="subview" id="sub-alcool">
+      <div class="card single-ring-card alcohol-card">
+        <div class="kcal-ring-wrap">
+          <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
+            <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
+            <circle class="single-ring-seg alcohol" id="alcohol-ring-circle" cx="110" cy="110" r="86"></circle>
+          </svg>
+          <div class="kcal-center">
+            <div id="alcohol-ring-val">0</div>
+            <span>unid.</span>
+            <small id="alcohol-ring-goal">/ recomendado 0</small>
+          </div>
+        </div>
+        <div class="alcohol-summary">
+          <div class="mini"><strong id="alcohol-drinks-total">0</strong><span>bebidas hoje</span></div>
+          <div class="mini"><strong id="alcohol-units-total">0</strong><span>unidades</span></div>
+          <div class="mini"><strong id="alcohol-kcal-total">0</strong><span>kcal álcool</span></div>
+        </div>
+        <div class="single-ring-actions">
+          <button class="chip" data-alcohol="beer200" type="button">🍺 Cerveja 200 ml</button>
+          <button class="chip" data-alcohol="beer330" type="button">🍺 Cerveja 330 ml</button>
+          <button class="chip" data-alcohol="somersby200" type="button">🍏 Somersby 200 ml</button>
+          <button class="chip" data-alcohol="somersby330" type="button">🍏 Somersby 330 ml</button>
+          <button class="chip" data-alcohol="wine" type="button">🍷 Copo de vinho</button>
+          <button class="chip" data-alcohol="gin" type="button">🍸 Gin</button>
+        </div>
+        <p class="help single-ring-note">Ideal visual: 0 unidades. O álcool soma às kcal do dia e penaliza a pontuação principal.</p>
+      </div>
+      <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+        <h3>Registo de hoje</h3>
+        <div id="alcohol-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste álcool hoje.</div></div>
+      </div>
+      <div class="card">
+        <h3>Histórico</h3>
+        <div id="alcohol-history-list" class="scroll-y"><div class="empty">Ainda não há histórico.</div></div>
+      </div>
+    </div>
+
     <div class="subview" id="sub-kcal">
       <div class="card kcal-modern-card">
         <div class="kcal-ring-wrap">
@@ -3865,7 +3911,7 @@ label[for="race-peak-hours"],
               <div id="food-suggest" style="display:none;"></div>
             </div>
           </div>
-          <div class="field" style="min-width:80px;"><label for="kcal-grams">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150"></div>
+          <div class="field" style="min-width:80px;"><label for="kcal-grams">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150" min="0" step="any" inputmode="decimal"></div>
         </div>
         <p class="help" id="kcal-food-note" style="margin-top:4px;">Escreve o alimento e a quantidade — preenchemos Kcal e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
         <form class="entry" id="form-kcal-values" style="margin-top:8px;">
@@ -4451,6 +4497,7 @@ label[for="race-peak-hours"],
       if(activeSub && activeSub.id === 'sub-agua') renderHydration();
       if(activeSub && activeSub.id === 'sub-cafes') renderCoffee();
       if(activeSub && activeSub.id === 'sub-kcal') renderKcal();
+      if(activeSub && activeSub.id === 'sub-alcool') renderAlcohol();
     }
     else if(activeTab.id === 'tab-treinos'){
       if(activeSub && activeSub.id === 'sub-resumo') renderTraining7d();
@@ -4849,6 +4896,131 @@ label[for="race-peak-hours"],
     }));
   }
 
+  // ================= ALCOOL ================= //
+  let alcoholEntries = [];
+  const ALCOHOL_DB = {
+    beer200: {label:'Cerveja 200 ml', volume:'200 ml', units:0.8, kcal:80},
+    beer330: {label:'Cerveja 330 ml', volume:'330 ml', units:1.3, kcal:130},
+    somersby200: {label:'Somersby 200 ml', volume:'200 ml', units:0.9, kcal:110},
+    somersby330: {label:'Somersby 330 ml', volume:'330 ml', units:1.5, kcal:180},
+    wine: {label:'Copo de vinho', volume:'1 copo', units:1.4, kcal:125},
+    gin: {label:'Gin', volume:'1 copo', units:1.2, kcal:100}
+  };
+
+  function getTodayAlcoholEntries(){
+    const today = todayStr();
+    return (alcoholEntries || []).filter(e => e.date === today);
+  }
+
+  function getTodayAlcoholTotals(){
+    const todays = getTodayAlcoholEntries();
+    return {
+      drinks: todays.length,
+      units: Math.round(todays.reduce((s,e)=>s+(Number(e.units)||0),0)*10)/10,
+      kcal: Math.round(todays.reduce((s,e)=>s+(Number(e.kcal)||0),0))
+    };
+  }
+
+  function alcoholPenalty(units){
+    const u = Number(units) || 0;
+    if(u <= 0) return 0;
+    if(u <= 1) return 3;
+    if(u <= 2) return 7;
+    if(u <= 3) return 12;
+    if(u <= 4) return 18;
+    return 25;
+  }
+
+  function alcoholNoteText(units){
+    const u = Number(units) || 0;
+    if(u <= 0) return 'Álcool: 0 unidades hoje — sem impacto na recuperação.';
+    return `Álcool: ${u.toFixed(1)} unidades hoje — pode prejudicar sono, recuperação e hidratação.`;
+  }
+
+  function alcoholColor(units){
+    const u = Number(units) || 0;
+    if(u <= 0) return '#35D9A6';
+    if(u <= 1) return '#BFE35B';
+    if(u <= 2) return '#F2B84B';
+    if(u <= 3) return '#F2844B';
+    return '#F2555A';
+  }
+
+  document.querySelectorAll('[data-alcohol]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const item = ALCOHOL_DB[btn.dataset.alcohol];
+      if(!item) return;
+      alcoholEntries.push({
+        id: uid(),
+        date: todayStr(),
+        time: new Date().toISOString(),
+        type: item.label,
+        volume: item.volume,
+        units: item.units,
+        kcal: item.kcal
+      });
+      await sSet('alcohol-entries', alcoholEntries);
+      renderAlcohol(); renderKcal(); renderDashboard();
+      toast('+' + item.label);
+    });
+  });
+
+  function renderAlcohol(){
+    const todays = getTodayAlcoholEntries();
+    const totals = getTodayAlcoholTotals();
+    const ringVal = document.getElementById('alcohol-ring-val');
+    const ring = document.getElementById('alcohol-ring-circle');
+    const drinksEl = document.getElementById('alcohol-drinks-total');
+    const unitsEl = document.getElementById('alcohol-units-total');
+    const kcalEl = document.getElementById('alcohol-kcal-total');
+    const listEl = document.getElementById('alcohol-today-list');
+    const histEl = document.getElementById('alcohol-history-list');
+    if(!ringVal || !ring || !listEl) return;
+
+    ringVal.textContent = totals.units % 1 === 0 ? String(totals.units) : totals.units.toFixed(1);
+    if(drinksEl) drinksEl.textContent = totals.drinks;
+    if(unitsEl) unitsEl.textContent = totals.units % 1 === 0 ? String(totals.units) : totals.units.toFixed(1);
+    if(kcalEl) kcalEl.textContent = totals.kcal;
+
+    const circumference = 540.35;
+    const pct = Math.min(1, totals.units / 4);
+    ring.style.strokeDasharray = (circumference * pct) + ' ' + circumference;
+    ring.style.strokeDashoffset = 0;
+    ring.style.stroke = alcoholColor(totals.units);
+
+    if(todays.length === 0){
+      listEl.innerHTML = '<div class="empty">Ainda não registaste álcool hoje.</div>';
+    }else{
+      listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>Unid.</th><th>Kcal</th><th></th></tr></thead><tbody>' +
+        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${e.type}</td><td>${Number(e.units).toFixed(1)}</td><td>${Math.round(e.kcal)}</td><td><button class="icon-btn" data-adel="${e.id}">✕</button></td></tr>`).join('') +
+        '</tbody></table>';
+      listEl.querySelectorAll('[data-adel]').forEach(b=>b.addEventListener('click', async ()=>{
+        alcoholEntries = alcoholEntries.filter(x=>x.id!==b.dataset.adel);
+        await sSet('alcohol-entries', alcoholEntries);
+        renderAlcohol(); renderKcal(); renderDashboard();
+      }));
+    }
+
+    if(histEl){
+      const byDate = {};
+      (alcoholEntries || []).forEach(e=>{
+        if(!byDate[e.date]) byDate[e.date] = {drinks:0, units:0, kcal:0, labels:{}};
+        byDate[e.date].drinks += 1;
+        byDate[e.date].units += Number(e.units)||0;
+        byDate[e.date].kcal += Number(e.kcal)||0;
+        byDate[e.date].labels[e.type] = (byDate[e.date].labels[e.type] || 0) + 1;
+      });
+      const dates = Object.keys(byDate).sort().reverse().slice(0,30);
+      if(!dates.length) histEl.innerHTML = '<div class="empty">Ainda não há histórico.</div>';
+      else histEl.innerHTML = '<table class="log"><thead><tr><th>Data</th><th>Bebidas</th><th>Unid.</th><th>Kcal</th></tr></thead><tbody>' +
+        dates.map(d=>{
+          const x = byDate[d];
+          const labels = Object.entries(x.labels).map(([k,v])=>`${v}x ${k}`).join(', ');
+          return `<tr><td>${fmtDate(d)}</td><td>${labels}</td><td>${x.units.toFixed(1)}</td><td>${Math.round(x.kcal)}</td></tr>`;
+        }).join('') + '</tbody></table>';
+    }
+  }
+
   // ================= KCAL ================= //
   let kcalEntries = [];
 
@@ -5025,10 +5197,36 @@ label[for="race-peak-hours"],
     const rawName = document.getElementById('kcal-food').value;
     const gramsInput = document.getElementById('kcal-grams');
     const noteEl = document.getElementById('kcal-food-note');
+    const gramsText = gramsInput.value.trim();
+    const gramsIsBeingEdited = document.activeElement === gramsInput;
+
+    function clearEstimatedValues(){
+      document.getElementById('kcal-value').value = '';
+      document.getElementById('kcal-carbs').value = '';
+      document.getElementById('kcal-protein').value = '';
+      document.getElementById('kcal-fat').value = '';
+    }
+    function zeroEstimatedValues(){
+      document.getElementById('kcal-value').value = 0;
+      document.getElementById('kcal-carbs').value = 0;
+      document.getElementById('kcal-protein').value = 0;
+      document.getElementById('kcal-fat').value = 0;
+    }
+
+    // Enquanto o utilizador está a editar a quantidade, deixa apagar tudo.
+    // Isto permite mudar, por exemplo, de 50g para 200g sem o campo voltar logo ao mínimo/default.
+    if(gramsIsBeingEdited && gramsText === ''){
+      clearEstimatedValues();
+      noteEl.textContent = 'Escreve a nova quantidade. Podes deixar vazio enquanto editas, ou usar 0 para não contar este alimento.';
+      return;
+    }
+
     // Se há uma estimativa da IA ativa para este texto, escalar proporcionalmente à quantidade
     if(kcalAiBase && rawName.trim() === kcalAiBase.desc){
-      const grams = parseFloat(gramsInput.value);
-      if(!grams){ noteEl.textContent = 'Indica a quantidade em gramas para ajustar os valores da IA.'; return; }
+      if(gramsText === ''){ noteEl.textContent = 'Indica a quantidade em gramas para ajustar os valores da IA.'; return; }
+      const grams = parseFloat(gramsText);
+      if(isNaN(grams) || grams < 0){ noteEl.textContent = 'A quantidade não pode ser negativa.'; return; }
+      if(grams === 0){ zeroEstimatedValues(); noteEl.textContent = 'Quantidade a 0g — este alimento não conta para os cálculos.'; return; }
       const f = grams / kcalAiBase.grams;
       document.getElementById('kcal-value').value = Math.round(kcalAiBase.kcal*f);
       document.getElementById('kcal-carbs').value = Math.round(kcalAiBase.carbs*f*10)/10;
@@ -5048,11 +5246,22 @@ label[for="race-peak-hours"],
       return;
     }
     const food = match.food;
-    if(!gramsInput.value.trim() && food.defaultG){
+
+    // Só preenche a porção típica quando o alimento é escolhido e o utilizador NÃO está a apagar/escrever a quantidade.
+    if(gramsText === '' && !gramsIsBeingEdited && food.defaultG){
       gramsInput.value = food.defaultG;
     }
-    const grams = parseFloat(gramsInput.value);
-    if(!grams){ noteEl.textContent = 'Falta a quantidade em gramas.'; return; }
+
+    const gramsNow = gramsInput.value.trim();
+    if(gramsNow === ''){
+      clearEstimatedValues();
+      noteEl.textContent = 'Quantidade vazia — escreve o novo valor em gramas.';
+      return;
+    }
+    const grams = parseFloat(gramsNow);
+    if(isNaN(grams) || grams < 0){ noteEl.textContent = 'A quantidade não pode ser negativa.'; return; }
+    if(grams === 0){ zeroEstimatedValues(); noteEl.textContent = 'Quantidade a 0g — este alimento não conta para os cálculos.'; return; }
+
     const factor = grams/100;
     document.getElementById('kcal-value').value = Math.round(food.kcal*factor);
     document.getElementById('kcal-carbs').value = Math.round(food.carbs*factor*10)/10;
@@ -5067,6 +5276,17 @@ label[for="race-peak-hours"],
   document.getElementById('form-kcal-values').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const kcal = parseInt(document.getElementById('kcal-value').value,10);
+    const gramsField = document.getElementById('kcal-grams');
+    if(gramsField && gramsField.value.trim() !== '' && parseFloat(gramsField.value) === 0){
+      e.target.reset();
+      kcalAiBase = null;
+      document.getElementById('kcal-food').value = '';
+      document.getElementById('kcal-grams').value = '';
+      document.getElementById('kcal-ai-desc').value = '';
+      renderKcal(); renderDashboard();
+      toast('Alimento a 0g não foi registado');
+      return;
+    }
     if(!kcal) return;
     const carbs = parseFloat(document.getElementById('kcal-carbs').value) || 0;
     const protein = parseFloat(document.getElementById('kcal-protein').value) || 0;
@@ -5212,7 +5432,9 @@ label[for="race-peak-hours"],
     const todays = kcalEntries.filter(e=>e.date===today);
     const coffeeTotal = getTodayCoffeeTotal();
     const coffeeKcal = getTodayCoffeeKcal();
-    const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal);
+    const alcoholTotals = getTodayAlcoholTotals();
+    const alcoholKcal = alcoholTotals.kcal;
+    const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal + alcoholKcal);
     const workoutKcal = todayWorkoutBurnedKcal();
     const netKcal = intakeKcal - workoutKcal;
     const totalKcal = Math.max(0, netKcal);
@@ -5227,6 +5449,9 @@ label[for="race-peak-hours"],
     const coffeeRows = coffeeTotal > 0
       ? `<tr><td>Hoje</td><td>Café simples (${coffeeTotal}x)</td><td>+${coffeeKcal}</td><td>0/0/0</td><td></td></tr>`
       : '';
+    const alcoholRows = alcoholKcal > 0
+      ? `<tr><td>Hoje</td><td>Álcool (${alcoholTotals.drinks} bebida${alcoholTotals.drinks===1?'':'s'})</td><td>+${alcoholKcal}</td><td>${alcoholTotals.units} unid.</td><td></td></tr>`
+      : '';
     const workoutRows = workoutKcal > 0
       ? `<tr><td>Hoje</td><td>Treinos do dia</td><td>-${workoutKcal}</td><td>défice</td><td></td></tr>`
       : '';
@@ -5234,10 +5459,10 @@ label[for="race-peak-hours"],
       ? `<tr><td>Total</td><td><strong>Kcal líquidas</strong></td><td><strong>${netKcal}</strong></td><td>${intakeKcal} ingeridas / ${workoutKcal} gastas</td><td></td></tr>`
       : '';
 
-    if(todays.length===0 && coffeeTotal===0 && workoutKcal===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
+    if(todays.length===0 && coffeeTotal===0 && alcoholKcal===0 && workoutKcal===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
     else{
       listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Registo</th><th>Kcal</th><th>H/P/G</th><th></th></tr></thead><tbody>' +
-        coffeeRows +
+        coffeeRows + alcoholRows +
         [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}${e.photo?' 📷':''}</td><td>${e.food||'—'}</td><td>+${e.kcal}</td><td>${Math.round(e.carbs||0)}/${Math.round(e.protein||0)}/${Math.round(e.fat||0)}</td><td><button class="icon-btn" data-kdel="${e.id}">✕</button></td></tr>`).join('') +
         workoutRows + summaryRows +
         '</tbody></table>';
@@ -6598,15 +6823,20 @@ label[for="race-peak-hours"],
       notes.push(weightNote);
     }
 
+    if(profile.age){ notes.push(`Perfil: ${profile.age} anos — contexto usado só para leitura geral.`); }
+
+    const alcoholTotals = getTodayAlcoholTotals();
+    const penalty = alcoholPenalty(alcoholTotals.units);
+    notes.push(alcoholNoteText(alcoholTotals.units));
+
     if(weightSum === 0) return null;
-    const overall = Math.round(scoreSum/weightSum);
+    const baseOverall = Math.round(scoreSum/weightSum);
+    const overall = Math.max(0, baseOverall - penalty);
     let title, ringColor;
     if(overall>=80){ title='Muito bom'; ringColor='#35D9A6'; }
     else if(overall>=65){ title='Bom'; ringColor='#35D9A6'; }
     else if(overall>=50){ title='Razoável'; ringColor='#F2B84B'; }
     else{ title='Precisa de atenção'; ringColor='#F2555A'; }
-
-    if(profile.age){ notes.push(`Perfil: ${profile.age} anos — contexto usado só para leitura geral.`); }
 
     return { overall, title, ringColor, notes };
   }
@@ -6702,7 +6932,7 @@ label[for="race-peak-hours"],
   });
 
   document.getElementById('btn-export').addEventListener('click', ()=>{
-    const payload = { profile, weightEntries, sleepEntries, plannedWorkouts, stravaActivities, stravaZones, stravaVo2, hydrationEntries, hydrationGoal, coffeeEntries, kcalEntries, favoriteWorkouts, todayPlan, raceGoal, exportedAt: new Date().toISOString() };
+    const payload = { profile, weightEntries, sleepEntries, plannedWorkouts, stravaActivities, stravaZones, stravaVo2, hydrationEntries, hydrationGoal, coffeeEntries, alcoholEntries, kcalEntries, favoriteWorkouts, todayPlan, raceGoal, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'pulso-dados.json'; a.click();
@@ -6736,6 +6966,7 @@ label[for="race-peak-hours"],
     hydrationEntries = await sGet('hydration-entries', []);
     hydrationGoal = await sGet('hydration-goal', 2000);
     coffeeEntries = await sGet('coffee-entries', []);
+    alcoholEntries = await sGet('alcohol-entries', []);
     kcalEntries = await sGet('kcal-entries', []);
     favoriteWorkouts = await sGet('favorite-workouts', []);
     todayPlan = await sGet('today-plan', null);
@@ -6753,7 +6984,7 @@ label[for="race-peak-hours"],
     const safe = (name, fn)=>{ try{ fn(); }catch(err){ console.error('Falha em '+name, err); } };
     safe('renderWeight', renderWeight); safe('renderSleep', renderSleep);
     safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
-    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderKcal', renderKcal);
+    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal);
     safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
     safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderDashboard', renderDashboard);
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
