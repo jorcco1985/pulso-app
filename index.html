@@ -3788,27 +3788,6 @@ label[for="race-peak-hours"],
   .zone-card-main strong{font-size:13px;}
 }
 
-
-
-/* ================= DIÁRIO DO ATLETA / HISTÓRICO ================= */
-.athlete-history-list{display:flex; flex-direction:column; gap:10px;}
-.athlete-day-card{border-radius:24px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); overflow:hidden;}
-.athlete-day-head{width:100%; border:0; background:transparent; color:var(--text); display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 14px; text-align:left; cursor:pointer;}
-.athlete-day-title strong{display:block; font-size:16px; margin-bottom:3px;}
-.athlete-day-title span{display:block; color:var(--text-muted); font-size:12px;}
-.athlete-day-score{width:56px; height:56px; border-radius:999px; display:flex; align-items:center; justify-content:center; flex-direction:column; border:2px solid var(--teal); color:var(--teal); font-weight:900; flex:0 0 auto;}
-.athlete-day-score small{font-size:9px; color:var(--text-muted); font-weight:700;}
-.athlete-day-detail{display:none; padding:0 14px 14px;}
-.athlete-day-card.open .athlete-day-detail{display:block;}
-.athlete-metrics-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px;}
-.athlete-metric{border-radius:16px; background:rgba(7,11,20,.35); border:1px solid rgba(255,255,255,.07); padding:10px;}
-.athlete-metric strong{display:block; font-size:15px; color:var(--text);}
-.athlete-metric span{display:block; color:var(--text-muted); font-size:10.5px; margin-top:3px;}
-.athlete-detail-section{margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);}
-.athlete-detail-section h4{margin:0 0 6px; font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted);}
-.athlete-detail-section p{margin:0; color:var(--text-muted); font-size:12px; line-height:1.45;}
-@media(max-width:520px){.athlete-metrics-grid{grid-template-columns:1fr 1fr;}.athlete-day-head{padding:13px 12px;}.athlete-day-score{width:50px;height:50px;}.athlete-metric{padding:9px;}}
-
 </style>
 </head>
 <body>
@@ -3992,6 +3971,10 @@ label[for="race-peak-hours"],
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <h3>Registo de hoje</h3>
         <div id="alcohol-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste álcool hoje.</div></div>
+      </div>
+      <div class="card">
+        <h3>Histórico</h3>
+        <div id="alcohol-history-list" class="scroll-y"><div class="empty">Ainda não há histórico.</div></div>
       </div>
     </div>
 
@@ -4363,7 +4346,6 @@ label[for="race-peak-hours"],
       <button class="ghost" data-profile-tab="zonas" type="button">Zonas cardio</button>
       <button class="ghost" data-profile-tab="nutricao" type="button">Nutrição IA</button>
       <button class="ghost" data-profile-tab="dados" type="button">Dados</button>
-      <button class="ghost" data-profile-tab="historico" type="button">Histórico</button>
     </div>
 
     <div class="fill scroll-y profile-content">
@@ -4408,7 +4390,7 @@ label[for="race-peak-hours"],
             <li>Abre a autorização Strava e inicia sessão.</li>
             <li>O browser tenta abrir <code>localhost/...&code=XXXX</code> e falha — copia o valor depois de <code>code=</code>.</li>
             <li>Cola o código abaixo e conclui.</li>
-            <li>As zonas cardio e o VO₂ máx ficam no separador <strong>Zonas cardio</strong>.</li>
+            <li>As zonas cardio ficam no separador <strong>Zonas cardio</strong> e são preenchidas manualmente.</li>
           </ol>
           <div class="row"><button class="ghost" id="btn-strava-auth" type="button">1. Abrir autorização</button></div>
           <div class="row" style="margin-top:8px;">
@@ -4421,6 +4403,21 @@ label[for="race-peak-hours"],
           </div>
         </div>
 
+        <div class="card fixed-form">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🫁</div>
+            <div>
+              <h3>VO₂ máx manual</h3>
+              <p class="help" style="margin:0;">Valores usados no resumo de treino.</p>
+            </div>
+          </div>
+          <form class="entry" id="form-strava-vo2">
+            <div class="field" style="min-width:130px;"><label for="vo2-run-manual">VO₂ corrida</label><input type="number" step="0.1" id="vo2-run-manual" placeholder="ex: 58.5"></div>
+            <div class="field" style="min-width:130px;"><label for="vo2-bike-manual">VO₂ bike</label><input type="number" step="0.1" id="vo2-bike-manual" placeholder="ex: 62.0"></div>
+            <button class="primary" type="submit">Guardar VO₂</button>
+          </form>
+          <p class="help" id="vo2-summary" style="margin-top:8px;">Sem VO₂ guardado.</p>
+        </div>
       </div>
 
       <div class="profile-subview" id="profile-sub-zonas">
@@ -4432,21 +4429,6 @@ label[for="race-peak-hours"],
               <p class="help" style="margin:0;">Preenche só os valores de referência retirados do Strava.</p>
             </div>
           </div>
-        <div class="card fixed-form profile-note-card" style="margin-top:14px; padding:14px; box-shadow:none;">
-          <div class="profile-group-head">
-            <div class="profile-group-icon">🫁</div>
-            <div>
-              <h3>VO₂ máx</h3>
-              <p class="help" style="margin:0;">Valores manuais colocados junto às zonas cardio.</p>
-            </div>
-          </div>
-          <form class="entry" id="form-strava-vo2">
-            <div class="field" style="min-width:130px;"><label for="vo2-run-manual">VO₂ corrida</label><input type="number" step="0.1" id="vo2-run-manual" placeholder="ex: 58.5"></div>
-            <div class="field" style="min-width:130px;"><label for="vo2-bike-manual">VO₂ bike</label><input type="number" step="0.1" id="vo2-bike-manual" placeholder="ex: 62.0"></div>
-            <button class="primary" type="submit">Guardar VO₂</button>
-          </form>
-          <p class="help" id="vo2-summary" style="margin-top:8px;">Sem VO₂ guardado.</p>
-        </div>
 
           <form class="manual-hr-zone-form zone-ref-grid" id="form-manual-hr-zones">
             <div class="field zone-input z1"><label for="hr-z1-ref">Z1 até</label><input type="number" id="hr-z1-ref" placeholder="138"></div>
@@ -4481,24 +4463,6 @@ label[for="race-peak-hours"],
             <button class="ghost" id="btn-test-nutrition" type="button">Testar ligação</button>
           </div>
           <p class="help" id="nutrition-test-note" style="margin-top:6px;"></p>
-        </div>
-      </div>
-
-      <div class="profile-subview" id="profile-sub-historico">
-        <div class="card fixed-form athlete-history-card">
-          <div class="profile-group-head">
-            <div class="profile-group-icon">📈</div>
-            <div>
-              <h3>Diário do atleta</h3>
-              <p class="help" style="margin:0;">Resumo automático dos dias antes do reset diário.</p>
-            </div>
-          </div>
-          <div class="row" style="margin-bottom:10px;">
-            <button class="ghost" id="btn-archive-today" type="button">Guardar resumo de hoje</button>
-            <button class="ghost" id="btn-clear-athlete-history" type="button">Limpar histórico</button>
-          </div>
-          <p class="help" style="margin:0 0 12px;"><strong>Como funciona:</strong> quando o dia muda, o Pulso guarda os totais do dia e depois limpa os campos diários. O histórico fica aqui para consulta futura.</p>
-          <div id="athlete-history-list" class="athlete-history-list"><div class="empty">Ainda não há histórico guardado.</div></div>
         </div>
       </div>
 
@@ -7257,7 +7221,7 @@ label[for="race-peak-hours"],
     const safe = (name, fn)=>{ try{ fn(); }catch(err){ console.error('Falha em '+name, err); } };
     safe('renderWeight', renderWeight); safe('renderSleep', renderSleep);
     safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
-    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal); if(window.PulsoRenderAthleteHistory) safe('renderAthleteHistory', window.PulsoRenderAthleteHistory);
+    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal);
     safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
     safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderStravaZonesUI', renderStravaZonesUI); safe('renderDashboard', renderDashboard);
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
@@ -7343,98 +7307,6 @@ label[for="race-peak-hours"],
     });
 
     localStorage.setItem(key, JSON.stringify(filtered));
-  }
-
-
-  function readPulsoJson(key, fallback){
-    try{
-      const raw = localStorage.getItem('pulso:' + key);
-      return raw ? JSON.parse(raw) : fallback;
-    }catch(e){ return fallback; }
-  }
-
-  function writePulsoJson(key, value){
-    try{ localStorage.setItem('pulso:' + key, JSON.stringify(value)); }catch(e){}
-  }
-
-  function sameDay(value, day){
-    if(!value) return false;
-    return String(value).slice(0,10) === day;
-  }
-
-  function sum(arr, fn){
-    return (arr || []).reduce((s,x)=>s + (Number(fn(x)) || 0), 0);
-  }
-
-  function archiveDay(day){
-    if(!day) return;
-    const history = readPulsoJson('athlete-history', []);
-    if(!Array.isArray(history)) return;
-
-    const hydration = readPulsoJson('hydration-entries', []).filter(e=>sameDay(e.date, day));
-    const coffee = readPulsoJson('coffee-entries', []).filter(e=>sameDay(e.date, day));
-    const alcohol = readPulsoJson('alcohol-entries', []).filter(e=>sameDay(e.date, day));
-    const kcal = readPulsoJson('kcal-entries', []).filter(e=>sameDay(e.date, day));
-    const weight = readPulsoJson('weight-entries', []).filter(e=>sameDay(e.date, day));
-    const sleep = readPulsoJson('sleep-entries', []).filter(e=>sameDay(e.date, day));
-    const workouts = readPulsoJson('strava-activities', []).filter(e=>sameDay(e.date || e.start_date || e.time, day));
-    const planned = readPulsoJson('planned-workouts', []).filter(e=>sameDay(e.date, day));
-
-    const alcoholUnits = Math.round(sum(alcohol, e=>e.units) * 10) / 10;
-    const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
-    const foodKcal = Math.round(sum(kcal, e=>e.kcal));
-    const protein = Math.round(sum(kcal, e=>e.protein));
-    const carbs = Math.round(sum(kcal, e=>e.carbs));
-    const fat = Math.round(sum(kcal, e=>e.fat));
-    const waterMl = Math.round(sum(hydration, e=>e.ml));
-    const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
-    const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
-    const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
-    const workoutKcal = Math.round(sum(workouts, e=>e.calories));
-
-    const hasData = hydration.length || coffee.length || alcohol.length || kcal.length || weight.length || sleep.length || workouts.length || planned.length;
-    if(!hasData) return;
-
-    const baseScore = 80;
-    const penalty = alcoholUnits <= 0 ? 0 : alcoholUnits <= 1 ? 3 : alcoholUnits <= 2 ? 7 : alcoholUnits <= 3 ? 12 : alcoholUnits <= 4 ? 18 : 25;
-    const score = Math.max(0, baseScore - penalty);
-
-    const record = {
-      id: 'day-' + day,
-      date: day,
-      savedAt: new Date().toISOString(),
-      score,
-      totals: {
-        waterMl,
-        coffeeCount,
-        foodKcal,
-        alcoholUnits,
-        alcoholKcal,
-        totalKcal: foodKcal + alcoholKcal,
-        protein,
-        carbs,
-        fat,
-        workoutMin,
-        workoutKm,
-        workoutKcal,
-        weightKg: weight.length ? Number(weight[weight.length-1].kg) : null,
-        sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null,
-        restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null
-      },
-      details: {
-        meals: kcal,
-        alcohol,
-        hydration,
-        coffee,
-        workouts,
-        planned
-      }
-    };
-
-    const next = history.filter(x=>x && x.date !== day);
-    next.push(record);
-    next.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    writePulsoJson('athlete-history', next.slice(0, 365));
   }
 
   function resetDailyData(){
@@ -7552,7 +7424,6 @@ label[for="race-peak-hours"],
     }
 
     if(lastDay !== today){
-      archiveDay(lastDay);
       resetDailyData();
     }
   }
@@ -9141,163 +9012,6 @@ label[for="race-peak-hours"],
     refreshStravaDots: refreshStravaDots,
     updateObjective: function(){ updatePhaseNote(); rewritePlan(); }
   };
-})();
-</script>
-
-
-<script>
-/* =========================================================
-   PULSO — DIÁRIO DO ATLETA / HISTÓRICO NO PERFIL
-   ========================================================= */
-(function(){
-  function todayKey(){
-    const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-  function read(key, fallback){
-    try{ const raw = localStorage.getItem('pulso:' + key); return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; }
-  }
-  function write(key, value){ try{ localStorage.setItem('pulso:' + key, JSON.stringify(value)); }catch(e){} }
-  function sameDay(value, day){ return value && String(value).slice(0,10) === day; }
-  function sum(arr, fn){ return (arr || []).reduce((s,x)=>s + (Number(fn(x)) || 0), 0); }
-  function fmtDate(d){
-    try{ return new Date(d + 'T12:00:00').toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'}); }catch(e){ return d; }
-  }
-  function fmtHours(v){ return v ? Number(v).toFixed(1).replace('.', ',') + ' h' : '—'; }
-  function fmtL(ml){ return ml ? (ml/1000).toFixed(1).replace('.', ',') + ' L' : '0 L'; }
-  function fmtUnits(v){ return (Number(v)||0).toFixed(1).replace('.', ','); }
-  function metric(label, value){ return '<div class="athlete-metric"><strong>'+value+'</strong><span>'+label+'</span></div>'; }
-
-  function buildDayRecord(day){
-    const hydration = read('hydration-entries', []).filter(e=>sameDay(e.date, day));
-    const coffee = read('coffee-entries', []).filter(e=>sameDay(e.date, day));
-    const alcohol = read('alcohol-entries', []).filter(e=>sameDay(e.date, day));
-    const kcal = read('kcal-entries', []).filter(e=>sameDay(e.date, day));
-    const weight = read('weight-entries', []).filter(e=>sameDay(e.date, day));
-    const sleep = read('sleep-entries', []).filter(e=>sameDay(e.date, day));
-    const workouts = read('strava-activities', []).filter(e=>sameDay(e.date || e.start_date || e.time, day));
-    const planned = read('planned-workouts', []).filter(e=>sameDay(e.date, day));
-
-    const alcoholUnits = Math.round(sum(alcohol, e=>e.units) * 10) / 10;
-    const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
-    const foodKcal = Math.round(sum(kcal, e=>e.kcal));
-    const protein = Math.round(sum(kcal, e=>e.protein));
-    const carbs = Math.round(sum(kcal, e=>e.carbs));
-    const fat = Math.round(sum(kcal, e=>e.fat));
-    const waterMl = Math.round(sum(hydration, e=>e.ml));
-    const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
-    const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
-    const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
-    const workoutKcal = Math.round(sum(workouts, e=>e.calories));
-    const penalty = alcoholUnits <= 0 ? 0 : alcoholUnits <= 1 ? 3 : alcoholUnits <= 2 ? 7 : alcoholUnits <= 3 ? 12 : alcoholUnits <= 4 ? 18 : 25;
-
-    return {
-      id:'day-' + day,
-      date:day,
-      savedAt:new Date().toISOString(),
-      score:Math.max(0, 80 - penalty),
-      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null },
-      details:{ meals:kcal, alcohol, hydration, coffee, workouts, planned }
-    };
-  }
-
-  function saveDay(day){
-    const rec = buildDayRecord(day);
-    const hasData = rec.details.meals.length || rec.details.alcohol.length || rec.details.hydration.length || rec.details.coffee.length || rec.details.workouts.length || rec.details.planned.length || rec.totals.weightKg || rec.totals.sleepHours;
-    if(!hasData) return false;
-    const hist = read('athlete-history', []);
-    const next = Array.isArray(hist) ? hist.filter(x=>x && x.date !== day) : [];
-    next.push(rec);
-    next.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    write('athlete-history', next.slice(0,365));
-    renderAthleteHistory();
-    return true;
-  }
-
-  function compactDetails(rec){
-    const t = rec.totals || {};
-    const d = rec.details || {};
-    const meals = (d.meals || []).slice(-8).map(x=>x.food || x.name || (Math.round(x.kcal||0)+' kcal')).join(', ') || 'Sem refeições detalhadas.';
-    const alc = (d.alcohol || []).map(x=>x.type || x.label || 'Bebida').join(', ') || '0 álcool.';
-    const workouts = (d.workouts || []).map(x=>x.name || x.type || 'Treino').join(', ') || ((d.planned||[]).map(x=>x.goal || x.type || 'Treino planeado').join(', ') || 'Sem treino registado.');
-    return '<div class="athlete-detail-section"><h4>Nutrição</h4><p>'+meals+'</p></div>'+
-      '<div class="athlete-detail-section"><h4>Álcool</h4><p>'+alc+'</p></div>'+
-      '<div class="athlete-detail-section"><h4>Treino</h4><p>'+workouts+'</p></div>';
-  }
-
-  function renderAthleteHistory(){
-    const el = document.getElementById('athlete-history-list');
-    if(!el) return;
-    const hist = read('athlete-history', []);
-    if(!Array.isArray(hist) || !hist.length){
-      el.innerHTML = '<div class="empty">Ainda não há histórico guardado.</div>';
-      return;
-    }
-    el.innerHTML = hist.slice(0,90).map(function(rec){
-      const t = rec.totals || {};
-      const subtitle = [
-        t.workoutMin ? (t.workoutMin + ' min treino') : null,
-        t.totalKcal ? (Math.round(t.totalKcal) + ' kcal') : null,
-        t.waterMl ? fmtL(t.waterMl) + ' água' : null,
-        t.alcoholUnits ? fmtUnits(t.alcoholUnits) + ' unid. álcool' : '0 álcool'
-      ].filter(Boolean).join(' · ');
-      return '<div class="athlete-day-card" data-day-card="'+rec.date+'">'+
-        '<button class="athlete-day-head" type="button" data-toggle-day="'+rec.date+'">'+
-          '<div class="athlete-day-title"><strong>'+fmtDate(rec.date)+'</strong><span>'+subtitle+'</span></div>'+
-          '<div class="athlete-day-score">'+(rec.score || 0)+'<small>score</small></div>'+
-        '</button>'+
-        '<div class="athlete-day-detail">'+
-          '<div class="athlete-metrics-grid">'+
-            metric('Sono', fmtHours(t.sleepHours))+
-            metric('Peso', t.weightKg ? Number(t.weightKg).toFixed(1).replace('.', ',') + ' kg' : '—')+
-            metric('Água', fmtL(t.waterMl))+
-            metric('Cafés', t.coffeeCount || 0)+
-            metric('Álcool', fmtUnits(t.alcoholUnits) + ' unid.')+
-            metric('Kcal totais', Math.round(t.totalKcal || 0))+
-            metric('Proteína', Math.round(t.protein || 0) + ' g')+
-            metric('Hidratos', Math.round(t.carbs || 0) + ' g')+
-            metric('Gorduras', Math.round(t.fat || 0) + ' g')+
-            metric('Treino', (t.workoutMin || 0) + ' min')+
-            metric('Distância', (t.workoutKm || 0).toFixed(1).replace('.', ',') + ' km')+
-            metric('Kcal treino', Math.round(t.workoutKcal || 0))+
-          '</div>'+ compactDetails(rec) +
-        '</div>'+
-      '</div>';
-    }).join('');
-    el.querySelectorAll('[data-toggle-day]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        const card = btn.closest('.athlete-day-card');
-        if(card) card.classList.toggle('open');
-      });
-    });
-  }
-
-  window.PulsoRenderAthleteHistory = renderAthleteHistory;
-  window.PulsoSaveAthleteDay = saveDay;
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const archiveBtn = document.getElementById('btn-archive-today');
-    if(archiveBtn){
-      archiveBtn.addEventListener('click', function(){
-        const ok = saveDay(todayKey());
-        if(window.toast) window.toast(ok ? 'Resumo de hoje guardado' : 'Ainda não há dados para guardar');
-      });
-    }
-    const clearBtn = document.getElementById('btn-clear-athlete-history');
-    if(clearBtn){
-      clearBtn.addEventListener('click', function(){
-        if(!confirm('Limpar todo o histórico do atleta?')) return;
-        write('athlete-history', []);
-        renderAthleteHistory();
-      });
-    }
-    document.querySelectorAll('[data-profile-tab]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        if(btn.dataset.profileTab === 'historico') setTimeout(renderAthleteHistory, 50);
-      });
-    });
-    setTimeout(renderAthleteHistory, 700);
-  });
 })();
 </script>
 
