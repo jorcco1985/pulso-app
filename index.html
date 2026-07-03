@@ -3809,6 +3809,14 @@ label[for="race-peak-hours"],
 .athlete-detail-section p{margin:0; color:var(--text-muted); font-size:12px; line-height:1.45;}
 @media(max-width:520px){.athlete-metrics-grid{grid-template-columns:1fr 1fr;}.athlete-day-head{padding:13px 12px;}.athlete-day-score{width:50px;height:50px;}.athlete-metric{padding:9px;}}
 
+.athlete-trend-card{margin:12px 0 14px; border-radius:24px; background:rgba(7,11,20,.28); border:1px solid rgba(255,255,255,.08); padding:12px;}
+.athlete-trend-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
+.athlete-trend-head strong{font-size:13px; color:var(--text);}
+.athlete-trend-head select{max-width:165px; min-height:38px; padding:8px 10px; font-size:13px; border-radius:14px !important;}
+.athlete-trend-chart{height:170px; width:100%;}
+.athlete-trend-note{font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.35;}
+@media(max-width:520px){.athlete-trend-head{align-items:stretch; flex-direction:column;}.athlete-trend-head select{max-width:none; width:100%;}.athlete-trend-chart{height:150px;}}
+
 
 
 /* ================= TREINOS — menu escuro + cartões com ícones ================= */
@@ -3975,6 +3983,25 @@ label[for="race-peak-hours"],
   #quick-auto-card .training-mode-options{grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:8px !important;}
   #quick-auto-card .training-mode-btn{min-height:62px !important; padding:8px 6px !important; font-size:13px !important;}
   #quick-auto-card .training-mode-btn small{font-size:10px !important;}
+}
+
+
+
+/* Correção: esconder textos pequenos nos botões Pouco / Normal / Intenso */
+.training-mode-btn small{display:none !important;}
+.training-mode-btn{align-items:center !important; justify-content:center !important;}
+
+
+
+/* Pulso iOS no-jump: evita salto de scroll ao focar campos de edição */
+input, select, textarea {
+  scroll-margin-top: 0 !important;
+  scroll-margin-bottom: 0 !important;
+  -webkit-user-select: text;
+  user-select: text;
+}
+main > section, .subview, .scroll-y {
+  overflow-anchor: none;
 }
 
 </style>
@@ -4667,6 +4694,24 @@ label[for="race-peak-hours"],
             <button class="ghost" id="btn-clear-athlete-history" type="button">Limpar histórico</button>
           </div>
           <p class="help" style="margin:0 0 12px;"><strong>Como funciona:</strong> quando o dia muda, o Pulso guarda os totais do dia e depois limpa os campos diários. O histórico fica aqui para consulta futura.</p>
+          <div class="athlete-trend-card">
+            <div class="athlete-trend-head">
+              <strong>Gráfico de tendências</strong>
+              <select id="athlete-trend-metric" aria-label="Escolher tendência">
+                <option value="score">Score diário</option>
+                <option value="weightKg">Peso</option>
+                <option value="sleepHours">Sono</option>
+                <option value="waterMl">Água</option>
+                <option value="totalKcal">Kcal totais</option>
+                <option value="protein">Proteína</option>
+                <option value="workoutMin">Minutos de treino</option>
+                <option value="workoutKm">Distância treino</option>
+                <option value="alcoholUnits">Álcool</option>
+              </select>
+            </div>
+            <div id="athlete-trend-chart" class="athlete-trend-chart"><div class="empty">Ainda sem dados suficientes para tendência.</div></div>
+            <div id="athlete-trend-note" class="athlete-trend-note">Guarda alguns dias para veres a evolução.</div>
+          </div>
           <div id="athlete-history-list" class="athlete-history-list"><div class="empty">Ainda não há histórico guardado.</div></div>
         </div>
       </div>
@@ -4736,14 +4781,8 @@ label[for="race-peak-hours"],
   window.addEventListener('resize', setVh);
   if(window.visualViewport){ window.visualViewport.addEventListener('resize', setVh); }
 
-  // Mantém o campo visível quando o teclado do telemóvel abre
-  document.addEventListener('focusin', function(e){
-    if(e.target && e.target.matches && e.target.matches('input, select, textarea')){
-      setTimeout(function(){
-        try{ e.target.scrollIntoView({block:'center', behavior:'smooth'}); }catch(_){ }
-      }, 300);
-    }
-  });
+  // iPhone/Safari: não forçar scroll automático nos campos.
+  // A correção final está no script "Pulso iOS no-jump" no fim do ficheiro.
 
   // ---------- Storage helpers ----------
   async function sGet(key, fallback){
@@ -4770,12 +4809,15 @@ label[for="race-peak-hours"],
     catch(e){ if(!savedRemote) console.error("storage set failed", key, e); }
   }
 
-  function toast(msg){
+  function pulsoToast(msg){
     const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    clearTimeout(toast._t);
-    toast._t = setTimeout(()=>t.classList.remove('show'), 2400);
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(pulsoToast._t);
+    pulsoToast._t = setTimeout(()=>t.classList.remove('show'), 2400);
   }
+  window.showToast = pulsoToast;
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function workoutVisualType(type, name){
     const t = String(type || '').toLowerCase();
@@ -7225,6 +7267,7 @@ label[for="race-peak-hours"],
       document.body.appendChild(modal);
     }
     const hrNote = HR_ZONE2_NOTE(profile.age);
+    const selectedPlanTitle = (todayPlan && todayPlan.date === todayStr()) ? (todayPlan.title || '') : '';
     modal.innerHTML = `
       <div class="row space-between plan-detail-header" style="flex:0 0 auto; margin-bottom:10px;">
         <div><h2 style="margin:0; font-family:var(--font-display); font-size:16px;">Semana ${w.week} · <span class="phase-tag phase-${w.phase}">${w.phase}</span></h2>
@@ -7233,40 +7276,36 @@ label[for="race-peak-hours"],
       </div>
       <div class="scroll-y plan-detail-scroll" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;">
         ${hrNote ? `<div class="card" style="margin-bottom:10px;"><p class="help" style="margin:0;">${hrNote}</p></div>` : ''}
-        ${w.sessions.map((s,sidx)=>`<div class="card workout-pick-card" style="margin-bottom:10px;" data-plan-session="${sidx}">
-          <button class="workout-menu-dot" data-plan-menu="${sidx}" type="button" aria-label="Opções do treino">⋮</button>
-          <h3 class="workout-card-title">${s.title}</h3>
-          <p class="help workout-card-desc">${s.detail}</p>
-        </div>`).join('')}
+        ${w.sessions.map((s,sidx)=>{
+          const active = selectedPlanTitle && selectedPlanTitle === s.title;
+          return `<div class="card workout-pick-card plan-week-workout ${active ? 'is-selected' : ''}" style="margin-bottom:10px;" data-plan-session="${sidx}">
+            <button class="workout-select-check ${active ? 'is-selected' : ''}" data-plan-select="${sidx}" type="button" aria-label="Selecionar treino"></button>
+            <h3 class="workout-card-title">${s.title}</h3>
+            <p class="help workout-card-desc">${s.detail}</p>
+          </div>`;
+        }).join('')}
       </div>`;
     document.getElementById('plan-detail-close').addEventListener('click', ()=>{ modal.remove(); });
-    modal.querySelectorAll('[data-plan-menu]').forEach(btn=>{
+    const selectPlanSession = async (sidx)=>{
+      const session = w.sessions[sidx];
+      if(!session) return;
+      modal.querySelectorAll('.plan-week-workout.is-selected, .plan-week-workout .workout-select-check.is-selected').forEach(el=>el.classList.remove('is-selected'));
+      const card = modal.querySelector(`.plan-week-workout[data-plan-session="${sidx}"]`);
+      if(card){
+        card.classList.add('is-selected');
+        const btn = card.querySelector('.workout-select-check');
+        if(btn) btn.classList.add('is-selected');
+      }
+      await pickToday(session.title, session.detail, Math.round((session.minutes || 45)));
+    };
+    modal.querySelectorAll('[data-plan-select]').forEach(btn=>{
       btn.addEventListener('click', (ev)=>{
         ev.stopPropagation();
-        closeWorkoutMenus();
-        const sidx = parseInt(btn.dataset.planMenu,10);
-        const session = w.sessions[sidx];
-        const menu = document.createElement('div');
-        menu.className = 'workout-action-menu';
-        menu.innerHTML = `
-          <button type="button" data-action="select">Selecionar para hoje</button>
-          <button type="button" data-action="edit">Editar texto</button>
-          <button type="button" data-action="favorite">Guardar nos meus treinos</button>`;
-        btn.parentElement.appendChild(menu);
-        menu.querySelectorAll('button').forEach(item=>item.addEventListener('click', async (e)=>{
-          e.stopPropagation();
-          const action = item.dataset.action;
-          closeWorkoutMenus();
-          if(action==='select') pickToday(session.title, session.detail, Math.round((session.minutes || 45)));
-          if(action==='edit') openPlanSessionEditor(idx, sidx);
-          if(action==='favorite'){
-            favoriteWorkouts.push({id:uid(), name:session.title, type:currentPlan.cat==='bike'?'bike-fora':'trail', baseMinutes:session.minutes || 45, desc:session.detail});
-            await sSet('favorite-workouts', favoriteWorkouts);
-            renderFavoritesList();
-            toast('Treino guardado nos teus treinos');
-          }
-        }));
+        selectPlanSession(parseInt(btn.dataset.planSelect,10));
       });
+    });
+    modal.querySelectorAll('.plan-week-workout').forEach(card=>{
+      card.addEventListener('click', ()=> selectPlanSession(parseInt(card.dataset.planSession,10)));
     });
   }
 
@@ -7527,29 +7566,89 @@ label[for="race-peak-hours"],
 </script>
 
 <script>
-  // Pulso v2.3 — ajuda o iPhone a manter inputs visíveis quando o teclado abre
+  // Pulso iOS no-jump — evita que o iPhone faça scroll para baixo ao editar inputs/textareas.
   (function () {
-    const focusable = 'input, textarea, select';
+    const FOCUSABLE = 'input, textarea, select';
+    const RESTORE_DELAYS = [0, 16, 60, 140, 280, 520];
+    let lastTouchState = null;
+
+    function isScrollable(el) {
+      if (!el || el === document.body || el === document.documentElement) return false;
+      const style = window.getComputedStyle(el);
+      return /(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight;
+    }
+
+    function nearestScrollable(el) {
+      let node = el && el.parentElement;
+      while (node) {
+        if (isScrollable(node)) return node;
+        node = node.parentElement;
+      }
+      return document.querySelector('main > section.active') || document.scrollingElement || document.documentElement;
+    }
+
+    function snapshot(target) {
+      const activeSection = document.querySelector('main > section.active');
+      const parent = nearestScrollable(target);
+      return {
+        parent,
+        parentTop: parent ? parent.scrollTop : 0,
+        section: activeSection,
+        sectionTop: activeSection ? activeSection.scrollTop : 0,
+        winX: window.scrollX || 0,
+        winY: window.scrollY || 0
+      };
+    }
+
+    function restore(s) {
+      if (!s) return;
+      try { if (s.parent) s.parent.scrollTop = s.parentTop; } catch (_) {}
+      try { if (s.section) s.section.scrollTop = s.sectionTop; } catch (_) {}
+      try { window.scrollTo(s.winX, s.winY); } catch (_) {}
+    }
+
+    function restoreSeveralTimes(s) {
+      RESTORE_DELAYS.forEach(delay => window.setTimeout(() => restore(s), delay));
+      try { window.requestAnimationFrame(() => restore(s)); } catch (_) {}
+    }
+
+    document.addEventListener('touchstart', function (event) {
+      const target = event.target && event.target.closest ? event.target.closest(FOCUSABLE) : null;
+      if (target) lastTouchState = snapshot(target);
+    }, { passive: true, capture: true });
+
+    document.addEventListener('pointerdown', function (event) {
+      const target = event.target && event.target.closest ? event.target.closest(FOCUSABLE) : null;
+      if (target) lastTouchState = snapshot(target);
+    }, { passive: true, capture: true });
 
     document.addEventListener('focusin', function (event) {
-      if (!event.target.matches(focusable)) return;
+      const target = event.target;
+      if (!target || !target.matches || !target.matches(FOCUSABLE)) return;
+
       document.body.classList.add('keyboard-open');
-      window.setTimeout(function () {
-        try {
-          event.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } catch (_) {
-          event.target.scrollIntoView(false);
-        }
-      }, 260);
-    });
+
+      const state = lastTouchState && lastTouchState.parent ? lastTouchState : snapshot(target);
+      restoreSeveralTimes(state);
+    }, true);
 
     document.addEventListener('focusout', function () {
       window.setTimeout(function () {
-        if (!document.activeElement || !document.activeElement.matches(focusable)) {
+        if (!document.activeElement || !document.activeElement.matches || !document.activeElement.matches(FOCUSABLE)) {
           document.body.classList.remove('keyboard-open');
+          lastTouchState = null;
         }
       }, 120);
-    });
+    }, true);
+
+    // Quando o teclado altera o viewport, o Safari tenta reposicionar outra vez. Mantemos a secção quieta.
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', function () {
+        if (document.activeElement && document.activeElement.matches && document.activeElement.matches(FOCUSABLE)) {
+          restoreSeveralTimes(lastTouchState || snapshot(document.activeElement));
+        }
+      });
+    }
   })();
 </script>
 
@@ -9516,7 +9615,79 @@ label[for="race-peak-hours"],
       '<div class="athlete-detail-section"><h4>Treino</h4><p>'+workouts+'</p></div>';
   }
 
+
+  const trendMap = {
+    score:{label:'Score diário', unit:'', get:function(rec){return Number(rec.score)||0;}},
+    weightKg:{label:'Peso', unit:' kg', get:function(rec){return rec.totals && rec.totals.weightKg != null ? Number(rec.totals.weightKg) : null;}},
+    sleepHours:{label:'Sono', unit:' h', get:function(rec){return rec.totals && rec.totals.sleepHours != null ? Number(rec.totals.sleepHours) : null;}},
+    waterMl:{label:'Água', unit:' L', get:function(rec){return rec.totals && rec.totals.waterMl ? Math.round(Number(rec.totals.waterMl))/1000 : 0;}},
+    totalKcal:{label:'Kcal totais', unit:' kcal', get:function(rec){return rec.totals ? Number(rec.totals.totalKcal)||0 : 0;}},
+    protein:{label:'Proteína', unit:' g', get:function(rec){return rec.totals ? Number(rec.totals.protein)||0 : 0;}},
+    workoutMin:{label:'Minutos de treino', unit:' min', get:function(rec){return rec.totals ? Number(rec.totals.workoutMin)||0 : 0;}},
+    workoutKm:{label:'Distância treino', unit:' km', get:function(rec){return rec.totals ? Number(rec.totals.workoutKm)||0 : 0;}},
+    alcoholUnits:{label:'Álcool', unit:' unid.', get:function(rec){return rec.totals ? Number(rec.totals.alcoholUnits)||0 : 0;}}
+  };
+
+  function renderAthleteTrend(){
+    const chart = document.getElementById('athlete-trend-chart');
+    const select = document.getElementById('athlete-trend-metric');
+    const note = document.getElementById('athlete-trend-note');
+    if(!chart) return;
+    const hist = read('athlete-history', []);
+    const key = select ? select.value : 'score';
+    const cfg = trendMap[key] || trendMap.score;
+    const rows = (Array.isArray(hist) ? hist : []).filter(x=>x && x.date).slice().sort(function(a,b){return String(a.date).localeCompare(String(b.date));}).slice(-30)
+      .map(function(rec){return {date:rec.date, label:fmtDate(rec.date).slice(0,5), value:cfg.get(rec)};})
+      .filter(function(x){return x.value != null && !isNaN(x.value);});
+    if(rows.length < 2){
+      chart.innerHTML = '<div class="empty">Guarda pelo menos 2 dias para criar tendência.</div>';
+      if(note) note.textContent = 'Tendência: ainda sem dados suficientes.';
+      return;
+    }
+    chart.innerHTML = '';
+    const W = chart.clientWidth || 320, H = chart.clientHeight || 160;
+    const padL = 38, padR = 12, padT = 14, padB = 24;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const vals = rows.map(function(r){return Number(r.value)||0;});
+    let min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    if(min === max){ min = Math.max(0, min - 1); max = max + 1; }
+    const margin = (max-min)*0.16;
+    const bottom = Math.max(0, min - margin), top = max + margin, range = top-bottom || 1;
+    function y(v){ return padT + plotH - ((v-bottom)/range)*plotH; }
+    function x(i){ return padL + (rows.length>1 ? (plotW/(rows.length-1))*i : plotW/2); }
+    function el(tag, attrs){ const e = document.createElementNS('http://www.w3.org/2000/svg', tag); Object.keys(attrs).forEach(function(k){e.setAttribute(k, attrs[k]);}); return e; }
+    const svg = el('svg', {viewBox:'0 0 '+W+' '+H, width:'100%', height:'100%'});
+    for(let g=0; g<=2; g++){
+      const gy = padT + plotH - plotH*g/2;
+      svg.appendChild(el('line', {x1:padL, x2:W-padR, y1:gy, y2:gy, stroke:'rgba(255,255,255,.10)', 'stroke-width':1}));
+      const tv = bottom + range*g/2;
+      const tx = el('text', {x:2, y:gy+3, fill:'#8B96AC', 'font-size':9});
+      tx.textContent = (Math.abs(tv) >= 100 ? Math.round(tv) : Math.round(tv*10)/10);
+      svg.appendChild(tx);
+    }
+    rows.forEach(function(r,i){
+      const vx = x(i), vy = y(r.value), base = padT + plotH;
+      svg.appendChild(el('rect', {x:vx-5, y:Math.min(vy,base), width:10, height:Math.max(2, Math.abs(base-vy)), fill:'var(--teal)', opacity:.20, rx:4}));
+    });
+    const d = rows.map(function(r,i){return (i?'L':'M')+' '+x(i)+' '+y(r.value);}).join(' ');
+    svg.appendChild(el('path', {d:d, fill:'none', stroke:'var(--teal)', 'stroke-width':2.5, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+    rows.forEach(function(r,i){ svg.appendChild(el('circle', {cx:x(i), cy:y(r.value), r:3.4, fill:'var(--teal)', stroke:'var(--bg)', 'stroke-width':1.4})); });
+    rows.forEach(function(r,i){
+      if(rows.length <= 7 || i === 0 || i === rows.length-1 || i % Math.ceil(rows.length/5) === 0){
+        const t = el('text', {x:x(i), y:H-5, fill:'#8B96AC', 'font-size':8, 'text-anchor':'middle'});
+        t.textContent = r.label;
+        svg.appendChild(t);
+      }
+    });
+    chart.appendChild(svg);
+    const first = rows[0].value, last = rows[rows.length-1].value;
+    const diff = Math.round((last-first)*10)/10;
+    const sign = diff > 0 ? '+' : '';
+    if(note) note.textContent = cfg.label + ': ' + sign + String(diff).replace('.', ',') + cfg.unit + ' nos últimos ' + rows.length + ' registos.';
+  }
+
   function renderAthleteHistory(){
+    renderAthleteTrend();
     const el = document.getElementById('athlete-history-list');
     if(!el) return;
     const hist = read('athlete-history', []);
@@ -9571,9 +9742,11 @@ label[for="race-peak-hours"],
     if(archiveBtn){
       archiveBtn.addEventListener('click', function(){
         const ok = saveDay(todayKey());
-        if(window.toast) window.toast(ok ? 'Resumo de hoje guardado' : 'Ainda não há dados para guardar');
+        if(typeof window.showToast === 'function') window.showToast(ok ? 'Resumo de hoje guardado' : 'Ainda não há dados para guardar');
       });
     }
+    const trendSelect = document.getElementById('athlete-trend-metric');
+    if(trendSelect) trendSelect.addEventListener('change', renderAthleteTrend);
     const clearBtn = document.getElementById('btn-clear-athlete-history');
     if(clearBtn){
       clearBtn.addEventListener('click', function(){
@@ -9827,6 +10000,338 @@ label[for="race-peak-hours"],
   obs.observe(document.documentElement, {childList:true, subtree:true});
 
   window.PulsoTreinosDuasCartasPatch = applyPatch;
+})();
+</script>
+
+
+<style>
+/* ===== PATCH: visto nos treinos criados + ícones nos treinos gerados ===== */
+#quick-suggestions .workout-pick-card.has-workout-icon,
+#quick-suggestions .card[data-suggest-pick].has-workout-icon,
+.training-generated-card.has-workout-icon,
+.training-filtered-card.has-workout-icon,
+.training-engine-card.has-workout-icon{
+  position:relative !important;
+  padding-left:82px !important;
+  padding-right:64px !important;
+}
+.training-generated-card .workout-type-icon,
+.training-filtered-card .workout-type-icon,
+.training-engine-card .workout-type-icon{
+  position:absolute;
+  left:18px;
+  top:50%;
+  transform:translateY(-50%);
+}
+.workout-pick-card .workout-select-check,
+#quick-suggestions .card[data-suggest-pick] .workout-select-check,
+.training-generated-card .workout-select-check,
+.training-filtered-card .workout-select-check{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:38px;
+  height:38px;
+  min-width:38px;
+  min-height:38px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(7,11,20,.55);
+  color:rgba(255,255,255,.55);
+  font-size:20px;
+  font-weight:900;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:30;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
+}
+.workout-pick-card .workout-select-check::before,
+#quick-suggestions .card[data-suggest-pick] .workout-select-check::before,
+.training-generated-card .workout-select-check::before,
+.training-filtered-card .workout-select-check::before{content:'✓'; transform:translateY(-1px);}
+.workout-pick-card.is-selected .workout-select-check,
+#quick-suggestions .card[data-suggest-pick].is-selected .workout-select-check,
+.training-generated-card.is-selected .workout-select-check,
+.training-filtered-card.is-selected .workout-select-check{
+  background:var(--teal) !important;
+  color:#04140f !important;
+  border-color:rgba(53,217,166,.9) !important;
+  box-shadow:0 0 0 4px rgba(53,217,166,.12), 0 14px 30px rgba(53,217,166,.18);
+}
+.workout-pick-card.is-selected,
+#quick-suggestions .card[data-suggest-pick].is-selected,
+.training-generated-card.is-selected,
+.training-filtered-card.is-selected{
+  border-color:rgba(53,217,166,.38) !important;
+}
+@media(max-width:520px){
+  #quick-suggestions .workout-pick-card.has-workout-icon,
+  #quick-suggestions .card[data-suggest-pick].has-workout-icon,
+  .training-generated-card.has-workout-icon,
+  .training-filtered-card.has-workout-icon,
+  .training-engine-card.has-workout-icon{
+    padding-left:66px !important;
+    padding-right:56px !important;
+  }
+  .training-generated-card .workout-type-icon,
+  .training-filtered-card .workout-type-icon,
+  .training-engine-card .workout-type-icon{left:12px;}
+  .workout-pick-card .workout-select-check,
+  #quick-suggestions .card[data-suggest-pick] .workout-select-check,
+  .training-generated-card .workout-select-check,
+  .training-filtered-card .workout-select-check{width:36px;height:36px;min-width:36px;min-height:36px;top:12px;right:12px;}
+}
+</style>
+<script>
+/* PATCH: adiciona visto aos treinos criados e ícones aos treinos sugeridos/gerados */
+(function(){
+  const SELECTED_KEY = 'pulso:selected-suggested-workout-title';
+  function clean(v){ return String(v || '').replace(/\s+/g,' ').trim(); }
+  function esc(v){ return String(v || '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch] || ch)); }
+  function iconFor(txt){
+    const t = clean(txt).toLowerCase();
+    if(t.includes('bike') || t.includes('bici') || t.includes('cycling') || t.includes('ride')) return {cls:'bike', sym:'🚴'};
+    if(t.includes('força') || t.includes('forca') || t.includes('gym') || t.includes('muscul') || t.includes('strength')) return {cls:'force', sym:'🏋️'};
+    if(t.includes('trail') || t.includes('montanha')) return {cls:'trail', sym:'⛰️'};
+    if(t.includes('caminh') || t.includes('walk')) return {cls:'walk', sym:'🚶'};
+    return {cls:'run', sym:'🏃'};
+  }
+  function getCardTitle(card){
+    const el = card.querySelector('h4,.workout-card-title,strong');
+    return clean(el ? el.textContent : '') || 'Treino sugerido';
+  }
+  function getCardDesc(card){
+    const el = card.querySelector('p,.workout-card-desc');
+    return clean(el ? el.textContent : '') || 'Selecionado nos treinos.';
+  }
+  function getTypeText(card){
+    const typeEl = card.querySelector('.training-engine-badge,.training-filtered-badge,.badge,.training-generated-meta span,.workout-card-tags span');
+    return clean(typeEl ? typeEl.textContent : card.textContent);
+  }
+  function updateDashboard(title, desc){
+    try{
+      const obj = {title:title, name:title, desc:desc, description:desc, date:new Date().toISOString().slice(0,10)};
+      localStorage.setItem('pulsoTodayWorkout', JSON.stringify(obj));
+      localStorage.setItem('todayWorkout', JSON.stringify(obj));
+      localStorage.setItem('pulso:today-workout', JSON.stringify(obj));
+      localStorage.setItem('selectedTodayWorkout', JSON.stringify(obj));
+      localStorage.setItem(SELECTED_KEY, title);
+    }catch(e){}
+    const body = document.getElementById('today-workout-body');
+    if(body){
+      body.innerHTML = '<div class="today-workout-title">' + esc(title) + '</div>' +
+        '<div class="today-workout-desc">' + esc(desc) + '</div>' +
+        '<span class="today-workout-badge">Treino de hoje</span>';
+    }
+    document.querySelectorAll('#quick-suggestions .is-selected').forEach(c=>c.classList.remove('is-selected'));
+  }
+  function addIcon(card){
+    if(card.querySelector(':scope > .workout-type-icon')) return;
+    const ic = iconFor(getTypeText(card));
+    const span = document.createElement('span');
+    span.className = 'workout-type-icon ' + ic.cls;
+    span.textContent = ic.sym;
+    span.setAttribute('aria-hidden','true');
+    card.classList.add('has-workout-icon');
+    card.insertBefore(span, card.firstChild);
+  }
+  function addCheck(card){
+    card.querySelectorAll(':scope > .workout-menu-dot').forEach(b=>b.remove());
+    let btn = card.querySelector(':scope > .workout-select-check');
+    if(!btn){
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'workout-select-check';
+      btn.setAttribute('aria-label','Selecionar treino');
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        const title = getCardTitle(card);
+        const desc = getCardDesc(card);
+        updateDashboard(title, desc);
+        card.classList.add('is-selected');
+        if(typeof window.showToast === 'function') window.showToast('Treino selecionado.');
+        else if(typeof window.toast === 'function') window.toast('Treino selecionado.');
+        if(card.matches('.workout-pick-card,[data-suggest-pick],[data-fav-pick]')){
+          setTimeout(()=>card.click(), 0);
+        }
+      });
+      card.appendChild(btn);
+    }
+    const selected = localStorage.getItem(SELECTED_KEY) || '';
+    card.classList.toggle('is-selected', selected && getCardTitle(card) === selected);
+  }
+  function apply(){
+    document.querySelectorAll('#quick-suggestions .workout-pick-card, #quick-suggestions .card[data-suggest-pick]').forEach(function(card){
+      addIcon(card);
+      addCheck(card);
+    });
+    document.querySelectorAll('#quick-suggestions .training-generated-card, #quick-suggestions .training-filtered-card, #quick-suggestions .training-engine-card').forEach(function(card){
+      addIcon(card);
+      addCheck(card);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply); else apply();
+  let t=null;
+  new MutationObserver(()=>{ clearTimeout(t); t=setTimeout(apply,80); }).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
+
+<style>
+/* ===== PATCH FINAL: visto verde em TODOS os treinos + sem três pontinhos ===== */
+#quick-suggestions .workout-pick-card,
+#quick-suggestions .card[data-suggest-pick],
+#quick-suggestions .training-generated-card,
+#quick-suggestions .training-filtered-card,
+#quick-suggestions .training-engine-card,
+#quick-suggestions .training-suggestion-list > div[class*="training-"]{
+  position:relative !important;
+  padding-right:66px !important;
+}
+#quick-suggestions .workout-menu-dot{display:none !important;}
+#quick-suggestions .workout-select-check{
+  position:absolute !important;
+  top:14px !important;
+  right:14px !important;
+  width:38px !important;
+  height:38px !important;
+  min-width:38px !important;
+  min-height:38px !important;
+  padding:0 !important;
+  border-radius:999px !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  background:rgba(7,11,20,.68) !important;
+  color:rgba(255,255,255,.55) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:20px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  z-index:50 !important;
+  cursor:pointer !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.28) !important;
+}
+#quick-suggestions .workout-select-check::before{content:'✓'; transform:translateY(-1px);}
+#quick-suggestions .is-selected > .workout-select-check,
+#quick-suggestions .workout-select-check.is-selected{
+  background:var(--teal) !important;
+  color:#04140f !important;
+  border-color:rgba(53,217,166,.95) !important;
+  box-shadow:0 0 0 4px rgba(53,217,166,.14), 0 14px 30px rgba(53,217,166,.20) !important;
+}
+#quick-suggestions .is-selected{
+  border-color:rgba(53,217,166,.42) !important;
+}
+@media(max-width:520px){
+  #quick-suggestions .workout-select-check{width:36px !important;height:36px !important;min-width:36px !important;min-height:36px !important;top:12px !important;right:12px !important;}
+  #quick-suggestions .workout-pick-card,
+  #quick-suggestions .card[data-suggest-pick],
+  #quick-suggestions .training-generated-card,
+  #quick-suggestions .training-filtered-card,
+  #quick-suggestions .training-engine-card,
+  #quick-suggestions .training-suggestion-list > div[class*="training-"]{padding-right:58px !important;}
+}
+</style>
+<script>
+/* PATCH FINAL: garante visto/seleção mesmo em treinos criados e na 3.ª opção sugerida */
+(function(){
+  const SELECTED_KEY = 'pulso:selected-suggested-workout-title';
+  function clean(v){return String(v||'').replace(/\s+/g,' ').trim();}
+  function esc(v){return String(v||'').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch] || ch));}
+  function isWorkoutCard(card){
+    if(!card || !card.matches) return false;
+    if(card.id === 'training-mode-card' || card.id === 'training-engine-mode-card') return false;
+    if(card.classList.contains('training-mode-card')) return false;
+    return card.matches('.workout-pick-card,.card[data-suggest-pick],.training-generated-card,.training-filtered-card,.training-engine-card,[data-fav-pick],[data-generated-workout],[data-filtered-workout],[data-engine-workout]');
+  }
+  function titleOf(card){
+    const el = card.querySelector('.workout-card-title,h4,h3,strong');
+    return clean(el ? el.textContent : card.textContent).slice(0,80) || 'Treino selecionado';
+  }
+  function descOf(card){
+    const el = card.querySelector('.workout-card-desc,p');
+    return clean(el ? el.textContent : '') || 'Selecionado nos teus treinos.';
+  }
+  function iconFor(card){
+    const t = clean(card.textContent).toLowerCase();
+    if(t.includes('bike') || t.includes('bici') || t.includes('ride') || t.includes('cicl')) return '🚴';
+    if(t.includes('força') || t.includes('forca') || t.includes('strength') || t.includes('muscul') || t.includes('ginásio') || t.includes('ginasio')) return '🏋️';
+    if(t.includes('trail') || t.includes('subida') || t.includes('montanha')) return '⛰️';
+    if(t.includes('caminh') || t.includes('walk')) return '🚶';
+    return '🏃';
+  }
+  function ensureIcon(card){
+    if(card.querySelector(':scope > .workout-type-icon')) return;
+    if(card.classList.contains('has-workout-icon')) return;
+    const span=document.createElement('span');
+    span.className='workout-type-icon run';
+    span.textContent=iconFor(card);
+    span.setAttribute('aria-hidden','true');
+    card.classList.add('has-workout-icon');
+    card.insertBefore(span, card.firstChild);
+  }
+  function markSelected(card){
+    const title = titleOf(card);
+    try{localStorage.setItem(SELECTED_KEY,title);}catch(e){}
+    document.querySelectorAll('#quick-suggestions .is-selected').forEach(c=>c.classList.remove('is-selected'));
+    document.querySelectorAll('#quick-suggestions .workout-select-check.is-selected').forEach(b=>b.classList.remove('is-selected'));
+    card.classList.add('is-selected');
+    const btn=card.querySelector(':scope > .workout-select-check');
+    if(btn) btn.classList.add('is-selected');
+    const desc=descOf(card);
+    try{
+      const obj={title:title,name:title,desc:desc,description:desc,date:new Date().toISOString().slice(0,10)};
+      localStorage.setItem('pulsoTodayWorkout',JSON.stringify(obj));
+      localStorage.setItem('todayWorkout',JSON.stringify(obj));
+      localStorage.setItem('pulso:today-workout',JSON.stringify(obj));
+      localStorage.setItem('selectedTodayWorkout',JSON.stringify(obj));
+    }catch(e){}
+    const body=document.getElementById('today-workout-body');
+    if(body){
+      body.innerHTML='<div class="today-workout-title">'+esc(title)+'</div><div class="today-workout-desc">'+esc(desc)+'</div><span class="today-workout-badge">Treino de hoje</span>';
+    }
+  }
+  function ensureCheck(card){
+    if(!isWorkoutCard(card)) return;
+    card.querySelectorAll(':scope > .workout-menu-dot').forEach(b=>b.remove());
+    ensureIcon(card);
+    let btn=card.querySelector(':scope > .workout-select-check');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.type='button';
+      btn.className='workout-select-check';
+      btn.setAttribute('aria-label','Selecionar treino');
+      btn.addEventListener('click',function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        markSelected(card);
+        if(typeof window.showToast==='function') window.showToast('Treino selecionado.');
+        else if(typeof window.toast==='function') window.toast('Treino selecionado.');
+        /* deixa o clique original do cartão fazer a navegação/atualização, quando existir */
+        if(card.matches('[data-fav-pick],[data-suggest-pick],.workout-pick-card')) setTimeout(()=>card.click(),0);
+      });
+      card.appendChild(btn);
+    }
+    const selected = (()=>{try{return localStorage.getItem(SELECTED_KEY)||'';}catch(e){return '';}})();
+    const active = selected && titleOf(card) === selected;
+    card.classList.toggle('is-selected', !!active);
+    btn.classList.toggle('is-selected', !!active);
+  }
+  function apply(){
+    const root=document.getElementById('quick-suggestions');
+    if(!root) return;
+    root.querySelectorAll('.workout-menu-dot').forEach(b=>b.remove());
+    root.querySelectorAll('.workout-pick-card,.card[data-suggest-pick],.training-generated-card,.training-filtered-card,.training-engine-card,[data-fav-pick],[data-generated-workout],[data-filtered-workout],[data-engine-workout]').forEach(ensureCheck);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply); else apply();
+  let t=null;
+  new MutationObserver(()=>{clearTimeout(t); t=setTimeout(apply,40);}).observe(document.documentElement,{childList:true,subtree:true});
+  window.PulsoFixWorkoutChecks = apply;
 })();
 </script>
 
