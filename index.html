@@ -5343,6 +5343,25 @@ nav.tabbar button.active svg{
   }
 </style>
 
+
+<style>
+/* ===== Nível de atividade em barra ===== */
+.activity-level-card{overflow:visible !important;}
+.activity-slider-wrap{display:flex;flex-direction:column;gap:12px;}
+.activity-slider-wrap label{font-size:10.5px;color:var(--text-muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
+#activityLevelRange{width:100%;padding:0 !important;min-height:34px !important;background:transparent !important;border:0 !important;accent-color:var(--teal);}
+#activityLevelRange::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(90deg,rgba(53,217,166,.25),rgba(53,217,166,.95));}
+#activityLevelRange::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:var(--teal);border:3px solid #07110e;margin-top:-9px;box-shadow:0 0 0 5px rgba(53,217,166,.16);}
+#activityLevelRange::-moz-range-track{height:8px;border-radius:999px;background:linear-gradient(90deg,rgba(53,217,166,.25),rgba(53,217,166,.95));}
+#activityLevelRange::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--teal);border:3px solid #07110e;box-shadow:0 0 0 5px rgba(53,217,166,.16);}
+.activity-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-size:10px;color:var(--text-muted);text-align:center;line-height:1.2;}
+.activity-selected{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;background:rgba(53,217,166,.10);border:1px solid rgba(53,217,166,.18);}
+.activity-selected strong{font-size:14px;}.activity-selected span{font-size:12px;color:var(--text-muted);font-weight:700;}
+.activity-help{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);}.activity-help h3{margin-bottom:10px !important;}
+.activity-help-list{display:flex;flex-direction:column;gap:8px;}.activity-help-list p{margin:0;font-size:12px;line-height:1.45;color:var(--text-muted);}.activity-help-list strong{color:var(--text);}
+@media(max-width:430px){.activity-scale{font-size:9px;gap:3px;}.activity-selected{flex-direction:column;align-items:flex-start;gap:4px;}}
+</style>
+
 </head>
 <body>
 
@@ -5471,7 +5490,7 @@ nav.tabbar button.active svg{
           </svg>
           <div class="kcal-center">
             <div id="hydro-ring-val">0</div>
-            <span>ml</span>
+            <span>unid.</span>
             <small id="hydro-ring-goal">/ 2000 ml</small>
           </div>
         </div>
@@ -5532,13 +5551,13 @@ nav.tabbar button.active svg{
           </svg>
           <div class="kcal-center">
             <div id="alcohol-ring-val">0</div>
-            <span>ml</span>
-            <small id="alcohol-ring-goal">/ objetivo 0 ml</small>
+            <span>unid.</span>
+            <small id="alcohol-ring-goal">/ recomendado 0</small>
           </div>
         </div>
         <div class="alcohol-summary">
           <div class="mini"><strong id="alcohol-drinks-total">0</strong><span>bebidas hoje</span></div>
-          <div class="mini"><strong id="alcohol-units-total">0</strong><span>ml</span></div>
+          <div class="mini"><strong id="alcohol-units-total">0</strong><span>unid.</span></div>
           <div class="mini"><strong id="alcohol-kcal-total">0</strong><span>kcal álcool</span></div>
         </div>
         <div class="single-ring-actions">
@@ -6100,7 +6119,55 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-  </section>
+  
+<!-- =====================================================
+     NÍVEL DE ATIVIDADE FÍSICA
+====================================================== -->
+
+<div class="card activity-level-card">
+
+    <h2 class="section-title">Nível de Atividade Física</h2>
+
+    <p class="detail" style="margin-bottom:18px;">
+        Este fator é utilizado para calcular o teu gasto energético diário (TDEE),
+        ajustar as calorias recomendadas e melhorar as sugestões de treino.
+    </p>
+
+    <div class="activity-slider-wrap">
+
+        <label for="activityLevelRange">Nível de atividade</label>
+
+        <input type="range" id="activityLevelRange" min="0" max="4" step="1" value="2">
+        <input type="hidden" id="activityLevel" value="1.55">
+
+        <div class="activity-scale">
+            <span>Sedentário</span>
+            <span>Ligeiro</span>
+            <span>Moderado</span>
+            <span>Muito ativo</span>
+            <span>Atleta</span>
+        </div>
+
+        <div class="activity-selected">
+            <strong id="activityLevelName">Moderadamente ativo</strong>
+            <span id="activityLevelFactor">Fator 1.55</span>
+        </div>
+
+    </div>
+
+    <div class="activity-help">
+        <h3>Como preencher?</h3>
+        <div class="activity-help-list">
+            <p><strong>Sedentário:</strong> pouco ou nenhum exercício. Trabalho maioritariamente sentado.</p>
+            <p><strong>Ligeiramente ativo:</strong> 1 a 3 treinos por semana ou atividade física ocasional.</p>
+            <p><strong>Moderadamente ativo:</strong> 3 a 5 treinos por semana. A maioria dos praticantes regulares enquadra-se aqui.</p>
+            <p><strong>Muito ativo:</strong> 6 a 7 treinos por semana ou profissão fisicamente exigente.</p>
+            <p><strong>Atleta:</strong> treino intenso diário ou duas sessões por dia. Elevado volume de treino.</p>
+        </div>
+    </div>
+
+</div>
+</section>
 
 </main>
 
@@ -6674,7 +6741,7 @@ nav.tabbar button.active svg{
     if(todays.length===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
     else{
       listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>Qtd.</th><th></th></tr></thead><tbody>' +
-        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${e.type}</td><td>${e.ml} ml</td><td><button class="icon-btn" data-hdel="${e.id}">✕</button></td></tr>`).join('') +
+        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${e.type}</td><td>${e.ml} unid.</td><td><button class="icon-btn" data-hdel="${e.id}">✕</button></td></tr>`).join('') +
         '</tbody></table>';
       listEl.querySelectorAll('[data-hdel]').forEach(b=>b.addEventListener('click', async ()=>{
         hydrationEntries = hydrationEntries.filter(x=>x.id!==b.dataset.hdel);
@@ -7352,7 +7419,7 @@ nav.tabbar button.active svg{
       ? `<tr><td>Hoje</td><td>Café simples (${coffeeTotal}x)</td><td>+${coffeeKcal}</td><td>0/0/0</td><td></td></tr>`
       : '';
     const alcoholRows = alcoholKcal > 0
-      ? `<tr><td>Hoje</td><td>Álcool (${alcoholTotals.ml} ml)</td><td>+${alcoholKcal}</td><td>${alcoholTotals.ml} ml</td><td></td></tr>`
+      ? `<tr><td>Hoje</td><td>Álcool (${alcoholTotals.ml} unid.)</td><td>+${alcoholKcal}</td><td>${alcoholTotals.ml} unid.</td><td></td></tr>`
       : '';
     const workoutRows = workoutKcal > 0
       ? `<tr><td>Hoje</td><td>Treinos do dia</td><td>-${workoutKcal}</td><td>défice</td><td></td></tr>`
@@ -11092,7 +11159,7 @@ nav.tabbar button.active svg{
         t.workoutMin ? (t.workoutMin + ' min treino') : null,
         t.totalKcal ? (Math.round(t.totalKcal) + ' kcal') : null,
         t.waterMl ? fmtL(t.waterMl) + ' água' : null,
-        t.alcoholMl ? Math.round(t.alcoholMl) + ' ml álcool' : '0 álcool'
+        t.alcoholMl ? Math.round(t.alcoholMl) + ' unid. álcool' : '0 álcool'
       ].filter(Boolean).join(' · ');
       return '<div class="athlete-day-card" data-day-card="'+rec.date+'">'+
         '<button class="athlete-day-head" type="button" data-toggle-day="'+rec.date+'">'+
@@ -11885,6 +11952,47 @@ nav.tabbar button.active svg{
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply); else apply();
   window.addEventListener('load',apply);
   setTimeout(apply,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  const activityLevels=[
+    {name:'Sedentário',factor:'1.20'},
+    {name:'Ligeiramente ativo',factor:'1.375'},
+    {name:'Moderadamente ativo',factor:'1.55'},
+    {name:'Muito ativo',factor:'1.725'},
+    {name:'Atleta',factor:'1.90'}
+  ];
+  function setActivityLevel(index){
+    index=Math.max(0,Math.min(4,Number(index)||0));
+    const level=activityLevels[index]||activityLevels[2];
+    const hidden=document.getElementById('activityLevel');
+    const range=document.getElementById('activityLevelRange');
+    const name=document.getElementById('activityLevelName');
+    const factor=document.getElementById('activityLevelFactor');
+    if(hidden) hidden.value=level.factor;
+    if(range) range.value=String(index);
+    if(name) name.textContent=level.name;
+    if(factor) factor.textContent='Fator '+level.factor;
+    try{
+      localStorage.setItem('pulso-activity-level-index',String(index));
+      localStorage.setItem('pulso-activity-level-factor',level.factor);
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    const range=document.getElementById('activityLevelRange');
+    if(!range) return;
+    let savedIndex=2;
+    try{
+      const raw=localStorage.getItem('pulso-activity-level-index');
+      if(raw!==null && raw!=='') savedIndex=Number(raw);
+    }catch(e){}
+    setActivityLevel(savedIndex);
+    range.addEventListener('input',function(){setActivityLevel(range.value);});
+    range.addEventListener('change',function(){setActivityLevel(range.value);});
+  });
 })();
 </script>
 
