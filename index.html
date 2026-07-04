@@ -3723,25 +3723,34 @@ label[for="race-peak-hours"],
   top:calc(100% + 4px);
   left:0;
   right:0;
-  z-index:9999;
+  z-index:99999;
 
   background:var(--surface-2);
   border:1px solid var(--border);
-  border-radius:12px;
+  border-radius:16px;
 
-  max-height:45vh;
+  max-height:min(44vh, 330px);
   overflow-y:auto !important;
   overflow-x:hidden !important;
 
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
-  touch-action:pan-y;
+  touch-action:auto;
+  contain:content;
 
-  box-shadow:0 14px 34px rgba(0,0,0,.45);
+  box-shadow:0 18px 42px rgba(0,0,0,.55);
 }
 .food-suggest-item{
-  padding:11px 13px; font-size:14px; color:var(--text); cursor:pointer;
-  border-bottom:1px solid rgba(255,255,255,.05);
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  padding:13px 16px;
+  font-size:16px;
+  color:var(--text);
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  -webkit-user-select:none;
+  user-select:none;
 }
 .food-suggest-item:last-child{border-bottom:none;}
 .food-suggest-item:active{background:rgba(53,217,166,.14);}
@@ -7789,7 +7798,7 @@ nav.tabbar button.active svg{
 
   function showFoodSuggestions(){
     const q = normTxt(foodInputEl.value.trim());
-    const matches = (q ? FOOD_NAMES_SORTED.filter(n=>normTxt(n).includes(q)) : FOOD_NAMES_SORTED).slice(0,8);
+    const matches = (q ? FOOD_NAMES_SORTED.filter(n=>normTxt(n).includes(q)) : FOOD_NAMES_SORTED).slice(0,12);
     if(!matches.length){ foodSuggestEl.style.display='none'; foodSuggestEl.innerHTML=''; return; }
     foodSuggestEl.innerHTML = matches.map(n=>`<div class="food-suggest-item" data-food="${n}">${n}</div>`).join('');
     foodSuggestEl.style.display = 'block';
@@ -7798,27 +7807,57 @@ nav.tabbar button.active svg{
 
   foodInputEl.addEventListener('focus', showFoodSuggestions);
   foodInputEl.addEventListener('input', showFoodSuggestions);
-  foodInputEl.addEventListener('blur', ()=> setTimeout(hideFoodSuggestions, 200)); // atraso para o toque registar
+  foodInputEl.addEventListener('blur', ()=> setTimeout(hideFoodSuggestions, 450)); // atraso maior para toque/scroll no iPhone
 
-  // iPhone/Safari: deixa a lista de alimentos fazer scroll sem o gesto ser apanhado pela página
-  // ou pelo Pull to Refresh.
-  foodSuggestEl.addEventListener('touchmove', (e)=>{
+  function pickFoodSuggestion(item){
+    if(!item) return;
+    foodInputEl.value = item.dataset.food;
+    hideFoodSuggestions();
+    applyFoodEstimate();
+  }
+
+  // iPhone/Safari: antes estava a selecionar logo no pointerdown, o que bloqueava o scroll.
+  // Agora só seleciona se for toque curto; se o dedo arrastar, a lista rola normalmente.
+  let foodTouchStartY = 0;
+  let foodTouchStartX = 0;
+  let foodTouchMoved = false;
+
+  foodSuggestEl.addEventListener('touchstart', (e)=>{
+    if(!e.touches || !e.touches.length) return;
+    foodTouchStartY = e.touches[0].clientY;
+    foodTouchStartX = e.touches[0].clientX;
+    foodTouchMoved = false;
     e.stopPropagation();
   }, {passive:true});
+
+  foodSuggestEl.addEventListener('touchmove', (e)=>{
+    if(e.touches && e.touches.length){
+      const dy = Math.abs(e.touches[0].clientY - foodTouchStartY);
+      const dx = Math.abs(e.touches[0].clientX - foodTouchStartX);
+      if(dy > 8 || dx > 8) foodTouchMoved = true;
+    }
+    e.stopPropagation();
+  }, {passive:true});
+
+  foodSuggestEl.addEventListener('touchend', (e)=>{
+    e.stopPropagation();
+    if(foodTouchMoved) return;
+    const item = e.target.closest('.food-suggest-item');
+    if(!item) return;
+    e.preventDefault();
+    pickFoodSuggestion(item);
+  }, {passive:false});
+
+  foodSuggestEl.addEventListener('click', (e)=>{
+    const item = e.target.closest('.food-suggest-item');
+    if(!item) return;
+    e.preventDefault();
+    pickFoodSuggestion(item);
+  });
 
   foodSuggestEl.addEventListener('wheel', (e)=>{
     e.stopPropagation();
   }, {passive:true});
-
-  // pointerdown dispara antes do blur — garante que o toque na sugestão funciona no telemóvel
-  foodSuggestEl.addEventListener('pointerdown', (e)=>{
-    const item = e.target.closest('.food-suggest-item');
-    if(!item) return;
-    e.preventDefault();
-    foodInputEl.value = item.dataset.food;
-    hideFoodSuggestions();
-    applyFoodEstimate();
-  });
 
   let kcalAiBase = null; // {desc, grams, kcal, carbs, protein, fat} — base da última estimativa da IA
 
