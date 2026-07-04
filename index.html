@@ -5674,6 +5674,32 @@ nav.tabbar button.active svg{
 }
 </style>
 
+<style>
+/* ===== Painel: cartões e bola tocáveis + legenda/detalhe do estado ===== */
+#tab-dashboard .dashboard-icon-card{cursor:pointer;}
+#tab-dashboard .dashboard-icon-card:active{transform:scale(.985);}
+#tab-dashboard #verdict-ring{cursor:pointer;}
+#tab-dashboard #verdict-ring:active{transform:scale(.97);}
+.verdict-legend{font-size:11.5px !important; line-height:1.5 !important; opacity:.92;}
+.verdict-detail{
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:rgba(53,217,166,.09);
+  border:1px solid rgba(53,217,166,.22);
+  font-size:13px;
+  line-height:1.5;
+  color:var(--text);
+  text-align:left;
+}
+.verdict-detail strong{display:block; font-size:14px; margin-bottom:2px;}
+.verdict-detail .verdict-detail-sub{display:block; color:var(--text-muted); font-size:12px; margin-bottom:6px;}
+.verdict-detail ul{margin:0; padding-left:16px;}
+.verdict-detail li{margin:2px 0; font-size:12.5px; color:var(--text-muted);}
+.metric-kcal .dash-big-icon svg{color:#F2A24B;}
+.bp-badge{display:inline-block; padding:9px 15px; border-radius:999px; font-weight:800; font-size:15px; color:var(--bp-c,#35D9A6); border:1px solid var(--bp-c,#35D9A6); background:rgba(255,255,255,.05);}
+#bp-note p{line-height:1.5;}
+</style>
 </head>
 <body>
 
@@ -5725,9 +5751,10 @@ nav.tabbar button.active svg{
     <div class="card" id="verdict-main-card">
       <div class="verdict-wrap">
         <div class="verdict-left">
-          <div class="verdict-score" id="verdict-ring"><span class="n" id="verdict-n">—</span></div>
+          <div class="verdict-score" id="verdict-ring" role="button" tabindex="0" title="Toca para ver a avaliação"><span class="n" id="verdict-n">—</span></div>
           <p class="verdict-title" id="verdict-title">Ainda sem dados</p>
-          <p class="help" id="verdict-sub" aria-hidden="true">Regista peso, sono e treinos para o assistente avaliar o teu estado.</p>
+          <p class="help verdict-legend" id="verdict-sub">Estado geral de 0 a 100 — quanto mais alto, melhor. 70+ ótimo · 40–69 razoável · &lt;40 atenção. Toca na bola para ver a avaliação.</p>
+          <div class="verdict-detail" id="verdict-detail" style="display:none;"></div>
         </div>
         <div class="verdict-right">
           <ul class="verdict-list" id="verdict-list"></ul>
@@ -5737,13 +5764,13 @@ nav.tabbar button.active svg{
     </div>
 
     <div class="grid3">
-      <div class="card dashboard-icon-card metric-weight">
+      <div class="card dashboard-icon-card metric-kcal" id="d-kcal-card">
         <div class="dash-big-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M5 20h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"/><path d="M8 10a5 5 0 0 1 8 0"/><path d="m12 9 1.5 3"/><path d="M12 6V4"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 3c.6 2.8-1.8 4-1.8 6.4a3 3 0 0 0 6 0c0-1.2-.5-2-1-2.8 2.2 1 3.8 3.2 3.8 5.9a7 7 0 0 1-14 0C5 8.9 8.5 6.5 12 3Z"/></svg>
         </div>
-        <h3>Peso</h3>
-        <div class="stat" id="d-weight">— <small>kg</small></div>
-        <div class="trend flat" id="d-weight-trend">sem dados</div>
+        <h3>Kcal hoje</h3>
+        <div class="stat" id="d-kcal">— <small>kcal</small></div>
+        <div class="trend flat" id="d-kcal-trend">sem dados</div>
       </div>
       <div class="card dashboard-icon-card metric-sleep">
         <div class="dash-big-icon" aria-hidden="true">
@@ -5863,13 +5890,13 @@ nav.tabbar button.active svg{
           </svg>
           <div class="kcal-center">
             <div id="alcohol-ring-val">0</div>
-            <span>unid.</span>
-            <small id="alcohol-ring-goal">/ recomendado 0</small>
+            <span>ml</span>
+            <small id="alcohol-ring-goal">ideal 0 ml</small>
           </div>
         </div>
         <div class="alcohol-summary">
           <div class="mini"><strong id="alcohol-drinks-total">0</strong><span>bebidas hoje</span></div>
-          <div class="mini"><strong id="alcohol-units-total">0</strong><span>unid.</span></div>
+          <div class="mini"><strong id="alcohol-units-total">0</strong><span>ml hoje</span></div>
           <div class="mini"><strong id="alcohol-kcal-total">0</strong><span>kcal álcool</span></div>
         </div>
         <div class="single-ring-actions">
@@ -6208,6 +6235,7 @@ nav.tabbar button.active svg{
     <div class="subtabs">
       <button class="ghost active" data-sub="sono" type="button">Sono</button>
       <button class="ghost" data-sub="peso" type="button">Peso</button>
+      <button class="ghost" data-sub="pressao" type="button">Pressão</button>
     </div>
 
     <div class="subview active" id="sub-sono">
@@ -6215,7 +6243,6 @@ nav.tabbar button.active svg{
         <form class="entry" id="form-sleep">
           <div class="field"><label for="sleep-date">Data</label><input type="date" id="sleep-date" required></div>
           <div class="field"><label for="sleep-hours">Horas de sono</label><input type="number" step="0.1" id="sleep-hours" placeholder="7.5" required></div>
-          <div class="field"><label for="sleep-hr">Ritmo cardíaco (bpm)</label><input type="number" id="sleep-hr" placeholder="54"></div>
           <button class="primary" type="submit">Guardar</button>
         </form>
       </div>
@@ -6223,7 +6250,7 @@ nav.tabbar button.active svg{
         <div class="chart-box" id="chart-sleep-hours"></div>
       </div>
       <div class="card" style="flex:0 0 auto; max-height:28%; display:flex; flex-direction:column;">
-        <div class="scroll-y" style="flex:1; min-height:0;"><table class="log"><thead><tr><th>Data</th><th>Horas</th><th>Cardio</th><th></th></tr></thead><tbody id="sleep-list"></tbody></table>
+        <div class="scroll-y" style="flex:1; min-height:0;"><table class="log"><thead><tr><th>Data</th><th>Horas</th><th></th></tr></thead><tbody id="sleep-list"></tbody></table>
         <div class="empty" id="sleep-empty" style="display:none;">Sem registos.</div></div>
       </div>
     </div>
@@ -6242,6 +6269,26 @@ nav.tabbar button.active svg{
       <div class="card" style="flex:0 0 auto; max-height:30%; display:flex; flex-direction:column;">
         <div class="scroll-y" style="flex:1; min-height:0;"><table class="log"><thead><tr><th>Data</th><th>Peso</th><th></th></tr></thead><tbody id="weight-list"></tbody></table>
         <div class="empty" id="weight-empty" style="display:none;">Sem registos.</div></div>
+      </div>
+    </div>
+
+    <div class="subview" id="sub-pressao">
+      <div class="card fixed-form">
+        <form class="entry" id="form-bp">
+          <div class="field"><label for="bp-date">Data</label><input type="date" id="bp-date" required></div>
+          <div class="field"><label for="bp-sys">Máxima / sistólica (mmHg)</label><input type="number" id="bp-sys" min="50" max="260" placeholder="120" required></div>
+          <div class="field"><label for="bp-dia">Mínima / diastólica (mmHg)</label><input type="number" id="bp-dia" min="30" max="160" placeholder="80" required></div>
+          <div class="field"><label for="bp-hr">Ritmo cardíaco na medição (bpm)</label><input type="number" id="bp-hr" min="25" max="230" placeholder="60"></div>
+          <button class="primary" type="submit">Guardar</button>
+        </form>
+      </div>
+      <div class="card" id="bp-assessment-card" style="flex:0 0 auto;">
+        <h3 style="margin:0 0 10px;">Avaliação</h3>
+        <div id="bp-note"><p class="help" style="margin:0;">Regista uma medição para veres a avaliação.</p></div>
+      </div>
+      <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+        <div class="scroll-y" style="flex:1; min-height:0;"><table class="log"><thead><tr><th>Data</th><th>Máx/Mín</th><th>bpm</th><th></th></tr></thead><tbody id="bp-list"></tbody></table>
+        <div class="empty" id="bp-empty" style="display:none;">Sem registos.</div></div>
       </div>
     </div>
 
@@ -6683,7 +6730,7 @@ nav.tabbar button.active svg{
   initGate();
 
   // ================= APP STATE ================= //
-  let weightEntries = [], sleepEntries = [], plannedWorkouts = [];
+  let weightEntries = [], sleepEntries = [], plannedWorkouts = [], bpEntries = [];
   let stravaAuth = null, stravaActivities = [], stravaZones = null, stravaVo2 = {run:null, bike:null};
   let trainingChartVisible = { Bike:true, Corrida:true, Força:true };
   let hydrationEntries = [], hydrationGoal = 2000;
@@ -6702,6 +6749,32 @@ nav.tabbar button.active svg{
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
     refreshVisibleCharts();
   });
+
+  // ---------- Atalhos do painel: tocar nos cartões e na bola de estado ----------
+  (function(){
+    const dash = document.getElementById('tab-dashboard');
+    if(!dash) return;
+    dash.addEventListener('click', (e)=>{
+      const ring = e.target.closest('#verdict-ring');
+      if(ring){
+        const d = document.getElementById('verdict-detail');
+        if(d) d.style.display = (!d.style.display || d.style.display === 'none') ? 'block' : 'none';
+        return;
+      }
+      const card = e.target.closest('.dashboard-icon-card');
+      if(!card) return;
+      if(card.classList.contains('metric-hydro')) goToSubTab('hidratacao','agua');
+      else if(card.classList.contains('metric-kcal')) goToSubTab('hidratacao','kcal');
+      else if(card.classList.contains('metric-sleep')) goToSubTab('saude','sono');
+      else if(card.id === 'd-workout-card' || card.classList.contains('metric-last-workout')) goToTab('treinos');
+    });
+    const ring = document.getElementById('verdict-ring');
+    if(ring){
+      ring.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ring.click(); }
+      });
+    }
+  })();
 
   // ---------- Sub-tabs (Treinos, Nutrição) ----------
   document.querySelectorAll('.subtabs').forEach(subtabsEl=>{
@@ -6725,6 +6798,7 @@ nav.tabbar button.active svg{
     if(activeTab.id === 'tab-saude'){
       if(activeSub && activeSub.id === 'sub-peso') renderWeight();
       if(activeSub && activeSub.id === 'sub-sono') renderSleep();
+      if(activeSub && activeSub.id === 'sub-pressao') renderBP();
     }
     else if(activeTab.id === 'tab-hidratacao'){
       if(activeSub && activeSub.id === 'sub-agua') renderHydration();
@@ -6945,15 +7019,123 @@ nav.tabbar button.active svg{
     renderLineChart(ctx, weightEntries.map(e=>fmtDateShort(e.date)), weightEntries.map(e=>e.kg), '#35D9A6');
   }
 
-  // ================= BP ================= //
+  // ================= PRESSÃO ARTERIAL ================= //
+  document.getElementById('form-bp').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const date = document.getElementById('bp-date').value;
+    const sys = parseInt(document.getElementById('bp-sys').value,10);
+    const dia = parseInt(document.getElementById('bp-dia').value,10);
+    const hrRaw = document.getElementById('bp-hr').value;
+    const hr = hrRaw ? parseInt(hrRaw,10) : null;
+    if(!date || isNaN(sys) || isNaN(dia)) return;
+    bpEntries.push({id:uid(), date, sys, dia, hr});
+    bpEntries.sort((a,b)=>a.date.localeCompare(b.date));
+    await sSet('bp-entries', bpEntries);
+    e.target.reset(); document.getElementById('bp-date').value = todayStr();
+    renderBP();
+    toast('Pressão guardada');
+  });
+
+  // Classificação europeia (ESC/ESH)
+  function bpCategory(sys, dia){
+    if(sys >= 180 || dia >= 110) return {label:'Hipertensão grau 3 (grave)', color:'#F2555A', level:5};
+    if(sys >= 160 || dia >= 100) return {label:'Hipertensão grau 2', color:'#F2844B', level:4};
+    if(sys >= 140 || dia >= 90)  return {label:'Hipertensão grau 1', color:'#F2A24B', level:3};
+    if(sys >= 130 || dia >= 85)  return {label:'Normal-alta', color:'#F2C84B', level:2};
+    if(sys >= 120 || dia >= 80)  return {label:'Normal', color:'#BFE35B', level:1};
+    if(sys < 90  || dia < 60)    return {label:'Tensão baixa (hipotensão)', color:'#5BC8E3', level:-1};
+    return {label:'Ótima', color:'#35D9A6', level:0};
+  }
+
+  function hrCategory(hr){
+    if(hr == null || isNaN(hr)) return null;
+    if(hr < 40)  return 'muito baixo';
+    if(hr < 60)  return 'baixo (comum em atletas de endurance)';
+    if(hr <= 100) return 'dentro do normal';
+    if(hr <= 120) return 'elevado';
+    return 'muito elevado';
+  }
+
+  function bpAssessment(entry){
+    if(!entry) return '<p class="help" style="margin:0;">Regista uma medição para veres a avaliação.</p>';
+    const cat = bpCategory(entry.sys, entry.dia);
+    const parts = [];
+    parts.push(`<div class="bp-badge" style="--bp-c:${cat.color};">${entry.sys}/${entry.dia} mmHg · ${cat.label}</div>`);
+
+    const hrTxt = hrCategory(entry.hr);
+    if(hrTxt){
+      parts.push(`<p style="margin:10px 0 0;">Ritmo cardíaco na medição: <strong>${entry.hr} bpm</strong> — ${hrTxt}.</p>`);
+    }
+
+    // Contexto pessoal: IMC (peso + altura) e idade
+    const ctx = [];
+    const lastKg = weightEntries.length ? Number(weightEntries[weightEntries.length-1].kg) : null;
+    const h = (profile && profile.heightCm) ? Number(profile.heightCm) : null;
+    let bmi = null;
+    if(lastKg && h){
+      bmi = lastKg / Math.pow(h/100, 2);
+      let bmiLabel = 'peso normal';
+      if(bmi < 18.5) bmiLabel = 'baixo peso';
+      else if(bmi < 25) bmiLabel = 'peso normal';
+      else if(bmi < 30) bmiLabel = 'excesso de peso';
+      else bmiLabel = 'obesidade';
+      ctx.push(`IMC ${bmi.toFixed(1)} (${bmiLabel})`);
+    }
+    if(profile && profile.age) ctx.push(`${profile.age} anos`);
+    if(ctx.length) parts.push(`<p class="help" style="margin:10px 0 0;">Contexto: ${ctx.join(' · ')}.</p>`);
+
+    // Sugestão pela categoria + peso
+    let advice = '';
+    if(cat.level >= 4){
+      advice = 'Valores altos. Descansa uns minutos e repete a medição; se se mantiverem elevados em vários dias, procura aconselhamento médico.';
+    }else if(cat.level === 3){
+      advice = 'Tensão ligeiramente elevada. Vigia ao longo dos dias e cuida do sal, sono, álcool e stress.';
+    }else if(cat.level === 2){
+      advice = 'No limite superior do normal. Mantém hábitos saudáveis e vai medindo com regularidade.';
+    }else if(cat.level === -1){
+      advice = 'Tensão baixa. Se sentires tonturas ou fraqueza, hidrata-te bem; se for frequente, fala com um profissional.';
+    }else{
+      advice = 'Dentro de valores saudáveis. Continua assim.';
+    }
+    if(bmi != null && bmi >= 25 && cat.level >= 2){
+      advice += ' Como o IMC está acima do ideal, perder algum peso ajuda a baixar a tensão.';
+    }
+    parts.push(`<p style="margin:10px 0 0;">${advice}</p>`);
+
+    parts.push(`<p class="help" style="margin:12px 0 0; opacity:.78;">Apenas informativo — não substitui avaliação médica. Uma medição isolada varia com esforço, café, stress e hora do dia.</p>`);
+    return parts.join('');
+  }
+
+  function renderBP(){
+    const noteEl = document.getElementById('bp-note');
+    const tbody = document.getElementById('bp-list');
+    const empty = document.getElementById('bp-empty');
+    if(!tbody) return;
+    const latest = bpEntries.length ? bpEntries[bpEntries.length-1] : null;
+    if(noteEl) noteEl.innerHTML = bpAssessment(latest);
+
+    tbody.innerHTML = '';
+    if(bpEntries.length === 0){ if(empty) empty.style.display = 'block'; return; }
+    if(empty) empty.style.display = 'none';
+    [...bpEntries].reverse().forEach(entry=>{
+      const cat = bpCategory(entry.sys, entry.dia);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td><strong style="color:${cat.color};">${entry.sys}/${entry.dia}</strong></td><td>${entry.hr ?? '—'}</td><td><button class="icon-btn" data-bpdel="${entry.id}">✕</button></td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('[data-bpdel]').forEach(b=>b.addEventListener('click', async ()=>{
+      bpEntries = bpEntries.filter(x=>x.id!==b.dataset.bpdel);
+      await sSet('bp-entries', bpEntries); renderBP();
+    }));
+  }
+
   // ================= SLEEP ================= //
   document.getElementById('form-sleep').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const date = document.getElementById('sleep-date').value;
     const hours = parseFloat(document.getElementById('sleep-hours').value);
-    const hr = document.getElementById('sleep-hr').value ? parseInt(document.getElementById('sleep-hr').value,10) : null;
     if(!date || isNaN(hours)) return;
-    sleepEntries.push({id:uid(), date, hours, hr});
+    sleepEntries.push({id:uid(), date, hours});
     sleepEntries.sort((a,b)=>a.date.localeCompare(b.date));
     await sSet('sleep-entries', sleepEntries);
     e.target.reset(); document.getElementById('sleep-date').value = todayStr();
@@ -6969,7 +7151,7 @@ nav.tabbar button.active svg{
       empty.style.display='none';
       [...sleepEntries].reverse().forEach(entry=>{
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td>${entry.hours.toFixed(1)}h</td><td>${entry.hr ?? '—'}</td>
+        tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td>${entry.hours.toFixed(1)}h</td>
           <td><button class="icon-btn" data-del="${entry.id}">✕</button></td>`;
         tbody.appendChild(tr);
       });
@@ -9151,11 +9333,6 @@ nav.tabbar button.active svg{
   }
 
   function renderDashboard(){
-    if(weightEntries.length){
-      const last = weightEntries[weightEntries.length-1]; const prev = weightEntries[weightEntries.length-2];
-      document.getElementById('d-weight').innerHTML = last.kg.toFixed(1) + ' <small>kg</small>';
-      trendEl(document.getElementById('d-weight-trend'), last.kg, prev?prev.kg:undefined, true);
-    }
     if(sleepEntries.length){
       const last = sleepEntries[sleepEntries.length-1]; const prev = sleepEntries[sleepEntries.length-2];
       document.getElementById('d-sleep').innerHTML = last.hours.toFixed(1) + ' <small>h</small>';
@@ -9168,6 +9345,27 @@ nav.tabbar button.active svg{
     const hydroTrendEl = document.getElementById('d-hydro-trend');
     hydroTrendEl.textContent = todaysHydro >= hydrationGoal ? 'meta atingida' : (hydrationGoal - todaysHydro) + ' ml para a meta';
     hydroTrendEl.className = 'trend ' + (todaysHydro >= hydrationGoal ? 'down' : 'flat');
+
+    // Kcal de hoje (líquidas: ingeridas - gasto do treino)
+    const dKcalEl = document.getElementById('d-kcal');
+    if(dKcalEl){
+      const kToday = kcalEntries.filter(e=>e.date===today);
+      let intakeK = kToday.reduce((s,e)=>s+(Number(e.kcal)||0),0);
+      try{ intakeK += getTodayCoffeeKcal(); }catch(e){}
+      try{ intakeK += getTodayAlcoholTotals().kcal; }catch(e){}
+      let burnedK = 0; try{ burnedK = todayWorkoutBurnedKcal(); }catch(e){}
+      const netK = Math.max(0, Math.round(intakeK - burnedK));
+      dKcalEl.innerHTML = netK + ' <small>kcal</small>';
+      const dKcalTrend = document.getElementById('d-kcal-trend');
+      if(dKcalTrend){
+        const goalK = estimateMaintenanceKcal();
+        if(!kToday.length && !intakeK){ dKcalTrend.textContent = 'sem registos'; dKcalTrend.className = 'trend flat'; }
+        else if(goalK){
+          dKcalTrend.textContent = netK <= goalK ? (goalK - netK) + ' kcal p/ meta' : (netK - goalK) + ' kcal acima';
+          dKcalTrend.className = 'trend ' + (netK <= goalK ? 'down' : 'up');
+        }else{ dKcalTrend.textContent = 'líquidas hoje'; dKcalTrend.className = 'trend flat'; }
+      }
+    }
 
     if(stravaActivities.length){
       const last = stravaActivities[0];
@@ -9215,7 +9413,12 @@ nav.tabbar button.active svg{
       verdictRing.style.setProperty('--verdict-color', verdictColor);
       verdictRing.style.setProperty('--verdict-pct', verdictScore + '%');
       document.getElementById('verdict-title').textContent = assessment.title;
-      document.getElementById('verdict-sub').textContent = 'Com base nos teus registos mais recentes.';
+      const verdictDetail = document.getElementById('verdict-detail');
+      if(verdictDetail){
+        verdictDetail.innerHTML = '<strong>' + assessment.title + ' · ' + assessment.overall + '/100</strong>' +
+          '<span class="verdict-detail-sub">Com base nos teus registos mais recentes.</span>' +
+          (assessment.notes && assessment.notes.length ? '<ul>' + assessment.notes.map(n=>`<li>${n}</li>`).join('') + '</ul>' : '');
+      }
       document.getElementById('verdict-list').innerHTML = assessment.notes.map(n=>`<li>${n}</li>`).join('');
       document.getElementById('verdict-gauge-wrap').style.display = 'none';
     }
@@ -9255,6 +9458,7 @@ nav.tabbar button.active svg{
     const setVal = (id, v)=>{ const el = document.getElementById(id); if(el) el.value = v; };
     setVal('weight-date', tStr);
     setVal('sleep-date', tStr);
+    setVal('bp-date', tStr);
     setVal('plan-date', tStr);
 
     profile = await sGet('profile', {name:'', age:null, gender:null, heightCm:null, activityLevel:null});
@@ -9266,6 +9470,7 @@ nav.tabbar button.active svg{
 
     weightEntries = await sGet('weight-entries', []);
     sleepEntries = await sGet('sleep-entries', []);
+    bpEntries = await sGet('bp-entries', []);
     plannedWorkouts = await sGet('planned-workouts', []);
     stravaAuth = await sGet('strava-auth', null);
     stravaActivities = await sGet('strava-activities', []);
@@ -9291,7 +9496,7 @@ nav.tabbar button.active svg{
     const savedPlan = await sGet('training-plan', null);
 
     const safe = (name, fn)=>{ try{ fn(); }catch(err){ console.error('Falha em '+name, err); } };
-    safe('renderWeight', renderWeight); safe('renderSleep', renderSleep);
+    safe('renderWeight', renderWeight); safe('renderSleep', renderSleep); safe('renderBP', renderBP);
     safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
     safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal); if(window.PulsoRenderAthleteHistory) safe('renderAthleteHistory', window.PulsoRenderAthleteHistory);
     safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
@@ -9639,6 +9844,9 @@ nav.tabbar button.active svg{
     localStorage.setItem(RESET_VERSION_KEY, RESET_VERSION);
   }
 
+  let booted = false;
+  window.addEventListener('load', function(){ setTimeout(function(){ booted = true; }, 2500); });
+
   function checkDailyReset(){
     const today = todayKey();
     const lastDay = localStorage.getItem(LAST_DAY_KEY);
@@ -9652,6 +9860,9 @@ nav.tabbar button.active svg{
     if(lastDay !== today){
       archiveDay(lastDay);
       resetDailyData();
+      // Se a app já estava aberta quando o dia mudou, recarrega para
+      // mostrar o novo dia a zeros (o dia anterior fica guardado no histórico).
+      if(booted){ try{ location.reload(); }catch(e){} }
     }
   }
 
@@ -12113,13 +12324,26 @@ nav.tabbar button.active svg{
     try{return new Intl.DateTimeFormat('pt-PT',{weekday:'long',day:'numeric',month:'long'}).format(new Date());}
     catch(e){return 'Hoje';}
   }
+  function greetingWord(){
+    const h=new Date().getHours();
+    if(h>=20) return 'Boa noite';
+    if(h>=12) return 'Boa tarde';
+    if(h>=6) return 'Bom dia';
+    return 'Boa noite';
+  }
   function addGreeting(){
     const dash=document.getElementById('tab-dashboard');
-    if(!dash || dash.querySelector('.pulso-v3-greeting')) return;
-    const box=document.createElement('div');
-    box.className='pulso-v3-greeting';
-    box.innerHTML='<div><h2>Bom dia, <span id="pulso-v3-name">'+readProfileName()+'</span> 👋</h2><p>'+todayText()+'</p></div><div class="pulso-v3-pill">● Pulso V3</div>';
-    dash.insertBefore(box,dash.firstChild);
+    if(!dash) return;
+    let box=dash.querySelector('.pulso-v3-greeting');
+    if(!box){
+      box=document.createElement('div');
+      box.className='pulso-v3-greeting';
+      box.innerHTML='<div><h2><span id="pulso-v3-greet">'+greetingWord()+'</span>, <span id="pulso-v3-name">'+readProfileName()+'</span> 👋</h2><p>'+todayText()+'</p></div><div class="pulso-v3-pill">● Pulso V3</div>';
+      dash.insertBefore(box,dash.firstChild);
+    }else{
+      const g=box.querySelector('#pulso-v3-greet'); if(g) g.textContent=greetingWord();
+      const n=box.querySelector('#pulso-v3-name'); if(n) n.textContent=readProfileName();
+    }
   }
   function upgradeDashboardIcons(){
     const map=[
