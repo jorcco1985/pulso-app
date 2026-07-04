@@ -13180,9 +13180,43 @@ nav.tabbar button.active svg{
     setTimeout(moveTrainingIntentToTop, 1200);
   });
   window.addEventListener('load', ()=>setTimeout(moveTrainingIntentToTop, 500));
-  document.addEventListener('click', ()=>setTimeout(moveTrainingIntentToTop, 50), true);
+  // Não correr isto em cada toque: no iPhone fazia o select/input perder o foco.
+  // A ordem é aplicada no arranque e quando o separador Treinos é aberto.
+  document.querySelectorAll('[data-tab="treinos"], [data-training-tab], [data-subtab]').forEach(btn=>{
+    btn.addEventListener('click', ()=>setTimeout(moveTrainingIntentToTop, 120));
+  });
 })();
 </script>
+
+
+<style id="pulso-fix-treino-inputs-ios">
+/* Correção iPhone: os campos Tipo e Tempo ficam tocáveis após mover a intenção para o topo */
+#quick-auto-card{position:relative !important;}
+#quick-auto-card #form-quick-pick{
+  position:relative !important;
+  z-index:20 !important;
+  pointer-events:auto !important;
+}
+#quick-auto-card #quick-type-field,
+#quick-auto-card #quick-time-field{
+  position:relative !important;
+  z-index:21 !important;
+  pointer-events:auto !important;
+}
+#quick-type,
+#quick-time{
+  position:relative !important;
+  z-index:22 !important;
+  pointer-events:auto !important;
+  touch-action:manipulation !important;
+  -webkit-user-select:auto !important;
+  user-select:auto !important;
+}
+#quick-auto-card .training-mode-card{
+  position:relative !important;
+  z-index:5 !important;
+}
+</style>
 
 </body>
 </html>
