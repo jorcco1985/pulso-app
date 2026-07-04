@@ -2839,32 +2839,57 @@ body.keyboard-open #tab-hidratacao{
   padding-bottom:calc(230px + env(safe-area-inset-bottom)) !important;
 }
 
-/* Água: mesmo tratamento do Café — a página rola em vez de prender no cartão */
-#sub-agua{
+/* Bebida: mesmo tratamento do Café — a página rola em vez de prender no cartão */
+#sub-bebida{
   min-height:auto !important;
   height:auto !important;
   max-height:none !important;
   overflow:visible !important;
   padding-bottom:calc(120px + env(safe-area-inset-bottom)) !important;
 }
-#sub-agua.active{
+#sub-bebida.active{
   display:flex !important;
   flex-direction:column !important;
   gap:14px !important;
 }
-#sub-agua .scroll-y,
-#hydro-today-list{
+#sub-bebida .scroll-y,
+#drink-today-list{
   max-height:none !important;
   height:auto !important;
   min-height:0 !important;
   overflow:visible !important;
 }
-#sub-agua .card{
+#sub-bebida .card{
   flex:0 0 auto !important;
   min-height:auto !important;
   max-height:none !important;
   overflow:visible !important;
 }
+/* Anel deslizável de bebidas */
+#drink-swipe{
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:pan-y; user-select:none; -webkit-user-select:none;
+}
+#drink-swipe .kcal-ring-wrap{ flex:0 0 auto; }
+.drink-nav{
+  position:absolute; top:50%; transform:translateY(-50%); z-index:2;
+  background:none; border:none; color:var(--text-muted);
+  font-size:40px; line-height:1; padding:6px 14px; cursor:pointer; opacity:.6;
+}
+#drink-prev{ left:0; }
+#drink-next{ right:0; }
+.drink-nav:active{ opacity:1; }
+.drink-name{
+  text-align:center; font-size:16px; font-weight:700; color:var(--text); margin-top:2px;
+}
+.drink-dots{
+  display:flex; justify-content:center; gap:7px; margin:8px 0 2px;
+}
+.drink-dots .dot{
+  width:8px; height:8px; border-radius:99px; background:rgba(255,255,255,.22); cursor:pointer;
+}
+.drink-dots .dot.active{ background:var(--teal); }
 
 /* Pressão arterial: igual, para o gráfico + histórico rolarem bem */
 #sub-pressao .scroll-y,
@@ -5940,69 +5965,42 @@ nav.tabbar button.active svg{
   <!-- ================= HIDRATAÇÃO (fixo) ================= -->
   <section id="tab-hidratacao">
     <div class="subtabs">
-      <button class="ghost active" data-sub="agua" type="button">Água</button>
-      <button class="ghost" data-sub="cafes" type="button">Cafés</button>
+      <button class="ghost active" data-sub="bebida" type="button">Bebida</button>
       <button class="ghost" data-sub="kcal" type="button">Kcal</button>
       <button class="ghost" data-sub="alcool" type="button">Álcool</button>
     </div>
 
-    <div class="subview active" id="sub-agua">
-      <div class="card single-ring-card water-card">
-        <div class="kcal-ring-wrap">
-          <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
-            <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
-            <circle class="single-ring-seg water" id="hydro-ring-circle" cx="110" cy="110" r="86"></circle>
-          </svg>
-          <div class="kcal-center">
-            <div id="hydro-ring-val">0</div>
-            <span>unid.</span>
-            <small id="hydro-ring-goal">/ 2000 ml</small>
+    <div class="subview active" id="sub-bebida">
+      <div class="card single-ring-card drink-card">
+        <div id="drink-swipe">
+          <button class="drink-nav" id="drink-prev" type="button" aria-label="Bebida anterior">‹</button>
+          <div class="kcal-ring-wrap">
+            <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
+              <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
+              <circle class="single-ring-seg" id="drink-ring-circle" cx="110" cy="110" r="86"></circle>
+            </svg>
+            <div class="kcal-center">
+              <div id="drink-ring-val">0</div>
+              <span id="drink-ring-unit">ml</span>
+              <small id="drink-ring-goal">/ 2000 ml</small>
+            </div>
           </div>
+          <button class="drink-nav" id="drink-next" type="button" aria-label="Próxima bebida">›</button>
         </div>
-        <div class="single-ring-actions">
-          <button class="chip" data-ml="200" data-type="Água" type="button">+200 ml</button>
-          <button class="chip" data-ml="330" data-type="Água" type="button">+330 ml</button>
-          <button class="chip" data-ml="500" data-type="Água" type="button">+500 ml</button>
-        </div>
+        <div class="drink-name" id="drink-name">Água</div>
+        <div class="drink-dots" id="drink-dots"></div>
+        <div class="single-ring-actions" id="drink-shortcuts"></div>
+        <p class="help single-ring-note" id="drink-note">Desliza o círculo para o lado para ver outra bebida.</p>
       </div>
       <div class="card fixed-form">
-        <form class="entry" id="form-hydro-custom">
-          <div class="field" style="min-width:70px;"><label for="hydro-ml">ml</label><input type="number" id="hydro-ml" placeholder="250" required></div>
-          <div class="field" style="min-width:100px;">
-            <label for="hydro-type">Bebida</label>
-            <select id="hydro-type"><option>Água</option><option>Café</option><option>Chá</option><option>Outra</option></select>
-          </div>
-          <div class="field" style="min-width:80px;"><label for="hydro-goal">Meta (ml)</label><input type="number" id="hydro-goal" value="2000"></div>
+        <form class="entry" id="form-drink-custom">
+          <div class="field" id="drink-ml-field" style="min-width:70px;"><label for="drink-ml">ml</label><input type="number" id="drink-ml" placeholder="250"></div>
           <button class="primary" type="submit">+</button>
         </form>
       </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <h3>Registo de hoje</h3>
-        <div id="hydro-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste nada hoje.</div></div>
-      </div>
-    </div>
-
-    <div class="subview" id="sub-cafes">
-      <div class="card single-ring-card coffee-card">
-        <div class="kcal-ring-wrap">
-          <svg class="kcal-ring" viewBox="0 0 220 220" aria-hidden="true">
-            <circle class="kcal-ring-bg" cx="110" cy="110" r="86"></circle>
-            <circle class="single-ring-seg coffee" id="coffee-ring-circle" cx="110" cy="110" r="86"></circle>
-          </svg>
-          <div class="kcal-center">
-            <div id="coffee-ring-val">0</div>
-            <span>cafés</span>
-            <small id="coffee-ring-goal">/ 4 cafés</small>
-          </div>
-        </div>
-        <div class="single-ring-actions">
-          <button class="chip" id="btn-add-coffee" type="button">+ 1 café</button>
-        </div>
-        <p class="help single-ring-note">Cada café simples conta como 2 kcal no total diário. Meta visual: 4 cafés/dia.</p>
-      </div>
-      <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-        <h3>Registo de hoje</h3>
-        <div id="coffee-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste cafés hoje.</div></div>
+        <div id="drink-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste nada hoje.</div></div>
       </div>
     </div>
 
@@ -6933,8 +6931,7 @@ nav.tabbar button.active svg{
       if(activeSub && activeSub.id === 'sub-pressao') renderBP();
     }
     else if(activeTab.id === 'tab-hidratacao'){
-      if(activeSub && activeSub.id === 'sub-agua') renderHydration();
-      if(activeSub && activeSub.id === 'sub-cafes') renderCoffee();
+      if(activeSub && activeSub.id === 'sub-bebida') renderDrinks();
       if(activeSub && activeSub.id === 'sub-kcal') renderKcal();
       if(activeSub && activeSub.id === 'sub-alcool') renderAlcohol();
     }
@@ -7345,129 +7342,173 @@ nav.tabbar button.active svg{
     ], false);
   }
 
-  // ================= HYDRATION ================= //
-  document.querySelectorAll('.chip[data-ml]').forEach(btn=>{
-    btn.addEventListener('click', ()=> addHydration(parseInt(btn.dataset.ml,10), btn.dataset.type));
-  });
-  document.getElementById('form-hydro-custom').addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const ml = parseInt(document.getElementById('hydro-ml').value,10);
-    const type = document.getElementById('hydro-type').value;
-    if(!ml) return;
-    addHydration(ml, type);
-    document.getElementById('hydro-ml').value = '';
-  });
-  document.getElementById('hydro-goal').addEventListener('change', async (e)=>{
-    hydrationGoal = parseInt(e.target.value,10) || 2000;
-    await sSet('hydration-goal', hydrationGoal);
-    renderHydration();
-  });
-
-  async function addHydration(ml, type){
-    hydrationEntries.push({id:uid(), date: todayStr(), time: new Date().toISOString(), ml, type});
-    await sSet('hydration-entries', hydrationEntries);
-    renderHydration(); renderDashboard();
-    toast('+' + ml + ' ml (' + type + ')');
-  }
-
-  function renderHydration(){
-    const today = todayStr();
-    const todays = hydrationEntries.filter(e=>e.date===today);
-    const total = todays.reduce((s,e)=>s+e.ml,0);
-    document.getElementById('hydro-ring-val').textContent = total;
-    document.getElementById('hydro-ring-goal').textContent = '/ ' + hydrationGoal + ' ml';
-    document.getElementById('hydro-goal').value = hydrationGoal;
-    const circumference = 540.35;
-    const pct = Math.min(1, hydrationGoal ? total / hydrationGoal : 0);
-    document.getElementById('hydro-ring-circle').style.strokeDasharray = (circumference * pct) + ' ' + circumference;
-    document.getElementById('hydro-ring-circle').style.strokeDashoffset = 0;
-
-    const listEl = document.getElementById('hydro-today-list');
-    if(todays.length===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
-    else{
-      listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>Qtd.</th><th></th></tr></thead><tbody>' +
-        [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${e.type}</td><td>${e.ml} unid.</td><td><button class="icon-btn" data-hdel="${e.id}">✕</button></td></tr>`).join('') +
-        '</tbody></table>';
-      listEl.querySelectorAll('[data-hdel]').forEach(b=>b.addEventListener('click', async ()=>{
-        hydrationEntries = hydrationEntries.filter(x=>x.id!==b.dataset.hdel);
-        await sSet('hydration-entries', hydrationEntries); renderHydration(); renderDashboard();
-      }));
-    }
-  }
-
-
-  // ================= COFFEE ================= //
+  // ================= BEBIDAS (Água / Café / Cola / Outra) ================= //
   let coffeeEntries = [];
   const COFFEE_KCAL = 2; // café simples/expresso sem açúcar (estimativa)
+  const COLA_KCAL_PER_ML = 0.42; // ~42 kcal / 100 ml
 
+  const DRINKS = [
+    { key:'Água',  color:'#5B8DEF', kind:'ml',     kcalPerMl:0,               goalMl:1000, shortcuts:[200,330,500] },
+    { key:'Café',  color:'#F2B84B', kind:'coffee', kcalPerMl:0,               goalMax:4,   shortcuts:[] },
+    { key:'Cola',  color:'#E5533C', kind:'ml',     kcalPerMl:COLA_KCAL_PER_ML, goalMl:1000, shortcuts:[200,330] },
+    { key:'Outra', color:'#8A94A6', kind:'ml',     kcalPerMl:0,               goalMl:1000, shortcuts:[330,500] }
+  ];
+  let currentDrinkIdx = 0;
+
+  // ---- Totais por bebida ----
   function getTodayCoffeeTotal(){
     const today = todayStr();
-    return coffeeEntries
-      .filter(e => e.date === today)
-      .reduce((s,e) => s + (e.units || 1), 0);
+    return coffeeEntries.filter(e => e.date === today).reduce((s,e)=> s + (e.units || 1), 0);
+  }
+  function getTodayCoffeeKcal(){ return getTodayCoffeeTotal() * COFFEE_KCAL; }
+  function getTodayDrinkKcal(){
+    const today = todayStr();
+    return Math.round(hydrationEntries.filter(e=>e.date===today).reduce((s,e)=> s + (e.kcal||0), 0));
+  }
+  function drinkTodayTotal(drink){
+    const today = todayStr();
+    if(drink.kind === 'coffee') return getTodayCoffeeTotal();
+    return hydrationEntries.filter(e=> e.date===today && (e.type||'Água')===drink.key).reduce((s,e)=> s + (e.ml||0), 0);
   }
 
-  function getTodayCoffeeKcal(){
-    return getTodayCoffeeTotal() * COFFEE_KCAL;
+  // ---- Registar ----
+  async function addDrinkMl(drinkKey, ml){
+    const drink = DRINKS.find(d=>d.key===drinkKey) || DRINKS[0];
+    const kcal = Math.round(ml * (drink.kcalPerMl||0));
+    hydrationEntries.push({ id:uid(), date:todayStr(), time:new Date().toISOString(), ml, type:drinkKey, kcal });
+    await sSet('hydration-entries', hydrationEntries);
+    renderDrinks(); renderKcal(); renderDashboard();
+    toast('+' + ml + ' ml (' + drinkKey + ')');
   }
-
-  document.getElementById('btn-add-coffee').addEventListener('click', async ()=>{
-    coffeeEntries.push({
-      id: uid(),
-      date: todayStr(),
-      time: new Date().toISOString(),
-      units: 1
-    });
-
+  async function addCoffee(){
+    coffeeEntries.push({ id:uid(), date:todayStr(), time:new Date().toISOString(), units:1 });
     await sSet('coffee-entries', coffeeEntries);
-    renderCoffee();
-    renderKcal();
-    renderDashboard();
+    renderDrinks(); renderKcal(); renderDashboard();
     toast('+1 café');
+  }
+
+  // ---- Navegação (setas + swipe + pontos) ----
+  function setDrink(idx){
+    currentDrinkIdx = (idx + DRINKS.length) % DRINKS.length;
+    renderDrinks();
+  }
+  (function initDrinkNav(){
+    const prev = document.getElementById('drink-prev');
+    const next = document.getElementById('drink-next');
+    if(prev) prev.addEventListener('click', ()=> setDrink(currentDrinkIdx - 1));
+    if(next) next.addEventListener('click', ()=> setDrink(currentDrinkIdx + 1));
+    const sw = document.getElementById('drink-swipe');
+    if(sw){
+      let x0=null, y0=null;
+      sw.addEventListener('touchstart', (e)=>{ if(e.touches && e.touches.length===1){ x0=e.touches[0].clientX; y0=e.touches[0].clientY; } }, {passive:true});
+      sw.addEventListener('touchend', (e)=>{
+        if(x0===null) return;
+        const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+        const x1 = t ? t.clientX : x0;
+        const y1 = t ? t.clientY : y0;
+        const dx = x1 - x0, dy = y1 - y0;
+        x0 = null; y0 = null;
+        if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) setDrink(currentDrinkIdx + (dx < 0 ? 1 : -1));
+      }, {passive:true});
+    }
+  })();
+
+  const dcForm = document.getElementById('form-drink-custom');
+  if(dcForm) dcForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const drink = DRINKS[currentDrinkIdx];
+    if(drink.kind === 'coffee') return;
+    const ml = parseInt(document.getElementById('drink-ml').value, 10);
+    if(!ml) return;
+    addDrinkMl(drink.key, ml);
+    document.getElementById('drink-ml').value = '';
   });
 
-  function renderCoffee(){
-    const today = todayStr();
-    const todays = coffeeEntries.filter(e => e.date === today);
-    const total = todays.reduce((s,e) => s + (e.units || 1), 0);
+  // ---- Render ----
+  function renderDrinkDots(){
+    const dotsEl = document.getElementById('drink-dots');
+    if(!dotsEl) return;
+    dotsEl.innerHTML = DRINKS.map((d,i)=>`<span class="dot ${i===currentDrinkIdx?'active':''}" data-drink-dot="${i}"></span>`).join('');
+    dotsEl.querySelectorAll('[data-drink-dot]').forEach(el=> el.addEventListener('click', ()=> setDrink(parseInt(el.dataset.drinkDot,10))));
+  }
 
-    const valEl = document.getElementById('coffee-ring-val');
-    const ringEl = document.getElementById('coffee-ring-circle');
-    const listEl = document.getElementById('coffee-today-list');
-    if(!valEl || !ringEl || !listEl) return;
+  function renderDrinks(){
+    const drink = DRINKS[currentDrinkIdx];
+    if(!drink) return;
+    const total = drinkTodayTotal(drink);
+    const isCoffee = drink.kind === 'coffee';
 
-    valEl.textContent = total;
+    const nameEl = document.getElementById('drink-name');
+    if(nameEl) nameEl.textContent = drink.key;
 
-    const circumference = 540.35;
-    const goal = 4;
-    const pct = Math.min(1, total / goal);
-    ringEl.style.strokeDasharray = (circumference * pct) + ' ' + circumference;
-    ringEl.style.strokeDashoffset = 0;
-    const coffeeGoalEl = document.getElementById('coffee-ring-goal');
-    if(coffeeGoalEl) coffeeGoalEl.textContent = '/ 4 cafés';
+    const valEl  = document.getElementById('drink-ring-val');
+    const unitEl = document.getElementById('drink-ring-unit');
+    const goalEl = document.getElementById('drink-ring-goal');
+    const ringEl = document.getElementById('drink-ring-circle');
+    if(valEl) valEl.textContent = total;
+    if(unitEl) unitEl.textContent = isCoffee ? (total===1 ? 'café' : 'cafés') : 'ml';
 
-    if(todays.length === 0){
-      listEl.innerHTML = '<div class="empty">Ainda não registaste cafés hoje.</div>';
-      return;
+    const C = 540.35;
+    let pct = 0, goalText = '';
+    if(isCoffee){
+      const goal = drink.goalMax || 4; pct = Math.min(1, total/goal); goalText = '/ ' + goal + ' cafés';
+    } else {
+      const goal = drink.goalMl || 1000;
+      pct = Math.min(1, goal ? total/goal : 0);
+      goalText = '/ ' + goal + ' ml';
+    }
+    if(goalEl) goalEl.textContent = goalText;
+    if(ringEl){
+      ringEl.style.stroke = drink.color;
+      ringEl.style.strokeDasharray = (C*pct) + ' ' + C;
+      ringEl.style.strokeDashoffset = 0;
     }
 
-    listEl.innerHTML =
-      '<table class="log"><thead><tr><th>Hora</th><th>Qtd.</th><th></th></tr></thead><tbody>' +
-      [...todays].reverse().map(e =>
-        `<tr>
-          <td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td>
-          <td>${e.units || 1} café</td>
-          <td><button class="icon-btn" data-cdel="${e.id}">✕</button></td>
-        </tr>`
-      ).join('') +
-      '</tbody></table>';
+    renderDrinkDots();
 
-    listEl.querySelectorAll('[data-cdel]').forEach(b => b.addEventListener('click', async ()=>{
-      coffeeEntries = coffeeEntries.filter(x => x.id !== b.dataset.cdel);
-      await sSet('coffee-entries', coffeeEntries);
-      renderCoffee();
-      renderKcal();
-      renderDashboard();
+    const scEl = document.getElementById('drink-shortcuts');
+    if(scEl){
+      if(isCoffee){
+        scEl.innerHTML = '<button class="chip" type="button" id="drink-add-coffee">+ 1 café</button>';
+        const b = document.getElementById('drink-add-coffee');
+        if(b) b.addEventListener('click', addCoffee);
+      } else {
+        scEl.innerHTML = drink.shortcuts.map(ml=>`<button class="chip" type="button" data-add-ml="${ml}">+${ml} ml</button>`).join('');
+        scEl.querySelectorAll('[data-add-ml]').forEach(b=> b.addEventListener('click', ()=> addDrinkMl(drink.key, parseInt(b.dataset.addMl,10))));
+      }
+    }
+
+    const noteEl = document.getElementById('drink-note');
+    if(noteEl){
+      if(drink.key === 'Água') noteEl.textContent = 'Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
+      else if(isCoffee) noteEl.textContent = 'Cada café conta como ' + COFFEE_KCAL + ' kcal. Máximo do dia: ' + (drink.goalMax||4) + ' cafés. Desliza o círculo para ver outra bebida.';
+      else if(drink.key === 'Cola') noteEl.textContent = 'Bebida com calorias (~' + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml) — soma às kcal do dia. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
+      else noteEl.textContent = 'Bebida sem calorias. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
+    }
+
+    const customForm = document.getElementById('form-drink-custom');
+    if(customForm) customForm.style.display = isCoffee ? 'none' : '';
+
+    renderDrinkTodayList();
+  }
+
+  function renderDrinkTodayList(){
+    const today = todayStr();
+    const listEl = document.getElementById('drink-today-list');
+    if(!listEl) return;
+    const rows = [];
+    hydrationEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'hydration', time:e.time, label:(e.type||'Água'), qty:(e.ml + ' ml') }));
+    coffeeEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'coffee', time:e.time, label:'Café', qty:((e.units||1) + ' café') }));
+    if(rows.length === 0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; return; }
+    rows.sort((a,b)=> new Date(b.time) - new Date(a.time));
+    listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>Qtd.</th><th></th></tr></thead><tbody>' +
+      rows.map(r=>`<tr><td>${new Date(r.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${r.label}</td><td>${r.qty}</td><td><button class="icon-btn" data-ddel="${r.id}" data-store="${r.store}">✕</button></td></tr>`).join('') +
+      '</tbody></table>';
+    listEl.querySelectorAll('[data-ddel]').forEach(b=> b.addEventListener('click', async ()=>{
+      const id = b.dataset.ddel, store = b.dataset.store;
+      if(store === 'coffee'){ coffeeEntries = coffeeEntries.filter(x=>x.id!==id); await sSet('coffee-entries', coffeeEntries); }
+      else { hydrationEntries = hydrationEntries.filter(x=>x.id!==id); await sSet('hydration-entries', hydrationEntries); }
+      renderDrinks(); renderKcal(); renderDashboard();
     }));
   }
 
@@ -8142,9 +8183,10 @@ nav.tabbar button.active svg{
     const todays = kcalEntries.filter(e=>e.date===today);
     const coffeeTotal = getTodayCoffeeTotal();
     const coffeeKcal = getTodayCoffeeKcal();
+    const drinkKcal = getTodayDrinkKcal();
     const alcoholTotals = getTodayAlcoholTotals();
     const alcoholKcal = alcoholTotals.kcal;
-    const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal + alcoholKcal);
+    const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal + drinkKcal + alcoholKcal);
     const workoutKcal = todayWorkoutBurnedKcal();
     const netKcal = intakeKcal - workoutKcal;
     const totalKcal = Math.max(0, netKcal);
@@ -8162,6 +8204,9 @@ nav.tabbar button.active svg{
     const alcoholRows = alcoholKcal > 0
       ? `<tr><td>Hoje</td><td>Álcool (${alcoholTotals.ml} unid.)</td><td>+${alcoholKcal}</td><td>${alcoholTotals.ml} unid.</td><td></td></tr>`
       : '';
+    const drinkRows = drinkKcal > 0
+      ? `<tr><td>Hoje</td><td>Bebidas c/ calorias</td><td>+${drinkKcal}</td><td>0/0/0</td><td></td></tr>`
+      : '';
     const workoutRows = workoutKcal > 0
       ? `<tr><td>Hoje</td><td>Treinos do dia</td><td>-${workoutKcal}</td><td>défice</td><td></td></tr>`
       : '';
@@ -8169,10 +8214,10 @@ nav.tabbar button.active svg{
       ? `<tr><td>Total</td><td><strong>Kcal líquidas</strong></td><td><strong>${netKcal}</strong></td><td>${intakeKcal} ingeridas / ${workoutKcal} gastas</td><td></td></tr>`
       : '';
 
-    if(todays.length===0 && coffeeTotal===0 && alcoholKcal===0 && workoutKcal===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
+    if(todays.length===0 && coffeeTotal===0 && drinkKcal===0 && alcoholKcal===0 && workoutKcal===0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; }
     else{
       listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Registo</th><th>Kcal</th><th>H/P/G</th><th></th></tr></thead><tbody>' +
-        coffeeRows + alcoholRows +
+        coffeeRows + drinkRows + alcoholRows +
         [...todays].reverse().map(e=>`<tr><td>${new Date(e.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}${e.photo?' 📷':''}</td><td>${e.food||'—'}</td><td>+${e.kcal}</td><td>${Math.round(e.carbs||0)}/${Math.round(e.protein||0)}/${Math.round(e.fat||0)}</td><td><button class="icon-btn" data-kdel="${e.id}">✕</button></td></tr>`).join('') +
         workoutRows + summaryRows +
         '</tbody></table>';
@@ -9843,11 +9888,12 @@ nav.tabbar button.active svg{
       document.getElementById('d-sleep-detail').textContent = '';
     }
     const today = todayStr();
-    const todaysHydro = hydrationEntries.filter(e=>e.date===today).reduce((s,e)=>s+e.ml,0);
+    const WATER_GOAL_ML = 1000;
+    const todaysHydro = hydrationEntries.filter(e=>e.date===today && (e.type||'Água')!=='Cola').reduce((s,e)=>s+e.ml,0);
     document.getElementById('d-hydro').innerHTML = todaysHydro + ' <small>ml</small>';
     const hydroTrendEl = document.getElementById('d-hydro-trend');
-    hydroTrendEl.textContent = todaysHydro >= hydrationGoal ? 'meta atingida' : (hydrationGoal - todaysHydro) + ' ml para a meta';
-    hydroTrendEl.className = 'trend ' + (todaysHydro >= hydrationGoal ? 'down' : 'flat');
+    hydroTrendEl.textContent = todaysHydro >= WATER_GOAL_ML ? 'meta atingida' : (WATER_GOAL_ML - todaysHydro) + ' ml para a meta';
+    hydroTrendEl.className = 'trend ' + (todaysHydro >= WATER_GOAL_ML ? 'down' : 'flat');
 
     // Kcal de hoje (líquidas: ingeridas - gasto do treino)
     const dKcalEl = document.getElementById('d-kcal');
@@ -9855,6 +9901,7 @@ nav.tabbar button.active svg{
       const kToday = kcalEntries.filter(e=>e.date===today);
       let intakeK = kToday.reduce((s,e)=>s+(Number(e.kcal)||0),0);
       try{ intakeK += getTodayCoffeeKcal(); }catch(e){}
+      try{ intakeK += getTodayDrinkKcal(); }catch(e){}
       try{ intakeK += getTodayAlcoholTotals().kcal; }catch(e){}
       let burnedK = 0; try{ burnedK = todayWorkoutBurnedKcal(); }catch(e){}
       const netK = Math.max(0, Math.round(intakeK - burnedK));
@@ -10004,7 +10051,7 @@ nav.tabbar button.active svg{
     const safe = (name, fn)=>{ try{ fn(); }catch(err){ console.error('Falha em '+name, err); } };
     safe('renderWeight', renderWeight); safe('renderSleep', renderSleep); safe('renderBP', renderBP);
     safe('renderWorkouts', renderWorkouts); safe('renderTraining7d', renderTraining7d);
-    safe('renderHydration', renderHydration); safe('renderCoffee', renderCoffee); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal); if(window.PulsoRenderAthleteHistory) safe('renderAthleteHistory', window.PulsoRenderAthleteHistory);
+    safe('renderDrinks', renderDrinks); safe('renderAlcohol', renderAlcohol); safe('renderKcal', renderKcal); if(window.PulsoRenderAthleteHistory) safe('renderAthleteHistory', window.PulsoRenderAthleteHistory);
     safe('renderRaceAndPlan', renderRaceAndPlan); safe('renderPlanOutput', ()=>renderPlanOutput(savedPlan));
     safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderStravaZonesUI', renderStravaZonesUI); safe('renderDashboard', renderDashboard);
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
