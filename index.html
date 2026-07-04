@@ -6194,8 +6194,7 @@ nav.tabbar button.active svg{
       <div class="card fixed-form" id="quick-auto-card">
         <h3>Os teus treinos</h3>
         <form class="entry" id="form-quick-pick">
-          <div class="field" style="min-width:100px;"><label for="quick-time">Tempo (min)</label><input type="number" id="quick-time" placeholder="45" required></div>
-          <div class="field" style="min-width:140px;">
+          <div class="field" style="min-width:140px;" id="quick-type-field">
             <label for="quick-type">Tipo</label>
             <select id="quick-type">
               <option value="estrada">Corrida — Estrada</option>
@@ -6204,6 +6203,7 @@ nav.tabbar button.active svg{
               <option value="bike-fora">Bicicleta — Rua</option>
             </select>
           </div>
+          <div class="field" style="min-width:100px;" id="quick-time-field"><label for="quick-time">Tempo (min)</label><input type="number" id="quick-time" placeholder="45" required></div>
           <button class="primary" type="submit">Sugerir</button>
         </form>
       </div>
@@ -6778,7 +6778,13 @@ nav.tabbar button.active svg{
   }
 
   function escHtml(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
-  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function todayStr(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
   function fmtDate(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'}); }
   function fmtDateShort(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit'}); }
   function fmtDateTime(d){ const dt = new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit'}) + ' ' + dt.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}); }
@@ -8137,7 +8143,7 @@ nav.tabbar button.active svg{
 
   function updateKcalModernRing(kcal, goal, carbs, protein, fat){
     const safeGoal = Number(goal) || 0;
-    const safeKcal = Math.max(0, Number(kcal) || 0);
+    const safeKcal = Number(kcal) || 0;
     const safeCarbs = Math.max(0, Number(carbs) || 0);
     const safeProtein = Math.max(0, Number(protein) || 0);
     const safeFat = Math.max(0, Number(fat) || 0);
@@ -8206,7 +8212,7 @@ nav.tabbar button.active svg{
     const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal + drinkKcal + alcoholKcal);
     const workoutKcal = todayWorkoutBurnedKcal();
     const netKcal = intakeKcal - workoutKcal;
-    const totalKcal = Math.max(0, netKcal);
+    const totalKcal = netKcal;
     const totalCarbs = todays.reduce((s,e)=>s+(e.carbs||0),0);
     const totalProtein = todays.reduce((s,e)=>s+(e.protein||0),0);
     const totalFat = todays.reduce((s,e)=>s+(e.fat||0),0);
@@ -9921,7 +9927,7 @@ nav.tabbar button.active svg{
       try{ intakeK += getTodayDrinkKcal(); }catch(e){}
       try{ intakeK += getTodayAlcoholTotals().kcal; }catch(e){}
       let burnedK = 0; try{ burnedK = todayWorkoutBurnedKcal(); }catch(e){}
-      const netK = Math.max(0, Math.round(intakeK - burnedK));
+      const netK = Math.round(intakeK - burnedK);
       dKcalEl.innerHTML = netK + ' <small>kcal</small>';
       const dKcalTrend = document.getElementById('d-kcal-trend');
       if(dKcalTrend){
@@ -13125,5 +13131,58 @@ nav.tabbar button.active svg{
   });
 })();
 </script>
+
+
+<style>
+/* Ajuste pedido — Treinos: Intenção no topo, depois Tipo, depois Tempo */
+#quick-auto-card{display:flex; flex-direction:column; gap:14px;}
+#quick-auto-card .training-mode-card,
+#quick-auto-card #training-mode-card,
+#quick-auto-card #training-engine-mode-card{order:1; margin-top:0 !important;}
+#quick-auto-card #form-quick-pick{order:2;}
+#quick-auto-card #form-quick-pick #quick-type-field{order:1;}
+#quick-auto-card #form-quick-pick #quick-time-field{order:2;}
+#quick-auto-card #form-quick-pick button.primary{order:3;}
+</style>
+<script>
+/* Ajuste pedido — reforço final de data local, kcal negativas e ordem dos treinos */
+(function(){
+  function localDay(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+  window.PulsoLocalDay = localDay;
+
+  function moveTrainingIntentToTop(){
+    const card = document.getElementById('quick-auto-card');
+    const form = document.getElementById('form-quick-pick');
+    if(!card || !form) return;
+
+    const type = document.getElementById('quick-type');
+    const time = document.getElementById('quick-time');
+    const typeField = type ? type.closest('.field') : null;
+    const timeField = time ? time.closest('.field') : null;
+    if(typeField){ typeField.id = 'quick-type-field'; form.insertBefore(typeField, form.firstElementChild); }
+    if(timeField && typeField){ timeField.id = 'quick-time-field'; form.insertBefore(timeField, typeField.nextSibling); }
+
+    document.querySelectorAll('.training-mode-card, #training-mode-card, #training-engine-mode-card').forEach(el=>{
+      if(el && el.parentElement !== card) card.insertBefore(el, form);
+      else if(el && form.previousElementSibling !== el) card.insertBefore(el, form);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    moveTrainingIntentToTop();
+    setTimeout(moveTrainingIntentToTop, 300);
+    setTimeout(moveTrainingIntentToTop, 1200);
+  });
+  window.addEventListener('load', ()=>setTimeout(moveTrainingIntentToTop, 500));
+  document.addEventListener('click', ()=>setTimeout(moveTrainingIntentToTop, 50), true);
+})();
+</script>
+
 </body>
 </html>
