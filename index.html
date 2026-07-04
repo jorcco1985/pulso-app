@@ -529,12 +529,6 @@ main section:not(#tab-dashboard) .grid3 .stat[style]{
   padding-left:0;
   padding-right:0;
 }
-#sub-kcal .row input#kcal-ai-desc{
-  min-width:0;
-}
-#sub-kcal .row button#kcal-ai-btn{
-  flex:0 0 auto;
-}
 
 @media (max-width:520px){
   main{padding:0 12px 92px;}
@@ -547,9 +541,6 @@ main section:not(#tab-dashboard) .grid3 .stat[style]{
   #kcal-food-fields{grid-template-columns:1fr;}
   #form-kcal-values{grid-template-columns:1fr 1fr;}
   #form-kcal-values button.primary{width:100%; grid-column:1 / -1;}
-  #sub-kcal .row{align-items:stretch;}
-  #sub-kcal .row input#kcal-ai-desc{flex-basis:100%;}
-  #sub-kcal .row button#kcal-ai-btn{width:100%;}
 }
 
 
@@ -747,10 +738,6 @@ textarea {
   grid-template-columns: 1fr;
   gap: 12px;
   align-items: stretch;
-}
-
-#kcal-ai-btn {
-  width: 100%;
 }
 
 /* Treino de hoje centrado */
@@ -6102,6 +6089,7 @@ nav.tabbar button.active svg{
           <div class="field" style="min-width:80px;"><label for="kcal-grams">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150" min="0" step="any" inputmode="decimal"></div>
         </div>
         <p class="help" id="kcal-food-note" style="margin-top:4px;">Escreve o alimento e a quantidade — preenchemos Kcal e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
+        <div id="kcal-food-actions" style="margin-top:8px; display:none; gap:8px; flex-wrap:wrap;"></div>
         <form class="entry" id="form-kcal-values" style="margin-top:8px;">
           <div class="field" style="min-width:80px;"><label for="kcal-value">Kcal</label><input type="number" step="any" id="kcal-value" placeholder="450" required></div>
           <div class="field" style="min-width:70px;"><label for="kcal-carbs">Hidr. (g)</label><input type="number" step="any" id="kcal-carbs" placeholder="50"></div>
@@ -6109,11 +6097,6 @@ nav.tabbar button.active svg{
           <div class="field" style="min-width:70px;"><label for="kcal-fat">Gord. (g)</label><input type="number" step="any" id="kcal-fat" placeholder="15"></div>
           <button class="primary" type="submit">+</button>
         </form>
-        <div class="row" style="margin-top:8px; gap:6px;">
-          <input type="text" id="kcal-ai-desc" placeholder="ex: 2 ovos cozidos, 150g arroz, salada" style="flex:1;">
-          <button class="primary" type="button" id="kcal-ai-btn" style="white-space:nowrap;">Perguntar à IA</button>
-        </div>
-        <p class="help" id="kcal-ai-note" style="margin-top:6px;">Descreve a refeição em texto livre e a IA estima os valores (precisa da Netlify Function configurada — vê Perfil &gt; Nutrição IA).</p>
       </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <h3>Registo de hoje</h3>
@@ -7897,14 +7880,17 @@ nav.tabbar button.active svg{
     }
     if(kcalAiBase && rawName.trim() !== kcalAiBase.desc){ kcalAiBase = null; }
     if(!rawName.trim()){
+      clearFoodActions();
       noteEl.textContent = 'Escreve o alimento — a quantidade típica e os macros são preenchidos automaticamente (estimativa). Podes sempre ajustar à mão.';
       return;
     }
     const match = findFoodMatch(rawName);
     if(!match){
-      noteEl.textContent = '"' + rawName + '" não está na nossa lista fixa de ~120 alimentos — preenche os valores à mão abaixo.';
+      noteEl.textContent = '"' + rawName.trim() + '" não está na lista de alimentos. Queres pesquisar na IA?';
+      showSearchAiPrompt(rawName.trim());
       return;
     }
+    clearFoodActions();
     const food = match.food;
 
     // Só preenche a porção típica quando o alimento é escolhido e o utilizador NÃO está a apagar/escrever a quantidade.
@@ -7940,9 +7926,9 @@ nav.tabbar button.active svg{
     if(gramsField && gramsField.value.trim() !== '' && parseFloat(gramsField.value) === 0){
       e.target.reset();
       kcalAiBase = null;
+      clearFoodActions();
       document.getElementById('kcal-food').value = '';
       document.getElementById('kcal-grams').value = '';
-      document.getElementById('kcal-ai-desc').value = '';
       renderKcal(); renderDashboard();
       toast('Alimento a 0g não foi registado');
       return;
@@ -7951,74 +7937,115 @@ nav.tabbar button.active svg{
     const carbs = parseFloat(document.getElementById('kcal-carbs').value) || 0;
     const protein = parseFloat(document.getElementById('kcal-protein').value) || 0;
     const fat = parseFloat(document.getElementById('kcal-fat').value) || 0;
-    const foodName = document.getElementById('kcal-food').value.trim() || document.getElementById('kcal-ai-desc').value.trim();
+    const foodName = document.getElementById('kcal-food').value.trim();
     kcalEntries.push({id:uid(), date: todayStr(), time: new Date().toISOString(), kcal, carbs, protein, fat, food: foodName || null});
     await sSet('kcal-entries', kcalEntries);
     e.target.reset();
     kcalAiBase = null;
+    clearFoodActions();
     document.getElementById('kcal-food').value = '';
     document.getElementById('kcal-grams').value = '';
-    document.getElementById('kcal-ai-desc').value = '';
     renderKcal(); renderDashboard();
     toast('+' + kcal + ' kcal');
   });
 
-  document.getElementById('kcal-ai-btn').addEventListener('click', async ()=>{
-    const desc = document.getElementById('kcal-ai-desc').value.trim();
-    const noteEl = document.getElementById('kcal-ai-note');
-    if(!desc){ noteEl.textContent = 'Escreve primeiro o que comeste.'; return; }
-    noteEl.textContent = 'A perguntar à IA...';
+  // ---------- Fluxo IA (só quando o alimento não está na lista) ----------
+  const foodActionsEl = document.getElementById('kcal-food-actions');
+  let foodActionsState = { mode:null, name:null };
+
+  function clearFoodActions(){
+    if(foodActionsState.mode === null && (!foodActionsEl || foodActionsEl.style.display === 'none')) return;
+    foodActionsState = { mode:null, name:null };
+    if(foodActionsEl){ foodActionsEl.style.display = 'none'; foodActionsEl.innerHTML = ''; }
+  }
+
+  // Passo 1: perguntar se quer pesquisar na IA
+  function showSearchAiPrompt(name){
+    if(!foodActionsEl || !name) return;
+    if(foodActionsState.mode === 'search' && foodActionsState.name === name) return; // já visível para este nome
+    foodActionsState = { mode:'search', name };
+    foodActionsEl.innerHTML = '<button type="button" class="chip" id="kcal-ai-search-btn">🔍 Pesquisar na IA</button>';
+    foodActionsEl.style.display = 'flex';
+    document.getElementById('kcal-ai-search-btn').addEventListener('click', ()=> runAiSearch(name));
+  }
+
+  // Passo 2: pesquisar na IA e preencher os valores
+  async function runAiSearch(name){
+    const noteEl = document.getElementById('kcal-food-note');
+    foodActionsEl.innerHTML = '';
+    foodActionsEl.style.display = 'none';
+    foodActionsState = { mode:'searching', name };
+    noteEl.textContent = 'A pesquisar "' + name + '" na IA...';
     try{
       const res = await fetch('/.netlify/functions/nutrition', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({description: desc})
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ description: name })
       });
       if(!res.ok){
-        const errBody = await res.json().catch(()=>({error:'Erro desconhecido ('+res.status+').'}));
-        noteEl.textContent = 'Não foi possível obter resposta: ' + (errBody.error || res.status) + '. Confirma que a Netlify Function está configurada (Perfil > Nutrição IA), ou preenche à mão abaixo.';
+        const errBody = await res.json().catch(()=>({error:'Erro ('+res.status+').'}));
+        noteEl.textContent = 'Não foi possível pesquisar: ' + (errBody.error || res.status) + '. Preenche os valores à mão, ou configura a Netlify Function em Perfil > Nutrição IA.';
+        clearFoodActions();
         return;
       }
       const data = await res.json();
       const gramsInput = document.getElementById('kcal-grams');
       const baseGrams = (data.gramas && Number(data.gramas) > 0) ? Math.round(Number(data.gramas))
         : (parseFloat(gramsInput.value) > 0 ? parseFloat(gramsInput.value) : 100);
-      kcalAiBase = { desc, grams: baseGrams, kcal: Number(data.kcal)||0, carbs: Number(data.carbs)||0, protein: Number(data.protein)||0, fat: Number(data.fat)||0 };
+      kcalAiBase = { desc: name, grams: baseGrams, kcal: Number(data.kcal)||0, carbs: Number(data.carbs)||0, protein: Number(data.protein)||0, fat: Number(data.fat)||0 };
       gramsInput.value = baseGrams;
       document.getElementById('kcal-value').value = Math.round(kcalAiBase.kcal);
       document.getElementById('kcal-carbs').value = Math.round(kcalAiBase.carbs*10)/10;
       document.getElementById('kcal-protein').value = Math.round(kcalAiBase.protein*10)/10;
       document.getElementById('kcal-fat').value = Math.round(kcalAiBase.fat*10)/10;
-      document.getElementById('kcal-food').value = desc;
-
-      // Guarda este alimento na memória (normalizado para 100g) para ficar disponível no autocomplete e nas próximas sessões.
-      let guardado = false;
-      try{
-        const key = desc.trim().toLowerCase();
-        if(key && baseGrams > 0){
-          const per100 = 100 / baseGrams;
-          const learned = {
-            kcal: Math.round(kcalAiBase.kcal * per100),
-            carbs: Math.round(kcalAiBase.carbs * per100 * 10) / 10,
-            protein: Math.round(kcalAiBase.protein * per100 * 10) / 10,
-            fat: Math.round(kcalAiBase.fat * per100 * 10) / 10,
-            defaultG: baseGrams,
-            ai: true
-          };
-          FOOD_DB[key] = learned;
-          aiFoods[key] = learned;
-          await sSet('ai-foods', aiFoods);
-          rebuildFoodNames();
-          guardado = true;
-        }
-      }catch(_){ /* se falhar a gravação, a estimativa continua a funcionar */ }
-
+      document.getElementById('kcal-food').value = name;
       const itensTxt = (data.itens||[]).map(i=>i.nome+' ('+Math.round(i.kcal)+'kcal)').join(', ');
-      noteEl.textContent = 'IA estimou (para ~' + baseGrams + 'g): ' + (itensTxt || (kcalAiBase.kcal+' kcal')) + '. Se mudares a quantidade, os valores ajustam-se sozinhos.' + (guardado ? ' ✓ Guardado na memória de alimentos.' : '');
+      noteEl.textContent = 'IA estimou (para ~' + baseGrams + 'g): ' + (itensTxt || (kcalAiBase.kcal+' kcal')) + '. Queres adicionar este alimento à lista?';
+      showAddToListPrompt(name, baseGrams);
     }catch(err){
-      noteEl.textContent = 'Não foi possível ligar à IA (função não encontrada ou sem internet). Preenche à mão abaixo, ou configura a Netlify Function em Perfil > Nutrição IA.';
+      noteEl.textContent = 'Não foi possível ligar à IA (função não encontrada ou sem internet). Preenche os valores à mão.';
+      clearFoodActions();
     }
-  });
+  }
+
+  // Passo 3: perguntar se quer guardar na memória de alimentos
+  function showAddToListPrompt(name, baseGrams){
+    if(!foodActionsEl) return;
+    foodActionsState = { mode:'add', name };
+    foodActionsEl.innerHTML =
+      '<button type="button" class="chip" id="kcal-ai-add-yes">✓ Adicionar à lista</button>' +
+      '<button type="button" class="chip" id="kcal-ai-add-no">Não, só desta vez</button>';
+    foodActionsEl.style.display = 'flex';
+    document.getElementById('kcal-ai-add-yes').addEventListener('click', async ()=>{
+      await saveAiFood(name, baseGrams);
+      clearFoodActions();
+      document.getElementById('kcal-food-note').textContent = '✓ "' + name + '" guardado na memória. Da próxima vez aparece nas sugestões.';
+    });
+    document.getElementById('kcal-ai-add-no').addEventListener('click', ()=>{
+      clearFoodActions();
+      document.getElementById('kcal-food-note').textContent = 'Ok — usei a estimativa só para este registo, sem guardar.';
+    });
+  }
+
+  // Guarda o alimento (normalizado para 100g) na memória
+  async function saveAiFood(name, baseGrams){
+    try{
+      const key = String(name||'').trim().toLowerCase();
+      if(!key || !(baseGrams > 0) || !kcalAiBase) return;
+      const per100 = 100 / baseGrams;
+      const learned = {
+        kcal: Math.round(kcalAiBase.kcal * per100),
+        carbs: Math.round(kcalAiBase.carbs * per100 * 10) / 10,
+        protein: Math.round(kcalAiBase.protein * per100 * 10) / 10,
+        fat: Math.round(kcalAiBase.fat * per100 * 10) / 10,
+        defaultG: baseGrams,
+        ai: true
+      };
+      FOOD_DB[key] = learned;
+      aiFoods[key] = learned;
+      await sSet('ai-foods', aiFoods);
+      rebuildFoodNames();
+    }catch(_){ /* se falhar a gravação, a estimativa continua a funcionar */ }
+  }
 
   function lastKnownWeightKg(){
     if(weightEntries && weightEntries.length){
