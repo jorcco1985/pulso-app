@@ -2846,6 +2846,48 @@ body.keyboard-open #tab-hidratacao{
   padding-bottom:calc(230px + env(safe-area-inset-bottom)) !important;
 }
 
+/* Água: mesmo tratamento do Café — a página rola em vez de prender no cartão */
+#sub-agua{
+  min-height:auto !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+  padding-bottom:calc(120px + env(safe-area-inset-bottom)) !important;
+}
+#sub-agua.active{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:14px !important;
+}
+#sub-agua .scroll-y,
+#hydro-today-list{
+  max-height:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+#sub-agua .card{
+  flex:0 0 auto !important;
+  min-height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+/* Pressão arterial: igual, para o gráfico + histórico rolarem bem */
+#sub-pressao .scroll-y,
+#bp-list{
+  max-height:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+#sub-pressao .card{
+  flex:0 0 auto !important;
+  min-height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+
 
 /* =========================================================
    PULSO — CAMPOS MAIORES NO TELEMÓVEL
@@ -5698,7 +5740,20 @@ nav.tabbar button.active svg{
 .verdict-detail li{margin:2px 0; font-size:12.5px; color:var(--text-muted);}
 .metric-kcal .dash-big-icon svg{color:#F2A24B;}
 .bp-badge{display:inline-block; padding:9px 15px; border-radius:999px; font-weight:800; font-size:15px; color:var(--bp-c,#35D9A6); border:1px solid var(--bp-c,#35D9A6); background:rgba(255,255,255,.05);}
+.bp-chart-legend{display:flex; gap:12px; font-size:11px; font-weight:800;}
+.bp-leg{display:inline-flex; align-items:center; gap:5px;}
+.bp-leg::before{content:''; width:14px; height:3px; border-radius:2px; background:currentColor;}
+.bp-leg-sys{color:#F2844B;}
+.bp-leg-dia{color:#5BC8E3;}
 #bp-note p{line-height:1.5;}
+
+/* ===== Bola de estado ao centro: sem lista fixa, com legenda visível ===== */
+#tab-dashboard #verdict-main-card .verdict-wrap{display:flex !important; flex-direction:column !important; align-items:center !important; text-align:center !important; gap:0 !important;}
+#tab-dashboard #verdict-main-card .verdict-left{display:flex !important; flex-direction:column !important; align-items:center !important; text-align:center !important; width:100% !important;}
+#tab-dashboard #verdict-main-card .verdict-score{margin:0 auto !important;}
+#tab-dashboard #verdict-main-card .verdict-right{display:none !important;}
+#tab-dashboard #verdict-main-card #verdict-sub{display:block !important; max-width:340px !important; margin:12px auto 0 !important; text-align:center !important; font-size:13px !important; line-height:1.55 !important; opacity:.92;}
+#tab-dashboard #verdict-main-card .verdict-detail{max-width:460px; margin:14px auto 0; text-align:left;}
 </style>
 </head>
 <body>
@@ -5753,7 +5808,7 @@ nav.tabbar button.active svg{
         <div class="verdict-left">
           <div class="verdict-score" id="verdict-ring" role="button" tabindex="0" title="Toca para ver a avaliação"><span class="n" id="verdict-n">—</span></div>
           <p class="verdict-title" id="verdict-title">Ainda sem dados</p>
-          <p class="help verdict-legend" id="verdict-sub">Estado geral de 0 a 100 — quanto mais alto, melhor. 70+ ótimo · 40–69 razoável · &lt;40 atenção. Toca na bola para ver a avaliação.</p>
+          <p class="help verdict-legend" id="verdict-sub">A bola mostra o teu estado geral numa escala de 0 a 100 — quanto mais alto, melhor. 70+ ótimo · 40–69 razoável · abaixo de 40 requer atenção. Toca na bola para veres a avaliação completa.</p>
           <div class="verdict-detail" id="verdict-detail" style="display:none;"></div>
         </div>
         <div class="verdict-right">
@@ -5902,6 +5957,7 @@ nav.tabbar button.active svg{
         <div class="single-ring-actions">
           <button class="chip" data-alcohol="beer200" type="button">🍺 Cerveja 200 ml</button>
           <button class="chip" data-alcohol="beer330" type="button">🍺 Cerveja 330 ml</button>
+          <button class="chip" data-alcohol="beer500" type="button">🍺 Cerveja 500 ml</button>
           <button class="chip" data-alcohol="somersby200" type="button">🍏 Somersby 200 ml</button>
           <button class="chip" data-alcohol="somersby330" type="button">🍏 Somersby 330 ml</button>
           <button class="chip" data-alcohol="wine" type="button">🍷 Copo de vinho</button>
@@ -6286,6 +6342,13 @@ nav.tabbar button.active svg{
         <h3 style="margin:0 0 10px;">Avaliação</h3>
         <div id="bp-note"><p class="help" style="margin:0;">Regista uma medição para veres a avaliação.</p></div>
       </div>
+      <div class="card" id="bp-chart-card" style="flex:0 0 auto;">
+        <div class="row space-between" style="align-items:center; margin-bottom:8px;">
+          <h3 style="margin:0;">Evolução</h3>
+          <div class="bp-chart-legend"><span class="bp-leg bp-leg-sys">Máxima</span><span class="bp-leg bp-leg-dia">Mínima</span></div>
+        </div>
+        <div class="chart-box" id="chart-bp" style="height:180px;"></div>
+      </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <div class="scroll-y" style="flex:1; min-height:0;"><table class="log"><thead><tr><th>Data</th><th>Máx/Mín</th><th>bpm</th><th></th></tr></thead><tbody id="bp-list"></tbody></table>
         <div class="empty" id="bp-empty" style="display:none;">Sem registos.</div></div>
@@ -6471,6 +6534,9 @@ nav.tabbar button.active svg{
                 <option value="workoutMin">Minutos de treino</option>
                 <option value="workoutKm">Distância treino</option>
                 <option value="alcoholMl">Álcool</option>
+                <option value="bpSys">Pressão máxima</option>
+                <option value="bpDia">Pressão mínima</option>
+                <option value="restingHr">Cardio (bpm)</option>
               </select>
             </div>
             <div id="athlete-trend-chart" class="athlete-trend-chart"><div class="empty">Ainda sem dados suficientes para tendência.</div></div>
@@ -7106,6 +7172,52 @@ nav.tabbar button.active svg{
     return parts.join('');
   }
 
+  function renderBPChart(containerEl, entries){
+    if(!containerEl) return;
+    containerEl.innerHTML = '';
+    const data = (entries || []).slice(-14);
+    if(data.length < 2){
+      containerEl.innerHTML = '<div class="empty">Guarda pelo menos 2 medições para veres a evolução.</div>';
+      return;
+    }
+    const W = containerEl.clientWidth || 320, H = containerEl.clientHeight || 180;
+    const padL = 34, padR = 10, padT = 12, padB = 20;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const sysVals = data.map(e=>Number(e.sys)||0);
+    const diaVals = data.map(e=>Number(e.dia)||0);
+    const all = sysVals.concat(diaVals);
+    let min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+    const margin = ((max-min)||10)*0.15;
+    const bottom = min - margin, top = max + margin, range = (top-bottom)||1;
+    const n = data.length;
+    const xAt = (i)=> padL + (n>1 ? (plotW/(n-1))*i : plotW/2);
+    const yAt = (v)=> padT + plotH - ((v-bottom)/range)*plotH;
+    const svg = svgEl('svg', {viewBox:`0 0 ${W} ${H}`, width:'100%', height:'100%'});
+    for(let g=0; g<=2; g++){
+      const gy = padT + plotH - plotH*g/2;
+      svg.appendChild(svgEl('line', {x1:padL, x2:W-padR, y1:gy, y2:gy, stroke:SVG_COLORS.grid, 'stroke-width':1}));
+      const tv = Math.round(bottom + range*g/2);
+      const t = svgEl('text', {x:2, y:gy+3, fill:SVG_COLORS.muted, 'font-size':9}); t.textContent = tv;
+      svg.appendChild(t);
+    }
+    const drawSeries = (vals, color)=>{
+      let d = '';
+      vals.forEach((v,i)=>{ d += (d ? ' L ' : 'M ') + xAt(i) + ' ' + yAt(v); });
+      svg.appendChild(svgEl('path', {d, fill:'none', stroke:color, 'stroke-width':2.2, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+      vals.forEach((v,i)=> svg.appendChild(svgEl('circle', {cx:xAt(i), cy:yAt(v), r:3, fill:color, stroke:'var(--bg)', 'stroke-width':1.4})));
+    };
+    drawSeries(sysVals, '#F2844B');
+    drawSeries(diaVals, '#5BC8E3');
+    data.forEach((e,i)=>{
+      if(n<=7 || i===0 || i===n-1 || i%Math.ceil(n/6)===0){
+        const t = svgEl('text', {x:xAt(i), y:H-4, fill:SVG_COLORS.muted, 'font-size':8, 'text-anchor':'middle'});
+        t.textContent = fmtDateShort(e.date);
+        svg.appendChild(t);
+      }
+    });
+    containerEl.appendChild(svg);
+  }
+
   function renderBP(){
     const noteEl = document.getElementById('bp-note');
     const tbody = document.getElementById('bp-list');
@@ -7113,6 +7225,7 @@ nav.tabbar button.active svg{
     if(!tbody) return;
     const latest = bpEntries.length ? bpEntries[bpEntries.length-1] : null;
     if(noteEl) noteEl.innerHTML = bpAssessment(latest);
+    renderBPChart(document.getElementById('chart-bp'), bpEntries);
 
     tbody.innerHTML = '';
     if(bpEntries.length === 0){ if(empty) empty.style.display = 'block'; return; }
@@ -7316,6 +7429,7 @@ nav.tabbar button.active svg{
   const ALCOHOL_DB = {
     beer200: {label:'Cerveja 200 ml', volume:'200 ml', ml:200, units:0.8, kcal:80},
     beer330: {label:'Cerveja 330 ml', volume:'330 ml', ml:330, units:1.3, kcal:130},
+    beer500: {label:'Cerveja 500 ml', volume:'500 ml', ml:500, units:2.0, kcal:200},
     somersby200: {label:'Somersby 200 ml', volume:'200 ml', ml:200, units:0.9, kcal:110},
     somersby330: {label:'Somersby 330 ml', volume:'330 ml', ml:330, units:1.5, kcal:180},
     wine: {label:'Copo de vinho 150 ml', volume:'150 ml', ml:150, units:1.4, kcal:125},
@@ -9678,6 +9792,7 @@ nav.tabbar button.active svg{
     const kcal = readPulsoJson('kcal-entries', []).filter(e=>sameDay(e.date, day));
     const weight = readPulsoJson('weight-entries', []).filter(e=>sameDay(e.date, day));
     const sleep = readPulsoJson('sleep-entries', []).filter(e=>sameDay(e.date, day));
+    const bp = readPulsoJson('bp-entries', []).filter(e=>sameDay(e.date, day));
     const workouts = readPulsoJson('strava-activities', []).filter(e=>sameDay(e.date || e.start_date || e.time, day));
     const planned = readPulsoJson('planned-workouts', []).filter(e=>sameDay(e.date, day));
 
@@ -9694,7 +9809,7 @@ nav.tabbar button.active svg{
     const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
     const workoutKcal = Math.round(sum(workouts, e=>e.calories));
 
-    const hasData = hydration.length || coffee.length || alcohol.length || kcal.length || weight.length || sleep.length || workouts.length || planned.length;
+    const hasData = hydration.length || coffee.length || alcohol.length || kcal.length || weight.length || sleep.length || bp.length || workouts.length || planned.length;
     if(!hasData) return;
 
     const baseScore = 80;
@@ -9722,7 +9837,9 @@ nav.tabbar button.active svg{
         workoutKcal,
         weightKg: weight.length ? Number(weight[weight.length-1].kg) : null,
         sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null,
-        restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null
+        bpSys: bp.length ? Number(bp[bp.length-1].sys) : null,
+        bpDia: bp.length ? Number(bp[bp.length-1].dia) : null,
+        restingHr: (bp.length && bp[bp.length-1].hr != null && bp[bp.length-1].hr !== '') ? Number(bp[bp.length-1].hr) : null
       },
       details: {
         meals: kcal,
@@ -9730,7 +9847,8 @@ nav.tabbar button.active svg{
         hydration,
         coffee,
         workouts,
-        planned
+        planned,
+        bp
       }
     };
 
@@ -11517,6 +11635,7 @@ nav.tabbar button.active svg{
     const kcal = read('kcal-entries', []).filter(e=>sameDay(e.date, day));
     const weight = read('weight-entries', []).filter(e=>sameDay(e.date, day));
     const sleep = read('sleep-entries', []).filter(e=>sameDay(e.date, day));
+    const bp = read('bp-entries', []).filter(e=>sameDay(e.date, day));
     const workouts = read('strava-activities', []).filter(e=>sameDay(e.date || e.start_date || e.time, day));
     const planned = read('planned-workouts', []).filter(e=>sameDay(e.date, day));
 
@@ -11533,20 +11652,24 @@ nav.tabbar button.active svg{
     const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
     const workoutKcal = Math.round(sum(workouts, e=>e.calories));
     const penalty = alcoholUnits <= 0 ? 0 : alcoholUnits <= 1 ? 3 : alcoholUnits <= 2 ? 7 : alcoholUnits <= 3 ? 12 : alcoholUnits <= 4 ? 18 : 25;
+    const lastBp = bp.length ? bp[bp.length-1] : null;
+    const bpSys = lastBp ? Number(lastBp.sys) : null;
+    const bpDia = lastBp ? Number(lastBp.dia) : null;
+    const restingHr = (lastBp && lastBp.hr != null && lastBp.hr !== '') ? Number(lastBp.hr) : null;
 
     return {
       id:'day-' + day,
       date:day,
       savedAt:new Date().toISOString(),
       score:Math.max(0, 80 - penalty),
-      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholMl, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, restingHr: sleep.length ? Number(sleep[sleep.length-1].hr) : null },
-      details:{ meals:kcal, alcohol, hydration, coffee, workouts, planned }
+      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholMl, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, bpSys, bpDia, restingHr },
+      details:{ meals:kcal, alcohol, hydration, coffee, workouts, planned, bp }
     };
   }
 
   function saveDay(day){
     const rec = buildDayRecord(day);
-    const hasData = rec.details.meals.length || rec.details.alcohol.length || rec.details.hydration.length || rec.details.coffee.length || rec.details.workouts.length || rec.details.planned.length || rec.totals.weightKg || rec.totals.sleepHours;
+    const hasData = rec.details.meals.length || rec.details.alcohol.length || rec.details.hydration.length || rec.details.coffee.length || rec.details.workouts.length || rec.details.planned.length || (rec.details.bp && rec.details.bp.length) || rec.totals.weightKg || rec.totals.sleepHours;
     if(!hasData) return false;
     const hist = read('athlete-history', []);
     const next = Array.isArray(hist) ? hist.filter(x=>x && x.date !== day) : [];
@@ -11578,7 +11701,10 @@ nav.tabbar button.active svg{
     protein:{label:'Proteína', unit:' g', get:function(rec){return rec.totals ? Number(rec.totals.protein)||0 : 0;}},
     workoutMin:{label:'Minutos de treino', unit:' min', get:function(rec){return rec.totals ? Number(rec.totals.workoutMin)||0 : 0;}},
     workoutKm:{label:'Distância treino', unit:' km', get:function(rec){return rec.totals ? Number(rec.totals.workoutKm)||0 : 0;}},
-    alcoholMl:{label:'Álcool', unit:' ml', get:function(rec){return rec.totals ? Number(rec.totals.alcoholMl)||0 : 0;}}
+    alcoholMl:{label:'Álcool', unit:' ml', get:function(rec){return rec.totals ? Number(rec.totals.alcoholMl)||0 : 0;}},
+    bpSys:{label:'Pressão máxima', unit:' mmHg', get:function(rec){return rec.totals && rec.totals.bpSys != null ? Number(rec.totals.bpSys) : null;}},
+    bpDia:{label:'Pressão mínima', unit:' mmHg', get:function(rec){return rec.totals && rec.totals.bpDia != null ? Number(rec.totals.bpDia) : null;}},
+    restingHr:{label:'Cardio (bpm)', unit:' bpm', get:function(rec){return rec.totals && rec.totals.restingHr != null ? Number(rec.totals.restingHr) : null;}}
   };
 
   function renderAthleteTrend(){
@@ -11654,7 +11780,7 @@ nav.tabbar button.active svg{
         t.workoutMin ? (t.workoutMin + ' min treino') : null,
         t.totalKcal ? (Math.round(t.totalKcal) + ' kcal') : null,
         t.waterMl ? fmtL(t.waterMl) + ' água' : null,
-        t.alcoholMl ? Math.round(t.alcoholMl) + ' unid. álcool' : '0 álcool'
+        t.alcoholMl ? Math.round(t.alcoholMl) + ' ml álcool' : '0 álcool'
       ].filter(Boolean).join(' · ');
       return '<div class="athlete-day-card" data-day-card="'+rec.date+'">'+
         '<button class="athlete-day-head" type="button" data-toggle-day="'+rec.date+'">'+
@@ -11665,6 +11791,8 @@ nav.tabbar button.active svg{
           '<div class="athlete-metrics-grid">'+
             metric('Sono', fmtHours(t.sleepHours))+
             metric('Peso', t.weightKg ? Number(t.weightKg).toFixed(1).replace('.', ',') + ' kg' : '—')+
+            metric('Pressão', (t.bpSys != null && t.bpDia != null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)+' mmHg') : '—')+
+            metric('Cardio', t.restingHr != null ? (Math.round(t.restingHr) + ' bpm') : '—')+
             metric('Água', fmtL(t.waterMl))+
             metric('Cafés', t.coffeeCount || 0)+
             metric('Álcool', Math.round(t.alcoholMl || 0) + ' ml')+
