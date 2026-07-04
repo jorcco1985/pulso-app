@@ -4258,6 +4258,55 @@ main > section, .subview, .scroll-y {
   #tab-dashboard .grid3 #d-workout-card.dashboard-icon-card .stat[style]{font-size:23px !important;}
 }
 
+
+
+/* ================= PULSO — Pull to refresh Strava ================= */
+#pulso-pull-refresh{
+  position:fixed;
+  left:50%;
+  top:calc(10px + env(safe-area-inset-top));
+  transform:translate(-50%,-88px);
+  z-index:12000;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:220px;
+  justify-content:center;
+  padding:11px 16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(16,24,39,.94);
+  color:var(--text);
+  box-shadow:0 18px 48px rgba(0,0,0,.42);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  pointer-events:none;
+  opacity:0;
+  transition:transform .18s ease, opacity .18s ease;
+}
+#pulso-pull-refresh.visible{opacity:1;}
+#pulso-pull-refresh.ready{border-color:rgba(53,217,166,.38);}
+#pulso-pull-refresh.refreshing{opacity:1; transform:translate(-50%,0) !important; border-color:rgba(53,217,166,.45);}
+#pulso-pull-refresh.done{border-color:rgba(53,217,166,.55);}
+.pulso-pull-icon{
+  width:24px; height:24px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:999px;
+  background:rgba(53,217,166,.12);
+  color:var(--teal);
+  font-size:17px;
+  font-weight:900;
+  line-height:1;
+}
+#pulso-pull-refresh.refreshing .pulso-pull-icon{animation:pulsoPullSpin .85s linear infinite;}
+#pulso-pull-refresh.done .pulso-pull-icon{animation:none;}
+.pulso-pull-text{font-size:13px; font-weight:800; white-space:nowrap;}
+@keyframes pulsoPullSpin{to{transform:rotate(360deg);}}
+@media(max-width:430px){
+  #pulso-pull-refresh{min-width:206px; padding:10px 14px;}
+  .pulso-pull-text{font-size:12.5px;}
+}
+
 </style>
 
 
@@ -5783,6 +5832,11 @@ nav.tabbar button.active svg{
 
 <!-- ================= APP ================= -->
 <div id="app-content">
+
+  <div id="pulso-pull-refresh" aria-live="polite" aria-hidden="true">
+    <span class="pulso-pull-icon">↓</span>
+    <span class="pulso-pull-text">Puxe para atualizar</span>
+  </div>
 
 <header class="top">
   <div class="brand"><div class="pulso-mark brand-mark" aria-label="Pulso logo">
@@ -8801,6 +8855,177 @@ nav.tabbar button.active svg{
       return true;
     }catch(err){ console.error(err); return false; }
   }
+
+
+  function normaliseStravaActivity(a){
+    const distanceMeters = Number(a.distance || 0);
+    const movingSec = Number(a.moving_time || a.movingSec || 0);
+    const avgSpeed = Number(a.average_speed || 0);
+    return {
+      id: String(a.id || uid()),
+      name: a.name || 'Atividade Strava',
+      type: a.type || a.sport_type || 'Workout',
+      sportType: a.sport_type || a.type || 'Workout',
+      date: a.start_date || a.date || new Date().toISOString(),
+      distanceKm: distanceMeters ? distanceMeters / 1000 : Number(a.distanceKm || 0),
+      movingSec: movingSec,
+      elapsedSec: Number(a.elapsed_time || a.elapsedSec || movingSec || 0),
+      elevationM: Number(a.total_elevation_gain || a.elevationM || 0),
+      avgSpeedKmh: avgSpeed ? avgSpeed * 3.6 : Number(a.avgSpeedKmh || 0),
+      avgWatts: a.average_watts != null ? Number(a.average_watts) : (a.avgWatts != null ? Number(a.avgWatts) : null),
+      avgHr: a.average_heartrate != null ? Number(a.average_heartrate) : (a.avgHr != null ? Number(a.avgHr) : null),
+      maxHr: a.max_heartrate != null ? Number(a.max_heartrate) : (a.maxHr != null ? Number(a.maxHr) : null),
+      calories: a.calories != null ? Number(a.calories) : (a.kilojoules != null ? Math.round(Number(a.kilojoules)) : null),
+      source: 'strava',
+      rawType: a.type || null,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async function fetchStravaActivities(){
+    const ok = await ensureFreshToken();
+    if(!ok) throw new Error('Strava sem token válido');
+    const after = Math.floor((Date.now() - 1000 * 60 * 60 * 24 * 120) / 1000);
+    const url = 'https://www.strava.com/api/v3/athlete/activities?per_page=80&after=' + after;
+    const res = await fetchStrava(url, { headers:{ Authorization:'Bearer ' + stravaAuth.accessToken }});
+    if(!res.ok) throw new Error('Falha ao pedir atividades Strava (' + res.status + ')');
+    const data = await res.json();
+    return Array.isArray(data) ? data.map(normaliseStravaActivity) : [];
+  }
+
+  function mergeStravaActivities(existing, incoming){
+    const map = new Map();
+    (existing || []).forEach(a=>{ if(a && a.id) map.set(String(a.id), a); });
+    (incoming || []).forEach(a=>{ if(a && a.id) map.set(String(a.id), {...(map.get(String(a.id)) || {}), ...a}); });
+    return Array.from(map.values()).sort((a,b)=>String(b.date || '').localeCompare(String(a.date || '')));
+  }
+
+  async function pushPulsoData(reason){
+    const payload = {
+      profile, weightEntries, sleepEntries, bpEntries, plannedWorkouts,
+      stravaActivities, stravaZones, stravaVo2, trainingChartVisible,
+      hydrationEntries, hydrationGoal, coffeeEntries, alcoholEntries, kcalEntries,
+      favoriteWorkouts, todayPlan, raceGoal,
+      reason: reason || 'manual-sync',
+      pushedAt: new Date().toISOString()
+    };
+    await sSet('pulso-last-push', payload);
+    try{
+      await fetch('/.netlify/functions/pulso-push', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+    }catch(err){
+      console.warn('Push remoto não configurado; dados guardados localmente.', err);
+    }
+    return payload;
+  }
+
+  async function syncStrava(options){
+    const silent = options && options.silent;
+    if(!stravaAuth || !stravaAuth.accessToken){
+      if(!silent) toast('Liga primeiro o Strava');
+      throw new Error('Strava não ligado');
+    }
+    if(!silent) toast('A sincronizar com Strava...');
+    const incoming = await fetchStravaActivities();
+    stravaActivities = mergeStravaActivities(stravaActivities, incoming);
+    await sSet('strava-activities', stravaActivities);
+    await sSet('strava-last-sync', {at:new Date().toISOString(), count:incoming.length});
+    checkTodayPlanAgainstStrava();
+    renderWorkouts();
+    renderTraining7d();
+    renderKcal();
+    renderDashboard();
+    updateStravaUI();
+    await pushPulsoData('strava-sync');
+    if(!silent) toast('✅ Strava atualizado e dados enviados');
+    return {count:incoming.length, total:stravaActivities.length};
+  }
+  window.syncStrava = syncStrava;
+
+  const btnStravaSync = document.getElementById('btn-strava-sync');
+  if(btnStravaSync){
+    btnStravaSync.addEventListener('click', async ()=>{
+      btnStravaSync.disabled = true;
+      try{ await syncStrava(); }
+      catch(err){ console.error(err); toast('Não foi possível sincronizar o Strava'); }
+      finally{ updateStravaUI(); }
+    });
+  }
+
+  function initPullToRefresh(){
+    const indicator = document.getElementById('pulso-pull-refresh');
+    if(!indicator) return;
+    const icon = indicator.querySelector('.pulso-pull-icon');
+    const label = indicator.querySelector('.pulso-pull-text');
+    let startY = 0;
+    let pulling = false;
+    let distance = 0;
+    let refreshing = false;
+    const threshold = 82;
+
+    function activeScroller(){ return document.querySelector('main > section.active'); }
+    function atTop(){ const s = activeScroller(); return !s || s.scrollTop <= 2; }
+    function setState(state, y){
+      indicator.classList.toggle('visible', state !== 'idle');
+      indicator.classList.toggle('ready', state === 'ready');
+      indicator.classList.toggle('refreshing', state === 'refreshing');
+      indicator.classList.toggle('done', state === 'done');
+      if(state === 'pull') { icon.textContent = '↓'; label.textContent = 'Puxe para atualizar'; }
+      if(state === 'ready') { icon.textContent = '↻'; label.textContent = 'Solte para sincronizar'; }
+      if(state === 'refreshing') { icon.textContent = '⟳'; label.textContent = 'A sincronizar Strava...'; }
+      if(state === 'done') { icon.textContent = '✓'; label.textContent = 'Dados sincronizados'; }
+      if(state === 'idle') { icon.textContent = '↓'; label.textContent = 'Puxe para atualizar'; }
+      if(state === 'pull' || state === 'ready'){
+        indicator.style.transform = 'translate(-50%,' + Math.min(0, -76 + y * 0.72) + 'px)';
+      }else{
+        indicator.style.transform = '';
+      }
+    }
+
+    document.addEventListener('touchstart', (e)=>{
+      if(refreshing) return;
+      if(e.touches.length !== 1) return;
+      if(e.target.closest('input, textarea, select, button, a, .subtabs, nav.tabbar')) return;
+      if(!atTop()) return;
+      startY = e.touches[0].clientY;
+      distance = 0;
+      pulling = true;
+    }, {passive:true});
+
+    document.addEventListener('touchmove', (e)=>{
+      if(!pulling || refreshing) return;
+      distance = e.touches[0].clientY - startY;
+      if(distance <= 0) return;
+      if(!atTop()){ pulling = false; setState('idle',0); return; }
+      const y = Math.min(distance, 126);
+      setState(y >= threshold ? 'ready' : 'pull', y);
+    }, {passive:true});
+
+    document.addEventListener('touchend', async ()=>{
+      if(!pulling || refreshing) return;
+      pulling = false;
+      if(distance < threshold){ setState('idle',0); return; }
+      refreshing = true;
+      setState('refreshing',0);
+      try{
+        await syncStrava({silent:true});
+        setState('done',0);
+        toast('✅ Strava atualizado e dados enviados');
+      }catch(err){
+        console.error(err);
+        icon.textContent = '!';
+        label.textContent = stravaAuth && stravaAuth.accessToken ? 'Falha ao sincronizar' : 'Strava não ligado';
+        indicator.classList.add('visible');
+        toast(stravaAuth && stravaAuth.accessToken ? 'Não foi possível sincronizar o Strava' : 'Liga primeiro o Strava');
+      }finally{
+        setTimeout(()=>{ refreshing = false; setState('idle',0); }, 1300);
+      }
+    }, {passive:true});
+  }
+  initPullToRefresh();
 
 
   const manualHrZonesForm = document.getElementById('form-manual-hr-zones');
