@@ -8827,7 +8827,7 @@ nav.tabbar button.active svg{
         athleteName: data.athlete ? [data.athlete.firstname, data.athlete.lastname].filter(Boolean).join(' ') : '' };
       await sSet('strava-auth', stravaAuth);
       document.getElementById('strava-code').value = '';
-      updateStravaUI(); toast('Strava ligado com sucesso'); syncStrava();
+      updateStravaUI(); toast('Strava ligado com sucesso'); syncStrava({force:true, full:true, recent:true}).catch(err=>{ console.error(err); toast('Strava ligado, mas a importação falhou: ' + (err && err.message ? err.message.slice(0,90) : 'erro')); });
     }catch(err){ console.error(err); toast('Não foi possível ligar ao Strava.'); }
   });
 
@@ -8882,15 +8882,68 @@ nav.tabbar button.active svg{
     };
   }
 
-  async function fetchStravaActivities(){
+  function stravaActivitiesUrl(page, perPage, options){
+    let url = 'https://www.strava.com/api/v3/athlete/activities?per_page=' + perPage + '&page=' + page;
+    // Força a janela recente: de 30 dias atrás até amanhã. Isto evita falhas quando o treino de hoje ainda não aparece por ordenação/cache.
+    if(options && options.recent){
+      const after = Math.floor((Date.now() - 30*24*60*60*1000) / 1000);
+      const before = Math.floor((Date.now() + 36*60*60*1000) / 1000);
+      url += '&after=' + after + '&before=' + before;
+    }
+    return url;
+  }
+
+  async function fetchStravaApi(url){
+    // 1) Tentativa normal com Bearer token.
+    let res = await fetchStrava(url, { headers:{ Authorization:'Bearer ' + stravaAuth.accessToken, 'Accept':'application/json' }});
+    if(res && res.ok) return res;
+
+    // 2) Fallback: alguns proxies/CORS removem o header Authorization. O Strava ainda aceita token no query string em muitas contas.
+    const sep = url.includes('?') ? '&' : '?';
+    const urlWithToken = url + sep + 'access_token=' + encodeURIComponent(stravaAuth.accessToken);
+    const res2 = await fetchStrava(urlWithToken, { headers:{ 'Accept':'application/json' }});
+    if(res2 && res2.ok) return res2;
+
+    return res || res2;
+  }
+
+  async function fetchStravaActivities(options){
     const ok = await ensureFreshToken();
     if(!ok) throw new Error('Strava sem token válido');
-    const after = Math.floor((Date.now() - 1000 * 60 * 60 * 24 * 120) / 1000);
-    const url = 'https://www.strava.com/api/v3/athlete/activities?per_page=80&after=' + after;
-    const res = await fetchStrava(url, { headers:{ Authorization:'Bearer ' + stravaAuth.accessToken }});
-    if(!res.ok) throw new Error('Falha ao pedir atividades Strava (' + res.status + ')');
-    const data = await res.json();
-    return Array.isArray(data) ? data.map(normaliseStravaActivity) : [];
+
+    const perPage = 100;
+    const maxPages = (options && options.full) ? 5 : 3;
+    const all = [];
+    const seen = new Set();
+
+    // Primeiro vai buscar a janela recente, onde deve aparecer o treino de hoje.
+    // Depois faz a busca normal completa para manter histórico.
+    const passes = [];
+    passes.push({recent:true});
+    if(options && options.full) passes.push({recent:false});
+
+    for(const pass of passes){
+      for(let page = 1; page <= maxPages; page++){
+        const url = stravaActivitiesUrl(page, perPage, pass);
+        const res = await fetchStravaApi(url);
+        if(!res || !res.ok){
+          const txt = res ? await res.text().catch(()=> '') : '';
+          throw new Error('Falha Strava atividades (' + (res ? res.status : 'sem resposta') + ') ' + txt.slice(0,140));
+        }
+        const data = await res.json();
+        if(!Array.isArray(data) || data.length === 0) break;
+        data.map(normaliseStravaActivity).forEach(a=>{
+          const id = String(a.id || '');
+          if(id && !seen.has(id)){ seen.add(id); all.push(a); }
+        });
+        if(data.length < perPage) break;
+      }
+    }
+
+    if(options && options.recent && all.length === 0){
+      throw new Error('Strava ligado, mas devolveu 0 atividades recentes. Confirma se a atividade não está privada/oculta e se a autorização tem activity:read_all.');
+    }
+    return all;
   }
 
   function mergeStravaActivities(existing, incoming){
@@ -8929,8 +8982,8 @@ nav.tabbar button.active svg{
       throw new Error('Strava não ligado');
     }
     if(!silent) toast('A sincronizar com Strava...');
-    const incoming = await fetchStravaActivities();
-    stravaActivities = mergeStravaActivities(stravaActivities, incoming);
+    const incoming = await fetchStravaActivities({full: options && options.full, recent: true});
+    stravaActivities = mergeStravaActivities((options && options.force) ? [] : stravaActivities, incoming);
     await sSet('strava-activities', stravaActivities);
     await sSet('strava-last-sync', {at:new Date().toISOString(), count:incoming.length});
     checkTodayPlanAgainstStrava();
@@ -8949,7 +9002,7 @@ nav.tabbar button.active svg{
   if(btnStravaSync){
     btnStravaSync.addEventListener('click', async ()=>{
       btnStravaSync.disabled = true;
-      try{ await syncStrava(); }
+      try{ await syncStrava({force:true, full:true}); }
       catch(err){ console.error(err); toast('Não foi possível sincronizar o Strava'); }
       finally{ updateStravaUI(); }
     });
@@ -9011,7 +9064,7 @@ nav.tabbar button.active svg{
       refreshing = true;
       setState('refreshing',0);
       try{
-        await syncStrava({silent:true});
+        await syncStrava({silent:true, force:true, full:true, recent:true});
         setState('done',0);
         toast('✅ Strava atualizado e dados enviados');
       }catch(err){
@@ -9843,7 +9896,7 @@ nav.tabbar button.active svg{
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
     safe('renderFavoritesList', renderFavoritesList);
 
-    if(stravaAuth && stravaAuth.accessToken){ try{ syncStrava(); }catch(err){ console.error('Falha no sync Strava', err); } }
+    if(stravaAuth && stravaAuth.accessToken){ syncStrava({silent:true, recent:true}).catch(err=>console.error('Falha no sync Strava', err)); }
   }
 })();
 </script>
