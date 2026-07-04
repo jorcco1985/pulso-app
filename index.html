@@ -3719,9 +3719,24 @@ label[for="race-peak-hours"],
 
 /* ---------- Sugestões de alimentos (substitui o datalist, que não abre no iPhone) ---------- */
 #food-suggest{
-  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:60;
-  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
-  max-height:220px; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  right:0;
+  z-index:9999;
+
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+
+  max-height:45vh;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+
   box-shadow:0 14px 34px rgba(0,0,0,.45);
 }
 .food-suggest-item{
@@ -7784,6 +7799,17 @@ nav.tabbar button.active svg{
   foodInputEl.addEventListener('focus', showFoodSuggestions);
   foodInputEl.addEventListener('input', showFoodSuggestions);
   foodInputEl.addEventListener('blur', ()=> setTimeout(hideFoodSuggestions, 200)); // atraso para o toque registar
+
+  // iPhone/Safari: deixa a lista de alimentos fazer scroll sem o gesto ser apanhado pela página
+  // ou pelo Pull to Refresh.
+  foodSuggestEl.addEventListener('touchmove', (e)=>{
+    e.stopPropagation();
+  }, {passive:true});
+
+  foodSuggestEl.addEventListener('wheel', (e)=>{
+    e.stopPropagation();
+  }, {passive:true});
+
   // pointerdown dispara antes do blur — garante que o toque na sugestão funciona no telemóvel
   foodSuggestEl.addEventListener('pointerdown', (e)=>{
     const item = e.target.closest('.food-suggest-item');
@@ -9041,7 +9067,11 @@ nav.tabbar button.active svg{
     document.addEventListener('touchstart', (e)=>{
       if(refreshing) return;
       if(e.touches.length !== 1) return;
-      if(e.target.closest('input, textarea, select, button, a, .subtabs, nav.tabbar')) return;
+      const active = activeScroller();
+      // O Pull to Refresh fica só no Painel. Na Nutrição estava a bloquear o scroll
+      // da lista de alimentos no iPhone.
+      if(!active || active.id !== 'tab-dashboard') return;
+      if(e.target.closest('input, textarea, select, button, a, .subtabs, nav.tabbar, #food-suggest, .food-suggest-item')) return;
       if(!atTop()) return;
       startY = e.touches[0].clientY;
       distance = 0;
