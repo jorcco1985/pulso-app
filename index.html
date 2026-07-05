@@ -9378,6 +9378,13 @@ nav.tabbar button.active svg{
       pushedAt: new Date().toISOString()
     };
     await sSet('pulso-last-push', payload);
+    // Espelha para a cloud (Firebase) quando há sessão iniciada. Falha em silêncio se
+    // não houver rede/conta — os dados ficam sempre guardados localmente.
+    try{
+      if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function'){
+        window.PulsoCloud.uploadData(payload);
+      }
+    }catch(err){ console.warn('Cloud upload falhou (guardado localmente).', err); }
     try{
       await fetch('/.netlify/functions/pulso-push', {
         method:'POST',
@@ -15493,40 +15500,6 @@ nav.tabbar button.active svg{
   function fmtNum(v){ return (v==null||isNaN(v)) ? '—' : String(Math.round(v)); }
   function fmtKm(v){ return (v==null||isNaN(v)) ? '—' : Number(v).toFixed(1).replace('.', ',') + ' km'; }
   function pace(km, sec){ if(!km || !sec) return null; const p = sec/60/km; const m = Math.floor(p); const s = Math.round((p-m)*60); return m + ':' + String(s).padStart(2,'0') + ' /km'; }
-  function fmtWorkoutKcalNeg(v){
-    const n = Math.round(Number(v) || 0);
-    return n > 0 ? '-' + n : '0';
-  }
-  function coachActivityCategory(a){
-    const t = String((a && (a.type || a.sportType || a.rawType)) || '').toLowerCase();
-    if(/ride|bike|cycle|cycling|bicicleta/.test(t)) return 'bike';
-    if(/run|trail|corrida/.test(t)) return 'run';
-    if(/weight|strength|workout|crossfit|forca|força|gym/.test(t)) return 'forca';
-    return 'other';
-  }
-  function coachLastWeightKg(){
-    try{
-      const w = getPulso('weight-entries', []);
-      if(Array.isArray(w) && w.length){
-        const last = w.slice().reverse().find(x=>x && x.kg!=null && x.kg!=='');
-        if(last) return Number(last.kg) || 75;
-      }
-    }catch(e){}
-    return 75;
-  }
-  function coachWorkoutBurnedKcal(a){
-    if(!a) return 0;
-    const raw = Number(a.calories);
-    if(isFinite(raw) && raw > 0) return raw;
-    const kg = coachLastWeightKg();
-    const km = Number(a.distanceKm || ((Number(a.distance)||0)/1000) || 0);
-    const sec = Number(a.movingSec || a.elapsedSec || a.elapsed_time || a.moving_time || 0);
-    const h = sec / 3600;
-    const cat = coachActivityCategory(a);
-    if(cat === 'run' && km > 0) return Math.round(kg * km);
-    const met = cat === 'bike' ? 8 : (cat === 'forca' ? 5 : 4);
-    return h > 0 ? Math.round(met * kg * h) : 0;
-  }
 
   function coachDayRecord(day){
     const hydration = getPulso('hydration-entries', []).filter(e=>sameDay(e.date, day));
@@ -15565,7 +15538,7 @@ nav.tabbar button.active svg{
         restingHr: (lastBp && lastBp.hr!=null && lastBp.hr!=='') ? Number(lastBp.hr) : null,
         workoutMin: Math.round(sum(workouts, e=>(e.movingSec||e.elapsed_time||0))/60),
         workoutKm: Math.round(sum(workouts, e=>e.distanceKm||((e.distance||0)/1000))*10)/10,
-        workoutKcal: Math.round(sum(workouts, e=>coachWorkoutBurnedKcal(e)))
+        workoutKcal: Math.round(sum(workouts, e=>e.calories))
       }
     };
   }
@@ -15698,9 +15671,6 @@ nav.tabbar button.active svg{
     const keys = ['waterMl','colaMl','outraMl','coffeeCount','alcoholUnits','alcoholMl','totalKcal','foodKcal','protein','carbs','fat','workoutMin','workoutKm','workoutKcal'];
     const totals = {};
     keys.forEach(k=>{ totals[k] = records.reduce((sum,r)=>sum+(Number(r.totals[k])||0),0) / Math.max(days.length,1); });
-    // No painel do treinador, as kcal de treino representam gasto acumulado no período escolhido.
-    // Ex.: 7/15/30 dias = soma das kcal gastas nesses dias, apresentada como valor negativo.
-    totals.workoutKcal = records.reduce((sum,r)=>sum+(Number(r.totals.workoutKcal)||0),0);
     totals.sleepHours = avgNullable(records.map(r=>r.totals.sleepHours));
     totals.weightKg = avgNullable(records.map(r=>r.totals.weightKg));
     totals.bpSys = avgNullable(records.map(r=>r.totals.bpSys));
@@ -15848,7 +15818,7 @@ nav.tabbar button.active svg{
       metricCard('Proteína', fmtNum(t.protein)+' g')+
       metricCard('Hidratos', fmtNum(t.carbs)+' g')+
       metricCard('Gorduras', fmtNum(t.fat)+' g')+
-      metricCard('Kcal treino', fmtWorkoutKcalNeg(t.workoutKcal)+' kcal')+
+      metricCard('Kcal treino', fmtNum(t.workoutKcal))+
       '</div></div>';
 
     // Treinos efetuados no período escolhido + últimas atividades Strava (contexto geral)
@@ -16262,5 +16232,562 @@ nav.tabbar button.active svg{
   #coach-calendar .athlete-last30-item{margin:8px 0;}
   #coach-cal-day-body .athlete-last30-item{border-color:rgba(53,217,166,.18);}
 </style>
+
+<!-- ===================== PULSO CLOUD (Firebase) ===================== -->
+<style id="pulso-cloud-css">
+  .pc-overlay{position:fixed; inset:0; z-index:100000; background:#070B14; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:calc(28px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .pc-overlay[hidden]{display:none;}
+  #pc-connecting{margin:auto; text-align:center; color:var(--text-muted);}
+  .pc-spin{width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,.14); border-top-color:var(--teal); margin:0 auto 12px; animation:pc-rot 1s linear infinite;}
+  @keyframes pc-rot{to{transform:rotate(360deg);}}
+  .pc-card{width:100%; max-width:420px; margin:auto; background:rgba(15,22,38,.9); border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:26px 22px; text-align:center;}
+  .pc-logo{width:54px; height:54px; margin:0 auto 12px;}
+  .pc-card h2{margin:0 0 16px; font-family:var(--font-display,inherit); font-size:22px; letter-spacing:.6px;}
+  .pc-field{text-align:left; margin-bottom:12px;}
+  .pc-field label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:800; margin-bottom:5px;}
+  .pc-input{width:100%; background:rgba(7,11,20,.6); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:13px 14px; color:#fff; font-size:16px;}
+  .pc-input:focus{outline:none; border-color:rgba(53,217,166,.5);}
+  .pc-btn{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#fff; border-radius:999px; padding:12px 16px; font-weight:800; font-size:15px; cursor:pointer; min-height:46px;}
+  .pc-btn.block{width:100%; margin-top:4px;}
+  .pc-btn.primary{background:var(--teal); border-color:var(--teal); color:#052018;}
+  .pc-btn.danger{background:rgba(242,85,90,.14); border-color:rgba(242,85,90,.4); color:var(--red);}
+  .pc-btn.tiny{min-height:36px; padding:7px 11px; font-size:13px;}
+  .pc-btn:active{transform:scale(.98);}
+  .pc-error{color:var(--red); font-size:13px; min-height:18px; margin:10px 0 4px;}
+  .pc-auth-links{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .pc-link{background:none; border:0; color:var(--teal); font-size:13px; font-weight:700; cursor:pointer; padding:6px;}
+  #pulso-cloud-btn{position:fixed; bottom:calc(94px + env(safe-area-inset-bottom)); right:16px; z-index:99990; width:46px; height:46px; border-radius:999px; background:rgba(15,22,38,.92); border:1px solid rgba(53,217,166,.45); color:var(--teal); font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  #pulso-cloud-btn[hidden]{display:none;}
+  .pc-sheet{position:fixed; inset:0; z-index:100001; background:rgba(4,7,13,.72); display:flex; align-items:flex-end; justify-content:center;}
+  .pc-sheet[hidden]{display:none;}
+  .pc-sheet-inner{width:100%; max-width:560px; max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#0C1322; border:1px solid rgba(255,255,255,.08); border-radius:26px 26px 0 0; padding:18px 16px calc(24px + env(safe-area-inset-bottom));}
+  .pc-sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .pc-sheet-head h3{margin:0; font-size:18px;}
+  .pc-close{background:rgba(255,255,255,.08); border:0; color:#fff; width:36px; height:36px; border-radius:999px; font-size:20px; cursor:pointer;}
+  .pc-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 0; border-top:1px solid rgba(255,255,255,.07);}
+  .pc-row:first-of-type{border-top:0;}
+  .pc-k{font-weight:800; color:#fff; font-size:15px;}
+  .pc-muted{color:var(--text-muted); font-size:12.5px; line-height:1.4;}
+  .pc-h{margin:16px 0 6px; font-size:13px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted);}
+  .pc-code{background:rgba(53,217,166,.07); border:1px solid rgba(53,217,166,.22); border-radius:14px; padding:11px 12px; margin:6px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px;}
+  .pc-code-val{font-family:monospace; font-size:12px; color:#fff; word-break:break-all; flex:1 1 100%;}
+  .pc-2col{display:flex; gap:8px; flex:0 0 auto;}
+  .pc-actions{display:flex; flex-direction:column; gap:9px; margin-top:18px;}
+  .pc-central-inner{width:100%; max-width:640px; margin:auto; background:#0C1322; border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:18px 16px; max-height:88vh; overflow-y:auto;}
+  #pulso-central{align-items:center; justify-content:center;}
+  #pc-athlete-view{align-items:center; justify-content:center;}
+  .pc-av-inner{width:100%; max-width:460px; background:#0C1322; border:1px solid rgba(255,255,255,.08); border-radius:22px; padding:18px 16px;}
+</style>
+
+<div id="pulso-cloud-auth" class="pc-overlay" aria-hidden="true">
+  <div id="pc-connecting">
+    <div class="pc-spin"></div>
+    <div>A ligar ao Pulso Cloud…</div>
+    <button type="button" class="pc-link" id="pc-offline" hidden style="margin-top:14px;">Usar sem cloud (offline)</button>
+  </div>
+  <div class="pc-card" id="pc-auth" data-mode="signin" hidden>
+    <div class="pc-logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="18" fill="rgba(53,217,166,.14)"/><path d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30" fill="none" stroke="#35D9A6" stroke-width="4" stroke-linecap="round"/><path d="M12 35h10l4-9 5 18 5-13h16" fill="none" stroke="#35D9A6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 id="pc-title">Entrar no Pulso</h2>
+    <div class="pc-field" id="pc-name-field" style="display:none;">
+      <label for="pc-name">Nome</label>
+      <input id="pc-name" class="pc-input" placeholder="ex: Jorge" autocomplete="name">
+    </div>
+    <div class="pc-field">
+      <label for="pc-email">Email</label>
+      <input id="pc-email" class="pc-input" type="email" inputmode="email" autocomplete="email" placeholder="o-teu@email.com">
+    </div>
+    <div class="pc-field">
+      <label for="pc-pass">Palavra-passe</label>
+      <input id="pc-pass" class="pc-input" type="password" autocomplete="current-password" placeholder="••••••">
+    </div>
+    <button class="pc-btn primary block" id="pc-submit" type="button">Entrar</button>
+    <div class="pc-error" id="pc-error"></div>
+    <div class="pc-auth-links">
+      <button class="pc-link" id="pc-toggle" type="button">Criar conta nova</button>
+      <button class="pc-link" id="pc-forgot" type="button">Esqueci a palavra-passe</button>
+    </div>
+  </div>
+</div>
+
+<button id="pulso-cloud-btn" type="button" aria-label="Conta e ligações Pulso" hidden>☁</button>
+
+<div id="pulso-cloud-sheet" class="pc-sheet" hidden aria-hidden="true">
+  <div class="pc-sheet-inner">
+    <div class="pc-sheet-head"><h3>A tua conta Pulso</h3><button class="pc-close" id="pc-sheet-close" type="button" aria-label="Fechar">×</button></div>
+    <div id="pc-sheet-body"></div>
+  </div>
+</div>
+
+<div id="pulso-central" class="pc-overlay" hidden aria-hidden="true">
+  <div class="pc-central-inner">
+    <div class="pc-sheet-head"><h3>Central principal</h3><button class="pc-close" id="pc-central-close" type="button" aria-label="Fechar">×</button></div>
+    <div id="pc-central-body"></div>
+  </div>
+</div>
+
+<div id="pc-athlete-view" class="pc-sheet" hidden aria-hidden="true" style="align-items:center;">
+  <div class="pc-av-inner">
+    <div class="pc-sheet-head"><h3>Dados do atleta</h3><button class="pc-close" id="pc-athlete-view-close" type="button" aria-label="Fechar">×</button></div>
+    <div id="pc-athlete-view-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAt2hVgPVLWOCFQvcAwf2RNnsZRAZn_m-Y",
+  authDomain: "pulso-73653.firebaseapp.com",
+  projectId: "pulso-73653",
+  storageBucket: "pulso-73653.firebasestorage.app",
+  messagingSenderId: "5313128217",
+  appId: "1:5313128217:web:4ac5adce17fc17146e0788"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ---------- utilidades ----------
+const $ = (id) => document.getElementById(id);
+function cloudToast(msg){
+  try{
+    const t = $('toast'); if(!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(cloudToast._t);
+    cloudToast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+  }catch(e){}
+}
+function esc(v){ return String(v ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// Chaves locais que NÃO vão para a cloud (caches grandes/voláteis).
+const EXCLUDE_PREFIXES = ['strava-streams-'];
+const EXCLUDE_KEYS = ['pulso-last-push'];
+function localPulsoSnapshot(){
+  const out = {};
+  for(let i=0;i<localStorage.length;i++){
+    const full = localStorage.key(i);
+    if(!full || full.indexOf('pulso:') !== 0) continue;
+    const k = full.slice(6);
+    if(EXCLUDE_KEYS.includes(k)) continue;
+    if(EXCLUDE_PREFIXES.some(p=>k.indexOf(p)===0)) continue;
+    out[k] = localStorage.getItem(full);
+  }
+  return out;
+}
+function hydrateLocalFrom(keys){
+  if(!keys) return;
+  Object.keys(keys).forEach(k=>{
+    try{ localStorage.setItem('pulso:'+k, keys[k]); }catch(e){}
+  });
+}
+
+// ---------- estado ----------
+let currentUser = null;
+let currentRole = 'athlete';
+let uploadTimer = null;
+
+// ---------- sincronização ----------
+async function uploadData(){
+  if(!currentUser) return;
+  clearTimeout(uploadTimer);
+  uploadTimer = setTimeout(async ()=>{
+    try{
+      const keys = localPulsoSnapshot();
+      await setDoc(doc(db, 'athleteData', currentUser.uid), {
+        keys,
+        name: (currentUser.displayName || ''),
+        email: (currentUser.email || ''),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); }
+  }, 1400);
+}
+
+async function ensureUserDoc(user){
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref, {
+      name: user.displayName || '',
+      email: user.email || '',
+      role: 'athlete',
+      createdAt: new Date().toISOString()
+    });
+    return 'athlete';
+  }
+  return (snap.data() && snap.data().role) || 'athlete';
+}
+
+async function hydrateFromCloudOnce(user){
+  const already = sessionStorage.getItem('pulso-hydrated-uid');
+  const ref = doc(db, 'athleteData', user.uid);
+  let snap = null;
+  try{ snap = await getDoc(ref); }catch(e){ snap = null; }
+  if(snap && snap.exists() && snap.data() && snap.data().keys){
+    if(already !== user.uid){
+      hydrateLocalFrom(snap.data().keys);
+      sessionStorage.setItem('pulso-hydrated-uid', user.uid);
+      return true; // pede reload para refletir os dados descarregados
+    }
+  }else{
+    // Primeira vez desta conta: semeia a cloud com o que já existe localmente.
+    sessionStorage.setItem('pulso-hydrated-uid', user.uid);
+    try{
+      await setDoc(ref, {
+        keys: localPulsoSnapshot(),
+        name: user.displayName || '',
+        email: user.email || '',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    }catch(e){ console.warn('Falha ao semear cloud', e); }
+  }
+  return false;
+}
+
+// ---------- ligações (atleta <-> treinador) ----------
+function linkId(athleteUid, trainerUid){ return athleteUid + '_' + trainerUid; }
+
+async function requestLink(otherCode, asRole){
+  otherCode = String(otherCode || '').trim();
+  if(!otherCode || !currentUser) { cloudToast('Código inválido.'); return; }
+  if(otherCode === currentUser.uid){ cloudToast('Esse código é o teu.'); return; }
+  const athleteUid = asRole === 'athlete' ? currentUser.uid : otherCode;
+  const trainerUid = asRole === 'athlete' ? otherCode : currentUser.uid;
+  const id = linkId(athleteUid, trainerUid);
+  try{
+    const ref = doc(db, 'links', id);
+    const existing = await getDoc(ref);
+    const base = existing.exists() ? existing.data() : { athleteUid, trainerUid, athleteConsent:false, trainerConsent:false, status:'pending', createdAt:new Date().toISOString() };
+    if(asRole === 'athlete') base.athleteConsent = true; else base.trainerConsent = true;
+    base.requestedBy = asRole;
+    base.updatedAt = new Date().toISOString();
+    base.status = (base.athleteConsent && base.trainerConsent) ? 'active' : 'pending';
+    await setDoc(ref, base, { merge:true });
+    cloudToast(base.status === 'active' ? 'Ligação ativa!' : 'Convite enviado. Falta a outra pessoa aceitar.');
+    renderSheet();
+  }catch(err){ console.error(err); cloudToast('Não foi possível enviar o convite.'); }
+}
+
+async function respondLink(id, accept){
+  try{
+    const ref = doc(db, 'links', id);
+    const snap = await getDoc(ref);
+    if(!snap.exists()){ cloudToast('Convite já não existe.'); renderSheet(); return; }
+    if(!accept){ await deleteDoc(ref); cloudToast('Convite recusado.'); renderSheet(); return; }
+    const d = snap.data();
+    const iAmAthlete = d.athleteUid === currentUser.uid;
+    const patch = { updatedAt:new Date().toISOString() };
+    if(iAmAthlete) patch.athleteConsent = true; else patch.trainerConsent = true;
+    const bothOk = (iAmAthlete ? true : d.athleteConsent) && (iAmAthlete ? d.trainerConsent : true);
+    patch.status = bothOk ? 'active' : 'pending';
+    await updateDoc(ref, patch);
+    cloudToast(bothOk ? 'Ligação ativa!' : 'Aceite. Falta a outra parte.');
+    renderSheet();
+  }catch(err){ console.error(err); cloudToast('Não foi possível responder.'); }
+}
+
+async function unlink(id){
+  try{ await deleteDoc(doc(db, 'links', id)); cloudToast('Ligação removida.'); renderSheet(); }
+  catch(err){ console.error(err); cloudToast('Não foi possível remover.'); }
+}
+
+async function myLinks(){
+  if(!currentUser) return [];
+  const asAth = query(collection(db,'links'), where('athleteUid','==',currentUser.uid));
+  const asTr = query(collection(db,'links'), where('trainerUid','==',currentUser.uid));
+  const out = [];
+  try{
+    const [a, b] = await Promise.all([getDocs(asAth), getDocs(asTr)]);
+    a.forEach(s=>out.push(Object.assign({id:s.id, iAm:'athlete'}, s.data())));
+    b.forEach(s=>out.push(Object.assign({id:s.id, iAm:'trainer'}, s.data())));
+  }catch(err){ console.warn('Falha ao ler ligações', err); }
+  return out;
+}
+
+async function nameForUid(uid){
+  try{ const s = await getDoc(doc(db,'users',uid)); return s.exists() ? (s.data().name || s.data().email || uid) : uid; }
+  catch(e){ return uid; }
+}
+
+// ---------- UI: ecrã de autenticação ----------
+function showAuth(show){
+  const el = $('pulso-cloud-auth'); if(!el) return;
+  el.hidden = !show; el.setAttribute('aria-hidden', show ? 'false' : 'true');
+  if(show){
+    const conn = $('pc-connecting'); if(conn) conn.hidden = true;
+    const card = $('pc-auth'); if(card) card.hidden = false;
+  }
+}
+function setAuthMode(mode){
+  $('pc-auth').dataset.mode = mode;
+  $('pc-name-field').style.display = mode === 'signup' ? '' : 'none';
+  $('pc-submit').textContent = mode === 'signup' ? 'Criar conta' : 'Entrar';
+  $('pc-toggle').textContent = mode === 'signup' ? 'Já tenho conta' : 'Criar conta nova';
+  $('pc-title').textContent = mode === 'signup' ? 'Criar conta Pulso' : 'Entrar no Pulso';
+  $('pc-error').textContent = '';
+}
+function authBusy(b){
+  const btn = $('pc-submit'); if(btn){ btn.disabled = b; btn.style.opacity = b ? '.6' : '1'; }
+}
+
+async function doAuthSubmit(){
+  const mode = $('pc-auth').dataset.mode || 'signin';
+  const email = ($('pc-email').value||'').trim();
+  const pw = $('pc-pass').value||'';
+  const name = ($('pc-name').value||'').trim();
+  const err = $('pc-error'); err.textContent = '';
+  if(!email || !pw){ err.textContent = 'Preenche email e palavra-passe.'; return; }
+  if(mode === 'signup' && !name){ err.textContent = 'Escreve o teu nome.'; return; }
+  if(mode === 'signup' && pw.length < 6){ err.textContent = 'A palavra-passe precisa de 6+ caracteres.'; return; }
+  authBusy(true);
+  try{
+    if(mode === 'signup'){
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      try{ await updateProfile(cred.user, { displayName: name }); }catch(e){}
+      // guarda já o nome no perfil local para a app o usar
+      try{
+        const prof = JSON.parse(localStorage.getItem('pulso:profile')||'{}') || {};
+        prof.name = name; localStorage.setItem('pulso:profile', JSON.stringify(prof));
+      }catch(e){}
+    }else{
+      await signInWithEmailAndPassword(auth, email, pw);
+    }
+  }catch(e){
+    err.textContent = friendlyAuthError(e);
+    authBusy(false);
+  }
+}
+function friendlyAuthError(e){
+  const c = (e && e.code) || '';
+  if(c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found')) return 'Email ou palavra-passe errados.';
+  if(c.includes('email-already-in-use')) return 'Esse email já tem conta. Tenta entrar.';
+  if(c.includes('invalid-email')) return 'Email inválido.';
+  if(c.includes('weak-password')) return 'Palavra-passe fraca (mín. 6 caracteres).';
+  if(c.includes('network')) return 'Sem ligação à internet.';
+  if(c.includes('too-many-requests')) return 'Demasiadas tentativas. Espera um pouco.';
+  return 'Não foi possível continuar. Tenta de novo.';
+}
+
+async function doReset(){
+  const email = ($('pc-email').value||'').trim();
+  if(!email){ $('pc-error').textContent = 'Escreve o email para recuperar.'; return; }
+  try{ await sendPasswordResetEmail(auth, email); cloudToast('Email de recuperação enviado.'); }
+  catch(e){ $('pc-error').textContent = friendlyAuthError(e); }
+}
+
+// ---------- UI: folha da conta ----------
+function openSheet(){ const s=$('pulso-cloud-sheet'); if(s){ s.hidden=false; s.setAttribute('aria-hidden','false'); renderSheet(); } }
+function closeSheet(){ const s=$('pulso-cloud-sheet'); if(s){ s.hidden=true; s.setAttribute('aria-hidden','true'); } }
+
+async function renderSheet(){
+  const body = $('pc-sheet-body'); if(!body || !currentUser) return;
+  body.innerHTML = '<p class="pc-muted">A carregar…</p>';
+  const links = await myLinks();
+  const pending = links.filter(l=> l.status !== 'active' && ((l.iAm==='athlete' && !l.athleteConsent) || (l.iAm==='trainer' && !l.trainerConsent)));
+  const waiting = links.filter(l=> l.status !== 'active' && !pending.includes(l));
+  const active = links.filter(l=> l.status === 'active');
+
+  const nameCache = {};
+  await Promise.all(links.map(async l=>{
+    const other = l.iAm==='athlete' ? l.trainerUid : l.athleteUid;
+    nameCache[other] = await nameForUid(other);
+  }));
+  const otherOf = l => l.iAm==='athlete' ? l.trainerUid : l.athleteUid;
+  const roleWord = l => l.iAm==='athlete' ? 'treinador' : 'atleta';
+
+  let html = '';
+  html += '<div class="pc-row"><div><div class="pc-k">'+esc(currentUser.displayName||'—')+'</div><div class="pc-muted">'+esc(currentUser.email||'')+' · '+esc(roleLabel(currentRole))+'</div></div></div>';
+  html += '<div class="pc-code"><div class="pc-muted">O teu código Pulso (partilha para te ligarem):</div><div class="pc-code-val" id="pc-my-code">'+esc(currentUser.uid)+'</div><button type="button" class="pc-btn tiny" id="pc-copy-code">Copiar</button></div>';
+
+  html += '<h4 class="pc-h">Ligar a alguém</h4>';
+  html += '<div class="pc-muted" style="margin-bottom:6px;">Cola o código da outra pessoa e escolhe como te queres ligar.</div>';
+  html += '<input class="pc-input" id="pc-link-code" placeholder="Código Pulso da outra pessoa">';
+  html += '<div class="pc-2col"><button type="button" class="pc-btn" id="pc-link-as-athlete">É o meu treinador</button><button type="button" class="pc-btn" id="pc-link-as-trainer">Sou treinador dele</button></div>';
+
+  if(pending.length){
+    html += '<h4 class="pc-h">Convites a aguardar a tua resposta</h4>';
+    html += pending.map(l=>'<div class="pc-row"><div><div class="pc-k">'+esc(nameCache[otherOf(l)]||otherOf(l))+'</div><div class="pc-muted">quer ligar-se como '+(l.iAm==='athlete'?'teu treinador':'teu atleta')+'</div></div><div class="pc-2col"><button type="button" class="pc-btn tiny primary" data-accept="'+esc(l.id)+'">Aceitar</button><button type="button" class="pc-btn tiny" data-reject="'+esc(l.id)+'">Recusar</button></div></div>').join('');
+  }
+  if(waiting.length){
+    html += '<h4 class="pc-h">Convites enviados (à espera)</h4>';
+    html += waiting.map(l=>'<div class="pc-row"><div><div class="pc-k">'+esc(nameCache[otherOf(l)]||otherOf(l))+'</div><div class="pc-muted">à espera que aceite</div></div><button type="button" class="pc-btn tiny" data-unlink="'+esc(l.id)+'">Cancelar</button></div>').join('');
+  }
+  html += '<h4 class="pc-h">Ligações ativas</h4>';
+  if(active.length){
+    html += active.map(l=>'<div class="pc-row"><div><div class="pc-k">'+esc(nameCache[otherOf(l)]||otherOf(l))+'</div><div class="pc-muted">teu '+roleWord(l)+(l.iAm==='trainer'?' — podes ver os dados dele':'')+'</div></div><div class="pc-2col">'+(l.iAm==='trainer'?'<button type="button" class="pc-btn tiny primary" data-view="'+esc(l.athleteUid)+'">Ver dados</button>':'')+'<button type="button" class="pc-btn tiny" data-unlink="'+esc(l.id)+'">Desligar</button></div></div>').join('');
+  }else{
+    html += '<p class="pc-muted">Ainda sem ligações. Por defeito és treinador de ti próprio.</p>';
+  }
+
+  html += '<div class="pc-actions">';
+  if(currentRole === 'owner'){ html += '<button type="button" class="pc-btn" id="pc-open-central">Central principal</button>'; }
+  html += '<button type="button" class="pc-btn danger" id="pc-signout">Terminar sessão</button></div>';
+  body.innerHTML = html;
+
+  const copyBtn = $('pc-copy-code'); if(copyBtn) copyBtn.onclick = ()=>{ try{ navigator.clipboard.writeText(currentUser.uid); cloudToast('Código copiado.'); }catch(e){ cloudToast('Copia manualmente.'); } };
+  const la = $('pc-link-as-athlete'); if(la) la.onclick = ()=> requestLink($('pc-link-code').value, 'athlete');
+  const lt = $('pc-link-as-trainer'); if(lt) lt.onclick = ()=> requestLink($('pc-link-code').value, 'trainer');
+  body.querySelectorAll('[data-accept]').forEach(b=> b.onclick = ()=> respondLink(b.getAttribute('data-accept'), true));
+  body.querySelectorAll('[data-reject]').forEach(b=> b.onclick = ()=> respondLink(b.getAttribute('data-reject'), false));
+  body.querySelectorAll('[data-unlink]').forEach(b=> b.onclick = ()=> unlink(b.getAttribute('data-unlink')));
+  body.querySelectorAll('[data-view]').forEach(b=> b.onclick = ()=> viewAthlete(b.getAttribute('data-view')));
+  const oc = $('pc-open-central'); if(oc) oc.onclick = openCentral;
+  const so = $('pc-signout'); if(so) so.onclick = doSignOut;
+}
+
+function roleLabel(r){ return r==='owner' ? 'Dono' : (r==='trainer' ? 'Treinador' : 'Atleta'); }
+
+// Treinador vê um resumo dos dados do atleta ligado (prova de acesso end-to-end).
+async function viewAthlete(athleteUid){
+  cloudToast('A carregar dados do atleta…');
+  try{
+    const snap = await getDoc(doc(db,'athleteData',athleteUid));
+    if(!snap.exists()){ cloudToast('Sem dados deste atleta ainda.'); return; }
+    const keys = snap.data().keys || {};
+    const prof = safeParse(keys['profile'], {});
+    const weight = safeParse(keys['weight-entries'], []);
+    const bp = safeParse(keys['bp-entries'], []);
+    const lastW = Array.isArray(weight) ? weight.slice(-1)[0] : null;
+    const lastBp = Array.isArray(bp) ? bp.slice(-1)[0] : null;
+    const box = $('pc-athlete-view'); const body = $('pc-athlete-view-body');
+    body.innerHTML =
+      '<h3 style="margin:0 0 8px;">'+esc(snap.data().name || prof.name || 'Atleta')+'</h3>'+
+      '<p class="pc-muted">Atualizado: '+esc((snap.data().updatedAt||'').slice(0,16).replace('T',' '))+'</p>'+
+      '<div class="pc-row"><div class="pc-k">'+(prof.age?esc(prof.age)+' anos':'—')+'</div><div class="pc-muted">Idade</div></div>'+
+      '<div class="pc-row"><div class="pc-k">'+(prof.heightCm?esc(prof.heightCm)+' cm':'—')+'</div><div class="pc-muted">Altura</div></div>'+
+      '<div class="pc-row"><div class="pc-k">'+(lastW&&lastW.kg?esc(lastW.kg)+' kg':'—')+'</div><div class="pc-muted">Último peso</div></div>'+
+      '<div class="pc-row"><div class="pc-k">'+(lastBp?esc(lastBp.sys)+'/'+esc(lastBp.dia)+' mmHg':'—')+'</div><div class="pc-muted">Última pressão</div></div>'+
+      '<p class="pc-muted" style="margin-top:10px;">Vista completa no modo Treinador a caminho.</p>';
+    box.hidden = false; box.setAttribute('aria-hidden','false');
+  }catch(err){ console.error(err); cloudToast('Sem permissão ou sem dados.'); }
+}
+function safeParse(v, f){ try{ return v!=null ? JSON.parse(v) : f; }catch(e){ return f; } }
+
+// ---------- UI: Central principal (dono) ----------
+function openCentral(){ const c=$('pulso-central'); if(c){ c.hidden=false; c.setAttribute('aria-hidden','false'); renderCentral(); } }
+function closeCentral(){ const c=$('pulso-central'); if(c){ c.hidden=true; c.setAttribute('aria-hidden','true'); } }
+
+async function renderCentral(){
+  const body = $('pc-central-body'); if(!body) return;
+  body.innerHTML = '<p class="pc-muted">A carregar utilizadores…</p>';
+  try{
+    const snap = await getDocs(collection(db,'users'));
+    const users = []; snap.forEach(s=> users.push(Object.assign({uid:s.id}, s.data())));
+    users.sort((a,b)=> String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));
+    let html = '<div class="pc-muted" style="margin-bottom:8px;">'+users.length+' utilizador(es). Muda o papel de cada um.</div>';
+    html += users.map(u=>'<div class="pc-row"><div style="min-width:0;"><div class="pc-k">'+esc(u.name||'—')+'</div><div class="pc-muted">'+esc(u.email||'')+' · '+esc(roleLabel(u.role))+'</div></div>'+
+      '<select class="pc-input" style="width:auto; min-width:120px;" data-role-for="'+esc(u.uid)+'">'+
+        ['athlete','trainer','owner'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+roleLabel(r)+'</option>').join('')+
+      '</select></div>').join('');
+    body.innerHTML = html;
+    body.querySelectorAll('[data-role-for]').forEach(sel=>{
+      sel.onchange = async ()=>{
+        const uid = sel.getAttribute('data-role-for');
+        try{ await updateDoc(doc(db,'users',uid), { role: sel.value }); cloudToast('Papel atualizado.'); if(uid===currentUser.uid){ currentRole = sel.value; renderSheet(); } }
+        catch(e){ console.error(e); cloudToast('Sem permissão para mudar (só o dono).'); }
+      };
+    });
+  }catch(err){ console.error(err); body.innerHTML = '<p class="pc-muted">Sem permissão. Só o dono vê a central. Se devias ser dono, define o teu papel como "owner" na consola do Firestore uma vez.</p>'; }
+}
+
+async function doSignOut(){
+  try{ await fbSignOut(auth); }catch(e){}
+  sessionStorage.removeItem('pulso-hydrated-uid');
+  cloudToast('Sessão terminada.');
+  location.reload();
+}
+
+// ---------- ciclo de autenticação ----------
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user || null;
+  const btn = $('pulso-cloud-btn');
+  if(!user){
+    showAuth(true);
+    if(btn) btn.hidden = true;
+    const card = $('pc-auth');
+    setAuthMode(card && card.dataset.mode ? card.dataset.mode : 'signin');
+    return;
+  }
+  try{ currentRole = await ensureUserDoc(user); }catch(e){ currentRole = 'athlete'; }
+  const needsReload = await hydrateFromCloudOnce(user);
+  if(needsReload){ location.reload(); return; }
+  showAuth(false);
+  if(btn) btn.hidden = false;
+  // pré-preenche o nome no ecrã inicial da app
+  try{
+    const nameEl = $('login-name');
+    if(nameEl && !nameEl.value) nameEl.value = user.displayName || '';
+  }catch(e){}
+  // uma sincronização inicial (garante a cloud coerente com o local)
+  uploadData();
+});
+
+// ---------- ligações de UI estáticas ----------
+document.addEventListener('DOMContentLoaded', wireStaticUI);
+if(document.readyState !== 'loading') wireStaticUI();
+function wireStaticUI(){
+  if(wireStaticUI._done) return; wireStaticUI._done = true;
+  const submit = $('pc-submit'); if(submit) submit.onclick = doAuthSubmit;
+  const toggle = $('pc-toggle'); if(toggle) toggle.onclick = ()=> setAuthMode(($('pc-auth').dataset.mode==='signup')?'signin':'signup');
+  const forgot = $('pc-forgot'); if(forgot) forgot.onclick = doReset;
+  const pass = $('pc-pass'); if(pass) pass.addEventListener('keydown', e=>{ if(e.key==='Enter') doAuthSubmit(); });
+  const cloudBtn = $('pulso-cloud-btn'); if(cloudBtn) cloudBtn.onclick = openSheet;
+  const sheetClose = $('pc-sheet-close'); if(sheetClose) sheetClose.onclick = closeSheet;
+  const centralClose = $('pc-central-close'); if(centralClose) centralClose.onclick = closeCentral;
+  const avClose = $('pc-athlete-view-close'); if(avClose) avClose.onclick = ()=>{ const b=$('pc-athlete-view'); if(b){ b.hidden=true; b.setAttribute('aria-hidden','true'); } };
+  setAuthMode('signin');
+}
+
+// ---------- API pública ----------
+window.PulsoCloud = {
+  uploadData,
+  get user(){ return currentUser; },
+  get role(){ return currentRole; },
+  openSheet, openCentral, signOut: doSignOut
+};
+
+</script>
+
+<script>
+// Fallback: se o modulo cloud nao carregar (sem rede/CDN), permite usar offline.
+setTimeout(function(){
+  try{
+    if(!window.PulsoCloud){
+      var o=document.getElementById("pc-offline"); if(o) o.hidden=false;
+    }
+  }catch(e){}
+}, 7000);
+document.addEventListener("click", function(e){
+  if(e.target && e.target.id==="pc-offline"){
+    var ov=document.getElementById("pulso-cloud-auth"); if(ov){ ov.hidden=true; ov.setAttribute("aria-hidden","true"); }
+  }
+});
+</script>
+<!-- =================== FIM PULSO CLOUD =================== -->
+
+<script>
+// Regista o service worker (PWA / offline). Recarrega uma vez quando entra uma
+// versão nova, mas nunca na primeira instalação nem em ciclo.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register("/sw.js").catch(function (e) {
+      console.warn("Registo do service worker falhou", e);
+    });
+    var reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    });
+  });
+}
+</script>
+
 </body>
 </html>
