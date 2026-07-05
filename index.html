@@ -4349,6 +4349,23 @@ main > section, .subview, .scroll-y {
   .pulso-pull-text{font-size:12.5px;}
 }
 
+
+
+/* ================= AJUSTE JORGE — painel sem escolha de treino do atleta + biblioteca minimizável ================= */
+#tab-dashboard #today-workout-card{display:none !important;}
+.coach-lib-card.coach-collapsible{padding:0 !important; overflow:hidden;}
+.coach-lib-card.coach-collapsible details{display:block;}
+.coach-lib-card.coach-collapsible summary{list-style:none; cursor:pointer; padding:14px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.coach-lib-card.coach-collapsible summary::-webkit-details-marker{display:none;}
+.coach-lib-titleline{display:flex; flex-direction:column; gap:4px; min-width:0;}
+.coach-lib-titleline .lib-title{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.coach-lib-titleline .coach-mini-meta{font-size:11px; color:var(--text-muted); font-weight:800;}
+.coach-collapse-icon{font-size:20px; color:var(--text-muted); transform:rotate(0deg); transition:transform .15s ease;}
+details[open] .coach-collapse-icon{transform:rotate(90deg);}
+.coach-lib-details{padding:0 14px 14px;}
+.coach-lib-details .coach-workout-desc{margin-top:2px;}
+#athlete-cal-day-card.is-empty{display:none !important;}
+
 </style>
 
 
@@ -6161,9 +6178,9 @@ nav.tabbar button.active svg{
         </div>
         <div id="athlete-calendar" style="margin-top:10px;"></div>
       </div>
-      <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-        <h3 id="athlete-cal-day-title" style="margin:0 0 8px;">Toca num dia</h3>
-        <div id="athlete-cal-day-body" class="scroll-y" style="flex:1; min-height:0;"><p class="help" style="margin:0;">Escolhe um dia no calendário para veres o que está agendado.</p></div>
+      <div class="card is-empty" id="athlete-cal-day-card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+        <h3 id="athlete-cal-day-title" style="margin:0 0 8px;"></h3>
+        <div id="athlete-cal-day-body" class="scroll-y" style="flex:1; min-height:0;"></div>
       </div>
 
       <div class="card athlete-last30-card">
@@ -13652,7 +13669,7 @@ nav.tabbar button.active svg{
               <h2>Biblioteca de treinos</h2>
               <button class="coach-btn tiny ghost" type="button" id="coach-fav-filter">★ Só favoritos</button>
             </div>
-            <div class="coach-note" style="margin-bottom:10px;">Marca ★ para favorito. Usa <strong>Agendar</strong> para colocar o treino num dia do calendário do atleta.</div>
+            <div class="coach-note" style="margin-bottom:10px;">Abre um treino pelo nome para editar ou prescrever no calendário do atleta.</div>
             <div id="coach-workouts-list"></div>
           </div>
         </div>
@@ -13883,37 +13900,62 @@ nav.tabbar button.active svg{
       el.innerHTML = '<div class="coach-empty">' + (favFilterOn ? 'Ainda não marcaste treinos como favoritos.' : 'Ainda não há treinos. Cria um treino no editor acima para começares.') + '</div>';
       return;
     }
+    const meta = (type, min, source)=>{
+      const bits = [];
+      if(source) bits.push(source);
+      if(type) bits.push(coachModalityLabel(type));
+      if(min) bits.push(min + ' min');
+      return bits.join(' · ');
+    };
     let html = '';
     coachW.forEach(w=>{
-      html += `<div class="coach-lib-card" style="margin-bottom:10px;">
-        <div class="row space-between" style="align-items:flex-start; gap:8px;">
-          <div class="lib-title" style="flex:1; min-width:0;">${esc(w.name||'Treino')}</div>
-          <button class="coach-fav-star${w.favorite?' on':''}" type="button" data-lib-fav="${esc(w.id)}" title="Favorito" aria-label="Favorito">${w.favorite?'★':'☆'}</button>
-        </div>
-        ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : ''}
-        <div class="coach-pill-row">
-          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
-          ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
-        </div>
-        <div class="lib-actions">
-          <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}">Agendar</button>
-          <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}">Editar</button>
-          <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}">Apagar</button>
-        </div>
+      html += `<div class="coach-lib-card coach-collapsible" style="margin-bottom:10px;">
+        <details>
+          <summary>
+            <div class="coach-lib-titleline">
+              <div class="lib-title">${esc(w.name||'Treino')}</div>
+              <div class="coach-mini-meta">${esc(meta(w.type, w.baseMinutes, w.favorite ? '★ Favorito' : 'Treino do treinador'))}</div>
+            </div>
+            <span class="coach-collapse-icon">›</span>
+          </summary>
+          <div class="coach-lib-details">
+            ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : '<div class="coach-workout-desc">Sem descrição.</div>'}
+            <div class="coach-pill-row">
+              ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+              ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
+            </div>
+            <div class="lib-actions">
+              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}">Prescrever / Agendar</button>
+              <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}">Editar</button>
+              <button class="coach-fav-star${w.favorite?' on':''}" type="button" data-lib-fav="${esc(w.id)}" title="Favorito" aria-label="Favorito">${w.favorite?'★':'☆'}</button>
+              <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}">Apagar</button>
+            </div>
+          </div>
+        </details>
       </div>`;
     });
     athleteW.forEach(w=>{
-      html += `<div class="coach-lib-card" style="margin-bottom:10px;">
-        <div class="lib-title">${esc(w.title)}</div>
-        ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : ''}
-        <div class="coach-pill-row">
-          <span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">${esc(w.source)}</span>
-          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
-          ${w.duration ? `<span class="coach-pill">${esc(w.duration)} min</span>` : ''}
-        </div>
-        <div class="lib-actions">
-          <button class="coach-btn tiny" type="button" data-lib-import="${esc(w.id)}">Copiar para o editor</button>
-        </div>
+      html += `<div class="coach-lib-card coach-collapsible" style="margin-bottom:10px;">
+        <details>
+          <summary>
+            <div class="coach-lib-titleline">
+              <div class="lib-title">${esc(w.title)}</div>
+              <div class="coach-mini-meta">${esc(meta(w.type, w.duration, w.source))}</div>
+            </div>
+            <span class="coach-collapse-icon">›</span>
+          </summary>
+          <div class="coach-lib-details">
+            ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : '<div class="coach-workout-desc">Sem descrição.</div>'}
+            <div class="coach-pill-row">
+              <span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">${esc(w.source)}</span>
+              ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+              ${w.duration ? `<span class="coach-pill">${esc(w.duration)} min</span>` : ''}
+            </div>
+            <div class="lib-actions">
+              <button class="coach-btn tiny" type="button" data-lib-import="${esc(w.id)}">Copiar para editar/prescrever</button>
+            </div>
+          </div>
+        </details>
       </div>`;
     });
     el.innerHTML = html;
@@ -14499,11 +14541,14 @@ nav.tabbar button.active svg{
     const title = document.getElementById('athlete-cal-day-title');
     const body = document.getElementById('athlete-cal-day-body');
     if(!body) return;
+    const dayCard = document.getElementById('athlete-cal-day-card');
     if(!athleteSelectedDay){
-      if(title) title.textContent = 'Toca num dia';
-      body.innerHTML = '<p class="help" style="margin:0;">Escolhe um dia no calendário para veres o que está agendado.</p>';
+      if(dayCard) dayCard.classList.add('is-empty');
+      if(title) title.textContent = '';
+      body.innerHTML = '';
       return;
     }
+    if(dayCard) dayCard.classList.remove('is-empty');
     const items = (getCalendarFor('local')[athleteSelectedDay] || []);
     const completed = recentCompletedWorkouts(30).filter(a=>activityDay(a) === athleteSelectedDay);
     const race = raceFor('local');
