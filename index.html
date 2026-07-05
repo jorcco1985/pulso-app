@@ -6337,7 +6337,7 @@ nav.tabbar button.active svg{
         </form>
       </div>
       <div id="race-summary" class="card fixed-form" style="display:none;"></div>
-      <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;" id="plan-section" style="display:none;">
+      <div class="card" id="plan-section" style="flex:1; min-height:0; display:none; flex-direction:column;">
         <div class="row space-between">
           <h3 style="margin:0;">Plano sugerido</h3>
           <button class="ghost" id="btn-generate-plan" type="button">Gerar</button>
@@ -6835,6 +6835,10 @@ nav.tabbar button.active svg{
       <h3 id="strava-speed-title">Velocidade / ritmo</h3>
       <div class="strava-mini-chart" id="strava-speed-chart"></div>
     </div>
+    <div class="card" style="margin-top:12px; display:none;" id="strava-power-card">
+      <h3>Potência</h3>
+      <div class="strava-mini-chart" id="strava-power-chart"></div>
+    </div>
   </div>
 </div>
 
@@ -7143,6 +7147,7 @@ nav.tabbar button.active svg{
     }
     else if(activeTab.id === 'tab-treinos'){
       if(activeSub && activeSub.id === 'sub-resumo') renderTraining7d();
+      if(activeSub && activeSub.id === 'sub-objetivo') renderRaceAndPlan();
     }
     resizeCharts();
   }
@@ -9671,8 +9676,13 @@ nav.tabbar button.active svg{
     const gradId = 'grad-' + Math.random().toString(36).slice(2);
     const defs = svgEl('defs', {});
     const grad = svgEl('linearGradient', {id:gradId, x1:'0', y1:'0', x2:'0', y2:'1'});
-    grad.appendChild(svgEl('stop', {offset:'0%', 'stop-color':color || 'var(--teal)', 'stop-opacity':'.72'}));
-    grad.appendChild(svgEl('stop', {offset:'100%', 'stop-color':color || 'var(--teal)', 'stop-opacity':'.18'}));
+    // Quando o eixo está invertido (ritmo: mais rápido em cima), a área fica por cima da
+    // linha. Nesse caso trocamos a direção do gradiente para o preenchimento ficar mais forte
+    // junto à linha e a esbater-se em direção à base — evita a "cor invertida" (forte no topo).
+    const topOpacity = options.invertY ? '.18' : '.72';
+    const bottomOpacity = options.invertY ? '.72' : '.18';
+    grad.appendChild(svgEl('stop', {offset:'0%', 'stop-color':color || 'var(--teal)', 'stop-opacity':topOpacity}));
+    grad.appendChild(svgEl('stop', {offset:'100%', 'stop-color':color || 'var(--teal)', 'stop-opacity':bottomOpacity}));
     defs.appendChild(grad); svg.appendChild(defs);
 
     const yTicks = niceTicks(min, max, 4);
@@ -9723,7 +9733,7 @@ nav.tabbar button.active svg{
     if(cached && cached.savedAt) return cached;
     const ok = await ensureStravaToken();
     if(!ok) throw new Error('Strava sem token válido');
-    const url = 'https://www.strava.com/api/v3/activities/' + encodeURIComponent(activityId) + '/streams?keys=time,distance,heartrate,velocity_smooth&key_by_type=true';
+    const url = 'https://www.strava.com/api/v3/activities/' + encodeURIComponent(activityId) + '/streams?keys=time,distance,heartrate,velocity_smooth,watts&key_by_type=true';
     const res = await fetchStravaApi(url);
     if(!res || !res.ok){
       const txt = res ? await res.text().catch(()=> '') : '';
@@ -9735,6 +9745,7 @@ nav.tabbar button.active svg{
       distance: data.distance && Array.isArray(data.distance.data) ? data.distance.data : [],
       heartrate: data.heartrate && Array.isArray(data.heartrate.data) ? data.heartrate.data : [],
       velocity: data.velocity_smooth && Array.isArray(data.velocity_smooth.data) ? data.velocity_smooth.data : [],
+      watts: data.watts && Array.isArray(data.watts.data) ? data.watts.data : [],
       savedAt: new Date().toISOString()
     };
     await sSet(cacheKey, pack);
@@ -9748,10 +9759,11 @@ nav.tabbar button.active svg{
     const totalSec = Number(a.movingSec) || mins*60;
     // <=116 pontos para não serem novamente suavizados por simplifyStreamRows (limite 120).
     const points = Math.min(116, Math.max(40, mins*2));
-    const rowsHr=[], rowsSpeed=[];
+    const rowsHr=[], rowsSpeed=[], rowsPower=[];
     const avgHr = Number(a.avgHr)||null;
     const maxHr = Number(a.maxHr)||null;
     const avgSpeed = Number(a.avgSpeedKmh)||null;
+    const avgWatts = Number(a.avgWatts)||null;
 
     // PRNG determinístico (mulberry32) semeado pelo identificador do treino.
     let seed = 0;
@@ -9767,7 +9779,7 @@ nav.tabbar button.active svg{
     const phA = rnd()*Math.PI*2, phB = rnd()*Math.PI*2, phC = rnd()*Math.PI*2;
     const perA = 5 + rnd()*4, perB = 11 + rnd()*7;
 
-    let hrPrev = avgHr, spPrev = avgSpeed;
+    let hrPrev = avgHr, spPrev = avgSpeed, pwPrev = avgWatts;
     for(let i=0;i<points;i++){
       const p = i/(points-1);
       const t = totalSec * p;
@@ -9797,8 +9809,19 @@ nav.tabbar button.active svg{
         spPrev = v;
         rowsSpeed.push({t, v});
       }
+      if(avgWatts){
+        // Potência estimada com a mesma textura orgânica (só quando há média de watts).
+        const pwSwing = Math.max(12, avgWatts * 0.28);
+        const macroP = Math.sin(i/(perB*0.7) + phA) * pwSwing * 0.6 + Math.sin(i/perA + phC) * pwSwing * 0.3;
+        const microP = noise(pwSwing * 0.40) + (rnd() < 0.09 ? noise(pwSwing * 0.7) : 0);
+        let v = avgWatts + macroP + microP;
+        v = pwPrev == null ? v : pwPrev * 0.35 + v * 0.65;
+        v = Math.max(0, v);
+        pwPrev = v;
+        rowsPower.push({t, v});
+      }
     }
-    return {hr:rowsHr, speed:rowsSpeed};
+    return {hr:rowsHr, speed:rowsSpeed, power:rowsPower};
   }
   function showStravaDetailShell(a){
     const modal = document.getElementById('strava-detail-modal');
@@ -9814,8 +9837,14 @@ nav.tabbar button.active svg{
       '<div class="strava-detail-kpi"><strong>' + (burned ? burned+' kcal' : '—') + '</strong><span>Kcal</span></div>';
     const hr = document.getElementById('strava-hr-chart');
     const sp = document.getElementById('strava-speed-chart');
+    const pwCard = document.getElementById('strava-power-card');
+    const pw = document.getElementById('strava-power-chart');
     if(hr) hr.innerHTML = '<div class="empty">A carregar gráfico cardio...</div>';
     if(sp) sp.innerHTML = '<div class="empty">A carregar gráfico velocidade...</div>';
+    // Só mostramos a potência em ciclismo; escondemos já para não "piscar" nos outros desportos.
+    const shellIsBike = sportCategory(a.type || a.sportType)==='bike';
+    if(pwCard) pwCard.style.display = shellIsBike ? 'block' : 'none';
+    if(pw) pw.innerHTML = '<div class="empty">A carregar gráfico de potência...</div>';
   }
   async function openStravaActivityDetail(activityId){
     let a = (stravaActivities || []).find(x=>String(x.id)===String(activityId));
@@ -9840,6 +9869,11 @@ nav.tabbar button.active svg{
       const hrRows = hasHrStream ? streams.heartrate.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)})) : fb.hr.map((r,i)=>Object.assign({}, r, {d: a.distanceKm ? (a.distanceKm*1000)*(i/Math.max(1, fb.hr.length-1)) : null}));
       const speedRows = hasSpeedStream ? streams.velocity.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)*3.6})) : fb.speed.map((r,i)=>Object.assign({}, r, {d: a.distanceKm ? (a.distanceKm*1000)*(i/Math.max(1, fb.speed.length-1)) : null}));
       const paceRows = speedRows.filter(r=>r.v>0).map(r=>({t:r.t, d:r.d, v:60/r.v}));
+      const hasPowerStream = !!(streams && streams.watts && streams.watts.length && streams.watts.some(v=>Number(v)>0));
+      const fbPower = fb.power || [];
+      const powerRows = hasPowerStream
+        ? streams.watts.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)}))
+        : fbPower.map((r,i)=>Object.assign({}, r, {d: a.distanceKm ? (a.distanceKm*1000)*(i/Math.max(1, fbPower.length-1)) : null}));
 
       const failMsg = 'Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.';
       const hrEmpty = streamErr ? failMsg : 'Esta atividade não tem frequência cardíaca registada no Strava.';
@@ -9850,6 +9884,17 @@ nav.tabbar button.active svg{
         renderStreamChart(document.getElementById('strava-speed-chart'), paceRows, 'var(--teal)', fmtPaceFromMin, spEmpty, (!hasSpeedStream && paceRows.length) ? 'estimado' : null, {invertY:true, bestIsMin:true, yFormatter:fmtPaceFromMin});
       }else{
         renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--teal)', v=>v.toFixed(1)+' km/h', spEmpty, (!hasSpeedStream && speedRows.length) ? 'estimado' : null, {roundY:1});
+      }
+
+      // Potência: apenas em ciclismo e quando há dados (reais ou estimados a partir da média).
+      const isBike = sportCategory(a.type || a.sportType)==='bike';
+      const powerCard = document.getElementById('strava-power-card');
+      if(isBike && powerRows.length){
+        if(powerCard) powerCard.style.display = 'block';
+        const pwEmpty = streamErr ? failMsg : 'Esta atividade não tem potência registada no Strava.';
+        renderStreamChart(document.getElementById('strava-power-chart'), powerRows, 'var(--cyan)', v=>Math.round(v)+' W', pwEmpty, (!hasPowerStream && powerRows.length) ? 'estimado' : null, {roundY:20});
+      }else if(powerCard){
+        powerCard.style.display = 'none';
       }
 
       if(streamErr) toast('Sem dados detalhados do Strava; mostro estimativa pelas médias quando existem.');
@@ -10055,6 +10100,35 @@ nav.tabbar button.active svg{
     toast('Prova guardada');
   });
 
+  async function withdrawRace(key){
+    const [date, ...rest] = String(key || '').split('|');
+    const name = rest.join('|');
+    let raceGoals = await sGet('race-goals', []);
+    if(!Array.isArray(raceGoals)) raceGoals = [];
+    raceGoals = raceGoals.filter(r=>!(String(r.date||'').slice(0,10)===date && String(r.name||'')===name));
+    await sSet('race-goals', raceGoals);
+    // Se a prova removida era a "prova ativa" (race-goal único), recalcula a próxima.
+    if(raceGoal && String(raceGoal.date||'').slice(0,10)===date && String(raceGoal.name||'')===name){
+      const todayKey = todayStr();
+      raceGoal = raceGoals.find(r=>String(r.date||'') >= todayKey) || raceGoals[raceGoals.length-1] || null;
+      await sSet('race-goal', raceGoal || null);
+    }
+    renderRaceAndPlan(); renderDashboard();
+    // Notifica o treinador para o calendário/lista refletirem a desistência.
+    try{ if(window.PulsoRoleMode && window.PulsoRoleMode.renderCoachWorkouts) setTimeout(()=>document.dispatchEvent(new Event('pulso:races-updated')),0); }catch(err){}
+    toast('Desististe da prova');
+  }
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest && e.target.closest('.race-withdraw-btn');
+    if(!btn) return;
+    const key = btn.getAttribute('data-race-key');
+    if(!key) return;
+    const name = key.split('|').slice(1).join('|') || 'esta prova';
+    if(window.confirm('Desistir de «' + name + '»? A prova sai da lista e do calendário.')){
+      withdrawRace(key);
+    }
+  });
+
   function raceCategory(sport){ return sport.startsWith('bike') ? 'bike' : 'run'; }
   function raceSportLabel(sport){
     return {'run-road':'Corrida — Estrada','run-trail':'Corrida — Trail','bike-road':'Ciclismo — Estrada','bike-trail':'Ciclismo — BTT'}[sport] || sport;
@@ -10080,23 +10154,32 @@ nav.tabbar button.active svg{
     const today = new Date(); const raceDate = new Date(raceGoal.date);
     const daysLeft = Math.ceil((raceDate-today)/(24*3600*1000));
 
-    // Carta de baixo: apenas provas que foram enviadas/guardadas no calendário.
-    // Sem texto de “faltam X dias”, pico automático, taper ou volume estimado.
-    summaryEl.style.display = 'block';
-    const orderedRaces = races.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.name||'').localeCompare(String(b.name||'')));
-    summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas no calendário</h3>' + orderedRaces.map(r=>{
-      const active = String(r.date||'').slice(0,10)===String(raceGoal.date||'').slice(0,10) && String(r.name||'')===String(raceGoal.name||'');
-      const details = [];
-      details.push(fmtDate(r.date));
-      details.push(raceSportLabel(r.sport||'run-road'));
-      if(r.distanceKm) details.push(r.distanceKm + ' km');
-      if(r.elevationM) details.push(r.elevationM + ' D+');
-      if(r.peakHoursManual) details.push('pico máx. ' + r.peakHoursManual + ' h/sem');
-      return `<div class="race-list-item ${active?'active':''}" style="padding:10px 0; border-top:1px solid rgba(255,255,255,.08);">
-        <strong>🏁 ${esc(r.name||'Prova')}</strong><br>
-        <span class="help">${details.map(esc).join(' · ')}</span>
-      </div>`;
-    }).join('');
+    // Carta de baixo: mostra as provas por vir (data >= hoje) com o MESMO aspeto do cartão que
+    // aparece por baixo do calendário (bandeira + "Dia de prova · X km · Y D+"), por ordem de data
+    // da prova, cada uma com uma cruz (×) para cancelar/desistir. Quando o dia da prova passa, ela
+    // continua no calendário mas deixa de aparecer aqui na lista.
+    const upcomingRaces = races
+      .filter(r=>String(r.date||'').slice(0,10) >= todayKey)
+      .sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.name||'').localeCompare(String(b.name||'')));
+    if(!upcomingRaces.length){
+      summaryEl.style.display = 'none';
+      summaryEl.innerHTML = '';
+    }else{
+      summaryEl.style.display = 'block';
+      summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas no calendário</h3>' + upcomingRaces.map(r=>{
+        const key = String(r.date||'').slice(0,10) + '|' + String(r.name||'');
+        const desc = 'Dia de prova · ' + fmtDate(r.date) +
+          (r.distanceKm ? ' · ' + r.distanceKm + ' km' : '') +
+          (r.elevationM ? ' · ' + r.elevationM + ' D+' : '') + '.';
+        return `<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08); display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px;">
+          <div style="min-width:0;">
+            <div class="cp-title" style="color:#F2B84B;">🏁 ${escHtml(r.name||'Prova')}</div>
+            <div class="cp-desc">${escHtml(desc)}</div>
+          </div>
+          <button type="button" class="race-withdraw-btn" data-race-key="${escHtml(key)}" aria-label="Cancelar prova" title="Cancelar prova" style="flex:0 0 auto; width:34px; height:34px; border-radius:999px; border:1px solid rgba(242,85,90,.45); background:rgba(242,85,90,.14); color:var(--red); font-size:19px; line-height:1; cursor:pointer;">×</button>
+        </div>`;
+      }).join('');
+    }
 
     planSection.style.display = daysLeft > 0 ? 'flex' : 'none';
     const preview = document.getElementById('race-photo-preview');
@@ -14373,6 +14456,7 @@ nav.tabbar button.active svg{
       <div class="coach-card">
         <div class="coach-section-head">
           <h2>Escolher atleta</h2>
+          <button type="button" id="coach-strava-push" class="coach-btn" title="Atualizar ligação Strava e enviar dados">↻ Strava</button>
         </div>
         <div class="coach-select-row" style="grid-template-columns:1fr 1fr;">
           <div>
@@ -15409,6 +15493,40 @@ nav.tabbar button.active svg{
   function fmtNum(v){ return (v==null||isNaN(v)) ? '—' : String(Math.round(v)); }
   function fmtKm(v){ return (v==null||isNaN(v)) ? '—' : Number(v).toFixed(1).replace('.', ',') + ' km'; }
   function pace(km, sec){ if(!km || !sec) return null; const p = sec/60/km; const m = Math.floor(p); const s = Math.round((p-m)*60); return m + ':' + String(s).padStart(2,'0') + ' /km'; }
+  function fmtWorkoutKcalNeg(v){
+    const n = Math.round(Number(v) || 0);
+    return n > 0 ? '-' + n : '0';
+  }
+  function coachActivityCategory(a){
+    const t = String((a && (a.type || a.sportType || a.rawType)) || '').toLowerCase();
+    if(/ride|bike|cycle|cycling|bicicleta/.test(t)) return 'bike';
+    if(/run|trail|corrida/.test(t)) return 'run';
+    if(/weight|strength|workout|crossfit|forca|força|gym/.test(t)) return 'forca';
+    return 'other';
+  }
+  function coachLastWeightKg(){
+    try{
+      const w = getPulso('weight-entries', []);
+      if(Array.isArray(w) && w.length){
+        const last = w.slice().reverse().find(x=>x && x.kg!=null && x.kg!=='');
+        if(last) return Number(last.kg) || 75;
+      }
+    }catch(e){}
+    return 75;
+  }
+  function coachWorkoutBurnedKcal(a){
+    if(!a) return 0;
+    const raw = Number(a.calories);
+    if(isFinite(raw) && raw > 0) return raw;
+    const kg = coachLastWeightKg();
+    const km = Number(a.distanceKm || ((Number(a.distance)||0)/1000) || 0);
+    const sec = Number(a.movingSec || a.elapsedSec || a.elapsed_time || a.moving_time || 0);
+    const h = sec / 3600;
+    const cat = coachActivityCategory(a);
+    if(cat === 'run' && km > 0) return Math.round(kg * km);
+    const met = cat === 'bike' ? 8 : (cat === 'forca' ? 5 : 4);
+    return h > 0 ? Math.round(met * kg * h) : 0;
+  }
 
   function coachDayRecord(day){
     const hydration = getPulso('hydration-entries', []).filter(e=>sameDay(e.date, day));
@@ -15447,7 +15565,7 @@ nav.tabbar button.active svg{
         restingHr: (lastBp && lastBp.hr!=null && lastBp.hr!=='') ? Number(lastBp.hr) : null,
         workoutMin: Math.round(sum(workouts, e=>(e.movingSec||e.elapsed_time||0))/60),
         workoutKm: Math.round(sum(workouts, e=>e.distanceKm||((e.distance||0)/1000))*10)/10,
-        workoutKcal: Math.round(sum(workouts, e=>e.calories))
+        workoutKcal: Math.round(sum(workouts, e=>coachWorkoutBurnedKcal(e)))
       }
     };
   }
@@ -15580,6 +15698,9 @@ nav.tabbar button.active svg{
     const keys = ['waterMl','colaMl','outraMl','coffeeCount','alcoholUnits','alcoholMl','totalKcal','foodKcal','protein','carbs','fat','workoutMin','workoutKm','workoutKcal'];
     const totals = {};
     keys.forEach(k=>{ totals[k] = records.reduce((sum,r)=>sum+(Number(r.totals[k])||0),0) / Math.max(days.length,1); });
+    // No painel do treinador, as kcal de treino representam gasto acumulado no período escolhido.
+    // Ex.: 7/15/30 dias = soma das kcal gastas nesses dias, apresentada como valor negativo.
+    totals.workoutKcal = records.reduce((sum,r)=>sum+(Number(r.totals.workoutKcal)||0),0);
     totals.sleepHours = avgNullable(records.map(r=>r.totals.sleepHours));
     totals.weightKg = avgNullable(records.map(r=>r.totals.weightKg));
     totals.bpSys = avgNullable(records.map(r=>r.totals.bpSys));
@@ -15727,7 +15848,7 @@ nav.tabbar button.active svg{
       metricCard('Proteína', fmtNum(t.protein)+' g')+
       metricCard('Hidratos', fmtNum(t.carbs)+' g')+
       metricCard('Gorduras', fmtNum(t.fat)+' g')+
-      metricCard('Kcal treino', fmtNum(t.workoutKcal))+
+      metricCard('Kcal treino', fmtWorkoutKcalNeg(t.workoutKcal)+' kcal')+
       '</div></div>';
 
     // Treinos efetuados no período escolhido + últimas atividades Strava (contexto geral)
@@ -15943,6 +16064,27 @@ nav.tabbar button.active svg{
       if(!b) return;
       this.querySelectorAll('button[data-range]').forEach(x=>x.classList.toggle('active', x===b));
       renderAthleteData();
+    });
+    // Treinador: atualizar a ligação ao Strava e fazer push dos dados do atleta.
+    document.getElementById('coach-strava-push')?.addEventListener('click', async function(){
+      const btn = this;
+      const original = btn.textContent;
+      btn.disabled = true; btn.textContent = '↻ A atualizar…';
+      try{
+        if(typeof window.syncStrava === 'function'){
+          await window.syncStrava({force:true, full:true});
+        }else{
+          toast('Liga o Strava primeiro no lado do atleta');
+        }
+      }catch(err){
+        console.error(err);
+        toast('Não foi possível atualizar o Strava');
+      }finally{
+        btn.disabled = false; btn.textContent = original;
+        try{ renderAthletes(); }catch(e){}
+        try{ fillDayPicker(); }catch(e){}
+        renderAthleteData();
+      }
     });
 
     // ===== Lado do ATLETA: calendário + treino do dia no painel =====
