@@ -5863,6 +5863,24 @@ nav.tabbar button.active svg{
 #tab-dashboard #verdict-main-card #verdict-sub{display:block !important; max-width:340px !important; margin:12px auto 0 !important; text-align:center !important; font-size:13px !important; line-height:1.55 !important; opacity:.92;}
 #tab-dashboard #verdict-main-card .verdict-detail{max-width:460px; margin:14px auto 0; text-align:left;}
 </style>
+
+<style id="pulso-coach-final-fixes-css">
+  /* Botão +/− das cartas do treinador centrado verticalmente, aberto e fechado */
+  #coach-content .coach-card-min-btn{
+    top:50% !important;
+    right:18px !important;
+    transform:translateY(-50%) !important;
+    width:40px !important;
+    height:40px !important;
+    min-height:40px !important;
+    font-size:24px !important;
+  }
+  #coach-content .coach-card-min-btn:active{transform:translateY(-50%) scale(.96) !important;}
+  #coach-content .coach-card.is-minimized{min-height:82px !important; display:flex !important; align-items:center !important;}
+  #coach-content .coach-card.is-minimized > .coach-card-min-btn{top:50% !important;}
+  #coach-content .coach-card.is-minimized .coach-section-head,
+  #coach-content .coach-card.is-minimized h3{width:100%;}
+</style>
 </head>
 <body>
 
@@ -6658,8 +6676,8 @@ nav.tabbar button.active svg{
                 <option value="weightKg">Peso</option>
                 <option value="sleepHours">Sono</option>
                 <option value="waterMl">Água</option>
-                <option value="colaMl">Cola</option>
-                <option value="outraMl">Outras bebidas</option>
+                <option value="colaMl">Sumo</option>
+                <option value="outraMl">Sumo Zero</option>
                 <option value="coffeeCount">Cafés</option>
                 <option value="totalKcal">Kcal totais</option>
                 <option value="protein">Proteína</option>
@@ -6941,6 +6959,10 @@ nav.tabbar button.active svg{
   let raceGoal = null;
   const charts = {};
   let appBooted = false;
+
+  // Ponte para outros <script>/IIFE (ex.: área do atleta) acederem à lista viva
+  // de atividades. Devolve sempre a referência atual, mesmo após reatribuições.
+  window.PulsoGetStravaActivities = function(){ return stravaActivities; };
 
   // ---------- Tabs ----------
   document.getElementById('tabbar').addEventListener('click', (e)=>{
@@ -7416,7 +7438,7 @@ nav.tabbar button.active svg{
     ], false);
   }
 
-  // ================= BEBIDAS (Água / Café / Cola / Outra) ================= //
+  // ================= BEBIDAS (Água / Café / Sumo / Sumo Zero) ================= //
   let coffeeEntries = [];
   const COFFEE_KCAL = 2; // café simples/expresso sem açúcar (estimativa)
   const COLA_KCAL_PER_ML = 0.42; // ~42 kcal / 100 ml
@@ -7424,8 +7446,8 @@ nav.tabbar button.active svg{
   const DRINKS = [
     { key:'Água',  color:'#5B8DEF', kind:'ml',      kcalPerMl:0,                goalMl:2000, shortcuts:[200,330,500,750] },
     { key:'Café',  color:'#F2B84B', kind:'coffee',  kcalPerMl:0,                goalMax:4,   shortcuts:[] },
-    { key:'Cola',  color:'#E5533C', kind:'ml',      kcalPerMl:COLA_KCAL_PER_ML, goalMl:1000, shortcuts:[200,330] },
-    { key:'Outra', color:'#8A94A6', kind:'ml',      kcalPerMl:0,                goalMl:1000, shortcuts:[330,500] },
+    { key:'Sumo',      color:'#F2B84B', kind:'ml', kcalPerMl:COLA_KCAL_PER_ML, goalMl:1000, shortcuts:[200,330] },
+    { key:'Sumo Zero', color:'#35D9A6', kind:'ml', kcalPerMl:0,                goalMl:1000, shortcuts:[200,330] },
     { key:'Álcool',color:'#F2555A', kind:'alcohol', kcalPerMl:0,                goalMl:0,    shortcuts:[] }
   ];
 
@@ -7435,6 +7457,20 @@ nav.tabbar button.active svg{
     return Math.max(2000, adjusted || Number(hydrationGoal) || 2000);
   }
   let currentDrinkIdx = 0;
+
+  function drinkTypeMatches(savedType, wantedKey){
+    const t = savedType || 'Água';
+    if(wantedKey === 'Sumo') return t === 'Sumo' || t === 'Cola';
+    if(wantedKey === 'Sumo Zero') return t === 'Sumo Zero' || t === 'Outra';
+    return t === wantedKey;
+  }
+
+  function drinkDisplayLabel(savedType){
+    const t = savedType || 'Água';
+    if(t === 'Cola') return 'Sumo';
+    if(t === 'Outra') return 'Sumo Zero';
+    return t;
+  }
 
   // ---- Totais por bebida ----
   function getTodayCoffeeTotal(){
@@ -7450,7 +7486,7 @@ nav.tabbar button.active svg{
     const today = todayStr();
     if(drink.kind === 'coffee') return getTodayCoffeeTotal();
     if(drink.kind === 'alcohol') return getTodayAlcoholTotals().ml;
-    return hydrationEntries.filter(e=> e.date===today && (e.type||'Água')===drink.key).reduce((s,e)=> s + (e.ml||0), 0);
+    return hydrationEntries.filter(e=> e.date===today && drinkTypeMatches(e.type, drink.key)).reduce((s,e)=> s + (e.ml||0), 0);
   }
 
   // ---- Registar ----
@@ -7591,7 +7627,8 @@ nav.tabbar button.active svg{
       if(drink.key === 'Água') noteEl.textContent = 'Meta diária: 2 L ou ajustada pelo peso do atleta (' + getDailyWaterGoalMl() + ' ml). Desliza o círculo para ver outra bebida.';
       else if(isCoffee) noteEl.textContent = 'Cada café conta como ' + COFFEE_KCAL + ' kcal. Máximo do dia: ' + (drink.goalMax||4) + ' cafés. Desliza o círculo para ver outra bebida.';
       else if(isAlcohol) noteEl.textContent = 'O álcool fica agora dentro das bebidas. Soma às kcal do dia e penaliza sono, recuperação e hidratação.';
-      else if(drink.key === 'Cola') noteEl.textContent = 'Bebida com calorias (~' + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml) — soma às kcal do dia. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
+      else if(drink.key === 'Sumo') noteEl.textContent = 'Sumo com calorias (~' + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml) — soma às kcal do dia. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
+      else if(drink.key === 'Sumo Zero') noteEl.textContent = 'Sumo Zero sem calorias. Atalhos de 200 ml e 330 ml. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
       else noteEl.textContent = 'Bebida sem calorias. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
     }
 
@@ -7606,7 +7643,7 @@ nav.tabbar button.active svg{
     const listEl = document.getElementById('drink-today-list');
     if(!listEl) return;
     const rows = [];
-    hydrationEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'hydration', time:e.time, label:(e.type||'Água'), qty:(e.ml + ' ml') }));
+    hydrationEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'hydration', time:e.time, label:drinkDisplayLabel(e.type), qty:(e.ml + ' ml') }));
     coffeeEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'coffee', time:e.time, label:'Café', qty:((e.units||1) + ' café') }));
     alcoholEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'alcohol', time:e.time, label:(e.type||'Álcool'), qty:(getAlcoholMl(e) + ' ml') }));
     if(rows.length === 0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; return; }
@@ -9592,7 +9629,7 @@ nav.tabbar button.active svg{
       renderTraining7d();
     });
     renderVo2UI();
-    renderLast30Workouts(period);
+    if(typeof window.PulsoRenderLast30Workouts === 'function') window.PulsoRenderLast30Workouts(period);
   }
 
   // ================= RACE GOAL + TRAINING PLAN ================= //
@@ -10022,7 +10059,7 @@ nav.tabbar button.active svg{
     }
     const today = todayStr();
     const WATER_GOAL_ML = getDailyWaterGoalMl();
-    const todaysHydro = hydrationEntries.filter(e=>e.date===today && (e.type||'Água')!=='Cola').reduce((s,e)=>s+e.ml,0);
+    const todaysHydro = hydrationEntries.filter(e=>e.date===today && (e.type||'Água')==='Água').reduce((s,e)=>s+e.ml,0);
     document.getElementById('d-hydro').innerHTML = todaysHydro + ' <small>ml</small>';
     const hydroTrendEl = document.getElementById('d-hydro-trend');
     hydroTrendEl.textContent = todaysHydro >= WATER_GOAL_ML ? 'meta atingida' : (WATER_GOAL_ML - todaysHydro) + ' ml para a meta';
@@ -12252,8 +12289,8 @@ nav.tabbar button.active svg{
     const carbs = Math.round(sum(kcal, e=>e.carbs));
     const fat = Math.round(sum(kcal, e=>e.fat));
     const waterMl = Math.round(sum(hydration.filter(e=>(e.type||'Água')==='Água'), e=>e.ml));
-    const colaMl = Math.round(sum(hydration.filter(e=>e.type==='Cola'), e=>e.ml));
-    const outraMl = Math.round(sum(hydration.filter(e=>e.type==='Outra'), e=>e.ml));
+    const colaMl = Math.round(sum(hydration.filter(e=>e.type==='Sumo' || e.type==='Cola'), e=>e.ml));
+    const outraMl = Math.round(sum(hydration.filter(e=>e.type==='Sumo Zero' || e.type==='Outra'), e=>e.ml));
     const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
     const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
     const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
@@ -12304,8 +12341,8 @@ nav.tabbar button.active svg{
     weightKg:{label:'Peso', unit:' kg', get:function(rec){return rec.totals && rec.totals.weightKg != null ? Number(rec.totals.weightKg) : null;}},
     sleepHours:{label:'Sono', unit:' h', get:function(rec){return rec.totals && rec.totals.sleepHours != null ? Number(rec.totals.sleepHours) : null;}},
     waterMl:{label:'Água', unit:' L', get:function(rec){return rec.totals && rec.totals.waterMl ? Math.round(Number(rec.totals.waterMl))/1000 : 0;}},
-    colaMl:{label:'Cola', unit:' L', get:function(rec){return rec.totals && rec.totals.colaMl ? Math.round(Number(rec.totals.colaMl))/1000 : 0;}},
-    outraMl:{label:'Outras bebidas', unit:' L', get:function(rec){return rec.totals && rec.totals.outraMl ? Math.round(Number(rec.totals.outraMl))/1000 : 0;}},
+    colaMl:{label:'Sumo', unit:' L', get:function(rec){return rec.totals && rec.totals.colaMl ? Math.round(Number(rec.totals.colaMl))/1000 : 0;}},
+    outraMl:{label:'Sumo Zero', unit:' L', get:function(rec){return rec.totals && rec.totals.outraMl ? Math.round(Number(rec.totals.outraMl))/1000 : 0;}},
     coffeeCount:{label:'Cafés', unit:'', get:function(rec){return rec.totals ? Number(rec.totals.coffeeCount)||0 : 0;}},
     totalKcal:{label:'Kcal totais', unit:' kcal', get:function(rec){return rec.totals ? Number(rec.totals.totalKcal)||0 : 0;}},
     protein:{label:'Proteína', unit:' g', get:function(rec){return rec.totals ? Number(rec.totals.protein)||0 : 0;}},
@@ -13917,6 +13954,26 @@ nav.tabbar button.active svg{
       coachToastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 2200);
     }catch(e){}
   }
+
+
+  function safeStravaActivities(){
+    try{
+      if(typeof window.PulsoGetStravaActivities === 'function'){
+        const live = window.PulsoGetStravaActivities();
+        if(Array.isArray(live)) return live;
+      }
+    }catch(e){}
+    try{ return getPulso('strava-activities', []) || []; }catch(e){ return []; }
+  }
+
+  function setCoachTab(tab){
+    tab = tab || 'treinos';
+    document.querySelectorAll('[data-coach-tab]').forEach(b=>b.classList.toggle('active', b.dataset.coachTab === tab));
+    document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
+    const target = document.getElementById('coach-tab-' + tab);
+    if(target) target.classList.add('active');
+  }
+
   function coachModalityLabel(type){
     return ({'estrada':'Corrida — Estrada','trail':'Corrida — Trail','bike-indoor':'Bicicleta — Indoor','bike-fora':'Bicicleta — Rua','forca':'Força','mobilidade':'Mobilidade'})[type] || (type||'Treino');
   }
@@ -14656,11 +14713,13 @@ nav.tabbar button.active svg{
   function recentCompletedWorkouts(days){
     const now = new Date();
     const start = new Date(now); start.setDate(start.getDate() - (days || 30) + 1); start.setHours(0,0,0,0);
-    const src = (Array.isArray(stravaActivities) && stravaActivities.length) ? stravaActivities : (getPulso('strava-activities', []) || []);
+    const end = new Date(now); end.setHours(23,59,59,999);
+    const live = safeStravaActivities();
+    const src = Array.isArray(live) ? live : [];
     return src.filter(a=>{
       const d = activityDay(a); if(!d) return false;
       const dt = new Date(d + 'T12:00:00');
-      return !isNaN(dt) && dt >= start && dt <= now;
+      return !isNaN(dt) && dt >= start && dt <= end;
     }).sort((a,b)=>String(activityDay(b)).localeCompare(String(activityDay(a))));
   }
   function completedByDay(days){
@@ -14796,6 +14855,18 @@ nav.tabbar button.active svg{
     renderLast30Workouts();
   }
   window.PulsoRenderAthleteSide = renderAthleteSide;
+  window.PulsoRenderLast30Workouts = renderLast30Workouts;
+
+  // O seletor de período está noutro <script>/IIFE. Ligamos aqui um listener
+  // próprio para garantir que a lista de treinos acompanha sempre o período
+  // escolhido (7/15/30), independentemente da ponte no window.
+  (function bindTrainingPeriodToList(){
+    const sel = document.getElementById('training-period-select');
+    if(sel && !sel.dataset.last30Bound){
+      sel.dataset.last30Bound = '1';
+      sel.addEventListener('change', ()=>{ try{ renderLast30Workouts(Number(sel.value)); }catch(e){ console.warn('renderLast30Workouts falhou', e); } });
+    }
+  })();
 
   /* =====================================================================
      DADOS EXPORTADOS DO ATLETA (Strava + resumo do dia)
@@ -14816,10 +14887,10 @@ nav.tabbar button.active svg{
     const weight = getPulso('weight-entries', []).filter(e=>sameDay(e.date, day));
     const sleep = getPulso('sleep-entries', []).filter(e=>sameDay(e.date, day));
     const bp = getPulso('bp-entries', []).filter(e=>sameDay(e.date, day));
-    const workouts = getPulso('strava-activities', []).filter(e=>sameDay(e.date || e.start_date, day));
+    const workouts = safeStravaActivities().filter(e=>sameDay(e.date || e.start_date, day));
 
-    const byType = (t)=> Math.round(sum(hydration.filter(e=>(e.type||'Água')===t), e=>e.ml));
-    const waterMl = byType('Água'), colaMl = byType('Cola'), outraMl = byType('Outra');
+    const byType = (t)=> Math.round(sum(hydration.filter(e=>{ const v=(e.type||'Água'); return t==='Sumo' ? (v==='Sumo'||v==='Cola') : t==='Sumo Zero' ? (v==='Sumo Zero'||v==='Outra') : v===t; }), e=>e.ml));
+    const waterMl = byType('Água'), colaMl = byType('Sumo'), outraMl = byType('Sumo Zero');
     const coffeeCount = Math.round(sum(coffee, e=>e.units||1));
     const alcoholUnits = Math.round(sum(alcohol, e=>e.units)*10)/10;
     const alcoholMl = Math.round(sum(alcohol, alcoholMlOf));
@@ -14855,7 +14926,7 @@ nav.tabbar button.active svg{
     ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','sleep-entries','weight-entries','bp-entries'].forEach(k=>{
       (getPulso(k, [])||[]).forEach(e=>{ if(e && e.date) set.add(String(e.date).slice(0,10)); });
     });
-    (getPulso('strava-activities', [])||[]).forEach(e=>{ const d = e.date||e.start_date; if(d) set.add(String(d).slice(0,10)); });
+    safeStravaActivities().forEach(e=>{ const d = e.date||e.start_date; if(d) set.add(String(d).slice(0,10)); });
     return Array.from(set).sort((a,b)=>b.localeCompare(a)).slice(0,60);
   }
 
@@ -15040,8 +15111,8 @@ nav.tabbar button.active svg{
 
     const drinks = '<div class="coach-card"><h3>Bebidas</h3><div class="coach-metrics-grid">'+
       metricCard('Água', fmtL(t.waterMl))+
-      metricCard('Cola', fmtL(t.colaMl))+
-      metricCard('Outra', fmtL(t.outraMl))+
+      metricCard('Sumo', fmtL(t.colaMl))+
+      metricCard('Sumo Zero', fmtL(t.outraMl))+
       metricCard('Cafés', fmtNum(t.coffeeCount))+
       metricCard('Álcool', Math.round(t.alcoholMl||0)+' ml')+
       metricCard('Unid. álcool', (Number(t.alcoholUnits)||0).toFixed(1).replace('.', ','))+
@@ -15066,7 +15137,7 @@ nav.tabbar button.active svg{
       '</div>';
 
     // Últimas atividades Strava (contexto geral)
-    const recent = (getPulso('strava-activities', [])||[]).slice().sort((a,b)=>String(b.date||b.start_date).localeCompare(String(a.date||a.start_date))).slice(0,8);
+    const recent = safeStravaActivities().slice().sort((a,b)=>String(b.date||b.start_date).localeCompare(String(a.date||a.start_date))).slice(0,8);
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
@@ -15095,6 +15166,7 @@ nav.tabbar button.active svg{
     if(locked) locked.style.display = 'none';
     if(app) app.style.display = 'none';
     if(coach){ coach.style.display = 'flex'; coach.setAttribute('aria-hidden','false'); }
+    setCoachTab('treinos');
     selectedAthleteId = 'local';
     coachAthletePicked = false;
     coachCalRef = new Date();
@@ -15111,6 +15183,16 @@ nav.tabbar button.active svg{
     fillDayPicker();
     renderAthleteData();
     bindCoachCardCollapse(document.getElementById('coach-content'));
+    setTimeout(()=>{
+      try{
+        setCoachTab('treinos');
+        renderCoachWorkouts();
+        renderAthletes();
+        fillCoachAthleteSelectors();
+        renderCoachCalendar();
+        bindCoachCardCollapse(document.getElementById('coach-content'));
+      }catch(e){ console.warn('Render inicial treinador falhou', e); }
+    }, 80);
   }
 
   function bindRoleMode(){
@@ -15291,10 +15373,7 @@ nav.tabbar button.active svg{
     document.querySelectorAll('[data-coach-tab]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const tab = btn.dataset.coachTab;
-        document.querySelectorAll('[data-coach-tab]').forEach(b=>b.classList.toggle('active', b===btn));
-        document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
-        const target = document.getElementById('coach-tab-'+tab);
-        if(target) target.classList.add('active');
+        setCoachTab(tab);
         if(tab === 'treinos'){ renderCoachWorkouts(); renderAthletes(); renderCoachCalendar(); bindCoachCardCollapse(document.getElementById('coach-content')); }
         if(tab === 'atleta'){ fillDayPicker(); renderAthleteData(); }
       });
