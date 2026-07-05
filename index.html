@@ -13218,5 +13218,310 @@ nav.tabbar button.active svg{
 }
 </style>
 
+
+
+<!-- =========================================================
+     PULSO — MODO ATLETA / TREINADOR 1.0
+     - Primeiro ecrã escolhe Atleta ou Treinador
+     - Atleta abre a app atual
+     - Treinador mostra, para já, apenas os treinos manuais/localmente guardados
+     ========================================================= -->
+<style id="pulso-role-coach-mode-css">
+  .pulso-role-step{display:none; margin-top:18px;}
+  .pulso-role-step.active{display:block;}
+  .pulso-role-grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px;}
+  .pulso-role-btn{
+    width:100%; min-height:86px; border:1px solid rgba(255,255,255,.10); border-radius:24px;
+    background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(12,18,31,.98)); color:var(--text);
+    display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:5px;
+    padding:18px; text-align:left; cursor:pointer; box-shadow:0 14px 34px rgba(0,0,0,.25);
+  }
+  .pulso-role-btn strong{font-size:19px; line-height:1.1; color:#fff;}
+  .pulso-role-btn span{font-size:12.5px; line-height:1.35; color:var(--text-muted);}
+  .pulso-role-btn:active{transform:scale(.985);}
+  .pulso-role-btn.coach{border-color:rgba(53,217,166,.22);}
+  .pulso-login-back{margin-top:12px; width:100%;}
+
+  #coach-content{
+    display:none; flex-direction:column; height:100dvh; width:100vw; overflow:hidden; color:var(--text);
+    background:
+      radial-gradient(circle at 18% -10%, rgba(53,217,166,.16), transparent 36%),
+      radial-gradient(circle at 88% 2%, rgba(91,141,239,.12), transparent 34%),
+      linear-gradient(180deg, #090E19 0%, #060913 100%);
+  }
+  #coach-content .coach-top{flex:0 0 auto; padding:calc(16px + env(safe-area-inset-top)) 16px 10px; border-bottom:1px solid rgba(255,255,255,.045);}
+  #coach-content .coach-brand{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  #coach-content .coach-brand-left{display:flex; align-items:center; gap:12px; min-width:0;}
+  #coach-content .coach-title h1{margin:0; font-size:20px; letter-spacing:1px;}
+  #coach-content .coach-title span{display:block; color:var(--text-muted); font-size:11px; margin-top:2px;}
+  #coach-content .coach-main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 14px calc(32px + env(safe-area-inset-bottom)); max-width:820px; width:100%; margin:0 auto;}
+  #coach-content .coach-tabs{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; padding:6px; border-radius:999px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);}
+  #coach-content .coach-tabs button{border:0; min-height:44px; border-radius:999px; background:transparent; color:var(--text-muted); font-weight:900; font-size:14px;}
+  #coach-content .coach-tabs button.active{background:rgba(53,217,166,.16); color:var(--teal);}
+  #coach-content .coach-view{display:none; flex-direction:column; gap:12px;}
+  #coach-content .coach-view.active{display:flex;}
+  .coach-card{background:linear-gradient(180deg, rgba(24,34,56,.97), rgba(14,22,38,.98)); border:1px solid rgba(255,255,255,.085); border-radius:28px; padding:18px; box-shadow:0 16px 42px rgba(0,0,0,.28); position:relative; overflow:hidden;}
+  .coach-card h3{margin:0 0 8px; color:#A8B4C8; font-size:11px; text-transform:uppercase; letter-spacing:.9px;}
+  .coach-card .coach-workout-title{font-size:18px; font-weight:900; line-height:1.22; margin:0 0 7px; color:#fff;}
+  .coach-card .coach-workout-desc{font-size:13px; line-height:1.45; color:var(--text-muted); white-space:pre-wrap;}
+  .coach-pill-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .coach-pill{display:inline-flex; align-items:center; gap:4px; padding:5px 9px; border-radius:999px; background:rgba(53,217,166,.13); color:var(--teal); font-size:11px; font-weight:900;}
+  .coach-empty{color:var(--text-muted); font-size:13px; line-height:1.5; text-align:center; padding:20px 8px;}
+  .coach-note{font-size:12.5px; color:var(--text-muted); line-height:1.5;}
+  @media(max-width:430px){
+    #coach-content .coach-main{padding-left:12px; padding-right:12px;}
+    .coach-card{border-radius:26px; padding:16px;}
+  }
+</style>
+
+<div id="coach-content" aria-hidden="true">
+  <header class="coach-top">
+    <div class="coach-brand">
+      <div class="coach-brand-left">
+        <div class="pulso-mark brand-mark" aria-label="Pulso logo">
+          <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+            <rect x="6" y="6" width="52" height="52" rx="18" class="pm-bg"></rect>
+            <path class="pm-p" d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30"></path>
+            <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"></path>
+          </svg>
+        </div>
+        <div class="coach-title"><h1>PULSO</h1><span>Modo Treinador</span></div>
+      </div>
+      <button class="ghost" type="button" id="coach-back-athlete">Atleta</button>
+    </div>
+  </header>
+  <main class="coach-main">
+    <div class="coach-tabs">
+      <button type="button" class="active" data-coach-tab="treinos">Treinos</button>
+      <button type="button" data-coach-tab="atleta">Atleta</button>
+    </div>
+    <section id="coach-tab-treinos" class="coach-view active">
+      <div class="coach-card">
+        <h3>Treinos manuais</h3>
+        <div class="coach-note">Para já, o treinador lê os treinos guardados localmente nesta app: treino de hoje, favoritos, treinos criados e plano manual.</div>
+      </div>
+      <div id="coach-workouts-list"></div>
+    </section>
+    <section id="coach-tab-atleta" class="coach-view">
+      <div class="coach-card">
+        <h3>Dados do atleta</h3>
+        <div class="coach-empty">Este separador fica preparado para a próxima fase. Como os dados ainda são locais neste telemóvel, a ligação real treinador ↔ atleta será feita quando ligarmos a cloud.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script id="pulso-role-coach-mode-js">
+(function(){
+  const PROFILE_KEY = 'pulso:profile';
+  const MODE_KEY = 'pulso:selected-role';
+
+  function safeParse(raw, fallback){ try{ return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; } }
+  function getPulso(key, fallback){ return safeParse(localStorage.getItem('pulso:'+key), fallback); }
+  function setPulso(key, value){ try{ localStorage.setItem('pulso:'+key, JSON.stringify(value)); }catch(e){} }
+  function getRaw(key, fallback){ return safeParse(localStorage.getItem(key), fallback); }
+  function esc(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function shortDate(v){ if(!v) return ''; const d = new Date(v); return isNaN(d) ? String(v).slice(0,10) : d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}); }
+
+  function ensureRoleStep(){
+    const form = document.getElementById('login-form');
+    const card = form ? form.closest('.login-card') : null;
+    if(!form || !card || document.getElementById('pulso-role-step')) return;
+    const role = document.createElement('div');
+    role.id = 'pulso-role-step';
+    role.className = 'pulso-role-step';
+    role.innerHTML = `
+      <div class="pulso-role-grid">
+        <button type="button" class="pulso-role-btn" id="role-athlete">
+          <strong>Atleta</strong><span>Entrar na app atual com dashboard, saúde, nutrição e treinos.</span>
+        </button>
+        <button type="button" class="pulso-role-btn coach" id="role-coach">
+          <strong>Treinador</strong><span>Ver, para já, os treinos manuais guardados nesta app.</span>
+        </button>
+      </div>
+      <button type="button" class="ghost pulso-login-back" id="role-back-name">Voltar ao nome</button>`;
+    const err = document.getElementById('login-error');
+    if(err) err.insertAdjacentElement('afterend', role); else card.appendChild(role);
+  }
+
+  function getName(){
+    const input = document.getElementById('login-name');
+    return (input && input.value ? input.value : '').trim();
+  }
+
+  function saveName(){
+    const name = getName();
+    if(!name) return false;
+    const profile = getPulso('profile', {name:'', age:null, gender:null, heightCm:null, activityLevel:null}) || {};
+    profile.name = name;
+    setPulso('profile', profile);
+    return true;
+  }
+
+  function showRoleStep(){
+    const err = document.getElementById('login-error');
+    if(err) err.textContent = '';
+    if(!saveName()){
+      if(err) err.textContent = 'Escreve o teu nome.';
+      const input = document.getElementById('login-name');
+      if(input) input.focus({preventScroll:true});
+      return;
+    }
+    const form = document.getElementById('login-form');
+    const role = document.getElementById('pulso-role-step');
+    const title = document.getElementById('login-title');
+    const sub = document.getElementById('login-sub');
+    if(form) form.style.display = 'none';
+    if(role) role.classList.add('active');
+    if(title) title.textContent = 'ENTRAR COMO';
+    if(sub) sub.textContent = 'Escolhe a área que queres abrir.';
+  }
+
+  function showNameStep(){
+    const form = document.getElementById('login-form');
+    const role = document.getElementById('pulso-role-step');
+    const title = document.getElementById('login-title');
+    const sub = document.getElementById('login-sub');
+    if(form) form.style.display = '';
+    if(role) role.classList.remove('active');
+    if(title) title.textContent = 'PULSO';
+    if(sub) sub.textContent = 'Como te chamas?';
+  }
+
+  async function openAthlete(){
+    saveName();
+    localStorage.setItem(MODE_KEY, 'athlete');
+    const locked = document.getElementById('app-locked');
+    const app = document.getElementById('app-content');
+    const coach = document.getElementById('coach-content');
+    if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
+    if(locked) locked.style.display = 'none';
+    if(app) app.style.display = 'flex';
+    try{
+      if(typeof window.bootApp === 'function') await window.bootApp();
+      else if(typeof bootApp === 'function') await bootApp();
+    }catch(err){ console.error('Erro ao abrir área atleta', err); }
+  }
+
+  function normalizeWorkout(w, source){
+    if(!w || typeof w !== 'object') return null;
+    const title = w.title || w.name || w.nome || w.workout || w.label || 'Treino manual';
+    const desc = w.desc || w.description || w.notes || w.note || w.text || w.details || '';
+    const type = w.type || w.sport || w.modalidade || '';
+    const duration = w.duration || w.time || w.minutes || w.min || '';
+    const date = w.date || w.createdAt || w.day || w.start_date || '';
+    const id = w.id || (source + '-' + title + '-' + date + '-' + Math.random());
+    return {id, title, desc, type, duration, date, source};
+  }
+
+  function collectManualWorkouts(){
+    const out = [];
+    const pushOne = (item, source)=>{ const w = normalizeWorkout(item, source); if(w) out.push(w); };
+    const pushArr = (arr, source)=>{ if(Array.isArray(arr)) arr.forEach(x=>pushOne(x, source)); };
+
+    pushOne(getRaw('pulsoTodayWorkout', null), 'Treino de hoje');
+    pushOne(getRaw('todayWorkout', null), 'Treino de hoje');
+    pushOne(getPulso('today-plan', null), 'Plano de hoje');
+    pushArr(getRaw('pulsoUserWorkouts', []), 'Treinos criados');
+    pushArr(getPulso('favorite-workouts', []), 'Favoritos');
+    pushArr(getPulso('planned-workouts', []), 'Plano manual');
+    pushArr(getPulso('training-plan', []), 'Plano manual');
+
+    const seen = new Set();
+    return out.filter(w=>{
+      const key = [w.title,w.desc,w.date,w.source].join('|');
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  }
+
+  function renderCoachWorkouts(){
+    const el = document.getElementById('coach-workouts-list');
+    if(!el) return;
+    const workouts = collectManualWorkouts();
+    if(!workouts.length){
+      el.innerHTML = '<div class="coach-card"><div class="coach-empty">Ainda não existem treinos manuais guardados. Quando criares ou selecionares treinos na área Atleta, aparecem aqui.</div></div>';
+      return;
+    }
+    el.innerHTML = workouts.map(w=>`
+      <article class="coach-card">
+        <h3>${esc(w.source)}</h3>
+        <div class="coach-workout-title">${esc(w.title)}</div>
+        ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : ''}
+        <div class="coach-pill-row">
+          ${w.type ? `<span class="coach-pill">${esc(w.type)}</span>` : ''}
+          ${w.duration ? `<span class="coach-pill">${esc(w.duration)}</span>` : ''}
+          ${w.date ? `<span class="coach-pill">${esc(shortDate(w.date))}</span>` : ''}
+        </div>
+      </article>`).join('');
+  }
+
+  function openCoach(){
+    saveName();
+    localStorage.setItem(MODE_KEY, 'coach');
+    const locked = document.getElementById('app-locked');
+    const app = document.getElementById('app-content');
+    const coach = document.getElementById('coach-content');
+    if(locked) locked.style.display = 'none';
+    if(app) app.style.display = 'none';
+    if(coach){ coach.style.display = 'flex'; coach.setAttribute('aria-hidden','false'); }
+    renderCoachWorkouts();
+  }
+
+  function bindRoleMode(){
+    ensureRoleStep();
+
+    const form = document.getElementById('login-form');
+    const btn = document.getElementById('login-submit');
+    const name = document.getElementById('login-name');
+
+    const intercept = function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      showRoleStep();
+      return false;
+    };
+    if(form && !form.dataset.roleGateBound){ form.dataset.roleGateBound='1'; form.addEventListener('submit', intercept, true); }
+    if(btn && !btn.dataset.roleGateBound){
+      btn.dataset.roleGateBound='1';
+      btn.addEventListener('click', intercept, true);
+      btn.addEventListener('touchend', intercept, true);
+    }
+    if(name && !name.dataset.roleGateBound){
+      name.dataset.roleGateBound='1';
+      name.addEventListener('keydown', function(e){ if(e.key === 'Enter') intercept(e); }, true);
+    }
+
+    document.getElementById('role-athlete')?.addEventListener('click', openAthlete);
+    document.getElementById('role-coach')?.addEventListener('click', openCoach);
+    document.getElementById('role-back-name')?.addEventListener('click', showNameStep);
+    document.getElementById('coach-back-athlete')?.addEventListener('click', function(){
+      const locked = document.getElementById('app-locked');
+      const coach = document.getElementById('coach-content');
+      if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
+      if(locked) locked.style.display = 'flex';
+      showRoleStep();
+    });
+
+    document.querySelectorAll('[data-coach-tab]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tab = btn.dataset.coachTab;
+        document.querySelectorAll('[data-coach-tab]').forEach(b=>b.classList.toggle('active', b===btn));
+        document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
+        const target = document.getElementById('coach-tab-'+tab);
+        if(target) target.classList.add('active');
+        if(tab === 'treinos') renderCoachWorkouts();
+      });
+    });
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindRoleMode);
+  else bindRoleMode();
+
+  window.PulsoRoleMode = { openAthlete, openCoach, renderCoachWorkouts };
+})();
+</script>
+
 </body>
 </html>
