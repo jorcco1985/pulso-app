@@ -9847,9 +9847,9 @@ nav.tabbar button.active svg{
 
       renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null, {roundY:5});
       if(isRun){
-        renderStreamChart(document.getElementById('strava-speed-chart'), paceRows, 'var(--blue)', fmtPaceFromMin, spEmpty, (!hasSpeedStream && paceRows.length) ? 'estimado' : null, {invertY:true, bestIsMin:true, yFormatter:fmtPaceFromMin});
+        renderStreamChart(document.getElementById('strava-speed-chart'), paceRows, 'var(--teal)', fmtPaceFromMin, spEmpty, (!hasSpeedStream && paceRows.length) ? 'estimado' : null, {invertY:true, bestIsMin:true, yFormatter:fmtPaceFromMin});
       }else{
-        renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--blue)', v=>v.toFixed(1)+' km/h', spEmpty, (!hasSpeedStream && speedRows.length) ? 'estimado' : null, {roundY:1});
+        renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--teal)', v=>v.toFixed(1)+' km/h', spEmpty, (!hasSpeedStream && speedRows.length) ? 'estimado' : null, {roundY:1});
       }
 
       if(streamErr) toast('Sem dados detalhados do Strava; mostro estimativa pelas médias quando existem.');
@@ -10079,8 +10079,9 @@ nav.tabbar button.active svg{
     // Carta de baixo: apenas provas que foram enviadas/guardadas no calendário.
     // Sem texto de “faltam X dias”, pico automático, taper ou volume estimado.
     summaryEl.style.display = 'block';
-    summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas no calendário</h3>' + races.map(r=>{
-      const active = r === raceGoal;
+    const orderedRaces = races.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.name||'').localeCompare(String(b.name||'')));
+    summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas no calendário</h3>' + orderedRaces.map(r=>{
+      const active = String(r.date||'').slice(0,10)===String(raceGoal.date||'').slice(0,10) && String(r.name||'')===String(raceGoal.name||'');
       const details = [];
       details.push(fmtDate(r.date));
       details.push(raceSportLabel(r.sport||'run-road'));
@@ -15163,13 +15164,13 @@ nav.tabbar button.active svg{
     let html = '';
     athletes.forEach(a=>{
       const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
-      const race = raceFor(a.id);
-      const hasRace = race && race.date === coachSelectedDay;
+      const races = racesFor(a.id).filter(r=>String(r.date).slice(0,10) === coachSelectedDay);
+      const hasRace = races.length > 0;
       if(!items.length && !hasRace) return;
       html += '<div class="coach-day-athlete-block">'+
         '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong><span>'+(a.local?'Este telemóvel':'Cloud em breve')+'</span></div>';
       if(hasRace){
-        html += `<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left; border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(a.name)} — ${esc(race.name)}</div><div class="di-desc">Prova${race.distanceKm?' · '+race.distanceKm+' km':''}. Toca para abrir os dados do atleta nesse dia.</div></button>`;
+        html += races.map(race=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left; border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08); margin-bottom:8px;"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(a.name)} — ${esc(race.name)}</div><div class="di-desc">Prova${race.distanceKm?' · '+race.distanceKm+' km':''}${race.elevationM?' · '+race.elevationM+' D+':''}. Toca para abrir os dados do atleta nesse dia.</div></button>`).join('');
       }
       if(items.length){
         html += items.map(w=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left;">
