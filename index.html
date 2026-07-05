@@ -5888,6 +5888,9 @@ nav.tabbar button.active svg{
         <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"/>
       </svg>
     </div><div class="brand-text"><h1>PULSO</h1><span class="tagline">Health &amp; Training</span></div></div>
+  <button id="athlete-switch-role" class="athlete-switch-btn" type="button" aria-label="Voltar à escolha de área" title="Voltar à escolha de área">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+  </button>
   <div class="ecg-wrap" aria-hidden="true">
     <svg viewBox="0 0 600 46" preserveAspectRatio="none">
       <path class="ecg-path" d="M0,23 L120,23 L140,23 L150,6 L160,40 L170,23 L190,23 L210,23 L225,10 L235,23 L260,23 L400,23 L420,23 L430,6 L440,40 L450,23 L470,23 L490,23 L505,10 L515,23 L600,23"/>
@@ -5956,6 +5959,15 @@ nav.tabbar button.active svg{
         <button class="ghost" id="btn-pick-today" type="button">Escolher</button>
       </div>
       <div id="today-workout-body" style="margin-top:10px;"><p class="help" style="margin:0;">Ainda não escolheste o treino de hoje.</p></div>
+    </div>
+
+    <div class="card" id="coach-plan-card">
+      <div class="row space-between" style="align-items:center;">
+        <h3 style="margin:0;">Treino de hoje</h3>
+        <span class="help" style="margin:0;">Do treinador</span>
+      </div>
+      <div id="coach-plan-body" style="margin-top:10px;"><p class="help" style="margin:0;">Sem treino do treinador para hoje.</p></div>
+      <div id="coach-plan-upcoming" style="margin-top:10px;"></div>
     </div>
 
     <div class="card" id="d-race-card" style="display:none;"><h3>Próxima prova</h3><div class="stat" id="d-race" style="font-size:14px;">—</div><div class="trend flat" id="d-race-trend">sem objetivo</div></div>
@@ -6108,13 +6120,12 @@ nav.tabbar button.active svg{
   <!-- ================= TREINOS (fixo, com sub-abas) ================= -->
   <section id="tab-treinos">
     <div class="subtabs">
-      <button class="ghost active" data-sub="resumo" type="button">Resumo</button>
-      <button class="ghost" data-sub="objetivo" type="button">Objetivo</button>
-      <button class="ghost" data-sub="historico" type="button">Histórico</button>
-      <button class="ghost" data-sub="rapido" type="button">Treinos</button>
+      <button class="ghost active" data-sub="objetivo" type="button">Prova</button>
+      <button class="ghost" data-sub="calendario" type="button">Calendário</button>
+      <button class="ghost" data-sub="resumo" type="button">Dados</button>
     </div>
 
-    <div class="subview active" id="sub-resumo">
+    <div class="subview" id="sub-resumo">
       <div class="card">
         <div class="row space-between">
           <div class="strava-status"><span class="dot off" id="strava-dot"></span><span id="strava-status-text">Strava não ligado</span></div>
@@ -6142,7 +6153,30 @@ nav.tabbar button.active svg{
       </div>
     </div>
 
-    <div class="subview" id="sub-objetivo">
+    <div class="subview" id="sub-calendario">
+      <div class="card">
+        <div class="row space-between" style="align-items:center;">
+          <h3 style="margin:0;">Calendário</h3>
+          <span class="help" style="margin:0;">Provas e treinos do treinador</span>
+        </div>
+        <div id="athlete-calendar" style="margin-top:10px;"></div>
+      </div>
+      <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+        <h3 id="athlete-cal-day-title" style="margin:0 0 8px;">Toca num dia</h3>
+        <div id="athlete-cal-day-body" class="scroll-y" style="flex:1; min-height:0;"><p class="help" style="margin:0;">Escolhe um dia no calendário para veres o que está agendado.</p></div>
+      </div>
+
+      <div class="card athlete-last30-card">
+        <div class="row space-between" style="align-items:center;">
+          <h3 style="margin:0;">Treinos efetuados — últimos 30 dias</h3>
+          <span class="help" id="athlete-last30-count" style="margin:0;">0 treinos</span>
+        </div>
+        <div id="athlete-last30-summary" class="athlete-last30-summary"></div>
+        <div id="athlete-last30-list" class="athlete-last30-list"><p class="help" style="margin:0;">Ainda não há treinos registados nos últimos 30 dias.</p></div>
+      </div>
+    </div>
+
+    <div class="subview active" id="sub-objetivo">
       <div class="card fixed-form">
         <form class="entry" id="form-race">
           <div class="field" style="min-width:150px;"><label for="race-name">Prova</label><input type="text" id="race-name" placeholder="ex: Meia Maratona"></div>
@@ -6593,6 +6627,9 @@ nav.tabbar button.active svg{
                 <option value="weightKg">Peso</option>
                 <option value="sleepHours">Sono</option>
                 <option value="waterMl">Água</option>
+                <option value="colaMl">Cola</option>
+                <option value="outraMl">Outras bebidas</option>
+                <option value="coffeeCount">Cafés</option>
                 <option value="totalKcal">Kcal totais</option>
                 <option value="protein">Proteína</option>
                 <option value="workoutMin">Minutos de treino</option>
@@ -6947,7 +6984,7 @@ nav.tabbar button.active svg{
     resizeCharts();
   }
 
-  document.getElementById('d-workout-card').addEventListener('click', ()=> goToSubTab('treinos','historico'));
+  document.getElementById('d-workout-card').addEventListener('click', ()=> goToSubTab('treinos','resumo'));
   document.getElementById('d-race-card').addEventListener('click', ()=> goToSubTab('treinos','objetivo'));
 
   function resizeCharts(){
@@ -12141,7 +12178,9 @@ nav.tabbar button.active svg{
     const protein = Math.round(sum(kcal, e=>e.protein));
     const carbs = Math.round(sum(kcal, e=>e.carbs));
     const fat = Math.round(sum(kcal, e=>e.fat));
-    const waterMl = Math.round(sum(hydration, e=>e.ml));
+    const waterMl = Math.round(sum(hydration.filter(e=>(e.type||'Água')==='Água'), e=>e.ml));
+    const colaMl = Math.round(sum(hydration.filter(e=>e.type==='Cola'), e=>e.ml));
+    const outraMl = Math.round(sum(hydration.filter(e=>e.type==='Outra'), e=>e.ml));
     const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
     const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
     const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
@@ -12157,7 +12196,7 @@ nav.tabbar button.active svg{
       date:day,
       savedAt:new Date().toISOString(),
       score:Math.max(0, 80 - penalty),
-      totals:{ waterMl, coffeeCount, foodKcal, alcoholUnits, alcoholMl, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, bpSys, bpDia, restingHr },
+      totals:{ waterMl, colaMl, outraMl, coffeeCount, foodKcal, alcoholUnits, alcoholMl, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, bpSys, bpDia, restingHr },
       details:{ meals:kcal, alcohol, hydration, coffee, workouts, planned, bp }
     };
   }
@@ -12192,6 +12231,9 @@ nav.tabbar button.active svg{
     weightKg:{label:'Peso', unit:' kg', get:function(rec){return rec.totals && rec.totals.weightKg != null ? Number(rec.totals.weightKg) : null;}},
     sleepHours:{label:'Sono', unit:' h', get:function(rec){return rec.totals && rec.totals.sleepHours != null ? Number(rec.totals.sleepHours) : null;}},
     waterMl:{label:'Água', unit:' L', get:function(rec){return rec.totals && rec.totals.waterMl ? Math.round(Number(rec.totals.waterMl))/1000 : 0;}},
+    colaMl:{label:'Cola', unit:' L', get:function(rec){return rec.totals && rec.totals.colaMl ? Math.round(Number(rec.totals.colaMl))/1000 : 0;}},
+    outraMl:{label:'Outras bebidas', unit:' L', get:function(rec){return rec.totals && rec.totals.outraMl ? Math.round(Number(rec.totals.outraMl))/1000 : 0;}},
+    coffeeCount:{label:'Cafés', unit:'', get:function(rec){return rec.totals ? Number(rec.totals.coffeeCount)||0 : 0;}},
     totalKcal:{label:'Kcal totais', unit:' kcal', get:function(rec){return rec.totals ? Number(rec.totals.totalKcal)||0 : 0;}},
     protein:{label:'Proteína', unit:' g', get:function(rec){return rec.totals ? Number(rec.totals.protein)||0 : 0;}},
     workoutMin:{label:'Minutos de treino', unit:' min', get:function(rec){return rec.totals ? Number(rec.totals.workoutMin)||0 : 0;}},
@@ -13242,6 +13284,53 @@ nav.tabbar button.active svg{
   .pulso-role-btn.coach{border-color:rgba(53,217,166,.22);}
   .pulso-login-back{margin-top:12px; width:100%;}
 
+  /* Botão de troca de área na app do Atleta */
+  .athlete-switch-btn{
+    position:absolute; top:max(14px, env(safe-area-inset-top)); right:14px; z-index:4;
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    border-radius:12px; border:1px solid rgba(255,255,255,.10);
+    background:rgba(20,28,46,.72); color:var(--teal); cursor:pointer; padding:0;
+    box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .athlete-switch-btn svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  .athlete-switch-btn:active{transform:scale(.94);}
+
+  /* Atleta: sem construção de treinos — só prova, calendário e dados */
+  #today-workout-card{display:none !important;}
+  #plan-section{display:none !important;}
+
+  /* Calendário partilhado (atleta + treinador) */
+  .pcal{width:100%;}
+  .pcal-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .pcal-head strong{font-size:14px; text-transform:capitalize;}
+  .pcal-nav{width:34px; height:34px; border-radius:11px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:var(--text); font-size:16px; cursor:pointer;}
+  .pcal-nav:active{transform:scale(.94);}
+  .pcal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .pcal-dow{font-size:10px; color:var(--text-muted); text-align:center; text-transform:uppercase; letter-spacing:.4px; padding:2px 0; font-weight:800;}
+  .pcal-cell{aspect-ratio:1/1; border-radius:12px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02); display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:5px 2px 2px; cursor:pointer; position:relative; min-height:40px;}
+  .pcal-cell.empty{background:transparent; border-color:transparent; cursor:default;}
+  .pcal-cell.today{border-color:rgba(53,217,166,.5);}
+  .pcal-cell.selected{background:rgba(53,217,166,.16); border-color:rgba(53,217,166,.7);}
+  .pcal-cell .pcal-num{font-size:12px; font-weight:800; color:var(--text);}
+  .pcal-cell.dim .pcal-num{color:var(--text-muted); opacity:.45;}
+  .pcal-dots{display:flex; gap:3px; margin-top:auto; flex-wrap:wrap; justify-content:center; padding-bottom:2px;}
+  .pcal-dot{width:6px; height:6px; border-radius:50%; background:var(--teal);}
+  .pcal-dot.race{background:#F2B84B;}
+  .pcal-legend{display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--text-muted);}
+  .pcal-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .pcal-legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
+  .pcal-arm{border:1px solid rgba(242,184,75,.4); background:rgba(242,184,75,.1); color:#F2B84B; border-radius:14px; padding:10px 12px; font-size:12.5px; font-weight:800; margin-bottom:10px; display:none;}
+  .pcal-arm.on{display:block;}
+
+  .coach-day-item{border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px; background:rgba(9,14,25,.5); margin-bottom:9px;}
+  .coach-day-item .di-title{font-size:14px; font-weight:900; color:#fff; margin:0 0 3px;}
+  .coach-day-item .di-desc{font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; line-height:1.45;}
+  .coach-plan-item{border:1px solid rgba(53,217,166,.22); border-radius:14px; padding:11px 12px; background:rgba(53,217,166,.06); margin-bottom:8px;}
+  .coach-plan-item .cp-title{font-weight:900; color:#fff; font-size:14px;}
+  .coach-plan-item .cp-desc{font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; margin-top:3px; line-height:1.45;}
+  .coach-fav-star{background:none; border:0; cursor:pointer; font-size:18px; line-height:1; color:#4a566b; padding:2px 4px;}
+  .coach-fav-star.on{color:#F2B84B;}
+
   #coach-content{
     display:none; flex-direction:column; height:100dvh; width:100vw; overflow:hidden; color:var(--text);
     background:
@@ -13254,7 +13343,7 @@ nav.tabbar button.active svg{
   #coach-content .coach-brand-left{display:flex; align-items:center; gap:12px; min-width:0;}
   #coach-content .coach-title h1{margin:0; font-size:20px; letter-spacing:1px;}
   #coach-content .coach-title span{display:block; color:var(--text-muted); font-size:11px; margin-top:2px;}
-  #coach-content .coach-main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 14px calc(32px + env(safe-area-inset-bottom)); max-width:820px; width:100%; margin:0 auto;}
+  #coach-content .coach-main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 14px calc(32px + env(safe-area-inset-bottom)); max-width:1180px; width:100%; margin:0 auto;}
   #coach-content .coach-tabs{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; padding:6px; border-radius:999px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);}
   #coach-content .coach-tabs button{border:0; min-height:44px; border-radius:999px; background:transparent; color:var(--text-muted); font-weight:900; font-size:14px;}
   #coach-content .coach-tabs button.active{background:rgba(53,217,166,.16); color:var(--teal);}
@@ -13268,10 +13357,112 @@ nav.tabbar button.active svg{
   .coach-pill{display:inline-flex; align-items:center; gap:4px; padding:5px 9px; border-radius:999px; background:rgba(53,217,166,.13); color:var(--teal); font-size:11px; font-weight:900;}
   .coach-empty{color:var(--text-muted); font-size:13px; line-height:1.5; text-align:center; padding:20px 8px;}
   .coach-note{font-size:12.5px; color:var(--text-muted); line-height:1.5;}
+
+  /* Layout de duas colunas: editor à esquerda, atletas à direita */
+  .coach-split{display:grid; grid-template-columns:1fr; gap:12px;}
+  @media(min-width:860px){ .coach-split{grid-template-columns:1.15fr .85fr; align-items:start;} }
+  .coach-col{display:flex; flex-direction:column; gap:12px; min-width:0;}
+  .coach-section-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:2px;}
+  .coach-section-head h2{margin:0; font-family:var(--font-display); font-size:15px; letter-spacing:.4px;}
+
+  /* Botões genéricos do treinador */
+  .coach-btn{border:1px solid rgba(53,217,166,.32); background:rgba(53,217,166,.12); color:var(--teal); font-weight:900; font-size:13px; border-radius:14px; min-height:42px; padding:0 14px; cursor:pointer;}
+  .coach-btn:active{transform:scale(.97);}
+  .coach-btn.primary{background:linear-gradient(180deg,#35D9A6,#25b98c); color:#04140f; border-color:transparent;}
+  .coach-btn.ghost{background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.12); color:var(--text);}
+  .coach-btn.tiny{min-height:34px; font-size:12px; padding:0 11px; border-radius:11px;}
+  .coach-btn.danger{background:rgba(229,83,60,.12); border-color:rgba(229,83,60,.4); color:#ff8f7a;}
+
+  /* Formulário / editor do treinador */
+  .cwb-form{display:flex; flex-direction:column; gap:12px;}
+  .cwb-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .cwb-field{display:flex; flex-direction:column; gap:5px; flex:1; min-width:130px;}
+  .cwb-field label{font-size:10.5px; color:var(--text-muted); font-weight:800; text-transform:uppercase; letter-spacing:.5px;}
+  .cwb-field input, .cwb-field select{
+    width:100%; min-height:44px; border-radius:13px; border:1px solid rgba(255,255,255,.1);
+    background:rgba(9,14,25,.85); color:var(--text); font-size:14px; padding:0 12px; -webkit-appearance:none; appearance:none;
+  }
+  .cwb-field input:focus, .cwb-field select:focus{outline:none; border-color:rgba(53,217,166,.55);}
+  .cwb-sub{border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:12px; background:rgba(9,14,25,.4);}
+  .cwb-check{display:flex; gap:9px; align-items:center; cursor:pointer;}
+  .cwb-check input{width:20px; height:20px; min-height:0;}
+  .cwb-check strong{font-size:13px;}
+  .cwb-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .cwb-chip{border:1px solid var(--border,rgba(255,255,255,.12)); background:rgba(255,255,255,.05); color:var(--text); border-radius:999px; padding:8px 13px; font-size:12.5px; cursor:pointer;}
+  .cwb-chip.active{background:rgba(53,217,166,.16); border-color:rgba(53,217,166,.5); color:var(--teal);}
+  .cwb-preview{border:1px solid rgba(53,217,166,.28); border-radius:18px; padding:13px; background:rgba(53,217,166,.05);}
+  .cwb-preview .body{white-space:pre-line; font-size:13px; line-height:1.6;}
+  .cwb-preview .mins{margin:7px 0 0; font-size:12px; color:var(--text-muted);}
+
+  /* Cartões de treino guardado */
+  .coach-lib-card{background:rgba(9,14,25,.5); border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:14px;}
+  .coach-lib-card .lib-title{font-size:15px; font-weight:900; color:#fff; margin:0 0 4px;}
+  .coach-lib-card .lib-actions{display:flex; gap:7px; flex-wrap:wrap; margin-top:11px;}
+
+  /* Atletas */
+  .coach-athlete-row{display:flex; align-items:center; gap:11px; padding:13px; border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(9,14,25,.5); cursor:pointer;}
+  .coach-athlete-row.selected{border-color:rgba(53,217,166,.55); background:rgba(53,217,166,.1);}
+  .coach-athlete-av{width:40px; height:40px; flex:0 0 auto; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:15px; color:#04140f; background:linear-gradient(135deg,#35D9A6,#5B8DEF);}
+  .coach-athlete-info{min-width:0; flex:1;}
+  .coach-athlete-info strong{display:block; font-size:14.5px; color:#fff;}
+  .coach-athlete-info span{display:block; font-size:11.5px; color:var(--text-muted); margin-top:1px;}
+  .coach-athlete-badge{flex:0 0 auto; font-size:10.5px; font-weight:900; padding:4px 8px; border-radius:999px; background:rgba(91,141,239,.16); color:#9bbcff;}
+  .coach-athlete-badge.local{background:rgba(53,217,166,.16); color:var(--teal);}
+
+  /* Métricas de atleta exportadas */
+  .coach-metrics-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
+  @media(min-width:560px){ .coach-metrics-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(min-width:860px){ .coach-metrics-grid{grid-template-columns:repeat(4,1fr);} }
+  .coach-metric{background:rgba(9,14,25,.55); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:11px 12px;}
+  .coach-metric strong{display:block; font-size:17px; font-weight:900; color:#fff; line-height:1.1;}
+  .coach-metric span{display:block; font-size:10.5px; color:var(--text-muted); margin-top:4px; text-transform:uppercase; letter-spacing:.4px;}
+  .coach-activity{border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:13px; background:rgba(9,14,25,.5);}
+  .coach-activity .act-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+  .coach-activity .act-name{font-size:14.5px; font-weight:900; color:#fff; min-width:0;}
+  .coach-activity .act-date{font-size:11px; color:var(--text-muted); flex:0 0 auto;}
+  .coach-activity .act-stats{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
+  .coach-day-picker{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .coach-day-picker select{min-height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:rgba(9,14,25,.85); color:var(--text); font-size:13px; padding:0 10px;}
+
   @media(max-width:430px){
     #coach-content .coach-main{padding-left:12px; padding-right:12px;}
     .coach-card{border-radius:26px; padding:16px;}
   }
+
+
+  /* Treinos efetuados do atleta — últimos 30 dias */
+  .athlete-last30-card{display:flex; flex-direction:column; gap:12px;}
+  .athlete-last30-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .athlete-last30-mini{background:rgba(9,14,25,.55); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:10px 11px; text-align:center;}
+  .athlete-last30-mini strong{display:block; color:#fff; font-size:18px; line-height:1.1; font-weight:900;}
+  .athlete-last30-mini span{display:block; margin-top:4px; color:var(--text-muted); font-size:10px; text-transform:uppercase; letter-spacing:.35px;}
+  .athlete-last30-list{display:flex; flex-direction:column; gap:9px;}
+  .athlete-last30-item{border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:13px; background:rgba(9,14,25,.48);}
+  .athlete-last30-item .a30-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .athlete-last30-item .a30-name{font-size:15px; font-weight:900; color:#fff; line-height:1.25;}
+  .athlete-last30-item .a30-date{font-size:11px; color:var(--text-muted); white-space:nowrap;}
+  .athlete-last30-item .a30-stats{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
+
+  /* Treinador: ficha do atleta mais legível */
+  #coach-tab-atleta .coach-note{font-size:14px; line-height:1.55;}
+  #coach-tab-atleta .coach-section-head h2{font-size:19px;}
+  #coach-athlete-day{font-size:15px; min-height:46px;}
+  #coach-athlete-data .coach-card h3{font-size:16px; letter-spacing:.2px; color:#fff; margin:0 0 12px;}
+  #coach-athlete-data .coach-metrics-grid{gap:10px;}
+  #coach-athlete-data .coach-metric{padding:14px 13px; border-radius:18px;}
+  #coach-athlete-data .coach-metric strong{font-size:22px;}
+  #coach-athlete-data .coach-metric span{font-size:11.5px;}
+  #coach-athlete-data .coach-activity{padding:15px; border-radius:20px;}
+  #coach-athlete-data .coach-activity .act-name{font-size:17px;}
+  #coach-athlete-data .coach-activity .act-date{font-size:12px;}
+  #coach-athlete-data .coach-pill{font-size:12.5px; padding:5px 9px;}
+  @media(max-width:520px){
+    .athlete-last30-summary{grid-template-columns:1fr 1fr;}
+    #coach-athlete-data .coach-metrics-grid{grid-template-columns:1fr 1fr;}
+    #coach-athlete-data .coach-metric strong{font-size:20px;}
+    #coach-athlete-data .coach-activity .act-name{font-size:16px;}
+  }
+
 </style>
 
 <div id="coach-content" aria-hidden="true">
@@ -13295,18 +13486,210 @@ nav.tabbar button.active svg{
       <button type="button" class="active" data-coach-tab="treinos">Treinos</button>
       <button type="button" data-coach-tab="atleta">Atleta</button>
     </div>
+
     <section id="coach-tab-treinos" class="coach-view active">
-      <div class="coach-card">
-        <h3>Treinos manuais</h3>
-        <div class="coach-note">Para já, o treinador lê os treinos guardados localmente nesta app: treino de hoje, favoritos, treinos criados e plano manual.</div>
+      <div class="coach-split">
+
+        <!-- COLUNA ESQUERDA: editor + biblioteca -->
+        <div class="coach-col">
+          <div class="coach-card">
+            <div class="coach-section-head">
+              <h2>Editor de treinos</h2>
+              <button class="coach-btn tiny" type="button" id="cwb-new">+ Novo treino</button>
+            </div>
+            <div class="coach-note" id="cwb-hint">Cria treinos manuais aqui, tal como na área do atleta, e depois envia-os para os teus atletas.</div>
+
+            <form class="cwb-form" id="cwb-form" style="display:none; margin-top:12px;">
+              <input type="hidden" id="cwb-edit-id" value="">
+              <div class="cwb-field">
+                <label for="cwb-name">Nome do treino</label>
+                <input type="text" id="cwb-name" placeholder="ex: Intervalos VO₂ 8×1'" autocomplete="off">
+              </div>
+
+              <div class="cwb-row">
+                <div class="cwb-field">
+                  <label for="cwb-mod">Modalidade</label>
+                  <select id="cwb-mod">
+                    <option value="estrada">Corrida Estrada</option>
+                    <option value="trail">Trail</option>
+                    <option value="bike-indoor">Bike Indoor</option>
+                    <option value="bike-fora">Bike Exterior</option>
+                    <option value="forca">Força</option>
+                    <option value="mobilidade">Mobilidade</option>
+                  </select>
+                </div>
+                <div class="cwb-field" id="cwb-goal-wrap">
+                  <label for="cwb-goal">Objetivo</label>
+                  <select id="cwb-goal">
+                    <option>Recuperação</option><option>Base</option><option>Endurance</option><option>Tempo</option>
+                    <option>Limiar</option><option>VO₂</option><option>Sprint</option><option>Subidas</option>
+                    <option>Fartlek</option><option>Pirâmide</option><option>Cadência</option><option>Técnica</option>
+                    <option>Longo</option><option>Potência</option><option>Livre</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Aquecimento -->
+              <div class="cwb-sub" id="cwb-warm-card">
+                <label class="cwb-check"><input type="checkbox" id="cwb-warm"> <strong>Aquecimento</strong></label>
+                <div class="cwb-row" id="cwb-warm-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Tempo</label><select id="cwb-warm-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
+                  <div class="cwb-field"><label>Tipo</label><select id="cwb-warm-type"><option>Corrida fácil</option><option>Trail fácil</option><option>Bike leve</option><option>Caminhada</option><option>Mobilidade dinâmica</option></select></div>
+                  <div class="cwb-field"><label>Zona</label><select id="cwb-warm-zone"><option>Z1</option><option selected>Z2</option><option>Livre</option></select></div>
+                </div>
+              </div>
+
+              <!-- Bloco principal -->
+              <div class="cwb-sub" id="cwb-main-card">
+                <div class="cwb-field" id="cwb-main-wrap"><label for="cwb-main">Bloco principal</label>
+                  <select id="cwb-main">
+                    <option>Tempo</option><option>Intervalos</option><option>Repetições</option>
+                    <option>Subidas</option><option>Pirâmide</option><option>Fartlek</option><option>Livre</option>
+                  </select>
+                </div>
+
+                <div class="cwb-row" id="cwb-int-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Séries</label><select id="cwb-int-series"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select></div>
+                  <div class="cwb-field"><label>Esforço</label><select id="cwb-int-effort"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
+                  <div class="cwb-field" id="cwb-int-ex-wrap"><label>Exercício</label><select id="cwb-int-ex"></select></div>
+                  <div class="cwb-field"><label>Intensidade</label><select id="cwb-int-int"><option>Z3</option><option>Z4</option><option selected>Z5</option><option>FTP</option><option>RPE</option><option>Livre</option></select></div>
+                  <div class="cwb-field"><label>Recuperação</label><select id="cwb-int-rec"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
+                  <div class="cwb-field"><label>Tipo recuperação</label><select id="cwb-int-rectype"><option>Parado</option><option>Caminhada</option><option selected>Trote</option><option>Bike leve</option></select></div>
+                </div>
+
+                <div class="cwb-row" id="cwb-time-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Tempo contínuo</label><select id="cwb-time-dur"><option value="20">20 min</option><option value="30">30 min</option><option value="40" selected>40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></div>
+                  <div class="cwb-field"><label>Zona</label><select id="cwb-time-zone"><option>Z1</option><option>Z2</option><option selected>Z3</option><option>Z4</option><option>Livre</option></select></div>
+                  <div class="cwb-field"><label>RPE</label><select id="cwb-time-rpe"><option value="">—</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+                </div>
+
+                <div class="cwb-row" id="cwb-long-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Tempo</label><select id="cwb-long-dur"><option value="60">60 min</option><option value="75">75 min</option><option value="90" selected>90 min</option><option value="120">120 min</option><option value="150">150 min</option><option value="180">180 min</option></select></div>
+                  <div class="cwb-field"><label>Zona</label><select id="cwb-long-zone"><option>Z1</option><option selected>Z2</option><option>Z3</option></select></div>
+                  <div class="cwb-field"><label>Final mais forte</label><select id="cwb-long-strong"><option value="">Não</option><option value="10">Últimos 10 min</option><option value="15">Últimos 15 min</option><option value="20">Últimos 20 min</option><option value="30">Últimos 30 min</option></select></div>
+                  <div class="cwb-field"><label>Nutrição</label><select id="cwb-long-nutri"><option value="">Sem plano</option><option>Gel a cada 30 min</option><option>Gel a cada 45 min</option><option>Barrita a cada 60 min</option></select></div>
+                  <div class="cwb-field"><label>Hidratação</label><select id="cwb-long-hydro"><option value="">Sem plano</option><option>2 goles a cada 15 min</option><option>500 ml por hora</option></select></div>
+                </div>
+
+                <div class="cwb-row" id="cwb-sub-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Repetições</label><select id="cwb-sub-reps"><option>3</option><option>4</option><option>5</option><option selected>6</option><option>8</option><option>10</option></select></div>
+                  <div class="cwb-field"><label>Tempo subida</label><select id="cwb-sub-time"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option></select></div>
+                  <div class="cwb-field" id="cwb-sub-ex-wrap"><label>Exercício</label><select id="cwb-sub-ex"></select></div>
+                  <div class="cwb-field"><label>Inclinação</label><select id="cwb-sub-inc"><option value="">Livre</option><option>4%</option><option>6%</option><option>8%</option><option>9%</option><option>10%</option><option>12%</option></select></div>
+                  <div class="cwb-field"><label>Recuperação</label><select id="cwb-sub-rec"><option value="30">30 s</option><option value="60">1 min</option><option value="90">90 s</option><option value="120" selected>2 min</option><option value="180">3 min</option></select></div>
+                  <div class="cwb-field"><label>Tipo recuperação</label><select id="cwb-sub-rectype"><option>Parado</option><option selected>Caminhada</option><option>Trote</option><option>Bike leve</option></select></div>
+                </div>
+
+                <div class="cwb-row" id="cwb-pyr-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Modelo</label><select id="cwb-pyr-model"><option selected>1-2-3-2-1</option><option>2-3-4-3-2</option><option value="custom">Personalizada</option></select></div>
+                  <div class="cwb-field" id="cwb-pyr-custom-wrap" style="display:none;"><label>Degraus (min)</label><input type="text" id="cwb-pyr-custom" placeholder="ex: 1-3-5-3-1"></div>
+                  <div class="cwb-field"><label>Intensidade</label><select id="cwb-pyr-int"><option>Z3</option><option selected>Z4</option><option>Z5</option><option>Livre</option></select></div>
+                </div>
+
+                <div class="cwb-row" id="cwb-free-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Tempo</label><select id="cwb-free-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
+                </div>
+              </div>
+
+              <!-- Força -->
+              <div class="cwb-sub" id="cwb-forca-card" style="display:none;">
+                <div class="cwb-row">
+                  <div class="cwb-field"><label>Grupo muscular</label><select id="cwb-fx-group"><option>Core</option><option selected>Pernas</option><option>Glúteos</option><option>Posterior</option><option>Tronco</option><option>Superior</option><option>Corpo inteiro</option></select></div>
+                  <div class="cwb-field"><label>Tipo</label><select id="cwb-fx-equip"><option selected>Peso corporal</option><option>Halteres</option><option>Barra</option><option>Kettlebell</option><option>Elásticos</option><option>Máquinas</option></select></div>
+                  <div class="cwb-field"><label>Séries</label><select id="cwb-fx-series"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+                  <div class="cwb-field"><label>Descanso</label><select id="cwb-fx-rest"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option></select></div>
+                  <div class="cwb-field"><label>Carga</label><select id="cwb-fx-load"><option value="">Opcional</option><option>Sem carga</option><option>Leve</option><option>Moderada</option><option>Pesada</option></select></div>
+                </div>
+                <label style="font-size:10.5px; color:var(--text-muted); font-weight:800; text-transform:uppercase; letter-spacing:.5px; display:block; margin:11px 0 6px;">Exercícios (toca para adicionar)</label>
+                <div id="cwb-fx-ex" class="cwb-chips"></div>
+              </div>
+
+              <!-- Mobilidade -->
+              <div class="cwb-sub" id="cwb-mob-card" style="display:none;">
+                <div class="cwb-row">
+                  <div class="cwb-field"><label>Tipo</label><select id="cwb-mob-type"><option>Antes do treino</option><option>Depois do treino</option><option selected>Recuperação</option><option>Alongamentos</option><option>Foam Roller</option><option>Respiração</option><option>Mobilidade dinâmica</option></select></div>
+                  <div class="cwb-field"><label>Tempo</label><select id="cwb-mob-dur"><option value="5">5 min</option><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
+                  <div class="cwb-field"><label>Zona corporal</label><select id="cwb-mob-zone"><option>Anca</option><option>Tornozelo</option><option>Lombar</option><option>Ombros</option><option>Pescoço</option><option selected>Corpo inteiro</option></select></div>
+                </div>
+              </div>
+
+              <!-- Desaquecimento -->
+              <div class="cwb-sub" id="cwb-cool-card">
+                <label class="cwb-check"><input type="checkbox" id="cwb-cool"> <strong>Desaquecimento</strong></label>
+                <div class="cwb-row" id="cwb-cool-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Tempo</label><select id="cwb-cool-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
+                  <div class="cwb-field"><label>Tipo</label><select id="cwb-cool-type"><option>Corrida leve</option><option>Bike leve</option><option>Caminhada</option><option>Alongamentos</option></select></div>
+                </div>
+              </div>
+
+              <!-- Pré-visualização -->
+              <div class="cwb-preview">
+                <h3 style="margin:0 0 6px; color:#A8B4C8; font-size:11px; text-transform:uppercase; letter-spacing:.9px;">Pré-visualização</h3>
+                <div class="body" id="cwb-preview"></div>
+                <p class="mins" id="cwb-preview-min"></p>
+              </div>
+
+              <label class="cwb-check" style="margin-top:2px;"><input type="checkbox" id="cwb-fav"> <strong>★ Guardar também nos favoritos</strong></label>
+
+              <div class="cwb-row" style="gap:8px;">
+                <button class="coach-btn primary" type="submit" style="flex:1;">Guardar treino</button>
+                <button class="coach-btn ghost" type="button" id="cwb-cancel">Cancelar</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="coach-card">
+            <div class="coach-section-head">
+              <h2>Biblioteca de treinos</h2>
+              <button class="coach-btn tiny ghost" type="button" id="coach-fav-filter">★ Só favoritos</button>
+            </div>
+            <div class="coach-note" style="margin-bottom:10px;">Marca ★ para favorito. Usa <strong>Agendar</strong> para colocar o treino num dia do calendário do atleta.</div>
+            <div id="coach-workouts-list"></div>
+          </div>
+        </div>
+
+        <!-- COLUNA DIREITA: atletas + calendário -->
+        <div class="coach-col">
+          <div class="coach-card">
+            <div class="coach-section-head">
+              <h2>Atletas</h2>
+              <button class="coach-btn tiny ghost" type="button" id="coach-add-athlete">+ Atleta</button>
+            </div>
+            <div class="coach-note" style="margin-bottom:10px;">Escolhe o atleta para quem estás a planear.</div>
+            <div id="coach-athletes-list"></div>
+          </div>
+
+          <div class="coach-card">
+            <div class="coach-section-head">
+              <h2>Calendário</h2>
+            </div>
+            <div class="pcal-arm" id="coach-cal-arm"></div>
+            <div id="coach-calendar"></div>
+            <div class="pcal-legend"><span><i style="background:#F2B84B;"></i>Prova</span><span><i style="background:var(--teal);"></i>Treino</span></div>
+          </div>
+
+          <div class="coach-card">
+            <div class="coach-section-head">
+              <h2 id="coach-cal-day-title">Dia selecionado</h2>
+            </div>
+            <div id="coach-cal-day-body"><div class="coach-empty">Toca num dia do calendário para ver ou remover treinos.</div></div>
+          </div>
+        </div>
+
       </div>
-      <div id="coach-workouts-list"></div>
     </section>
+
     <section id="coach-tab-atleta" class="coach-view">
       <div class="coach-card">
-        <h3>Dados do atleta</h3>
-        <div class="coach-empty">Este separador fica preparado para a próxima fase. Como os dados ainda são locais neste telemóvel, a ligação real treinador ↔ atleta será feita quando ligarmos a cloud.</div>
+        <div class="coach-section-head">
+          <h2>Dados do atleta</h2>
+          <div class="coach-day-picker">
+            <select id="coach-athlete-day"></select>
+          </div>
+        </div>
+        <div class="coach-note" id="coach-athlete-source">Informação exportada da área do atleta deste dispositivo.</div>
       </div>
+      <div id="coach-athlete-data"></div>
     </section>
   </main>
 </div>
@@ -13317,13 +13700,37 @@ nav.tabbar button.active svg{
   const MODE_KEY = 'pulso:selected-role';
   let pulsoRoleBypassOriginalLogin = false;
 
+  /* ---------- Armazenamento ---------- */
   function safeParse(raw, fallback){ try{ return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; } }
   function getPulso(key, fallback){ return safeParse(localStorage.getItem('pulso:'+key), fallback); }
-  function setPulso(key, value){ try{ localStorage.setItem('pulso:'+key, JSON.stringify(value)); }catch(e){} }
+  function setPulso(key, value){
+    try{ localStorage.setItem('pulso:'+key, JSON.stringify(value)); }catch(e){}
+    try{ if(window.storage && window.storage.set) window.storage.set(key, JSON.stringify(value), false); }catch(e){}
+  }
   function getRaw(key, fallback){ return safeParse(localStorage.getItem(key), fallback); }
   function esc(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function cuid(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function todayStr(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function shortDate(v){ if(!v) return ''; const d = new Date(v); return isNaN(d) ? String(v).slice(0,10) : d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}); }
+  function fmtDayLabel(day){ try{ return new Date(day+'T12:00:00').toLocaleDateString('pt-PT',{weekday:'short', day:'2-digit', month:'2-digit'}); }catch(e){ return day; } }
+  let coachToastTimer = null;
+  function toast(msg){
+    try{
+      const t = document.getElementById('toast');
+      if(!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(coachToastTimer);
+      coachToastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 2200);
+    }catch(e){}
+  }
+  function coachModalityLabel(type){
+    return ({'estrada':'Corrida — Estrada','trail':'Corrida — Trail','bike-indoor':'Bicicleta — Indoor','bike-fora':'Bicicleta — Rua','forca':'Força','mobilidade':'Mobilidade'})[type] || (type||'Treino');
+  }
 
+  /* =====================================================================
+     ECRÃ DE ESCOLHA (Atleta / Treinador)
+     ===================================================================== */
   function ensureRoleStep(){
     const form = document.getElementById('login-form');
     const card = form ? form.closest('.login-card') : null;
@@ -13337,7 +13744,7 @@ nav.tabbar button.active svg{
           <strong>Atleta</strong><span>Entrar na app atual com dashboard, saúde, nutrição e treinos.</span>
         </button>
         <button type="button" class="pulso-role-btn coach" id="role-coach">
-          <strong>Treinador</strong><span>Ver, para já, os treinos manuais guardados nesta app.</span>
+          <strong>Treinador</strong><span>Criar e editar treinos, e ver os dados exportados do atleta.</span>
         </button>
       </div>
       <button type="button" class="ghost pulso-login-back" id="role-back-name">Voltar ao nome</button>`;
@@ -13349,7 +13756,6 @@ nav.tabbar button.active svg{
     const input = document.getElementById('login-name');
     return (input && input.value ? input.value : '').trim();
   }
-
   function saveName(){
     const name = getName();
     if(!name) return false;
@@ -13357,6 +13763,10 @@ nav.tabbar button.active svg{
     profile.name = name;
     setPulso('profile', profile);
     return true;
+  }
+  function profileName(){
+    const p = getPulso('profile', {}) || {};
+    return (p.name && String(p.name).trim()) || getName() || 'Atleta';
   }
 
   function showRoleStep(){
@@ -13377,7 +13787,6 @@ nav.tabbar button.active svg{
     if(title) title.textContent = 'ENTRAR COMO';
     if(sub) sub.textContent = 'Escolhe a área que queres abrir.';
   }
-
   function showNameStep(){
     const form = document.getElementById('login-form');
     const role = document.getElementById('pulso-role-step');
@@ -13394,12 +13803,6 @@ nav.tabbar button.active svg{
     localStorage.setItem(MODE_KEY, 'athlete');
     const coach = document.getElementById('coach-content');
     if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
-
-    /* IMPORTANTE:
-       Não abrimos a app manualmente aqui.
-       A app original já tem a função completeLogin/unlock/bootApp dentro do seu próprio bloco.
-       Como essa função não é global, a forma certa é deixar o formulário original continuar.
-       Assim o Atleta volta a carregar todos os dados locais: sono, peso, nutrição, saúde, etc. */
     const form = document.getElementById('login-form');
     pulsoRoleBypassOriginalLogin = true;
     try{
@@ -13411,60 +13814,833 @@ nav.tabbar button.active svg{
     }
   }
 
+  function backToSelection(){
+    const locked = document.getElementById('app-locked');
+    const app = document.getElementById('app-content');
+    const coach = document.getElementById('coach-content');
+    if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
+    if(app) app.style.display = 'none';
+    if(locked) locked.style.display = 'flex';
+    showRoleStep();
+    try{ window.scrollTo(0,0); }catch(e){}
+  }
+
+  /* =====================================================================
+     BIBLIOTECA DE TREINOS
+     ===================================================================== */
   function normalizeWorkout(w, source){
     if(!w || typeof w !== 'object') return null;
     const title = w.title || w.name || w.nome || w.workout || w.label || 'Treino manual';
     const desc = w.desc || w.description || w.notes || w.note || w.text || w.details || '';
     const type = w.type || w.sport || w.modalidade || '';
-    const duration = w.duration || w.time || w.minutes || w.min || '';
+    const duration = w.duration || w.time || w.minutes || w.min || w.baseMinutes || '';
     const date = w.date || w.createdAt || w.day || w.start_date || '';
-    const id = w.id || (source + '-' + title + '-' + date + '-' + Math.random());
-    return {id, title, desc, type, duration, date, source};
+    const id = w.id || (source + '-' + title + '-' + date);
+    return {id, title, desc, type, duration, date, source, origin:'atleta'};
   }
-
   function collectManualWorkouts(){
     const out = [];
     const pushOne = (item, source)=>{ const w = normalizeWorkout(item, source); if(w) out.push(w); };
     const pushArr = (arr, source)=>{ if(Array.isArray(arr)) arr.forEach(x=>pushOne(x, source)); };
-
-    pushOne(getRaw('pulsoTodayWorkout', null), 'Treino de hoje');
-    pushOne(getRaw('todayWorkout', null), 'Treino de hoje');
-    pushOne(getPulso('today-plan', null), 'Plano de hoje');
-    pushArr(getRaw('pulsoUserWorkouts', []), 'Treinos criados');
-    pushArr(getPulso('favorite-workouts', []), 'Favoritos');
+    pushArr(getPulso('favorite-workouts', []), 'Favoritos do atleta');
     pushArr(getPulso('planned-workouts', []), 'Plano manual');
-    pushArr(getPulso('training-plan', []), 'Plano manual');
-
     const seen = new Set();
     return out.filter(w=>{
       const key = [w.title,w.desc,w.date,w.source].join('|');
-      if(seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+      if(seen.has(key)) return false; seen.add(key); return true;
+    });
   }
+  function getCoachWorkouts(){ const a = getPulso('coach-workouts', []); return Array.isArray(a) ? a : []; }
+  let favFilterOn = false;
 
   function renderCoachWorkouts(){
     const el = document.getElementById('coach-workouts-list');
     if(!el) return;
-    const workouts = collectManualWorkouts();
-    if(!workouts.length){
-      el.innerHTML = '<div class="coach-card"><div class="coach-empty">Ainda não existem treinos manuais guardados. Quando criares ou selecionares treinos na área Atleta, aparecem aqui.</div></div>';
+    let coachW = getCoachWorkouts();
+    if(favFilterOn) coachW = coachW.filter(w=>w.favorite);
+    const athleteW = favFilterOn ? [] : collectManualWorkouts();
+    if(!coachW.length && !athleteW.length){
+      el.innerHTML = '<div class="coach-empty">' + (favFilterOn ? 'Ainda não marcaste treinos como favoritos.' : 'Ainda não há treinos. Cria um treino no editor acima para começares.') + '</div>';
       return;
     }
-    el.innerHTML = workouts.map(w=>`
-      <article class="coach-card">
-        <h3>${esc(w.source)}</h3>
-        <div class="coach-workout-title">${esc(w.title)}</div>
+    let html = '';
+    coachW.forEach(w=>{
+      html += `<div class="coach-lib-card" style="margin-bottom:10px;">
+        <div class="row space-between" style="align-items:flex-start; gap:8px;">
+          <div class="lib-title" style="flex:1; min-width:0;">${esc(w.name||'Treino')}</div>
+          <button class="coach-fav-star${w.favorite?' on':''}" type="button" data-lib-fav="${esc(w.id)}" title="Favorito" aria-label="Favorito">${w.favorite?'★':'☆'}</button>
+        </div>
         ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : ''}
         <div class="coach-pill-row">
-          ${w.type ? `<span class="coach-pill">${esc(w.type)}</span>` : ''}
-          ${w.duration ? `<span class="coach-pill">${esc(w.duration)}</span>` : ''}
-          ${w.date ? `<span class="coach-pill">${esc(shortDate(w.date))}</span>` : ''}
+          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+          ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
         </div>
-      </article>`).join('');
+        <div class="lib-actions">
+          <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}">Agendar</button>
+          <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}">Editar</button>
+          <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}">Apagar</button>
+        </div>
+      </div>`;
+    });
+    athleteW.forEach(w=>{
+      html += `<div class="coach-lib-card" style="margin-bottom:10px;">
+        <div class="lib-title">${esc(w.title)}</div>
+        ${w.desc ? `<div class="coach-workout-desc">${esc(w.desc)}</div>` : ''}
+        <div class="coach-pill-row">
+          <span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">${esc(w.source)}</span>
+          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+          ${w.duration ? `<span class="coach-pill">${esc(w.duration)} min</span>` : ''}
+        </div>
+        <div class="lib-actions">
+          <button class="coach-btn tiny" type="button" data-lib-import="${esc(w.id)}">Copiar para o editor</button>
+        </div>
+      </div>`;
+    });
+    el.innerHTML = html;
+  }
+  function toggleFavorite(id){
+    const list = getCoachWorkouts();
+    const w = list.find(x=>x.id===id);
+    if(w){ w.favorite = !w.favorite; setPulso('coach-workouts', list); renderCoachWorkouts(); }
   }
 
+  /* =====================================================================
+     EDITOR DE TREINOS (motor idêntico ao da área do atleta)
+     ===================================================================== */
+  const CWB_EX = {
+    intervalosRun: ['Tempo livre','200 m','400 m','800 m','1000 m','Tempo Run'],
+    subidasTrail: ['Rampa curta','Rampa longa','Escadas','Rampa técnica'],
+    subidasRun: ['Rampa curta','Rampa longa','Escadas'],
+    forca: {
+      'Core': ['Prancha','Side Plank','Bird Dog','Dead Bug'],
+      'Pernas': ['Agachamento','Lunges','Step Up','Gémeos','Afundos búlgaros'],
+      'Glúteos': ['Ponte de glúteos','Hip Thrust','Abdução'],
+      'Posterior': ['Deadlift romeno','Nordic curl','Good morning'],
+      'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação'],
+      'Superior': ['Flexões','Remada','Press ombros'],
+      'Corpo inteiro': ['Agachamento','Lunges','Deadlift romeno','Prancha','Step Up','Flexões']
+    },
+    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','default':'10' }
+  };
+  let cwbForcaSelected = [];
+
+  const cwbEl = id => document.getElementById(id);
+  const cwbVal = id => { const el = cwbEl(id); return el ? el.value : ''; };
+  const cwbShow = (id, on) => { const el = cwbEl(id); if(el) el.style.display = on ? '' : 'none'; };
+  const cwbFmtSec = s => { s = parseInt(s,10)||0; return s < 120 ? s+' s' : (s%60===0 ? (s/60)+' min' : Math.round(s/60*10)/10+' min'); };
+
+  function cwbFillSelect(id, items){
+    const el = cwbEl(id); if(!el) return;
+    const cur = el.value;
+    el.innerHTML = items.map(x=>`<option>${x}</option>`).join('');
+    if(items.includes(cur)) el.value = cur;
+  }
+  function cwbRenderForcaEx(){
+    const group = cwbVal('cwb-fx-group');
+    const list = CWB_EX.forca[group] || [];
+    cwbForcaSelected = cwbForcaSelected.filter(x=>list.includes(x));
+    if(!cwbForcaSelected.length) cwbForcaSelected = list.slice(0,3);
+    const box = cwbEl('cwb-fx-ex'); if(!box) return;
+    box.innerHTML = list.map(x=>`<button type="button" class="cwb-chip${cwbForcaSelected.includes(x)?' active':''}" data-ex="${esc(x)}">${esc(x)}</button>`).join('');
+  }
+
+  function cwbRefresh(){
+    const mod = cwbVal('cwb-mod');
+    const goal = cwbVal('cwb-goal');
+    const main = cwbVal('cwb-main');
+    const isForca = mod==='forca', isMob = mod==='mobilidade', isSport = !isForca && !isMob;
+    const isLongo = isSport && goal==='Longo';
+
+    cwbShow('cwb-goal-wrap', isSport);
+    cwbShow('cwb-forca-card', isForca);
+    cwbShow('cwb-mob-card', isMob);
+    cwbShow('cwb-warm-card', !isMob);
+    cwbShow('cwb-cool-card', !isMob);
+    cwbShow('cwb-main-card', isSport && !isLongo);
+
+    const warm = cwbEl('cwb-warm'); const cool = cwbEl('cwb-cool');
+    cwbShow('cwb-warm-fields', !!(warm && warm.checked));
+    cwbShow('cwb-cool-fields', !!(cool && cool.checked));
+
+    cwbShow('cwb-int-fields', isSport && !isLongo && (main==='Intervalos' || main==='Repetições'));
+    cwbShow('cwb-time-fields', isSport && !isLongo && (main==='Tempo' || main==='Fartlek'));
+    cwbShow('cwb-sub-fields', isSport && !isLongo && main==='Subidas');
+    cwbShow('cwb-pyr-fields', isSport && !isLongo && main==='Pirâmide');
+    cwbShow('cwb-free-fields', isSport && !isLongo && main==='Livre');
+
+    const mainCard = cwbEl('cwb-main-card');
+    cwbShow('cwb-long-fields', isLongo);
+    if(isLongo && mainCard){ mainCard.style.display=''; cwbShow('cwb-main-wrap', false); }
+    else{ cwbShow('cwb-main-wrap', true); }
+
+    cwbShow('cwb-pyr-custom-wrap', cwbVal('cwb-pyr-model')==='custom');
+
+    const isRun = mod==='estrada' || mod==='trail';
+    cwbFillSelect('cwb-int-ex', isRun ? CWB_EX.intervalosRun : ['Tempo livre']);
+    cwbFillSelect('cwb-sub-ex', mod==='trail' ? ['Livre'].concat(CWB_EX.subidasTrail) : (mod==='estrada' ? ['Livre'].concat(CWB_EX.subidasRun) : ['Livre']));
+    if(isForca) cwbRenderForcaEx();
+
+    cwbUpdatePreview();
+  }
+
+  function cwbPyramidSteps(){
+    const model = cwbVal('cwb-pyr-model');
+    const raw = model==='custom' ? (cwbVal('cwb-pyr-custom')||'1-2-3-2-1') : model;
+    return raw.split('-').map(x=>parseFloat(String(x).trim())).filter(x=>x>0);
+  }
+
+  function cwbBuild(){
+    const mod = cwbVal('cwb-mod');
+    const goal = cwbVal('cwb-goal');
+    const main = cwbVal('cwb-main');
+    const lines = [];
+    let minutes = 0;
+    const warm = cwbEl('cwb-warm'); const cool = cwbEl('cwb-cool');
+
+    if(mod!=='mobilidade' && warm && warm.checked){
+      const t = parseInt(cwbVal('cwb-warm-time'),10);
+      const z = cwbVal('cwb-warm-zone');
+      lines.push(`${t} min aquecimento${z!=='Livre'?' '+z:''} · ${cwbVal('cwb-warm-type')}`);
+      minutes += t;
+    }
+
+    if(mod==='forca'){
+      const s = parseInt(cwbVal('cwb-fx-series'),10);
+      const rest = parseInt(cwbVal('cwb-fx-rest'),10);
+      lines.push(`Força — ${cwbVal('cwb-fx-group')} (${cwbVal('cwb-fx-equip')})`);
+      lines.push(`${s} séries:`);
+      cwbForcaSelected.forEach(ex=>{
+        const reps = CWB_EX.forcaReps[ex] || CWB_EX.forcaReps['default'];
+        lines.push(`• ${reps} ${ex}`);
+      });
+      lines.push(`Descanso ${cwbFmtSec(rest)} entre séries${cwbVal('cwb-fx-load')?' · Carga: '+cwbVal('cwb-fx-load'):''}`);
+      minutes += Math.round(s * (cwbForcaSelected.length*0.75 + rest/60));
+    }else if(mod==='mobilidade'){
+      const d = parseInt(cwbVal('cwb-mob-dur'),10);
+      lines.push(`${d} min ${cwbVal('cwb-mob-type')} — ${cwbVal('cwb-mob-zone')}`);
+      minutes += d;
+    }else if(goal==='Longo'){
+      const d = parseInt(cwbVal('cwb-long-dur'),10);
+      lines.push(`${d} min ${cwbVal('cwb-long-zone')}`);
+      if(cwbVal('cwb-long-strong')) lines.push(`Últimos ${cwbVal('cwb-long-strong')} min mais fortes`);
+      if(cwbVal('cwb-long-nutri')) lines.push(`Nutrição: ${cwbVal('cwb-long-nutri')}`);
+      if(cwbVal('cwb-long-hydro')) lines.push(`Hidratação: ${cwbVal('cwb-long-hydro')}`);
+      minutes += d;
+    }else if(main==='Intervalos' || main==='Repetições'){
+      const n = parseInt(cwbVal('cwb-int-series'),10);
+      const eff = parseInt(cwbVal('cwb-int-effort'),10);
+      const rec = parseInt(cwbVal('cwb-int-rec'),10);
+      const ex = cwbVal('cwb-int-ex');
+      const intn = cwbVal('cwb-int-int');
+      const unit = (ex && ex!=='Tempo livre') ? ex : cwbFmtSec(eff);
+      lines.push(`${n} × ${unit}${intn!=='Livre'?' '+intn:''}`);
+      lines.push(`Recuperação ${cwbFmtSec(rec)} — ${cwbVal('cwb-int-rectype')}`);
+      minutes += Math.round(n * (eff + rec) / 60);
+    }else if(main==='Subidas'){
+      const n = parseInt(cwbVal('cwb-sub-reps'),10);
+      const t = parseInt(cwbVal('cwb-sub-time'),10);
+      const rec = parseInt(cwbVal('cwb-sub-rec'),10);
+      const ex = cwbVal('cwb-sub-ex');
+      lines.push(`${n} × ${cwbFmtSec(t)} subida${cwbVal('cwb-sub-inc')?' ('+cwbVal('cwb-sub-inc')+')':''}${ex && ex!=='Livre'?' — '+ex:''}`);
+      lines.push(`Recuperação ${cwbFmtSec(rec)} — ${cwbVal('cwb-sub-rectype')}`);
+      minutes += Math.round(n * (t + rec) / 60);
+    }else if(main==='Pirâmide'){
+      const steps = cwbPyramidSteps();
+      lines.push(`Pirâmide ${steps.join('-')} min ${cwbVal('cwb-pyr-int')}`);
+      lines.push(`Recuperação = tempo do degrau anterior`);
+      minutes += Math.round(steps.reduce((a,b)=>a+b,0) * 2);
+    }else if(main==='Fartlek'){
+      const d = parseInt(cwbVal('cwb-time-dur'),10);
+      lines.push(`${d} min fartlek ${cwbVal('cwb-time-zone')!=='Livre'?cwbVal('cwb-time-zone'):''} — variações livres de ritmo`.replace('  ',' '));
+      minutes += d;
+    }else if(main==='Livre'){
+      const d = parseInt(cwbVal('cwb-free-dur'),10);
+      lines.push(`${d} min livre`);
+      minutes += d;
+    }else{
+      const d = parseInt(cwbVal('cwb-time-dur'),10);
+      const rpe = cwbVal('cwb-time-rpe');
+      lines.push(`${d} min contínuo ${cwbVal('cwb-time-zone')}${rpe?' (RPE '+rpe+')':''}`);
+      minutes += d;
+    }
+
+    if(mod!=='mobilidade' && cool && cool.checked){
+      const t = parseInt(cwbVal('cwb-cool-time'),10);
+      lines.push(`${t} min desaquecimento (${cwbVal('cwb-cool-type')})`);
+      minutes += t;
+    }
+    minutes = Math.max(10, Math.round(minutes/5)*5);
+    return { lines, minutes };
+  }
+
+  function cwbUpdatePreview(){
+    const { lines, minutes } = cwbBuild();
+    const p = cwbEl('cwb-preview'); if(p) p.textContent = lines.join('\n');
+    const m = cwbEl('cwb-preview-min'); if(m) m.textContent = 'Duração estimada: ' + minutes + ' min';
+  }
+
+  function cwbCollectState(){
+    const state = { forcaEx: [...cwbForcaSelected] };
+    document.querySelectorAll('#cwb-form select, #cwb-form input[type=text], #cwb-form input[type=checkbox]').forEach(el=>{
+      if(!el.id || el.id==='cwb-edit-id' || el.id==='cwb-name') return;
+      state[el.id] = el.type==='checkbox' ? el.checked : el.value;
+    });
+    return state;
+  }
+  function cwbApplyState(state){
+    if(!state) return;
+    document.querySelectorAll('#cwb-form select, #cwb-form input[type=text], #cwb-form input[type=checkbox]').forEach(el=>{
+      if(!el.id || !(el.id in state)) return;
+      if(el.type==='checkbox') el.checked = !!state[el.id];
+      else el.value = state[el.id];
+    });
+    cwbForcaSelected = Array.isArray(state.forcaEx) ? [...state.forcaEx] : [];
+  }
+
+  function openCoachEditor(workoutId){
+    const form = cwbEl('cwb-form');
+    const hint = cwbEl('cwb-hint');
+    if(!form) return;
+    form.reset();
+    cwbEl('cwb-edit-id').value = '';
+    cwbForcaSelected = [];
+    if(workoutId){
+      const w = getCoachWorkouts().find(x=>x.id===workoutId);
+      if(w){
+        cwbEl('cwb-edit-id').value = w.id;
+        cwbEl('cwb-name').value = w.name || '';
+        const favEl = cwbEl('cwb-fav'); if(favEl) favEl.checked = !!w.favorite;
+        if(w.builder) cwbApplyState(w.builder);
+        else if(w.type){ const m = cwbEl('cwb-mod'); if([...m.options].some(o=>o.value===w.type)) m.value = w.type; }
+      }
+    }
+    form.style.display = 'flex';
+    if(hint) hint.style.display = 'none';
+    cwbRefresh();
+    try{ form.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
+  }
+  function closeCoachEditor(){
+    const form = cwbEl('cwb-form');
+    const hint = cwbEl('cwb-hint');
+    if(form){ form.reset(); form.style.display = 'none'; }
+    if(hint) hint.style.display = '';
+    cwbForcaSelected = [];
+  }
+
+  function saveCoachWorkout(){
+    const name = (cwbEl('cwb-name').value || '').trim();
+    if(!name){ toast('Dá um nome ao treino'); const n = cwbEl('cwb-name'); if(n) n.focus(); return; }
+    const mod = cwbVal('cwb-mod');
+    if(mod==='forca' && cwbForcaSelected.length===0){ toast('Escolhe pelo menos um exercício'); return; }
+    const { lines, minutes } = cwbBuild();
+    const desc = lines.join('\n');
+    const builder = cwbCollectState();
+    const editId = cwbEl('cwb-edit-id').value;
+    const favEl = cwbEl('cwb-fav');
+    const fav = !!(favEl && favEl.checked);
+    const list = getCoachWorkouts();
+    if(editId){
+      const w = list.find(x=>x.id===editId);
+      if(w){ w.name = name; w.type = mod; w.baseMinutes = minutes; w.desc = desc; w.builder = builder; w.favorite = fav; }
+    }else{
+      list.push({id:cuid(), name, type:mod, baseMinutes:minutes, desc, builder, favorite:fav, createdAt:new Date().toISOString()});
+    }
+    setPulso('coach-workouts', list);
+    closeCoachEditor();
+    renderCoachWorkouts();
+    toast(editId ? 'Treino atualizado' : 'Treino guardado');
+  }
+  function deleteCoachWorkout(id){
+    const list = getCoachWorkouts().filter(w=>w.id!==id);
+    setPulso('coach-workouts', list);
+    renderCoachWorkouts();
+    toast('Treino apagado');
+  }
+  function importAthleteWorkout(id){
+    const w = collectManualWorkouts().find(x=>x.id===id);
+    if(!w) return;
+    const list = getCoachWorkouts();
+    list.push({id:cuid(), name:w.title, type:w.type||'estrada', baseMinutes:parseInt(w.duration,10)||null, desc:w.desc, builder:null, createdAt:new Date().toISOString()});
+    setPulso('coach-workouts', list);
+    renderCoachWorkouts();
+    toast('Treino copiado para a biblioteca');
+  }
+
+  /* =====================================================================
+     ATLETAS + CALENDÁRIO (agendamento de treinos)
+     ===================================================================== */
+  let selectedAthleteId = 'local';
+  let coachCalRef = new Date();              // mês visível no calendário do treinador
+  let coachSelectedDay = null;               // dia selecionado no calendário do treinador
+  let armedWorkout = null;                   // treino "à espera" de ser colocado num dia
+
+  const DOW = ['S','T','Q','Q','S','S','D']; // seg..dom (curto)
+
+  function getAthletes(){
+    const extra = getPulso('coach-athletes', []);
+    const list = [{ id:'local', name: profileName(), local:true }];
+    (Array.isArray(extra) ? extra : []).forEach(a=>{ if(a && a.id) list.push({id:a.id, name:a.name||'Atleta', local:false}); });
+    return list;
+  }
+  function currentAthlete(){ const l = getAthletes(); return l.find(a=>a.id===selectedAthleteId) || l[0]; }
+  function addAthlete(){
+    const name = (window.prompt('Nome do novo atleta:') || '').trim();
+    if(!name) return;
+    const extra = getPulso('coach-athletes', []);
+    const arr = Array.isArray(extra) ? extra : [];
+    arr.push({id:cuid(), name});
+    setPulso('coach-athletes', arr);
+    renderAthletes();
+    toast('Atleta adicionado');
+  }
+  function renderAthletes(){
+    const el = document.getElementById('coach-athletes-list');
+    if(!el) return;
+    const list = getAthletes();
+    if(!list.some(a=>a.id===selectedAthleteId)) selectedAthleteId = 'local';
+    el.innerHTML = list.map(a=>{
+      const initial = esc((a.name||'A').trim().charAt(0).toUpperCase());
+      const badge = a.local ? '<span class="coach-athlete-badge local">Este telemóvel</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>';
+      const sub = a.local ? 'Dados locais deste dispositivo' : 'Sincroniza quando ligarmos a cloud';
+      return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
+        <div class="coach-athlete-av">${initial}</div>
+        <div class="coach-athlete-info"><strong>${esc(a.name)}</strong><span>${sub}</span></div>
+        ${badge}
+      </div>`;
+    }).join('');
+  }
+
+  /* ---- Modelo do calendário: pulso:coach-calendar = { athleteId: { 'YYYY-MM-DD': [ {..} ] } } ---- */
+  function getCalendarAll(){ const o = getPulso('coach-calendar', {}); return (o && typeof o==='object') ? o : {}; }
+  function getCalendarFor(athleteId){ const c = getCalendarAll()[athleteId]; return (c && typeof c==='object') ? c : {}; }
+  function raceFor(athleteId){
+    // Por agora só o atleta local tem prova (guardada na app). Os restantes: quando ligarmos a cloud.
+    if(athleteId !== 'local') return null;
+    const r = getPulso('race-goal', null);
+    if(r && r.date) return { name:r.name||'Prova', date:String(r.date).slice(0,10), sport:r.sport||'', distanceKm:r.distanceKm||null };
+    return null;
+  }
+
+  function scheduleWorkout(athleteId, day, w){
+    const all = getCalendarAll();
+    if(!all[athleteId] || typeof all[athleteId] !== 'object') all[athleteId] = {};
+    if(!Array.isArray(all[athleteId][day])) all[athleteId][day] = [];
+    all[athleteId][day].push({ id:cuid(), name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes, assignedAt:new Date().toISOString() });
+    setPulso('coach-calendar', all);
+  }
+  function unscheduleWorkout(athleteId, day, id){
+    const all = getCalendarAll();
+    if(all[athleteId] && Array.isArray(all[athleteId][day])){
+      all[athleteId][day] = all[athleteId][day].filter(x=>x.id!==id);
+      if(!all[athleteId][day].length) delete all[athleteId][day];
+      setPulso('coach-calendar', all);
+    }
+  }
+
+  function armWorkout(workoutId){
+    const w = getCoachWorkouts().find(x=>x.id===workoutId);
+    if(!w){ toast('Treino não encontrado'); return; }
+    armedWorkout = { name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes };
+    const arm = document.getElementById('coach-cal-arm');
+    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> — toca no dia do calendário onde o queres colocar. <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">Cancelar</button>'; }
+    const cal = document.getElementById('coach-calendar');
+    if(cal){ try{ cal.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} }
+  }
+  function disarmWorkout(){
+    armedWorkout = null;
+    const arm = document.getElementById('coach-cal-arm');
+    if(arm){ arm.classList.remove('on'); arm.innerHTML = ''; }
+  }
+
+  /* ---- Construção de um grid mensal (reutilizado pelo treinador e pelo atleta) ---- */
+  function monthLabel(ref){ return ref.toLocaleDateString('pt-PT',{month:'long', year:'numeric'}); }
+  function ymd(y,m,d){ return y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0'); }
+  function buildCalendarHTML(ref, dataByDay, race, selectedDay){
+    const y = ref.getFullYear(), m = ref.getMonth();
+    const first = new Date(y, m, 1);
+    let startDow = (first.getDay() + 6) % 7; // segunda=0
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const today = todayStr();
+    let cells = '';
+    for(let i=0;i<startDow;i++) cells += '<div class="pcal-cell empty"></div>';
+    for(let d=1; d<=daysInMonth; d++){
+      const key = ymd(y,m,d);
+      const items = dataByDay[key] || [];
+      const isRace = race && race.date === key;
+      let dots = '';
+      if(isRace) dots += '<span class="pcal-dot race"></span>';
+      items.slice(0,3).forEach(()=> dots += '<span class="pcal-dot"></span>');
+      const cls = ['pcal-cell'];
+      if(key === today) cls.push('today');
+      if(key === selectedDay) cls.push('selected');
+      cells += `<div class="${cls.join(' ')}" data-day="${key}"><span class="pcal-num">${d}</span><span class="pcal-dots">${dots}</span></div>`;
+    }
+    return `<div class="pcal">
+      <div class="pcal-head">
+        <button class="pcal-nav" type="button" data-cal-prev>‹</button>
+        <strong>${esc(monthLabel(ref))}</strong>
+        <button class="pcal-nav" type="button" data-cal-next>›</button>
+      </div>
+      <div class="pcal-grid">
+        ${['S','T','Q','Q','S','S','D'].map(d=>`<div class="pcal-dow">${d}</div>`).join('')}
+        ${cells}
+      </div>
+    </div>`;
+  }
+
+  function renderCoachCalendar(){
+    const el = document.getElementById('coach-calendar');
+    if(!el) return;
+    const a = currentAthlete();
+    const data = getCalendarFor(a.id);
+    const race = raceFor(a.id);
+    el.innerHTML = buildCalendarHTML(coachCalRef, data, race, coachSelectedDay);
+    renderCoachDay();
+  }
+  function renderCoachDay(){
+    const title = document.getElementById('coach-cal-day-title');
+    const body = document.getElementById('coach-cal-day-body');
+    if(!body) return;
+    if(!coachSelectedDay){
+      if(title) title.textContent = 'Dia selecionado';
+      body.innerHTML = '<div class="coach-empty">Toca num dia do calendário para ver ou remover treinos.</div>';
+      return;
+    }
+    const a = currentAthlete();
+    const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
+    const race = raceFor(a.id);
+    if(title) title.textContent = fmtDayLabel(coachSelectedDay);
+    let html = '';
+    if(race && race.date === coachSelectedDay){
+      html += `<div class="coach-day-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(race.name)}</div><div class="di-desc">Dia de prova${race.distanceKm?' · '+race.distanceKm+' km':''}.</div></div>`;
+    }
+    if(items.length){
+      html += items.map(w=>`<div class="coach-day-item">
+        <div class="di-title">${esc(w.name||'Treino')}</div>
+        ${w.desc ? `<div class="di-desc">${esc(w.desc)}</div>` : ''}
+        <div class="coach-pill-row">
+          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+          ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
+        </div>
+        <div class="lib-actions"><button class="coach-btn tiny danger" type="button" data-cal-del="${esc(w.id)}">Remover</button></div>
+      </div>`).join('');
+    }
+    if(!html) html = '<div class="coach-empty">Nada agendado neste dia.' + (armedWorkout ? ' Vai ser colocado aqui o treino selecionado.' : '') + '</div>';
+    body.innerHTML = html;
+  }
+
+  function onCoachDayTap(day){
+    if(armedWorkout){
+      const a = currentAthlete();
+      scheduleWorkout(a.id, day, armedWorkout);
+      toast(armedWorkout.name + ' → ' + fmtDayLabel(day));
+      disarmWorkout();
+      coachSelectedDay = day;
+      renderCoachCalendar();
+      return;
+    }
+    coachSelectedDay = day;
+    renderCoachCalendar();
+  }
+
+  /* =====================================================================
+     CALENDÁRIO DO ATLETA (leitura) + TREINO NO PAINEL
+     ===================================================================== */
+  let athleteCalRef = new Date();
+  let athleteSelectedDay = null;
+
+
+  function activityDay(a){ return String(a.date || a.start_date || a.time || a.createdAt || '').slice(0,10); }
+  function activityMinutes(a){ return Math.round((Number(a.movingSec || a.elapsed_time || a.durationSec || 0) || 0) / 60); }
+  function activityKm(a){ return Number(a.distanceKm != null ? a.distanceKm : ((Number(a.distance || 0) || 0) / 1000)) || 0; }
+  function activityTypeLabel(a){
+    const t = String(a.type || a.sportType || a.sport_type || '').toLowerCase();
+    if(/ride|bike|cycling|bici/.test(t)) return 'Bike';
+    if(/run|corrida|trail/.test(t)) return 'Corrida';
+    if(/walk|hike/.test(t)) return 'Caminhada';
+    if(/strength|forca|força|workout/.test(t)) return 'Força';
+    return 'Treino';
+  }
+  function recentCompletedWorkouts(days){
+    const now = new Date();
+    const start = new Date(now); start.setDate(start.getDate() - (days || 30) + 1); start.setHours(0,0,0,0);
+    return (getPulso('strava-activities', []) || []).filter(a=>{
+      const d = activityDay(a); if(!d) return false;
+      const dt = new Date(d + 'T12:00:00');
+      return !isNaN(dt) && dt >= start && dt <= now;
+    }).sort((a,b)=>String(activityDay(b)).localeCompare(String(activityDay(a))));
+  }
+  function completedByDay(days){
+    const out = {};
+    recentCompletedWorkouts(days).forEach(a=>{
+      const d = activityDay(a);
+      if(!out[d]) out[d] = [];
+      out[d].push({id:'done-'+(a.id||d+'-'+out[d].length), name:a.name||'Treino efetuado', desc:'Treino efetuado', type:'done', completed:true});
+    });
+    return out;
+  }
+  function mergeCalendarWithCompleted(planned, completed){
+    const out = Object.assign({}, planned || {});
+    Object.keys(completed || {}).forEach(d=>{ out[d] = (out[d] || []).concat(completed[d]); });
+    return out;
+  }
+  function renderActivityCompact(a){
+    const km = activityKm(a);
+    const min = activityMinutes(a);
+    const sec = Number(a.movingSec || a.elapsed_time || 0) || 0;
+    const pills = [];
+    pills.push('<span class="coach-pill">'+esc(activityTypeLabel(a))+'</span>');
+    if(km) pills.push('<span class="coach-pill">'+fmtKm(km)+'</span>');
+    if(min) pills.push('<span class="coach-pill">'+min+' min</span>');
+    if(km && sec && /corrida|run|trail/i.test(activityTypeLabel(a))){ const p = pace(km, sec); if(p) pills.push('<span class="coach-pill">'+p+'</span>'); }
+    if(a.elevationM) pills.push('<span class="coach-pill">'+Math.round(a.elevationM)+' m D+</span>');
+    if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
+    if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
+    return '<div class="athlete-last30-item"><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
+  }
+  function renderLast30Workouts(){
+    const list = document.getElementById('athlete-last30-list');
+    const sumBox = document.getElementById('athlete-last30-summary');
+    const count = document.getElementById('athlete-last30-count');
+    if(!list || !sumBox) return;
+    const acts = recentCompletedWorkouts(30);
+    const totalMin = acts.reduce((s,a)=>s+activityMinutes(a),0);
+    const totalKm = acts.reduce((s,a)=>s+activityKm(a),0);
+    const kcal = acts.reduce((s,a)=>s+(Number(a.calories)||0),0);
+    if(count) count.textContent = acts.length + (acts.length === 1 ? ' treino' : ' treinos');
+    sumBox.innerHTML = '<div class="athlete-last30-mini"><strong>'+acts.length+'</strong><span>Treinos</span></div>' +
+      '<div class="athlete-last30-mini"><strong>'+Math.round(totalMin/60*10)/10+' h</strong><span>Tempo</span></div>' +
+      '<div class="athlete-last30-mini"><strong>'+fmtKm(totalKm)+'</strong><span>Distância</span></div>' +
+      '<div class="athlete-last30-mini"><strong>'+Math.round(kcal)+'</strong><span>Kcal</span></div>';
+    list.innerHTML = acts.length ? acts.slice(0,12).map(renderActivityCompact).join('') : '<p class="help" style="margin:0;">Ainda não há treinos registados nos últimos 30 dias.</p>';
+  }
+
+  function renderAthleteCalendar(){
+    const el = document.getElementById('athlete-calendar');
+    if(!el) return;
+    const data = mergeCalendarWithCompleted(getCalendarFor('local'), completedByDay(30));
+    const race = raceFor('local');
+    el.innerHTML = buildCalendarHTML(athleteCalRef, data, race, athleteSelectedDay);
+    renderLast30Workouts();
+    renderAthleteCalDay();
+  }
+  function renderAthleteCalDay(){
+    const title = document.getElementById('athlete-cal-day-title');
+    const body = document.getElementById('athlete-cal-day-body');
+    if(!body) return;
+    if(!athleteSelectedDay){
+      if(title) title.textContent = 'Toca num dia';
+      body.innerHTML = '<p class="help" style="margin:0;">Escolhe um dia no calendário para veres o que está agendado.</p>';
+      return;
+    }
+    const items = (getCalendarFor('local')[athleteSelectedDay] || []);
+    const completed = recentCompletedWorkouts(30).filter(a=>activityDay(a) === athleteSelectedDay);
+    const race = raceFor('local');
+    if(title) title.textContent = fmtDayLabel(athleteSelectedDay);
+    let html = '';
+    if(race && race.date === athleteSelectedDay){
+      html += `<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="cp-title" style="color:#F2B84B;">🏁 ${esc(race.name)}</div><div class="cp-desc">Dia de prova${race.distanceKm?' · '+race.distanceKm+' km':''}.</div></div>`;
+    }
+    if(items.length){
+      html += items.map(w=>`<div class="coach-plan-item">
+        <div class="cp-title">${esc(w.name||'Treino')}</div>
+        ${w.desc ? `<div class="cp-desc">${esc(w.desc)}</div>` : ''}
+        <div class="coach-pill-row" style="margin-top:6px;">
+          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+          ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
+        </div>
+      </div>`).join('');
+    }
+    if(completed.length){
+      html += '<div class="help" style="margin:8px 0 6px;">Treinos efetuados neste dia</div>' + completed.map(renderActivityCompact).join('');
+    }
+    if(!html) html = '<p class="help" style="margin:0;">Nada agendado neste dia.</p>';
+    body.innerHTML = html;
+  }
+
+  function renderAthletePlanCard(){
+    const body = document.getElementById('coach-plan-body');
+    const up = document.getElementById('coach-plan-upcoming');
+    if(!body) return;
+    const data = getCalendarFor('local');
+    const today = todayStr();
+    const todays = data[today] || [];
+    if(todays.length){
+      body.innerHTML = todays.map(w=>`<div class="coach-plan-item">
+        <div class="cp-title">${esc(w.name||'Treino')}</div>
+        ${w.desc ? `<div class="cp-desc">${esc(w.desc)}</div>` : ''}
+        <div class="coach-pill-row" style="margin-top:6px;">
+          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+          ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
+        </div>
+      </div>`).join('');
+    }else{
+      body.innerHTML = '<p class="help" style="margin:0;">Sem treino do treinador para hoje.</p>';
+    }
+    // Próximos dias
+    if(up){
+      const future = Object.keys(data).filter(d=>d>today).sort().slice(0,4);
+      if(future.length){
+        up.innerHTML = '<div class="help" style="margin:2px 0 6px;">A seguir</div>' + future.map(d=>{
+          const names = (data[d]||[]).map(w=>esc(w.name)).join(', ');
+          return `<div class="coach-plan-item" style="padding:9px 11px;"><div class="cp-title" style="font-size:13px;">${esc(fmtDayLabel(d))}</div><div class="cp-desc" style="margin-top:2px;">${names}</div></div>`;
+        }).join('');
+      }else{ up.innerHTML = ''; }
+    }
+  }
+
+  function renderAthleteSide(){
+    renderAthletePlanCard();
+    renderAthleteCalendar();
+    renderLast30Workouts();
+  }
+  window.PulsoRenderAthleteSide = renderAthleteSide;
+
+  /* =====================================================================
+     DADOS EXPORTADOS DO ATLETA (Strava + resumo do dia)
+     ===================================================================== */
+  function sameDay(value, day){ return value && String(value).slice(0,10) === day; }
+  function sum(arr, fn){ return (arr||[]).reduce((s,x)=>s + (Number(fn(x))||0), 0); }
+  function alcoholMlOf(e){ try{ if(window.PulsoGetAlcoholMl) return Number(window.PulsoGetAlcoholMl(e))||0; }catch(err){} return Number(e.ml)||0; }
+  function fmtL(ml){ return ml ? (ml/1000).toFixed(1).replace('.', ',') + ' L' : '0 L'; }
+  function fmtNum(v){ return (v==null||isNaN(v)) ? '—' : String(Math.round(v)); }
+  function fmtKm(v){ return (v==null||isNaN(v)) ? '—' : Number(v).toFixed(1).replace('.', ',') + ' km'; }
+  function pace(km, sec){ if(!km || !sec) return null; const p = sec/60/km; const m = Math.floor(p); const s = Math.round((p-m)*60); return m + ':' + String(s).padStart(2,'0') + ' /km'; }
+
+  function coachDayRecord(day){
+    const hydration = getPulso('hydration-entries', []).filter(e=>sameDay(e.date, day));
+    const coffee = getPulso('coffee-entries', []).filter(e=>sameDay(e.date, day));
+    const alcohol = getPulso('alcohol-entries', []).filter(e=>sameDay(e.date, day));
+    const kcal = getPulso('kcal-entries', []).filter(e=>sameDay(e.date, day));
+    const weight = getPulso('weight-entries', []).filter(e=>sameDay(e.date, day));
+    const sleep = getPulso('sleep-entries', []).filter(e=>sameDay(e.date, day));
+    const bp = getPulso('bp-entries', []).filter(e=>sameDay(e.date, day));
+    const workouts = getPulso('strava-activities', []).filter(e=>sameDay(e.date || e.start_date, day));
+
+    const byType = (t)=> Math.round(sum(hydration.filter(e=>(e.type||'Água')===t), e=>e.ml));
+    const waterMl = byType('Água'), colaMl = byType('Cola'), outraMl = byType('Outra');
+    const coffeeCount = Math.round(sum(coffee, e=>e.units||1));
+    const alcoholUnits = Math.round(sum(alcohol, e=>e.units)*10)/10;
+    const alcoholMl = Math.round(sum(alcohol, alcoholMlOf));
+    const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
+    const foodKcal = Math.round(sum(kcal, e=>e.kcal));
+    const colaKcal = Math.round(sum(hydration, e=>e.kcal));
+    const protein = Math.round(sum(kcal, e=>e.protein));
+    const carbs = Math.round(sum(kcal, e=>e.carbs));
+    const fat = Math.round(sum(kcal, e=>e.fat));
+    const lastBp = bp.length ? bp[bp.length-1] : null;
+
+    return {
+      day, workouts,
+      totals:{
+        waterMl, colaMl, outraMl, coffeeCount,
+        alcoholUnits, alcoholMl, alcoholKcal,
+        foodKcal, colaKcal, totalKcal: foodKcal + alcoholKcal + colaKcal,
+        protein, carbs, fat,
+        sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null,
+        weightKg: weight.length ? Number(weight[weight.length-1].kg) : null,
+        bpSys: lastBp ? Number(lastBp.sys) : null,
+        bpDia: lastBp ? Number(lastBp.dia) : null,
+        restingHr: (lastBp && lastBp.hr!=null && lastBp.hr!=='') ? Number(lastBp.hr) : null,
+        workoutMin: Math.round(sum(workouts, e=>(e.movingSec||e.elapsed_time||0))/60),
+        workoutKm: Math.round(sum(workouts, e=>e.distanceKm||((e.distance||0)/1000))*10)/10,
+        workoutKcal: Math.round(sum(workouts, e=>e.calories))
+      }
+    };
+  }
+
+  function availableDays(){
+    const set = new Set([todayStr()]);
+    ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','sleep-entries','weight-entries','bp-entries'].forEach(k=>{
+      (getPulso(k, [])||[]).forEach(e=>{ if(e && e.date) set.add(String(e.date).slice(0,10)); });
+    });
+    (getPulso('strava-activities', [])||[]).forEach(e=>{ const d = e.date||e.start_date; if(d) set.add(String(d).slice(0,10)); });
+    return Array.from(set).sort((a,b)=>b.localeCompare(a)).slice(0,60);
+  }
+
+  function metricCard(label, value){ return '<div class="coach-metric"><strong>'+value+'</strong><span>'+esc(label)+'</span></div>'; }
+
+  function activityCard(a){
+    const cat = /ride|bike|cyc/i.test((a.type||a.sportType||'')) ? 'bike' : (/run/i.test((a.type||a.sportType||'')) ? 'run' : 'other');
+    const pills = [];
+    if(a.distanceKm) pills.push('<span class="coach-pill">'+fmtKm(a.distanceKm)+'</span>');
+    pills.push('<span class="coach-pill">'+Math.round((a.movingSec||0)/60)+' min</span>');
+    if(a.elevationM) pills.push('<span class="coach-pill">'+Math.round(a.elevationM)+' m D+</span>');
+    if(cat==='run' && a.distanceKm && a.movingSec){ const p = pace(a.distanceKm, a.movingSec); if(p) pills.push('<span class="coach-pill">'+p+'</span>'); }
+    if(a.avgSpeedKmh) pills.push('<span class="coach-pill">'+(Number(a.avgSpeedKmh).toFixed(1).replace('.', ','))+' km/h</span>');
+    if(a.avgWatts) pills.push('<span class="coach-pill">'+Math.round(a.avgWatts)+' W</span>');
+    if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
+    if(a.maxHr) pills.push('<span class="coach-pill">'+Math.round(a.maxHr)+' bpm máx.</span>');
+    if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
+    return '<div class="coach-activity" style="margin-bottom:9px;">'+
+      '<div class="act-head"><div class="act-name">'+esc(a.name||'Atividade')+'</div><div class="act-date">'+esc(shortDate(a.date||a.start_date))+'</div></div>'+
+      '<div class="coach-pill-row act-stats">'+pills.join('')+'</div></div>';
+  }
+
+  function renderAthleteData(){
+    const box = document.getElementById('coach-athlete-data');
+    const src = document.getElementById('coach-athlete-source');
+    if(!box) return;
+    const sel = document.getElementById('coach-athlete-day');
+    const day = (sel && sel.value) ? sel.value : todayStr();
+    const rec = coachDayRecord(day);
+    const t = rec.totals;
+    if(src) src.textContent = 'Dados de ' + profileName() + ' — ' + fmtDayLabel(day) + '.';
+
+    const health = '<div class="coach-card"><h3>Saúde</h3><div class="coach-metrics-grid">'+
+      metricCard('Sono', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
+      metricCard('Peso', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
+      metricCard('Pressão', (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
+      metricCard('Cardio', t.restingHr!=null ? Math.round(t.restingHr)+' bpm' : '—')+
+      '</div></div>';
+
+    const drinks = '<div class="coach-card"><h3>Bebidas</h3><div class="coach-metrics-grid">'+
+      metricCard('Água', fmtL(t.waterMl))+
+      metricCard('Cola', fmtL(t.colaMl))+
+      metricCard('Outra', fmtL(t.outraMl))+
+      metricCard('Cafés', fmtNum(t.coffeeCount))+
+      metricCard('Álcool', Math.round(t.alcoholMl||0)+' ml')+
+      metricCard('Unid. álcool', (Number(t.alcoholUnits)||0).toFixed(1).replace('.', ','))+
+      '</div></div>';
+
+    const nutri = '<div class="coach-card"><h3>Calorias &amp; nutrição</h3><div class="coach-metrics-grid">'+
+      metricCard('Kcal totais', fmtNum(t.totalKcal))+
+      metricCard('Kcal comida', fmtNum(t.foodKcal))+
+      metricCard('Proteína', fmtNum(t.protein)+' g')+
+      metricCard('Hidratos', fmtNum(t.carbs)+' g')+
+      metricCard('Gorduras', fmtNum(t.fat)+' g')+
+      metricCard('Kcal treino', fmtNum(t.workoutKcal))+
+      '</div></div>';
+
+    const wkSummary = '<div class="coach-card"><h3>Treino do dia (Strava)</h3><div class="coach-metrics-grid">'+
+      metricCard('Tempo', (t.workoutMin||0)+' min')+
+      metricCard('Distância', fmtKm(t.workoutKm))+
+      metricCard('Kcal', fmtNum(t.workoutKcal))+
+      metricCard('Nº atividades', String(rec.workouts.length))+
+      '</div>'+
+      (rec.workouts.length ? '<div style="margin-top:12px;">'+rec.workouts.map(activityCard).join('')+'</div>' : '<div class="coach-empty">Sem treinos do Strava neste dia.</div>')+
+      '</div>';
+
+    // Últimas atividades Strava (contexto geral)
+    const recent = (getPulso('strava-activities', [])||[]).slice().sort((a,b)=>String(b.date||b.start_date).localeCompare(String(a.date||a.start_date))).slice(0,8);
+    const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
+      (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
+
+    box.innerHTML = health + drinks + nutri + wkSummary + recentBox;
+  }
+
+  function fillDayPicker(){
+    const sel = document.getElementById('coach-athlete-day');
+    if(!sel) return;
+    const days = availableDays();
+    const cur = sel.value;
+    sel.innerHTML = days.map(d=>`<option value="${d}">${esc(fmtDayLabel(d))}</option>`).join('');
+    if(days.includes(cur)) sel.value = cur;
+  }
+
+  /* =====================================================================
+     ABERTURA DO MODO TREINADOR + LIGAÇÕES
+     ===================================================================== */
   function openCoach(){
     saveName();
     localStorage.setItem(MODE_KEY, 'coach');
@@ -13474,7 +14650,18 @@ nav.tabbar button.active svg{
     if(locked) locked.style.display = 'none';
     if(app) app.style.display = 'none';
     if(coach){ coach.style.display = 'flex'; coach.setAttribute('aria-hidden','false'); }
+    selectedAthleteId = 'local';
+    coachCalRef = new Date();
+    coachSelectedDay = null;
+    disarmWorkout();
+    closeCoachEditor();
+    favFilterOn = false;
+    const ff = document.getElementById('coach-fav-filter'); if(ff) ff.classList.remove('active');
     renderCoachWorkouts();
+    renderAthletes();
+    renderCoachCalendar();
+    fillDayPicker();
+    renderAthleteData();
   }
 
   function bindRoleMode(){
@@ -13485,12 +14672,8 @@ nav.tabbar button.active svg{
     const name = document.getElementById('login-name');
 
     const intercept = function(e){
-      if(pulsoRoleBypassOriginalLogin){
-        pulsoRoleBypassOriginalLogin = false;
-        return true;
-      }
-      e.preventDefault();
-      e.stopImmediatePropagation();
+      if(pulsoRoleBypassOriginalLogin){ pulsoRoleBypassOriginalLogin = false; return true; }
+      e.preventDefault(); e.stopImmediatePropagation();
       showRoleStep();
       return false;
     };
@@ -13508,14 +14691,107 @@ nav.tabbar button.active svg{
     document.getElementById('role-athlete')?.addEventListener('click', openAthlete);
     document.getElementById('role-coach')?.addEventListener('click', openCoach);
     document.getElementById('role-back-name')?.addEventListener('click', showNameStep);
-    document.getElementById('coach-back-athlete')?.addEventListener('click', function(){
-      const locked = document.getElementById('app-locked');
-      const coach = document.getElementById('coach-content');
-      if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
-      if(locked) locked.style.display = 'flex';
-      showRoleStep();
+    document.getElementById('coach-back-athlete')?.addEventListener('click', backToSelection);
+
+    // Botão de troca de área na app do Atleta
+    const switchBtn = document.getElementById('athlete-switch-role');
+    if(switchBtn && !switchBtn.dataset.bound){ switchBtn.dataset.bound='1'; switchBtn.addEventListener('click', backToSelection); }
+
+    // Editor
+    document.getElementById('cwb-new')?.addEventListener('click', ()=> openCoachEditor(null));
+    document.getElementById('cwb-cancel')?.addEventListener('click', closeCoachEditor);
+    const cform = document.getElementById('cwb-form');
+    if(cform){
+      cform.addEventListener('submit', (e)=>{ e.preventDefault(); saveCoachWorkout(); });
+      cform.addEventListener('change', cwbRefresh);
+      cform.addEventListener('input', (e)=>{ if(e.target && e.target.id!=='cwb-name') cwbUpdatePreview(); });
+    }
+    document.getElementById('cwb-fx-ex')?.addEventListener('click', (e)=>{
+      const chip = e.target.closest('.cwb-chip'); if(!chip) return;
+      const ex = chip.dataset.ex;
+      if(cwbForcaSelected.includes(ex)) cwbForcaSelected = cwbForcaSelected.filter(x=>x!==ex);
+      else cwbForcaSelected.push(ex);
+      chip.classList.toggle('active');
+      cwbUpdatePreview();
     });
 
+    // Biblioteca (delegação)
+    document.getElementById('coach-workouts-list')?.addEventListener('click', (e)=>{
+      const sched = e.target.closest('[data-lib-schedule]');
+      const fav = e.target.closest('[data-lib-fav]');
+      const edit = e.target.closest('[data-lib-edit]');
+      const del = e.target.closest('[data-lib-del]');
+      const imp = e.target.closest('[data-lib-import]');
+      if(sched) armWorkout(sched.getAttribute('data-lib-schedule'));
+      else if(fav) toggleFavorite(fav.getAttribute('data-lib-fav'));
+      else if(edit) openCoachEditor(edit.getAttribute('data-lib-edit'));
+      else if(del){ if(window.confirm('Apagar este treino?')) deleteCoachWorkout(del.getAttribute('data-lib-del')); }
+      else if(imp) importAthleteWorkout(imp.getAttribute('data-lib-import'));
+    });
+    document.getElementById('coach-fav-filter')?.addEventListener('click', function(){
+      favFilterOn = !favFilterOn;
+      this.classList.toggle('active', favFilterOn);
+      renderCoachWorkouts();
+    });
+
+    // Atletas
+    document.getElementById('coach-add-athlete')?.addEventListener('click', addAthlete);
+    document.getElementById('coach-athletes-list')?.addEventListener('click', (e)=>{
+      const row = e.target.closest('[data-athlete]'); if(!row) return;
+      selectedAthleteId = row.getAttribute('data-athlete');
+      coachSelectedDay = null;
+      renderAthletes();
+      renderCoachCalendar();
+    });
+
+    // Calendário do treinador (delegação)
+    document.getElementById('coach-calendar')?.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-cal-prev]')){ coachCalRef = new Date(coachCalRef.getFullYear(), coachCalRef.getMonth()-1, 1); renderCoachCalendar(); return; }
+      if(e.target.closest('[data-cal-next]')){ coachCalRef = new Date(coachCalRef.getFullYear(), coachCalRef.getMonth()+1, 1); renderCoachCalendar(); return; }
+      const cell = e.target.closest('[data-day]'); if(cell) onCoachDayTap(cell.getAttribute('data-day'));
+    });
+    document.getElementById('coach-cal-arm')?.addEventListener('click', (e)=>{
+      if(e.target.closest('#coach-cal-cancel')) disarmWorkout();
+    });
+    document.getElementById('coach-cal-day-body')?.addEventListener('click', (e)=>{
+      const del = e.target.closest('[data-cal-del]'); if(!del) return;
+      const a = currentAthlete();
+      unscheduleWorkout(a.id, coachSelectedDay, del.getAttribute('data-cal-del'));
+      renderCoachCalendar();
+    });
+
+    // Dados do atleta
+    document.getElementById('coach-athlete-day')?.addEventListener('change', renderAthleteData);
+
+    // ===== Lado do ATLETA: calendário + treino do dia no painel =====
+    document.addEventListener('click', (e)=>{
+      const sub = e.target.closest('#app-content .subtabs button[data-sub]');
+      if(sub && (sub.dataset.sub === 'calendario' || sub.dataset.sub === 'objetivo')){
+        setTimeout(renderAthleteSide, 0);
+      }
+      if(e.target.closest('#athlete-calendar [data-cal-prev]')){ athleteCalRef = new Date(athleteCalRef.getFullYear(), athleteCalRef.getMonth()-1, 1); renderAthleteCalendar(); return; }
+      if(e.target.closest('#athlete-calendar [data-cal-next]')){ athleteCalRef = new Date(athleteCalRef.getFullYear(), athleteCalRef.getMonth()+1, 1); renderAthleteCalendar(); return; }
+      const acell = e.target.closest('#athlete-calendar [data-day]');
+      if(acell){ athleteSelectedDay = acell.getAttribute('data-day'); renderAthleteCalendar(); }
+    });
+
+    // Renderiza o lado do atleta quando a app do atleta fica visível
+    const appEl = document.getElementById('app-content');
+    if(appEl && window.MutationObserver){
+      const obs = new MutationObserver(()=>{
+        const visible = appEl.style.display !== 'none' && getComputedStyle(appEl).display !== 'none';
+        if(visible) setTimeout(renderAthleteSide, 60);
+      });
+      obs.observe(appEl, {attributes:true, attributeFilter:['style']});
+    }
+    window.addEventListener('focus', ()=>{ try{ if(document.getElementById('app-content')?.style.display !== 'none') renderAthleteSide(); }catch(e){} });
+
+    document.querySelector('nav.tabbar')?.addEventListener('click', ()=> setTimeout(renderAthleteSide, 0));
+
+    // Render inicial se a app do atleta já estiver visível
+    setTimeout(()=>{ try{ const ap = document.getElementById('app-content'); if(ap && getComputedStyle(ap).display !== 'none') renderAthleteSide(); }catch(e){} }, 500);
+
+    // Abas do treinador
     document.querySelectorAll('[data-coach-tab]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const tab = btn.dataset.coachTab;
@@ -13523,7 +14799,8 @@ nav.tabbar button.active svg{
         document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
         const target = document.getElementById('coach-tab-'+tab);
         if(target) target.classList.add('active');
-        if(tab === 'treinos') renderCoachWorkouts();
+        if(tab === 'treinos'){ renderCoachWorkouts(); renderAthletes(); renderCoachCalendar(); }
+        if(tab === 'atleta'){ fillDayPicker(); renderAthleteData(); }
       });
     });
   }
@@ -13531,9 +14808,10 @@ nav.tabbar button.active svg{
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindRoleMode);
   else bindRoleMode();
 
-  window.PulsoRoleMode = { openAthlete, openCoach, renderCoachWorkouts };
+  window.PulsoRoleMode = { openAthlete, openCoach, backToSelection, renderCoachWorkouts };
 })();
 </script>
+
 
 </body>
 </html>
