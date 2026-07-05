@@ -4366,6 +4366,21 @@ details[open] .coach-collapse-icon{transform:rotate(90deg);}
 .coach-lib-details .coach-workout-desc{margin-top:2px;}
 #athlete-cal-day-card.is-empty{display:none !important;}
 
+
+
+/* Gráficos Strava mais parecidos: área preenchida, linha limpa e ritmo em min/km */
+.strava-mini-chart{
+  height:220px !important;
+  min-height:210px !important;
+  padding:10px 8px 6px !important;
+  background:rgba(7,11,20,.46) !important;
+  border-radius:24px !important;
+}
+.strava-area-svg text{font-family:var(--font-body);}
+#strava-speed-title::after{content:'';}
+@media(max-width:520px){
+  .strava-mini-chart{height:205px !important; min-height:198px !important;}
+}
 </style>
 
 
@@ -9590,37 +9605,111 @@ nav.tabbar button.active svg{
 
 
   function fmtPaceFromKmh(kmh){ return fmtPace(kmh); }
+  function fmtPaceFromMin(minPerKm){
+    minPerKm = Number(minPerKm);
+    if(!isFinite(minPerKm) || minPerKm <= 0) return '—';
+    const m = Math.floor(minPerKm);
+    const s = Math.round((minPerKm - m) * 60);
+    return m + ':' + String(s).padStart(2,'0') + '/km';
+  }
   function fmtTimeAxis(sec){
     sec = Math.max(0, Number(sec)||0);
     const m = Math.floor(sec/60), s = Math.round(sec%60);
     return m + ':' + String(s).padStart(2,'0');
   }
   function simplifyStreamRows(rows, maxPoints){
-    rows = (rows || []).filter(r=>r && r.v!=null && !isNaN(Number(r.v))).map(r=>({t:Number(r.t)||0, v:Number(r.v)}));
+    rows = (rows || [])
+      .filter(r=>r && r.v!=null && !isNaN(Number(r.v)))
+      .map(r=>({t:Number(r.t)||0, d:(r.d!=null && !isNaN(Number(r.d))) ? Number(r.d) : null, v:Number(r.v)}));
     if(rows.length <= (maxPoints||90)) return rows;
     const step = Math.ceil(rows.length/(maxPoints||90));
     const out=[];
     for(let i=0;i<rows.length;i+=step){
       const chunk = rows.slice(i, i+step);
       const avg = chunk.reduce((s,r)=>s+r.v,0)/chunk.length;
-      out.push({t:chunk[Math.floor(chunk.length/2)].t, v:avg});
+      const mid = chunk[Math.floor(chunk.length/2)];
+      out.push({t:mid.t, d:mid.d, v:avg});
     }
     return out;
   }
-  function renderStreamChart(containerEl, rows, color, formatter, emptyReason, estimatedTag){
+  function niceTicks(min, max, count){
+    if(!isFinite(min) || !isFinite(max) || min===max) return [min||0];
+    const ticks=[];
+    for(let i=0;i<count;i++) ticks.push(min + (max-min) * (i/(count-1)));
+    return ticks;
+  }
+  function renderStreamChart(containerEl, rows, color, formatter, emptyReason, estimatedTag, options){
     if(!containerEl) return;
+    options = options || {};
     containerEl.innerHTML = '';
-    rows = simplifyStreamRows(rows, 110);
+    rows = simplifyStreamRows(rows, 120);
     if(!rows.length){ containerEl.innerHTML = '<div class="empty">' + (emptyReason || 'Sem dados para este gráfico.') + '</div>'; return; }
-    const labels = rows.map(r=>fmtTimeAxis(r.t));
-    renderLineChart(containerEl, labels, rows.map(r=>r.v), color || 'var(--teal)');
+
+    const W = containerEl.clientWidth || 320, H = Math.max(containerEl.clientHeight || 176, 170);
+    const padL = options.padL || 48, padR = 12, padT = 18, padB = 28;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const vals = rows.map(r=>r.v).filter(v=>isFinite(v));
+    let min = Math.min(...vals), max = Math.max(...vals);
+    const spread = Math.max(1, max-min);
+    min = options.minY != null ? options.minY : min - spread*0.10;
+    max = options.maxY != null ? options.maxY : max + spread*0.14;
+    if(options.roundY){ min = Math.floor(min/options.roundY)*options.roundY; max = Math.ceil(max/options.roundY)*options.roundY; }
+    if(min === max){ min -= 1; max += 1; }
+
+    const hasDist = rows.some(r=>r.d!=null && r.d>0);
+    const firstD = hasDist ? (rows.find(r=>r.d!=null)?.d || 0) : 0;
+    const lastD = hasDist ? Math.max(...rows.map(r=>r.d||0)) : 0;
+    const lastT = Math.max(...rows.map(r=>r.t||0), 1);
+    const xVal = r => hasDist ? (((r.d||0)-firstD) / Math.max(0.001, lastD-firstD)) : ((r.t||0) / lastT);
+    const x = r => padL + xVal(r) * plotW;
+    const y = v => {
+      const p = (v-min)/(max-min);
+      return options.invertY ? (padT + p*plotH) : (padT + plotH - p*plotH);
+    };
+
+    const svg = svgEl('svg', {viewBox:`0 0 ${W} ${H}`, width:'100%', height:'100%', class:'strava-area-svg'});
+    const gradId = 'grad-' + Math.random().toString(36).slice(2);
+    const defs = svgEl('defs', {});
+    const grad = svgEl('linearGradient', {id:gradId, x1:'0', y1:'0', x2:'0', y2:'1'});
+    grad.appendChild(svgEl('stop', {offset:'0%', 'stop-color':color || 'var(--teal)', 'stop-opacity':'.72'}));
+    grad.appendChild(svgEl('stop', {offset:'100%', 'stop-color':color || 'var(--teal)', 'stop-opacity':'.18'}));
+    defs.appendChild(grad); svg.appendChild(defs);
+
+    const yTicks = niceTicks(min, max, 4);
+    yTicks.forEach(tv=>{
+      const yy = y(tv);
+      svg.appendChild(svgEl('line', {x1:padL, x2:W-padR, y1:yy, y2:yy, stroke:'rgba(255,255,255,.105)', 'stroke-width':1}));
+      const t = svgEl('text', {x:padL-8, y:yy+4, fill:SVG_COLORS.muted, 'font-size':10, 'text-anchor':'end'});
+      t.textContent = options.yFormatter ? options.yFormatter(tv) : String(Math.round(tv));
+      svg.appendChild(t);
+    });
+
+    const pts = rows.map(r=>[x(r), y(r.v)]);
+    const lineD = pts.map((p,i)=>(i?'L':'M') + p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const baseY = options.invertY ? padT : padT + plotH;
+    const areaD = lineD + ' L ' + pts[pts.length-1][0].toFixed(1) + ' ' + baseY + ' L ' + pts[0][0].toFixed(1) + ' ' + baseY + ' Z';
+    svg.appendChild(svgEl('path', {d:areaD, fill:'url(#'+gradId+')'}));
+    svg.appendChild(svgEl('path', {d:lineD, fill:'none', stroke:color || 'var(--teal)', 'stroke-width':3, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+
+    // Pontos pequenos, como referência visual, sem ficar com aspeto de barras.
+    pts.forEach(([cx,cy], i)=>{ if(rows.length < 75 || i%2===0) svg.appendChild(svgEl('circle', {cx, cy, r:2.8, fill:color || 'var(--teal)', stroke:'#07101d', 'stroke-width':1.6})); });
+
+    const xTicks = hasDist ? 6 : 5;
+    for(let i=0;i<xTicks;i++){
+      const xx = padL + plotW * (i/(xTicks-1));
+      const label = hasDist ? Math.round((firstD + (lastD-firstD)*(i/(xTicks-1)))/1000) + ' km' : fmtTimeAxis(lastT*(i/(xTicks-1)));
+      const t = svgEl('text', {x:xx, y:H-7, fill:SVG_COLORS.muted, 'font-size':10, 'text-anchor':'middle'});
+      t.textContent = label; svg.appendChild(t);
+    }
+
+    containerEl.appendChild(svg);
     const footer = document.createElement('div');
     footer.className = 'help';
-    footer.style.cssText = 'margin-top:6px; display:flex; justify-content:space-between; gap:8px; font-size:11px;';
-    const vals = rows.map(r=>r.v);
+    footer.style.cssText = 'margin-top:6px; display:flex; justify-content:space-between; gap:8px; font-size:12px; padding:0 4px;';
     const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
-    const max = Math.max(...vals);
-    footer.innerHTML = '<span>Média: <strong>' + (formatter ? formatter(avg) : Math.round(avg)) + '</strong>' + (estimatedTag ? ' <em style="opacity:.7; font-style:normal;">(' + estimatedTag + ')</em>' : '') + '</span><span>Máx: <strong>' + (formatter ? formatter(max) : Math.round(max)) + '</strong></span>';
+    const best = options.bestIsMin ? Math.min(...vals) : Math.max(...vals);
+    const bestLabel = options.bestIsMin ? 'Melhor' : 'Máx';
+    footer.innerHTML = '<span>Média: <strong>' + (formatter ? formatter(avg) : Math.round(avg)) + '</strong>' + (estimatedTag ? ' <em style="opacity:.7; font-style:normal;">(' + estimatedTag + ')</em>' : '') + '</span><span>' + bestLabel + ': <strong>' + (formatter ? formatter(best) : Math.round(best)) + '</strong></span>';
     containerEl.appendChild(footer);
   }
   async function getStravaStreams(activityId){
@@ -9694,15 +9783,21 @@ nav.tabbar button.active svg{
       const hasHrStream = !!(streams && streams.heartrate && streams.heartrate.length);
       const hasSpeedStream = !!(streams && streams.velocity && streams.velocity.length);
       const fb = fallbackActivityRows(a);
-      const hrRows = hasHrStream ? streams.heartrate.map((v,i)=>({t:times[i] || i, v:Number(v)})) : fb.hr;
-      const speedRows = hasSpeedStream ? streams.velocity.map((v,i)=>({t:times[i] || i, v:Number(v)*3.6})) : fb.speed;
+      const dists = streams && streams.distance && streams.distance.length ? streams.distance : [];
+      const hrRows = hasHrStream ? streams.heartrate.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)})) : fb.hr.map((r,i)=>Object.assign({}, r, {d: a.distanceKm ? (a.distanceKm*1000)*(i/Math.max(1, fb.hr.length-1)) : null}));
+      const speedRows = hasSpeedStream ? streams.velocity.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)*3.6})) : fb.speed.map((r,i)=>Object.assign({}, r, {d: a.distanceKm ? (a.distanceKm*1000)*(i/Math.max(1, fb.speed.length-1)) : null}));
+      const paceRows = speedRows.filter(r=>r.v>0).map(r=>({t:r.t, d:r.d, v:60/r.v}));
 
       const failMsg = 'Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.';
       const hrEmpty = streamErr ? failMsg : 'Esta atividade não tem frequência cardíaca registada no Strava.';
       const spEmpty = streamErr ? failMsg : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.');
 
-      renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null);
-      renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--blue)', v=> isRun ? fmtPaceFromKmh(v) : v.toFixed(1)+' km/h', spEmpty, (!hasSpeedStream && speedRows.length) ? 'estimado' : null);
+      renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null, {roundY:5});
+      if(isRun){
+        renderStreamChart(document.getElementById('strava-speed-chart'), paceRows, 'var(--blue)', fmtPaceFromMin, spEmpty, (!hasSpeedStream && paceRows.length) ? 'estimado' : null, {invertY:true, bestIsMin:true, yFormatter:fmtPaceFromMin});
+      }else{
+        renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--blue)', v=>v.toFixed(1)+' km/h', spEmpty, (!hasSpeedStream && speedRows.length) ? 'estimado' : null, {roundY:1});
+      }
 
       if(streamErr) toast('Sem dados detalhados do Strava; mostro estimativa pelas médias quando existem.');
     }catch(err){
@@ -9927,15 +10022,24 @@ nav.tabbar button.active svg{
     raceGoal = races.find(r=>String(r.date||'') >= todayKey) || races[races.length-1];
     const today = new Date(); const raceDate = new Date(raceGoal.date);
     const daysLeft = Math.ceil((raceDate-today)/(24*3600*1000));
+
+    // Carta de baixo: apenas provas que foram enviadas/guardadas no calendário.
+    // Sem texto de “faltam X dias”, pico automático, taper ou volume estimado.
     summaryEl.style.display = 'block';
-    summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas planeadas</h3>' + races.map(r=>{
-      const rd = new Date(r.date); const dl = Math.ceil((rd-today)/(24*3600*1000));
+    summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas no calendário</h3>' + races.map(r=>{
       const active = r === raceGoal;
+      const details = [];
+      details.push(fmtDate(r.date));
+      details.push(raceSportLabel(r.sport||'run-road'));
+      if(r.distanceKm) details.push(r.distanceKm + ' km');
+      if(r.elevationM) details.push(r.elevationM + ' D+');
+      if(r.peakHoursManual) details.push('pico máx. ' + r.peakHoursManual + ' h/sem');
       return `<div class="race-list-item ${active?'active':''}" style="padding:10px 0; border-top:1px solid rgba(255,255,255,.08);">
-        <strong>${esc(r.name||'Prova')}</strong> · ${raceSportLabel(r.sport||'run-road')}<br>
-        <span class="help">${fmtDate(r.date)} · ${r.distanceKm?r.distanceKm+'km':'—'}${r.elevationM?' · '+r.elevationM+' D+':''}${r.peakHoursManual?' · pico máx. '+r.peakHoursManual+'h/sem':''} · ${dl>0?'faltam '+dl+' dias':(dl===0?'é hoje':'já passou')}</span>
+        <strong>🏁 ${esc(r.name||'Prova')}</strong><br>
+        <span class="help">${details.map(esc).join(' · ')}</span>
       </div>`;
     }).join('');
+
     planSection.style.display = daysLeft > 0 ? 'flex' : 'none';
     const preview = document.getElementById('race-photo-preview');
     if(preview && raceGoal.photoDataUrl){
@@ -12396,25 +12500,10 @@ nav.tabbar button.active svg{
     const note = ensurePhaseNote();
     if(!note) return;
 
-    const weeks = weeksUntilRace();
-    if(!weeks){
-      note.textContent = 'Escolhe a data da prova para o Pulso calcular automaticamente Base, Construção, Pico e Taper.';
-      return;
-    }
-
-    const peakWeeks = [];
-    const taperWeeks = [];
-    for(let i=1; i<=weeks; i++){
-      const phase = phaseForWeek(i, weeks);
-      if(phase === 'Pico') peakWeeks.push(i);
-      if(phase === 'Taper') taperWeeks.push(i);
-    }
-
-    note.innerHTML =
-      '<strong>' + weeks + ' semanas</strong> até à prova · ' +
-      'pico automático: <strong>' + (peakWeeks.length ? peakWeeks.join(', ') : Math.max(1,weeks-2)) + '</strong> · ' +
-      'taper: <strong>' + (taperWeeks.length ? taperWeeks.join(', ') : Math.max(1,weeks-1)) + '</strong> · ' +
-      'volume pico estimado: <strong>' + estimatedPeakHours() + ' h/sem</strong>.';
+    // Pedido: retirar a informação de tempo até à prova / pico / taper desta zona.
+    // A carta por baixo passa a mostrar apenas as provas enviadas para o calendário.
+    note.innerHTML = '';
+    note.style.display = 'none';
   }
 
   function rewritePlan(){
@@ -13924,6 +14013,59 @@ nav.tabbar button.active svg{
 .coach-range-tabs button{min-height:40px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(9,14,25,.56); color:var(--text-muted); font-weight:900; font-size:12px;}
 .coach-range-tabs button.active{background:rgba(53,217,166,.16); color:var(--teal); border-color:rgba(53,217,166,.45);}
 .coach-overview-note{font-size:12px; color:var(--text-muted); line-height:1.45; margin:8px 0 0;}
+
+/* Pedido: treinador — perfil centrado + vista geral em gráficos com swipe */
+#coach-athlete-data .coach-profile-main,
+#coach-athlete-data .coach-profile-tile,
+#coach-athlete-data .coach-metric{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+#coach-athlete-data .coach-profile-main{min-height:118px !important; padding:18px 12px !important;}
+#coach-athlete-data .coach-profile-tile{min-height:112px !important;}
+#coach-athlete-data .coach-metric{min-height:112px !important; padding:12px 10px !important;}
+#coach-athlete-data .coach-metric strong{overflow-wrap:anywhere; max-width:100%;}
+.coach-overview-charts-card{overflow:hidden !important;}
+.coach-chart-swiper{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  padding:2px 4px 8px;
+  margin:4px -4px 0;
+}
+.coach-chart-swiper::-webkit-scrollbar{display:none;}
+.coach-chart-slide{
+  flex:0 0 88%;
+  scroll-snap-align:center;
+  min-height:230px;
+  border-radius:22px;
+  background:rgba(9,14,25,.55);
+  border:1px solid rgba(255,255,255,.08);
+  padding:14px 12px 10px;
+}
+.coach-chart-title{font-size:13px; font-weight:900; color:#fff; margin-bottom:3px; text-align:left;}
+.coach-chart-value{font-size:22px; font-weight:900; color:var(--teal); margin-bottom:4px; text-align:left;}
+.coach-chart-svg{width:100%; height:158px; display:block; overflow:visible;}
+.coach-chart-grid{stroke:rgba(255,255,255,.08); stroke-width:1;}
+.coach-chart-axis,.coach-chart-x{fill:var(--text-muted); font-size:10px; font-weight:800;}
+.coach-chart-x.end{text-anchor:end;}
+.coach-chart-bar{fill:rgba(53,217,166,.22);}
+.coach-chart-line{fill:none; stroke:var(--teal); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round;}
+.coach-chart-dot{fill:var(--teal); stroke:#07101d; stroke-width:2;}
+.coach-chart-bar.blue{fill:rgba(91,141,239,.20);} .coach-chart-line.blue{stroke:#77A7FF;} .coach-chart-dot.blue{fill:#77A7FF;}
+.coach-chart-bar.amber{fill:rgba(242,184,75,.20);} .coach-chart-line.amber{stroke:#F2B84B;} .coach-chart-dot.amber{fill:#F2B84B;}
+.coach-chart-bar.purple{fill:rgba(167,139,250,.20);} .coach-chart-line.purple{stroke:#A78BFA;} .coach-chart-dot.purple{fill:#A78BFA;}
+.coach-chart-bar.red{fill:rgba(242,85,90,.18);} .coach-chart-line.red{stroke:#F2555A;} .coach-chart-dot.red{fill:#F2555A;}
+.coach-chart-hint{font-size:11px; color:var(--text-muted); text-align:center; margin-top:6px;}
+@media(min-width:700px){.coach-chart-slide{flex-basis:46%;}}
+@media(max-width:430px){.coach-chart-slide{flex-basis:91%; min-height:222px;} #coach-athlete-data .coach-profile-main{min-height:112px !important;} #coach-athlete-data .coach-profile-tile,#coach-athlete-data .coach-metric{min-height:104px !important;}}
+
 @media(max-width:520px){#coach-content .coach-card > .coach-section-head{padding-right:50px !important;} #coach-content .coach-card > .coach-section-head .coach-btn{margin-right:46px !important;} .coach-range-tabs{grid-template-columns:repeat(2,1fr);}}
 </style>
 
@@ -14749,12 +14891,44 @@ nav.tabbar button.active svg{
       const initial = esc((a.name||'A').trim().charAt(0).toUpperCase());
       const badge = a.local ? '<span class="coach-athlete-badge local">Este telemóvel</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>';
       const sub = a.local ? 'Dados locais deste dispositivo' : 'Sincroniza quando ligarmos a cloud';
+      const delBtn = a.local ? '' : `<button class="coach-athlete-del" type="button" data-athlete-del="${esc(a.id)}" aria-label="Eliminar atleta ${esc(a.name)}" title="Eliminar atleta">×</button>`;
       return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
         <div class="coach-athlete-av">${initial}</div>
         <div class="coach-athlete-info"><strong>${esc(a.name)}</strong><span>${sub}</span></div>
         ${badge}
+        ${delBtn}
       </div>`;
     }).join('');
+  }
+
+  function deleteAthlete(id){
+    if(!id || id === 'local') return;
+    const list = getAthletes();
+    const athlete = list.find(a=>a.id === id);
+    const name = athlete ? athlete.name : 'este atleta';
+    if(!window.confirm('Eliminar '+name+'? Também serão removidos os treinos marcados no calendário deste atleta.')) return;
+
+    const extra = getPulso('coach-athletes', []);
+    const next = (Array.isArray(extra) ? extra : []).filter(a=>a && a.id !== id);
+    setPulso('coach-athletes', next);
+
+    const cal = getCalendarAll();
+    if(cal && Object.prototype.hasOwnProperty.call(cal, id)){
+      delete cal[id];
+      setPulso('coach-calendar', cal);
+    }
+
+    if(selectedAthleteId === id){
+      selectedAthleteId = 'local';
+      coachAthletePicked = false;
+    }
+    if(coachCalendarFilter === id) coachCalendarFilter = 'all';
+    coachSelectedDay = null;
+    renderAthletes();
+    fillCoachAthleteSelectors();
+    renderCoachCalendar();
+    try{ fillDayPicker(); renderAthleteData(); }catch(e){}
+    toast('Atleta eliminado');
   }
 
   function fillCoachAthleteSelectors(){
@@ -15313,6 +15487,76 @@ nav.tabbar button.active svg{
     return {days, records, totals, workouts: records.flatMap(r=>r.workouts||[])};
   }
 
+
+  function coachChartNum(v){
+    const n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+  function coachChartFmt(v, unit){
+    if(v==null || !isFinite(Number(v))) return '—';
+    const n = Number(v);
+    if(unit === 'km') return n.toFixed(1).replace('.', ',') + ' km';
+    if(unit === 'L') return (n/1000).toFixed(1).replace('.', ',') + ' L';
+    if(unit === 'h') return n.toFixed(1).replace('.', ',') + ' h';
+    if(unit === 'kg') return n.toFixed(1).replace('.', ',') + ' kg';
+    if(unit === 'bpm') return Math.round(n) + ' bpm';
+    if(unit === 'mmHg') return Math.round(n) + '';
+    if(unit === 'kcal') return Math.round(n) + ' kcal';
+    return Math.round(n) + '';
+  }
+  function coachMiniChart(title, unit, rows, key, colorClass){
+    const vals = rows.map(r=>coachChartNum(key(r))).filter(v=>v!=null);
+    const all = rows.map(r=>coachChartNum(key(r)));
+    const w = 320, h = 138, padL = 24, padR = 10, padT = 12, padB = 28;
+    if(!vals.length){
+      return '<div class="coach-chart-slide"><div class="coach-chart-title">'+esc(title)+'</div><div class="coach-empty">Sem dados suficientes.</div></div>';
+    }
+    let min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    if(min === max){ min = Math.max(0, min - 1); max = max + 1; }
+    const innerW = w-padL-padR, innerH = h-padT-padB;
+    const barW = Math.max(7, Math.min(22, innerW / Math.max(rows.length,1) * .56));
+    const xFor = i => padL + (rows.length===1 ? innerW/2 : (innerW * i/(rows.length-1)));
+    const yFor = v => padT + (max-v) / (max-min) * innerH;
+    let bars = '', pts = [];
+    all.forEach((v,i)=>{
+      if(v==null) return;
+      const x = xFor(i), y = yFor(v), bh = padT+innerH-y;
+      bars += '<rect class="coach-chart-bar '+(colorClass||'')+'" x="'+(x-barW/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(2,bh).toFixed(1)+'" rx="4"></rect>';
+      pts.push(x.toFixed(1)+','+y.toFixed(1));
+    });
+    const line = pts.length>1 ? '<polyline class="coach-chart-line '+(colorClass||'')+'" points="'+pts.join(' ')+'"></polyline>' : '';
+    const dots = pts.map(pt=>{ const [x,y]=pt.split(','); return '<circle class="coach-chart-dot '+(colorClass||'')+'" cx="'+x+'" cy="'+y+'" r="3.2"></circle>'; }).join('');
+    const firstDay = rows[0]?.day || rows[0]?.date || '';
+    const lastDay = rows[rows.length-1]?.day || rows[rows.length-1]?.date || '';
+    return '<div class="coach-chart-slide">'+
+      '<div class="coach-chart-title">'+esc(title)+'</div>'+
+      '<div class="coach-chart-value">'+esc(coachChartFmt(vals[vals.length-1], unit))+'</div>'+
+      '<svg class="coach-chart-svg" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+
+      '<line class="coach-chart-grid" x1="'+padL+'" y1="'+padT+'" x2="'+(w-padR)+'" y2="'+padT+'"></line>'+
+      '<line class="coach-chart-grid" x1="'+padL+'" y1="'+(padT+innerH/2).toFixed(1)+'" x2="'+(w-padR)+'" y2="'+(padT+innerH/2).toFixed(1)+'"></line>'+
+      '<line class="coach-chart-grid" x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(w-padR)+'" y2="'+(padT+innerH)+'"></line>'+
+      '<text class="coach-chart-axis" x="2" y="'+(padT+4)+'">'+esc(coachChartFmt(max, unit).replace(' '+unit,''))+'</text>'+
+      '<text class="coach-chart-axis" x="2" y="'+(padT+innerH+4)+'">'+esc(coachChartFmt(min, unit).replace(' '+unit,''))+'</text>'+
+      bars+line+dots+
+      '<text class="coach-chart-x" x="'+padL+'" y="132">'+esc(shortDate(firstDay))+'</text>'+
+      '<text class="coach-chart-x end" x="'+(w-padR)+'" y="132">'+esc(shortDate(lastDay))+'</text>'+
+      '</svg></div>';
+  }
+  function coachOverviewCharts(day, rangeN){
+    const n = rangeN === 1 ? 7 : rangeN;
+    const rows = coachRangeDays(day, n).reverse().map(d=>coachDayRecord(d));
+    const slides = [
+      coachMiniChart('Tempo de treino', 'min', rows, r=>r.totals.workoutMin, 'green'),
+      coachMiniChart('Distância', 'km', rows, r=>r.totals.workoutKm, 'blue'),
+      coachMiniChart('Kcal treino', 'kcal', rows, r=>r.totals.workoutKcal, 'amber'),
+      coachMiniChart('Água', 'L', rows, r=>r.totals.waterMl, 'green'),
+      coachMiniChart('Sono', 'h', rows, r=>r.totals.sleepHours, 'purple'),
+      coachMiniChart('Peso', 'kg', rows, r=>r.totals.weightKg, 'blue'),
+      coachMiniChart('Pressão sistólica', 'mmHg', rows, r=>r.totals.bpSys, 'red'),
+      coachMiniChart('Pressão diastólica', 'mmHg', rows, r=>r.totals.bpDia, 'red')
+    ];
+    return '<div class="coach-chart-swiper">'+slides.join('')+'</div><div class="coach-chart-hint">Desliza para ver os gráficos.</div>';
+  }
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
     const src = document.getElementById('coach-athlete-source');
@@ -15350,16 +15594,7 @@ nav.tabbar button.active svg{
       '<div class="coach-profile-tile"><strong>'+(bmi?bmi.toFixed(1).replace('.', ','):'—')+'</strong><span>IMC</span></div>'+
       '</div></div>';
 
-    const overview = '<div class="coach-card"><h3>Vista geral do atleta</h3><div class="coach-metrics-grid">'+
-      metricCard(rangeN === 1 ? 'Tempo no dia' : 'Tempo médio/dia', (t.workoutMin||0)+' min')+
-      metricCard(rangeN === 1 ? 'Distância no dia' : 'Distância média/dia', fmtKm(t.workoutKm))+
-      metricCard(rangeN === 1 ? 'Kcal treino' : 'Kcal treino média/dia', fmtNum(t.workoutKcal))+
-      metricCard(rangeN === 1 ? 'Atividades' : 'Atividades no período', String(rangeN === 1 ? rec.workouts.length : rangePack.workouts.length))+
-      metricCard(rangeN === 1 ? 'Água' : 'Água média/dia', fmtL(t.waterMl))+
-      metricCard(rangeN === 1 ? 'Sono' : 'Sono médio', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
-      metricCard(rangeN === 1 ? 'Peso' : 'Peso médio registado', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
-      metricCard(rangeN === 1 ? 'Pressão' : 'Pressão média', (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
-      '</div><div class="coach-overview-note">'+(rangeN === 1 ? 'Valores do dia selecionado.' : 'Nos períodos de 7, 15 e 30 dias, os cartões mostram a média diária dos valores apresentados; as atividades mostram o total do período.')+'</div></div>';
+    const overview = '<div class="coach-card coach-overview-charts-card"><h3>Vista geral do atleta</h3>'+coachOverviewCharts(day, rangeN)+'</div>';
 
     const health = '<div class="coach-card"><h3>Saúde</h3><div class="coach-metrics-grid">'+
       metricCard('Sono', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
@@ -15386,21 +15621,12 @@ nav.tabbar button.active svg{
       metricCard('Kcal treino', fmtNum(t.workoutKcal))+
       '</div></div>';
 
-    const wkSummary = '<div class="coach-card"><h3>Treino do dia (Strava)</h3><div class="coach-metrics-grid">'+
-      metricCard('Tempo', (t.workoutMin||0)+' min')+
-      metricCard('Distância', fmtKm(t.workoutKm))+
-      metricCard('Kcal', fmtNum(t.workoutKcal))+
-      metricCard('Nº atividades', String(rec.workouts.length))+
-      '</div>'+
-      (rec.workouts.length ? '<div style="margin-top:12px;">'+rec.workouts.map(activityCard).join('')+'</div>' : '<div class="coach-empty">Sem treinos do Strava neste dia.</div>')+
-      '</div>';
-
     // Últimas atividades Strava (contexto geral)
     const recent = safeStravaActivities().slice().sort((a,b)=>String(b.date||b.start_date).localeCompare(String(a.date||a.start_date))).slice(0,8);
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = profileCard + overview + health + drinks + nutri + wkSummary + recentBox;
+    box.innerHTML = profileCard + overview + health + drinks + nutri + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -15530,6 +15756,13 @@ nav.tabbar button.active svg{
     // Atletas
     document.getElementById('coach-add-athlete')?.addEventListener('click', addAthlete);
     document.getElementById('coach-athletes-list')?.addEventListener('click', (e)=>{
+      const del = e.target.closest('[data-athlete-del]');
+      if(del){
+        e.preventDefault();
+        e.stopPropagation();
+        deleteAthlete(del.getAttribute('data-athlete-del'));
+        return;
+      }
       const row = e.target.closest('[data-athlete]'); if(!row) return;
       selectedAthleteId = row.getAttribute('data-athlete');
       coachAthletePicked = true;
@@ -15663,5 +15896,60 @@ nav.tabbar button.active svg{
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeStravaDetail(); });
 })();
 </script>
+
+
+<style id="pulso-coach-athlete-delete-center-fix">
+  /* Treinador: botão +/− sempre centrado verticalmente, aberto e fechado */
+  #coach-content .coach-card > .coach-card-min-btn,
+  #coach-content .coach-card.is-minimized > .coach-card-min-btn{
+    top:50% !important;
+    right:16px !important;
+    transform:translateY(-50%) !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    line-height:1 !important;
+    padding:0 !important;
+  }
+  #coach-content .coach-card > .coach-card-min-btn:active,
+  #coach-content .coach-card.is-minimized > .coach-card-min-btn:active{
+    transform:translateY(-50%) scale(.96) !important;
+  }
+
+  /* Botão para eliminar atletas criados pelo treinador */
+  .coach-athlete-row{
+    position:relative !important;
+    padding-right:52px !important;
+  }
+  .coach-athlete-del{
+    position:absolute;
+    top:50%;
+    right:12px;
+    transform:translateY(-50%);
+    width:34px;
+    height:34px;
+    min-width:34px;
+    min-height:34px;
+    border-radius:999px;
+    border:1px solid rgba(242,85,90,.38);
+    background:rgba(242,85,90,.10);
+    color:#ff8f7a;
+    font-size:22px;
+    font-weight:900;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    cursor:pointer;
+    z-index:4;
+  }
+  .coach-athlete-del:active{transform:translateY(-50%) scale(.94);}
+  @media(max-width:520px){
+    .coach-athlete-row{padding-right:48px !important;}
+    .coach-athlete-del{right:10px; width:32px; height:32px; min-width:32px; min-height:32px; font-size:21px;}
+  }
+</style>
+
 </body>
 </html>
