@@ -9966,7 +9966,11 @@ nav.tabbar button.active svg{
       const dayKey = a.date.slice(0,10);
       if(byDayCat[dayKey] && (cat==='bike'||cat==='run'||cat==='forca')) byDayCat[dayKey][cat] += a.movingSec/3600;
       totalSec += a.movingSec;
-      if(cat==='bike'){ bikeSec+=a.movingSec; bikeDistKm+=a.distanceKm||0; if(a.avgWatts){ bikeWattsSum+=a.avgWatts; bikeWattsCount++; } }
+      if(cat==='bike'){
+        bikeSec+=a.movingSec; bikeDistKm+=a.distanceKm||0;
+        const watts = Number(a.avgWatts || a.average_watts || a.averageWatts || a.weighted_average_watts || a.weightedAverageWatts || a.power || a.avg_power || a.avgPower || 0) || 0;
+        if(watts){ bikeWattsSum+=watts; bikeWattsCount++; }
+      }
       if(cat==='run'){ runSec+=a.movingSec; runDistKm+=a.distanceKm||0; }
       if(cat==='forca'){ forcaSec+=a.movingSec; }
     });
@@ -9984,7 +9988,7 @@ nav.tabbar button.active svg{
     document.getElementById('s7-forca').textContent = (forcaSec/3600).toFixed(1) + 'h';
     document.getElementById('s7-run-speed').textContent = runSec>0 ? fmtPace(runDistKm/(runSec/3600)) : '—';
     document.getElementById('s7-bike-speed').textContent = bikeSec>0 ? (bikeDistKm/(bikeSec/3600)).toFixed(1)+' km/h' : '—';
-    document.getElementById('s7-bike-power').textContent = bikeWattsCount>0 ? Math.round(bikeWattsSum/bikeWattsCount)+'W' : '—';
+    document.getElementById('s7-bike-power').textContent = bikeWattsCount>0 ? Math.round(bikeWattsSum/bikeWattsCount)+' W' : '—';
 
     const ctx = document.getElementById('chart-7d');
     renderBarChart(ctx, days.map(fmtDateShort), [
@@ -15036,10 +15040,13 @@ nav.tabbar button.active svg{
   function coachCalendarData(){
     const out = {};
     coachCalendarAthletes().forEach(a=>{
-      const data = getCalendarFor(a.id);
-      Object.keys(data).forEach(day=>{
+      const plannedData = getCalendarFor(a.id);
+      const completedData = a.id === 'local' ? completedByDay(30) : {};
+      const days = new Set(Object.keys(plannedData || {}).concat(Object.keys(completedData || {})));
+      days.forEach(day=>{
         if(!out[day]) out[day] = [];
-        (data[day]||[]).forEach(w=>out[day].push(Object.assign({}, w, {athleteId:a.id, athleteName:a.name, planned:true})));
+        (plannedData[day]||[]).forEach(w=>out[day].push(Object.assign({}, w, {athleteId:a.id, athleteName:a.name, planned:true})));
+        (completedData[day]||[]).forEach(w=>out[day].push(Object.assign({}, w, {athleteId:a.id, athleteName:a.name, completed:true, type:'done'})));
       });
     });
     return out;
@@ -15164,9 +15171,10 @@ nav.tabbar button.active svg{
     let html = '';
     athletes.forEach(a=>{
       const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
+      const completed = a.id === 'local' ? recentCompletedWorkouts(30).filter(act=>activityDay(act) === coachSelectedDay) : [];
       const races = racesFor(a.id).filter(r=>String(r.date).slice(0,10) === coachSelectedDay);
       const hasRace = races.length > 0;
-      if(!items.length && !hasRace) return;
+      if(!items.length && !hasRace && !completed.length) return;
       html += '<div class="coach-day-athlete-block">'+
         '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong><span>'+(a.local?'Este telemóvel':'Cloud em breve')+'</span></div>';
       if(hasRace){
@@ -15182,6 +15190,9 @@ nav.tabbar button.active svg{
           </div>
           <div class="lib-actions"><span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">Abrir treino efetivo</span>${a.id===selectedAthleteId?`<span class="coach-btn tiny danger" data-cal-del="${esc(w.id)}">Remover</span>`:''}</div>
         </button>`).join('');
+      }
+      if(completed.length){
+        html += '<div class="help" style="margin:10px 0 6px;">Treinos efetuados neste dia</div>' + completed.map(renderActivityCompact).join('');
       }
       html += '</div>';
     });
@@ -15213,6 +15224,13 @@ nav.tabbar button.active svg{
   function activityDay(a){ return String(a.date || a.start_date || a.time || a.createdAt || '').slice(0,10); }
   function activityMinutes(a){ return Math.round((Number(a.movingSec || a.elapsed_time || a.durationSec || 0) || 0) / 60); }
   function activityKm(a){ return Number(a.distanceKm != null ? a.distanceKm : ((Number(a.distance || 0) || 0) / 1000)) || 0; }
+  function activityPower(a){
+    if(!a) return 0;
+    const candidates = [a.avgWatts, a.average_watts, a.averageWatts, a.weighted_average_watts, a.weightedAverageWatts, a.power, a.avg_power, a.avgPower];
+    for(const v of candidates){ const n = Number(v); if(isFinite(n) && n > 0) return n; }
+    return 0;
+  }
+  function isBikeActivity(a){ return /ride|bike|cycling|bici/i.test(String((a && (a.type || a.sportType || a.sport_type)) || '')); }
   function activityTypeLabel(a){
     const t = String(a.type || a.sportType || a.sport_type || '').toLowerCase();
     if(/ride|bike|cycling|bici/.test(t)) return 'Bike';
@@ -15256,6 +15274,8 @@ nav.tabbar button.active svg{
     if(km) pills.push('<span class="coach-pill">'+fmtKm(km)+'</span>');
     if(min) pills.push('<span class="coach-pill">'+min+' min</span>');
     if(km && sec && /corrida|run|trail/i.test(activityTypeLabel(a))){ const p = pace(km, sec); if(p) pills.push('<span class="coach-pill">'+p+'</span>'); }
+    const watts = activityPower(a);
+    if(isBikeActivity(a) && watts) pills.push('<span class="coach-pill">'+Math.round(watts)+' W</span>');
     if(a.elevationM) pills.push('<span class="coach-pill">'+Math.round(a.elevationM)+' m D+</span>');
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
@@ -15451,7 +15471,8 @@ nav.tabbar button.active svg{
     if(a.elevationM) pills.push('<span class="coach-pill">'+Math.round(a.elevationM)+' m D+</span>');
     if(cat==='run' && a.distanceKm && a.movingSec){ const p = pace(a.distanceKm, a.movingSec); if(p) pills.push('<span class="coach-pill">'+p+'</span>'); }
     if(a.avgSpeedKmh) pills.push('<span class="coach-pill">'+(Number(a.avgSpeedKmh).toFixed(1).replace('.', ','))+' km/h</span>');
-    if(a.avgWatts) pills.push('<span class="coach-pill">'+Math.round(a.avgWatts)+' W</span>');
+    const watts = activityPower(a);
+    if(isBikeActivity(a) && watts) pills.push('<span class="coach-pill">'+Math.round(watts)+' W</span>');
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     if(a.maxHr) pills.push('<span class="coach-pill">'+Math.round(a.maxHr)+' bpm máx.</span>');
     if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
@@ -15709,12 +15730,15 @@ nav.tabbar button.active svg{
       metricCard('Kcal treino', fmtNum(t.workoutKcal))+
       '</div></div>';
 
-    // Últimas atividades Strava (contexto geral)
+    // Treinos efetuados no período escolhido + últimas atividades Strava (contexto geral)
+    const completedForRange = (rec.workouts || []).slice().sort((a,b)=>String(b.date||b.start_date).localeCompare(String(a.date||a.start_date))).slice(0,12);
+    const completedBox = '<div class="coach-card"><h3>Treinos efetuados</h3>'+
+      (completedForRange.length ? completedForRange.map(activityCard).join('') : '<div class="coach-empty">Sem treinos efetuados no período escolhido.</div>')+'</div>';
     const recent = safeStravaActivities().slice().sort((a,b)=>String(b.date||b.start_date).localeCompare(String(a.date||a.start_date))).slice(0,8);
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = profileCard + overview + health + drinks + nutri + recentBox;
+    box.innerHTML = profileCard + overview + health + drinks + nutri + completedBox + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -16087,5 +16111,14 @@ nav.tabbar button.active svg{
   }
 </style>
 
+
+<style id="pulso-final-treinos-bike-pace-fix">
+  /* Área atleta: pace com a cor da corrida; bike/potência com cores coerentes. */
+  #tab-treinos #sub-resumo .metric-card:nth-child(4) .metric-icon{color:#FF9D2E !important; background:rgba(255,157,46,.13) !important;}
+  #tab-treinos #sub-resumo .metric-card:nth-child(5) .metric-icon{color:#25D7FF !important; background:rgba(37,215,255,.12) !important;}
+  #tab-treinos #sub-resumo .metric-card:nth-child(6) .metric-icon{color:#F2555A !important; background:rgba(242,85,90,.13) !important;}
+  #coach-calendar .athlete-last30-item{margin:8px 0;}
+  #coach-cal-day-body .athlete-last30-item{border-color:rgba(53,217,166,.18);}
+</style>
 </body>
 </html>
