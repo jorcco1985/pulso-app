@@ -13314,9 +13314,11 @@ nav.tabbar button.active svg{
   .pcal-cell .pcal-num{font-size:12px; font-weight:800; color:var(--text);}
   .pcal-cell.dim .pcal-num{color:var(--text-muted); opacity:.45;}
   .pcal-dots{display:flex; gap:3px; margin-top:auto; flex-wrap:wrap; justify-content:center; padding-bottom:2px;}
-  .pcal-dot{width:6px; height:6px; border-radius:50%; background:var(--teal);}
+  .pcal-dot{width:6px; height:6px; border-radius:50%; background:#9B8CFF;}
+  .pcal-dot.planned{background:#9B8CFF;}
+  .pcal-dot.done{background:var(--teal);}
   .pcal-dot.race{background:#F2B84B;}
-  .pcal-legend{display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--text-muted);}
+  .pcal-legend{display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--text-muted); flex-wrap:wrap;}
   .pcal-legend span{display:inline-flex; align-items:center; gap:5px;}
   .pcal-legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
   .pcal-arm{border:1px solid rgba(242,184,75,.4); background:rgba(242,184,75,.1); color:#F2B84B; border-radius:14px; padding:10px 12px; font-size:12.5px; font-weight:800; margin-bottom:10px; display:none;}
@@ -13357,6 +13359,13 @@ nav.tabbar button.active svg{
   .coach-pill{display:inline-flex; align-items:center; gap:4px; padding:5px 9px; border-radius:999px; background:rgba(53,217,166,.13); color:var(--teal); font-size:11px; font-weight:900;}
   .coach-empty{color:var(--text-muted); font-size:13px; line-height:1.5; text-align:center; padding:20px 8px;}
   .coach-note{font-size:12.5px; color:var(--text-muted); line-height:1.5;}
+  .coach-select-row{display:grid; grid-template-columns:1fr; gap:8px; margin:10px 0;}
+  .coach-select-row label{font-size:10.5px; color:var(--text-muted); font-weight:900; text-transform:uppercase; letter-spacing:.5px;}
+  .coach-select-row select,.coach-day-picker select{width:100%; min-height:42px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background:rgba(9,14,25,.85); color:var(--text); font-weight:800; padding:0 12px; font-size:14px;}
+  .coach-profile-main strong{font-size:24px !important; line-height:1.1;}
+  .coach-profile-main span{font-size:15px !important; color:var(--text-muted); line-height:1.4;}
+  .coach-profile-tile strong{font-size:22px !important; line-height:1.1;}
+  .coach-profile-tile span{font-size:12px !important;}
 
   /* Layout de duas colunas: editor à esquerda, atletas à direita */
   .coach-split{display:grid; grid-template-columns:1fr; gap:12px;}
@@ -13663,9 +13672,13 @@ nav.tabbar button.active svg{
             <div class="coach-section-head">
               <h2>Calendário</h2>
             </div>
+            <div class="coach-select-row">
+              <label for="coach-calendar-athlete">Ver no calendário</label>
+              <select id="coach-calendar-athlete"></select>
+            </div>
             <div class="pcal-arm" id="coach-cal-arm"></div>
             <div id="coach-calendar"></div>
-            <div class="pcal-legend"><span><i style="background:#F2B84B;"></i>Prova</span><span><i style="background:var(--teal);"></i>Treino</span></div>
+            <div class="pcal-legend"><span><i style="background:var(--teal);"></i>Treino feito</span><span><i style="background:#F2B84B;"></i>Prova</span><span><i style="background:#9B8CFF;"></i>Treino prescrito</span></div>
           </div>
 
           <div class="coach-card">
@@ -13683,7 +13696,14 @@ nav.tabbar button.active svg{
       <div class="coach-card">
         <div class="coach-section-head">
           <h2>Dados do atleta</h2>
-          <div class="coach-day-picker">
+        </div>
+        <div class="coach-select-row" style="grid-template-columns:1fr 1fr;">
+          <div>
+            <label for="coach-athlete-select">Atleta</label>
+            <select id="coach-athlete-select"></select>
+          </div>
+          <div>
+            <label for="coach-athlete-day">Dia</label>
             <select id="coach-athlete-day"></select>
           </div>
         </div>
@@ -14170,6 +14190,7 @@ nav.tabbar button.active svg{
      ATLETAS + CALENDÁRIO (agendamento de treinos)
      ===================================================================== */
   let selectedAthleteId = 'local';
+  let coachCalendarFilter = 'all';
   let coachCalRef = new Date();              // mês visível no calendário do treinador
   let coachSelectedDay = null;               // dia selecionado no calendário do treinador
   let armedWorkout = null;                   // treino "à espera" de ser colocado num dia
@@ -14208,6 +14229,45 @@ nav.tabbar button.active svg{
         ${badge}
       </div>`;
     }).join('');
+  }
+
+  function fillCoachAthleteSelectors(){
+    const list = getAthletes();
+    const calSel = document.getElementById('coach-calendar-athlete');
+    if(calSel){
+      const cur = coachCalendarFilter || calSel.value || 'all';
+      calSel.innerHTML = '<option value="all">Todos os atletas</option>' + list.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+      coachCalendarFilter = (cur === 'all' || list.some(a=>a.id===cur)) ? cur : 'all';
+      calSel.value = coachCalendarFilter;
+    }
+    const aSel = document.getElementById('coach-athlete-select');
+    if(aSel){
+      if(!list.some(a=>a.id===selectedAthleteId)) selectedAthleteId = 'local';
+      aSel.innerHTML = list.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+      aSel.value = selectedAthleteId;
+    }
+  }
+
+  function coachCalendarAthletes(){
+    const list = getAthletes();
+    if(coachCalendarFilter === 'all') return list;
+    return list.filter(a=>a.id === coachCalendarFilter);
+  }
+
+  function coachCalendarData(){
+    const out = {};
+    coachCalendarAthletes().forEach(a=>{
+      const data = getCalendarFor(a.id);
+      Object.keys(data).forEach(day=>{
+        if(!out[day]) out[day] = [];
+        (data[day]||[]).forEach(w=>out[day].push(Object.assign({}, w, {athleteId:a.id, athleteName:a.name, planned:true})));
+      });
+    });
+    return out;
+  }
+
+  function coachCalendarRaces(){
+    return coachCalendarAthletes().map(a=>{ const r = raceFor(a.id); return r ? Object.assign({}, r, {athleteId:a.id, athleteName:a.name}) : null; }).filter(Boolean);
   }
 
   /* ---- Modelo do calendário: pulso:coach-calendar = { athleteId: { 'YYYY-MM-DD': [ {..} ] } } ---- */
@@ -14261,15 +14321,19 @@ nav.tabbar button.active svg{
     let startDow = (first.getDay() + 6) % 7; // segunda=0
     const daysInMonth = new Date(y, m+1, 0).getDate();
     const today = todayStr();
+    const races = Array.isArray(race) ? race : (race ? [race] : []);
     let cells = '';
     for(let i=0;i<startDow;i++) cells += '<div class="pcal-cell empty"></div>';
     for(let d=1; d<=daysInMonth; d++){
       const key = ymd(y,m,d);
       const items = dataByDay[key] || [];
-      const isRace = race && race.date === key;
+      const isRace = races.some(r=>r && r.date === key);
+      const hasDone = items.some(x=>x && (x.completed || x.type === 'done'));
+      const hasPlanned = items.some(x=>x && !(x.completed || x.type === 'done'));
       let dots = '';
-      if(isRace) dots += '<span class="pcal-dot race"></span>';
-      items.slice(0,3).forEach(()=> dots += '<span class="pcal-dot"></span>');
+      if(hasDone) dots += '<span class="pcal-dot done" title="Treino feito"></span>';
+      if(isRace) dots += '<span class="pcal-dot race" title="Prova"></span>';
+      if(hasPlanned) dots += '<span class="pcal-dot planned" title="Treino prescrito"></span>';
       const cls = ['pcal-cell'];
       if(key === today) cls.push('today');
       if(key === selectedDay) cls.push('selected');
@@ -14291,10 +14355,10 @@ nav.tabbar button.active svg{
   function renderCoachCalendar(){
     const el = document.getElementById('coach-calendar');
     if(!el) return;
-    const a = currentAthlete();
-    const data = getCalendarFor(a.id);
-    const race = raceFor(a.id);
-    el.innerHTML = buildCalendarHTML(coachCalRef, data, race, coachSelectedDay);
+    fillCoachAthleteSelectors();
+    const data = coachCalendarData();
+    const races = coachCalendarRaces();
+    el.innerHTML = buildCalendarHTML(coachCalRef, data, races, coachSelectedDay);
     renderCoachDay();
   }
   function renderCoachDay(){
@@ -14303,11 +14367,11 @@ nav.tabbar button.active svg{
     if(!body) return;
     if(!coachSelectedDay){
       if(title) title.textContent = 'Dia selecionado';
-      body.innerHTML = '<div class="coach-empty">Toca num dia do calendário para ver treinos e provas de todos os atletas.</div>';
+      body.innerHTML = '<div class="coach-empty">Toca num dia do calendário para ver treinos feitos, provas e treinos prescritos.</div>';
       return;
     }
     if(title) title.textContent = fmtDayLabel(coachSelectedDay) + ' — agenda dos atletas';
-    const athletes = getAthletes();
+    const athletes = coachCalendarAthletes();
     let html = '';
     athletes.forEach(a=>{
       const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
@@ -14592,15 +14656,16 @@ nav.tabbar button.active svg{
     const day = (sel && sel.value) ? sel.value : todayStr();
     const rec = coachDayRecord(day);
     const t = rec.totals;
-    if(src) src.textContent = 'Dados de ' + profileName() + ' — ' + fmtDayLabel(day) + '.';
+    const selectedA = currentAthlete();
+    if(src) src.textContent = 'Dados de ' + (selectedA.name || profileName()) + ' — ' + fmtDayLabel(day) + '.';
 
-    const prof = getPulso('profile', {}) || {};
+    const prof = selectedA.id === 'local' ? (getPulso('profile', {}) || {}) : {};
     const genderLabel = prof.gender === 'M' ? 'Masculino' : (prof.gender === 'F' ? 'Feminino' : '—');
     const levelTxt = prof.activityLevel!=null ? (String(prof.activityLevel) + '/10') : '—';
     const lastWeight = (getPulso('weight-entries', [])||[]).slice().reverse().find(x=>x && x.kg!=null);
     const bmi = (prof.heightCm && lastWeight && lastWeight.kg) ? (Number(lastWeight.kg) / Math.pow(Number(prof.heightCm)/100,2)) : null;
     const profileCard = '<div class="coach-card"><h3>Perfil do atleta</h3><div class="coach-profile-hero">'+
-      '<div class="coach-profile-main"><strong>'+esc(profileName())+'</strong><span>'+esc(genderLabel)+' · '+(prof.age?esc(prof.age)+' anos':'idade —')+'</span></div>'+
+      '<div class="coach-profile-main"><strong>'+esc(selectedA.name || profileName())+'</strong><span>'+esc(genderLabel)+' · '+(prof.age?esc(prof.age)+' anos':'idade —')+'</span></div>'+
       '<div class="coach-profile-tile"><strong>'+esc(genderLabel)+'</strong><span>Género</span></div>'+
       '<div class="coach-profile-tile"><strong>'+(prof.age?esc(prof.age)+' anos':'—')+'</strong><span>Idade</span></div>'+
       '<div class="coach-profile-tile"><strong>'+(prof.heightCm?esc(prof.heightCm)+' cm':'—')+'</strong><span>Altura</span></div>'+
@@ -14681,6 +14746,7 @@ nav.tabbar button.active svg{
     const ff = document.getElementById('coach-fav-filter'); if(ff) ff.classList.remove('active');
     renderCoachWorkouts();
     renderAthletes();
+    fillCoachAthleteSelectors();
     renderCoachCalendar();
     fillDayPicker();
     renderAthleteData();
@@ -14763,6 +14829,7 @@ nav.tabbar button.active svg{
       selectedAthleteId = row.getAttribute('data-athlete');
       coachSelectedDay = null;
       renderAthletes();
+      fillCoachAthleteSelectors();
       renderCoachCalendar();
     });
 
@@ -14803,7 +14870,19 @@ nav.tabbar button.active svg{
       }
     });
 
-    // Dados do atleta
+    // Filtros / Dados do atleta
+    document.getElementById('coach-calendar-athlete')?.addEventListener('change', function(){
+      coachCalendarFilter = this.value || 'all';
+      coachSelectedDay = null;
+      renderCoachCalendar();
+    });
+    document.getElementById('coach-athlete-select')?.addEventListener('change', function(){
+      selectedAthleteId = this.value || 'local';
+      renderAthletes();
+      fillCoachAthleteSelectors();
+      fillDayPicker();
+      renderAthleteData();
+    });
     document.getElementById('coach-athlete-day')?.addEventListener('change', renderAthleteData);
 
     // ===== Lado do ATLETA: calendário + treino do dia no painel =====
