@@ -9691,8 +9691,11 @@ nav.tabbar button.active svg{
     svg.appendChild(svgEl('path', {d:areaD, fill:'url(#'+gradId+')'}));
     svg.appendChild(svgEl('path', {d:lineD, fill:'none', stroke:color || 'var(--teal)', 'stroke-width':3, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
 
-    // Pontos pequenos, como referência visual, sem ficar com aspeto de barras.
-    pts.forEach(([cx,cy], i)=>{ if(rows.length < 75 || i%2===0) svg.appendChild(svgEl('circle', {cx, cy, r:2.8, fill:color || 'var(--teal)', stroke:'#07101d', 'stroke-width':1.6})); });
+    // Com muitos pontos, mostra só a linha (traço contínuo, como o gráfico original).
+    // Em séries esparsas mantém pontos como referência visual.
+    if(rows.length < 40){
+      pts.forEach(([cx,cy])=>{ svg.appendChild(svgEl('circle', {cx, cy, r:2.8, fill:color || 'var(--teal)', stroke:'#07101d', 'stroke-width':1.6})); });
+    }
 
     const xTicks = hasDist ? 6 : 5;
     for(let i=0;i<xTicks;i++){
@@ -9738,15 +9741,62 @@ nav.tabbar button.active svg{
     return pack;
   }
   function fallbackActivityRows(a){
+    // Gera um traçado estimado com aspeto orgânico/irregular (parecido com o original do
+    // Strava) em vez de ondas sinusoidais perfeitas. É determinístico por treino: a mesma
+    // atividade produz sempre o mesmo gráfico (usa o id como semente do gerador aleatório).
     const mins = Math.max(10, Math.round((Number(a.movingSec)||0)/60)||30);
-    const points = Math.min(60, Math.max(12, mins));
+    const totalSec = Number(a.movingSec) || mins*60;
+    // <=116 pontos para não serem novamente suavizados por simplifyStreamRows (limite 120).
+    const points = Math.min(116, Math.max(40, mins*2));
     const rowsHr=[], rowsSpeed=[];
     const avgHr = Number(a.avgHr)||null;
+    const maxHr = Number(a.maxHr)||null;
     const avgSpeed = Number(a.avgSpeedKmh)||null;
+
+    // PRNG determinístico (mulberry32) semeado pelo identificador do treino.
+    let seed = 0;
+    const seedStr = String(a.id || a.name || a.date || 'pulso') + '|' + (avgHr||0) + '|' + Math.round(totalSec);
+    for(let i=0;i<seedStr.length;i++){ seed = (Math.imul(31, seed) + seedStr.charCodeAt(i)) | 0; }
+    let s = seed >>> 0;
+    const rnd = ()=>{ s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const noise = amp => (rnd()*2 - 1) * amp;
+
+    // Amplitude do esforço em bpm: usa a diferença entre média e máxima quando existe.
+    const hrSwing = maxHr && avgHr ? Math.max(6, (maxHr - avgHr) * 0.85) : 10;
+    // Fases aleatórias para os "blocos de esforço" (macro), para cada treino ser diferente.
+    const phA = rnd()*Math.PI*2, phB = rnd()*Math.PI*2, phC = rnd()*Math.PI*2;
+    const perA = 5 + rnd()*4, perB = 11 + rnd()*7;
+
+    let hrPrev = avgHr, spPrev = avgSpeed;
     for(let i=0;i<points;i++){
-      const t = (Number(a.movingSec)||mins*60) * (i/(points-1));
-      if(avgHr) rowsHr.push({t, v: avgHr + Math.sin(i/3)*4 + Math.sin(i/7)*2});
-      if(avgSpeed) rowsSpeed.push({t, v: Math.max(0, avgSpeed + Math.sin(i/4)*0.6 + Math.sin(i/9)*0.35)});
+      const p = i/(points-1);
+      const t = totalSec * p;
+
+      if(avgHr){
+        // Deriva cardíaca lenta (sobe ligeiramente ao longo do treino).
+        const drift = (p - 0.45) * hrSwing * 0.35;
+        // Blocos de esforço de média frequência (irregulares).
+        const macro = Math.sin(i/perA + phA) * hrSwing * 0.5 + Math.sin(i/perB + phB) * hrSwing * 0.28;
+        // Ruído batimento-a-batimento + picos ocasionais → traço "serrilhado".
+        const micro = noise(hrSwing * 0.30) + (rnd() < 0.10 ? noise(hrSwing * 0.55) : 0);
+        let v = avgHr + drift + macro + micro;
+        // Suavização mínima para não haver saltos absurdos, mantendo a irregularidade.
+        v = hrPrev == null ? v : hrPrev * 0.30 + v * 0.70;
+        if(maxHr) v = Math.min(v, maxHr + 2);
+        v = Math.max(v, avgHr - hrSwing * 1.15);
+        hrPrev = v;
+        rowsHr.push({t, v});
+      }
+      if(avgSpeed){
+        const spSwing = Math.max(0.5, avgSpeed * 0.14);
+        const macroS = Math.sin(i/(perB*0.8) + phC) * spSwing * 0.55 + Math.sin(i/perA + phB) * spSwing * 0.25;
+        const microS = noise(spSwing * 0.35) + (rnd() < 0.08 ? noise(spSwing * 0.6) : 0);
+        let v = avgSpeed + macroS + microS;
+        v = spPrev == null ? v : spPrev * 0.35 + v * 0.65;
+        v = Math.max(0.3, v);
+        spPrev = v;
+        rowsSpeed.push({t, v});
+      }
     }
     return {hr:rowsHr, speed:rowsSpeed};
   }
@@ -9768,7 +9818,10 @@ nav.tabbar button.active svg{
     if(sp) sp.innerHTML = '<div class="empty">A carregar gráfico velocidade...</div>';
   }
   async function openStravaActivityDetail(activityId){
-    const a = (stravaActivities || []).find(x=>String(x.id)===String(activityId));
+    let a = (stravaActivities || []).find(x=>String(x.id)===String(activityId));
+    if(!a){
+      try{ a = (safeStravaActivities() || []).find(x=>String(x.id)===String(activityId)); }catch(e){}
+    }
     if(!a){ toast('Treino não encontrado'); return; }
     showStravaDetailShell(a);
     const isRun = sportCategory(a.type || a.sportType)==='run';
@@ -13793,6 +13846,14 @@ nav.tabbar button.active svg{
   #coach-content .coach-brand-left{display:flex; align-items:center; gap:12px; min-width:0;}
   #coach-content .coach-title h1{margin:0; font-size:20px; letter-spacing:1px;}
   #coach-content .coach-title span{display:block; color:var(--text-muted); font-size:11px; margin-top:2px;}
+  #coach-content .coach-switch-btn{
+    flex:0 0 auto; width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    border-radius:12px; border:1px solid rgba(255,255,255,.10);
+    background:rgba(20,28,46,.72); color:var(--teal); cursor:pointer; padding:0;
+    box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  #coach-content .coach-switch-btn svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  #coach-content .coach-switch-btn:active{transform:scale(.94);}
   #coach-content .coach-main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 14px calc(32px + env(safe-area-inset-bottom)); max-width:1180px; width:100%; margin:0 auto;}
   #coach-content .coach-tabs{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; padding:6px; border-radius:999px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);}
   #coach-content .coach-tabs button{border:0; min-height:44px; border-radius:999px; background:transparent; color:var(--text-muted); font-weight:900; font-size:14px;}
@@ -13878,6 +13939,11 @@ nav.tabbar button.active svg{
   .coach-activity .act-name{font-size:14.5px; font-weight:900; color:#fff; min-width:0;}
   .coach-activity .act-date{font-size:11px; color:var(--text-muted); flex:0 0 auto;}
   .coach-activity .act-stats{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
+  .coach-activity-clickable{cursor:pointer; transition:border-color .15s ease, transform .12s ease, background .15s ease;}
+  .coach-activity-clickable:hover{border-color:rgba(53,217,166,.45); background:rgba(53,217,166,.06);}
+  .coach-activity-clickable:active{transform:scale(.985);}
+  .coach-activity-clickable:focus-visible{outline:2px solid rgba(53,217,166,.6); outline-offset:2px;}
+  .coach-activity .coach-activity-cta{margin-top:10px; font-size:12px; font-weight:800; color:var(--teal); letter-spacing:.2px;}
   .coach-day-picker{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   .coach-day-picker select{min-height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:rgba(9,14,25,.85); color:var(--text); font-size:13px; padding:0 10px;}
 
@@ -14063,6 +14129,15 @@ nav.tabbar button.active svg{
 .coach-chart-bar.purple{fill:rgba(167,139,250,.20);} .coach-chart-line.purple{stroke:#A78BFA;} .coach-chart-dot.purple{fill:#A78BFA;}
 .coach-chart-bar.red{fill:rgba(242,85,90,.18);} .coach-chart-line.red{stroke:#F2555A;} .coach-chart-dot.red{fill:#F2555A;}
 .coach-chart-hint{font-size:11px; color:var(--text-muted); text-align:center; margin-top:6px;}
+.coach-chart-hit{cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.coach-chart-tip{pointer-events:none;}
+.coach-chart-tip-bg{fill:#0B1220; stroke:rgba(255,255,255,.18); stroke-width:1;}
+.coach-chart-tip-text{fill:#fff; font-size:11px; font-weight:900;}
+.coach-chart-tip-marker{fill:var(--teal); stroke:#07101d; stroke-width:2;}
+.coach-chart-tip.blue .coach-chart-tip-marker{fill:#77A7FF;}
+.coach-chart-tip.amber .coach-chart-tip-marker{fill:#F2B84B;}
+.coach-chart-tip.purple .coach-chart-tip-marker{fill:#A78BFA;}
+.coach-chart-tip.red .coach-chart-tip-marker{fill:#F2555A;}
 @media(min-width:700px){.coach-chart-slide{flex-basis:46%;}}
 @media(max-width:430px){.coach-chart-slide{flex-basis:91%; min-height:222px;} #coach-athlete-data .coach-profile-main{min-height:112px !important;} #coach-athlete-data .coach-profile-tile,#coach-athlete-data .coach-metric{min-height:104px !important;}}
 
@@ -14082,7 +14157,9 @@ nav.tabbar button.active svg{
         </div>
         <div class="coach-title"><h1>PULSO</h1><span>Modo Treinador</span></div>
       </div>
-      <button class="ghost" type="button" id="coach-back-athlete">Atleta</button>
+      <button class="coach-switch-btn" type="button" id="coach-back-athlete" aria-label="Voltar à escolha de área" title="Voltar à escolha de área">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+      </button>
     </div>
   </header>
   <main class="coach-main">
@@ -15377,9 +15454,11 @@ nav.tabbar button.active svg{
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     if(a.maxHr) pills.push('<span class="coach-pill">'+Math.round(a.maxHr)+' bpm máx.</span>');
     if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
-    return '<div class="coach-activity" style="margin-bottom:9px;">'+
+    const aid = a.id!=null ? String(a.id) : '';
+    return '<div class="coach-activity coach-activity-clickable" data-strava-id="'+esc(aid)+'" role="button" tabindex="0" style="margin-bottom:9px;">'+
       '<div class="act-head"><div class="act-name">'+esc(a.name||'Atividade')+'</div><div class="act-date">'+esc(shortDate(a.date||a.start_date))+'</div></div>'+
-      '<div class="coach-pill-row act-stats">'+pills.join('')+'</div></div>';
+      '<div class="coach-pill-row act-stats">'+pills.join('')+'</div>'+
+      (aid ? '<div class="coach-activity-cta">Ver gráfico do treino →</div>' : '')+'</div>';
   }
 
 
@@ -15517,15 +15596,23 @@ nav.tabbar button.active svg{
     const barW = Math.max(7, Math.min(22, innerW / Math.max(rows.length,1) * .56));
     const xFor = i => padL + (rows.length===1 ? innerW/2 : (innerW * i/(rows.length-1)));
     const yFor = v => padT + (max-v) / (max-min) * innerH;
-    let bars = '', pts = [];
+    const hitW = Math.max(barW, innerW / Math.max(rows.length, 1));
+    let bars = '', pts = [], hits = '';
     all.forEach((v,i)=>{
       if(v==null) return;
       const x = xFor(i), y = yFor(v), bh = padT+innerH-y;
       bars += '<rect class="coach-chart-bar '+(colorClass||'')+'" x="'+(x-barW/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(2,bh).toFixed(1)+'" rx="4"></rect>';
       pts.push(x.toFixed(1)+','+y.toFixed(1));
+      // Zona de toque (invisível) sobre cada valor, para mostrar o valor ao tocar.
+      hits += '<rect class="coach-chart-hit" data-cpt="1" data-cx="'+x.toFixed(1)+'" data-cy="'+y.toFixed(1)+'" data-cval="'+esc(coachChartFmt(v, unit))+'" x="'+(x-hitW/2).toFixed(1)+'" y="'+padT+'" width="'+hitW.toFixed(1)+'" height="'+innerH+'" fill="transparent"></rect>';
     });
     const line = pts.length>1 ? '<polyline class="coach-chart-line '+(colorClass||'')+'" points="'+pts.join(' ')+'"></polyline>' : '';
     const dots = pts.map(pt=>{ const [x,y]=pt.split(','); return '<circle class="coach-chart-dot '+(colorClass||'')+'" cx="'+x+'" cy="'+y+'" r="3.2"></circle>'; }).join('');
+    // Balão de valor (escondido até tocar num ponto).
+    const tip = '<g class="coach-chart-tip '+(colorClass||'')+'" style="display:none;" aria-hidden="true">'+
+      '<circle class="coach-chart-tip-marker" cx="0" cy="0" r="4.5"></circle>'+
+      '<rect class="coach-chart-tip-bg" rx="6"></rect>'+
+      '<text class="coach-chart-tip-text" text-anchor="middle"></text></g>';
     const firstDay = rows[0]?.day || rows[0]?.date || '';
     const lastDay = rows[rows.length-1]?.day || rows[rows.length-1]?.date || '';
     return '<div class="coach-chart-slide">'+
@@ -15537,7 +15624,7 @@ nav.tabbar button.active svg{
       '<line class="coach-chart-grid" x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(w-padR)+'" y2="'+(padT+innerH)+'"></line>'+
       '<text class="coach-chart-axis" x="2" y="'+(padT+4)+'">'+esc(coachChartFmt(max, unit).replace(' '+unit,''))+'</text>'+
       '<text class="coach-chart-axis" x="2" y="'+(padT+innerH+4)+'">'+esc(coachChartFmt(min, unit).replace(' '+unit,''))+'</text>'+
-      bars+line+dots+
+      bars+line+dots+hits+tip+
       '<text class="coach-chart-x" x="'+padL+'" y="132">'+esc(shortDate(firstDay))+'</text>'+
       '<text class="coach-chart-x end" x="'+(w-padR)+'" y="132">'+esc(shortDate(lastDay))+'</text>'+
       '</svg></div>';
@@ -15890,8 +15977,56 @@ nav.tabbar button.active svg{
   document.addEventListener('click', function(e){
     if(e.target && e.target.id === 'strava-detail-close') closeStravaDetail();
     if(e.target && e.target.id === 'strava-detail-modal') closeStravaDetail();
-    const item=e.target.closest && e.target.closest('.athlete-last30-item[data-strava-id]');
-    if(item && window.PulsoOpenStravaActivityDetail){ window.PulsoOpenStravaActivityDetail(item.getAttribute('data-strava-id')); }
+    const item=e.target.closest && e.target.closest('.athlete-last30-item[data-strava-id], .coach-activity-clickable[data-strava-id]');
+    if(item && item.getAttribute('data-strava-id') && window.PulsoOpenStravaActivityDetail){ window.PulsoOpenStravaActivityDetail(item.getAttribute('data-strava-id')); }
+  });
+  document.addEventListener('keydown', function(e){
+    if((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('coach-activity-clickable')){
+      e.preventDefault();
+      const id = e.target.getAttribute('data-strava-id');
+      if(id && window.PulsoOpenStravaActivityDetail){ window.PulsoOpenStravaActivityDetail(id); }
+    }
+  });
+
+  // Vista geral do atleta: tocar num valor do gráfico mostra-o sobre a barra.
+  function hideCoachChartTips(except){
+    document.querySelectorAll('.coach-chart-tip').forEach(function(t){ if(t !== except) t.style.display = 'none'; });
+  }
+  function showCoachChartTip(svg, hit){
+    const tip = svg.querySelector('.coach-chart-tip');
+    if(!tip) return;
+    const cx = parseFloat(hit.getAttribute('data-cx'));
+    const cy = parseFloat(hit.getAttribute('data-cy'));
+    const val = hit.getAttribute('data-cval') || '';
+    const bg = tip.querySelector('.coach-chart-tip-bg');
+    const txt = tip.querySelector('.coach-chart-tip-text');
+    const marker = tip.querySelector('.coach-chart-tip-marker');
+    const vbw = (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width) ? svg.viewBox.baseVal.width : 320;
+    txt.textContent = val;
+    const w = Math.max(34, val.length * 6.8 + 16), h = 20;
+    let bx = cx - w/2;
+    if(bx < 2) bx = 2;
+    if(bx + w > vbw - 2) bx = vbw - 2 - w;
+    let by = cy - h - 11;
+    if(by < 0) by = cy + 12;
+    bg.setAttribute('x', bx.toFixed(1));
+    bg.setAttribute('y', by.toFixed(1));
+    bg.setAttribute('width', w.toFixed(1));
+    bg.setAttribute('height', h);
+    txt.setAttribute('x', (bx + w/2).toFixed(1));
+    txt.setAttribute('y', (by + h/2 + 4).toFixed(1));
+    if(marker){ marker.setAttribute('cx', cx.toFixed(1)); marker.setAttribute('cy', cy.toFixed(1)); }
+    hideCoachChartTips(tip);
+    tip.style.display = '';
+  }
+  document.addEventListener('click', function(e){
+    const hit = e.target.closest && e.target.closest('.coach-chart-hit');
+    if(hit){
+      const svg = hit.closest('svg');
+      if(svg) showCoachChartTip(svg, hit);
+      return;
+    }
+    if(!(e.target.closest && e.target.closest('.coach-chart-svg'))) hideCoachChartTips(null);
   });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeStravaDetail(); });
 })();
