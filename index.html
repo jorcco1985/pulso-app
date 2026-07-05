@@ -13500,6 +13500,72 @@ nav.tabbar button.active svg{
   #coach-athlete-data.is-waiting{display:none;}
 
 
+
+/* Correções treinador: perfil em grelha, seletor do atleta e memória das cartas */
+#coach-tab-atleta > .coach-card:first-child{
+  overflow:visible !important;
+  padding-top:20px !important;
+}
+#coach-tab-atleta > .coach-card:first-child .coach-section-head{
+  padding-right:44px;
+}
+#coach-tab-atleta .coach-select-row{
+  grid-template-columns:1fr !important;
+  gap:12px !important;
+}
+#coach-tab-atleta .coach-select-row select{
+  width:100% !important;
+  min-width:0 !important;
+  font-size:16px !important;
+}
+.coach-profile-hero{
+  display:grid !important;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:10px !important;
+  align-items:stretch;
+}
+.coach-profile-main{
+  grid-column:1 / -1;
+  background:rgba(9,14,25,.58);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  padding:15px 16px;
+  min-width:0;
+}
+.coach-profile-main strong,
+.coach-profile-main span{
+  display:block !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+}
+.coach-profile-tile{
+  background:rgba(9,14,25,.58);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:13px 12px;
+  min-width:0;
+}
+.coach-profile-tile strong,
+.coach-profile-tile span{
+  display:block !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+}
+#coach-athlete-data .coach-profile-main strong{font-size:28px !important;}
+#coach-athlete-data .coach-profile-main span{font-size:15px !important; margin-top:4px;}
+#coach-athlete-data .coach-profile-tile strong{font-size:22px !important;}
+#coach-athlete-data .coach-profile-tile span{font-size:12px !important; margin-top:4px; color:var(--text-muted);}
+.coach-card.is-minimized{min-height:76px !important;}
+.coach-card.is-minimized > .coach-card-min-btn{content:'+';}
+.coach-lib-card details[open] .coach-collapse-icon{transform:rotate(90deg);}
+.coach-collapse-icon{transition:transform .15s ease;}
+@media(max-width:520px){
+  .coach-profile-hero{grid-template-columns:1fr 1fr !important;}
+  #coach-athlete-data .coach-profile-main strong{font-size:26px !important;}
+  #coach-athlete-data .coach-profile-tile strong{font-size:20px !important;}
+  #coach-tab-atleta > .coach-card:first-child{margin-top:0 !important;}
+}
+
 </style>
 
 <div id="coach-content" aria-hidden="true">
@@ -13923,7 +13989,7 @@ nav.tabbar button.active svg{
     let html = '';
     coachW.forEach(w=>{
       html += `<div class="coach-lib-card coach-collapsible" style="margin-bottom:10px;">
-        <details>
+        <details data-detail-key="coach:${esc(w.id)}">
           <summary>
             <div class="coach-lib-titleline">
               <div class="lib-title">${esc(w.name||'Treino')}</div>
@@ -13949,7 +14015,7 @@ nav.tabbar button.active svg{
     });
     athleteW.forEach(w=>{
       html += `<div class="coach-lib-card coach-collapsible" style="margin-bottom:10px;">
-        <details>
+        <details data-detail-key="athlete:${esc(w.id)}">
           <summary>
             <div class="coach-lib-titleline">
               <div class="lib-title">${esc(w.title)}</div>
@@ -13966,12 +14032,14 @@ nav.tabbar button.active svg{
             </div>
             <div class="lib-actions">
               <button class="coach-btn tiny" type="button" data-lib-import="${esc(w.id)}">Copiar para editar/prescrever</button>
+              <button class="coach-btn tiny danger" type="button" data-lib-del-athlete="${esc(w.id)}">Apagar</button>
             </div>
           </div>
         </details>
       </div>`;
     });
     el.innerHTML = html;
+    bindCoachDetailsMemory(el);
   }
   function toggleFavorite(id){
     const list = getCoachWorkouts();
@@ -14230,6 +14298,23 @@ nav.tabbar button.active svg{
     setPulso('coach-workouts', list);
     renderCoachWorkouts();
     toast('Treino apagado');
+  }
+  function deleteAthleteFavoriteWorkout(id){
+    const keys = ['favorite-workouts','workout-favorites','saved-workouts','manual-workouts'];
+    let deleted = false;
+    keys.forEach(key=>{
+      const arr = getPulso(key, []);
+      if(!Array.isArray(arr) || !arr.length) return;
+      const filtered = arr.filter(item=>{
+        const n = normalizeWorkout(item, key);
+        const match = n && n.id === id;
+        if(match) deleted = true;
+        return !match;
+      });
+      if(filtered.length !== arr.length) setPulso(key, filtered);
+    });
+    renderCoachWorkouts();
+    toast(deleted ? 'Treino apagado' : 'Treino não encontrado');
   }
   function importAthleteWorkout(id){
     const w = collectManualWorkouts().find(x=>x.id===id);
@@ -14717,24 +14802,67 @@ nav.tabbar button.active svg{
     if(src && !coachAthletePicked) src.textContent = 'Escolhe primeiro o atleta. Depois aparecem aqui os dados completos.';
   }
 
+  function coachCollapseStore(){ return getPulso('coach-card-collapse', {}) || {}; }
+  function setCoachCollapseStore(obj){ setPulso('coach-card-collapse', obj || {}); }
+  function coachCardKey(card){
+    if(card.dataset.collapseKey) return card.dataset.collapseKey;
+    const titleEl = card.querySelector('.coach-section-head h2, h2, h3');
+    const title = titleEl ? titleEl.textContent.trim() : 'carta';
+    const idx = Array.from(document.querySelectorAll('#coach-content .coach-card')).indexOf(card);
+    const key = (card.closest('.coach-view')?.id || 'coach') + ':' + title + ':' + idx;
+    card.dataset.collapseKey = key;
+    return key;
+  }
   function bindCoachCardCollapse(root){
     const area = root || document.getElementById('coach-content');
     if(!area) return;
+    const store = coachCollapseStore();
     area.querySelectorAll('.coach-card').forEach(card=>{
-      if(card.dataset.minBound === '1') return;
-      card.dataset.minBound = '1';
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'coach-card-min-btn';
-      btn.setAttribute('aria-label','Minimizar carta');
-      btn.textContent = '−';
-      btn.addEventListener('click', function(ev){
-        ev.preventDefault(); ev.stopPropagation();
-        card.classList.toggle('is-minimized');
-        btn.textContent = card.classList.contains('is-minimized') ? '+' : '−';
-        btn.setAttribute('aria-label', card.classList.contains('is-minimized') ? 'Aumentar carta' : 'Minimizar carta');
+      const key = coachCardKey(card);
+      const apply = ()=>{
+        const closed = !!coachCollapseStore()[key];
+        card.classList.toggle('is-minimized', closed);
+        const b = card.querySelector(':scope > .coach-card-min-btn');
+        if(b){
+          b.textContent = closed ? '+' : '−';
+          b.setAttribute('aria-label', closed ? 'Aumentar carta' : 'Minimizar carta');
+        }
+      };
+      if(card.dataset.minBound !== '1'){
+        card.dataset.minBound = '1';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'coach-card-min-btn';
+        btn.setAttribute('aria-label','Minimizar carta');
+        btn.textContent = '−';
+        btn.addEventListener('click', function(ev){
+          ev.preventDefault(); ev.stopPropagation();
+          const st = coachCollapseStore();
+          st[key] = !card.classList.contains('is-minimized');
+          setCoachCollapseStore(st);
+          apply();
+        });
+        card.appendChild(btn);
+      }
+      if(store[key]) card.classList.add('is-minimized');
+      apply();
+    });
+  }
+
+  function bindCoachDetailsMemory(root){
+    const area = root || document.getElementById('coach-workouts-list');
+    if(!area) return;
+    const store = getPulso('coach-details-open', {}) || {};
+    area.querySelectorAll('details[data-detail-key]').forEach(d=>{
+      const key = d.dataset.detailKey;
+      d.open = !!store[key];
+      if(d.dataset.detailsBound === '1') return;
+      d.dataset.detailsBound = '1';
+      d.addEventListener('toggle', ()=>{
+        const st = getPulso('coach-details-open', {}) || {};
+        st[key] = d.open;
+        setPulso('coach-details-open', st);
       });
-      card.appendChild(btn);
     });
   }
 
@@ -14846,6 +14974,7 @@ nav.tabbar button.active svg{
     const ff = document.getElementById('coach-fav-filter'); if(ff) ff.classList.add('active');
     renderCoachWorkouts();
     renderAthletes();
+    bindCoachCardCollapse(document.getElementById('coach-content'));
     fillCoachAthleteSelectors();
     renderCoachCalendar();
     fillDayPicker();
@@ -14911,10 +15040,12 @@ nav.tabbar button.active svg{
       const edit = e.target.closest('[data-lib-edit]');
       const del = e.target.closest('[data-lib-del]');
       const imp = e.target.closest('[data-lib-import]');
+      const delAthlete = e.target.closest('[data-lib-del-athlete]');
       if(sched) armWorkout(sched.getAttribute('data-lib-schedule'));
       else if(fav) toggleFavorite(fav.getAttribute('data-lib-fav'));
       else if(edit) openCoachEditor(edit.getAttribute('data-lib-edit'));
       else if(del){ if(window.confirm('Apagar este treino?')) deleteCoachWorkout(del.getAttribute('data-lib-del')); }
+      else if(delAthlete){ if(window.confirm('Apagar este treino dos favoritos do atleta?')) deleteAthleteFavoriteWorkout(delAthlete.getAttribute('data-lib-del-athlete')); }
       else if(imp) importAthleteWorkout(imp.getAttribute('data-lib-import'));
     });
     document.getElementById('coach-fav-filter')?.addEventListener('click', function(){
@@ -15027,7 +15158,7 @@ nav.tabbar button.active svg{
         document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
         const target = document.getElementById('coach-tab-'+tab);
         if(target) target.classList.add('active');
-        if(tab === 'treinos'){ renderCoachWorkouts(); renderAthletes(); renderCoachCalendar(); }
+        if(tab === 'treinos'){ renderCoachWorkouts(); renderAthletes(); renderCoachCalendar(); bindCoachCardCollapse(document.getElementById('coach-content')); }
         if(tab === 'atleta'){ fillDayPicker(); renderAthleteData(); }
       });
     });
