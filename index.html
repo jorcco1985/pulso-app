@@ -9254,9 +9254,9 @@ nav.tabbar button.active svg{
       if(refreshing) return;
       if(e.touches.length !== 1) return;
       const active = activeScroller();
-      // O Pull to Refresh fica só no Painel. Na Nutrição estava a bloquear o scroll
+      // O Pull to Refresh fica só na página Treinos. Na Nutrição continua sem bloquear o scroll
       // da lista de alimentos no iPhone.
-      if(!active || active.id !== 'tab-dashboard') return;
+      if(!active || active.id !== 'tab-treinos') return;
       if(e.target.closest('input, textarea, select, button, a, .subtabs, nav.tabbar, #food-suggest, .food-suggest-item')) return;
       if(!atTop()) return;
       startY = e.touches[0].clientY;
@@ -14303,28 +14303,35 @@ nav.tabbar button.active svg{
     if(!body) return;
     if(!coachSelectedDay){
       if(title) title.textContent = 'Dia selecionado';
-      body.innerHTML = '<div class="coach-empty">Toca num dia do calendário para ver ou remover treinos.</div>';
+      body.innerHTML = '<div class="coach-empty">Toca num dia do calendário para ver treinos e provas de todos os atletas.</div>';
       return;
     }
-    const a = currentAthlete();
-    const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
-    const race = raceFor(a.id);
-    if(title) title.textContent = fmtDayLabel(coachSelectedDay);
+    if(title) title.textContent = fmtDayLabel(coachSelectedDay) + ' — agenda dos atletas';
+    const athletes = getAthletes();
     let html = '';
-    if(race && race.date === coachSelectedDay){
-      html += `<div class="coach-day-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(race.name)}</div><div class="di-desc">Dia de prova${race.distanceKm?' · '+race.distanceKm+' km':''}.</div></div>`;
-    }
-    if(items.length){
-      html += items.map(w=>`<div class="coach-day-item">
-        <div class="di-title">${esc(w.name||'Treino')}</div>
-        ${w.desc ? `<div class="di-desc">${esc(w.desc)}</div>` : ''}
-        <div class="coach-pill-row">
-          ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
-          ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
-        </div>
-        <div class="lib-actions"><button class="coach-btn tiny danger" type="button" data-cal-del="${esc(w.id)}">Remover</button></div>
-      </div>`).join('');
-    }
+    athletes.forEach(a=>{
+      const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
+      const race = raceFor(a.id);
+      const hasRace = race && race.date === coachSelectedDay;
+      if(!items.length && !hasRace) return;
+      html += '<div class="coach-day-athlete-block">'+
+        '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong><span>'+(a.local?'Este telemóvel':'Cloud em breve')+'</span></div>';
+      if(hasRace){
+        html += `<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left; border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(a.name)} — ${esc(race.name)}</div><div class="di-desc">Prova${race.distanceKm?' · '+race.distanceKm+' km':''}. Toca para abrir os dados do atleta nesse dia.</div></button>`;
+      }
+      if(items.length){
+        html += items.map(w=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left;">
+          <div class="di-title">${esc(a.name)} — ${esc(w.name||'Treino')}</div>
+          ${w.desc ? `<div class="di-desc">${esc(w.desc)}</div>` : ''}
+          <div class="coach-pill-row">
+            ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
+            ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
+          </div>
+          <div class="lib-actions"><span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">Abrir treino efetivo</span>${a.id===selectedAthleteId?`<span class="coach-btn tiny danger" data-cal-del="${esc(w.id)}">Remover</span>`:''}</div>
+        </button>`).join('');
+      }
+      html += '</div>';
+    });
     if(!html) html = '<div class="coach-empty">Nada agendado neste dia.' + (armedWorkout ? ' Vai ser colocado aqui o treino selecionado.' : '') + '</div>';
     body.innerHTML = html;
   }
@@ -14587,6 +14594,21 @@ nav.tabbar button.active svg{
     const t = rec.totals;
     if(src) src.textContent = 'Dados de ' + profileName() + ' — ' + fmtDayLabel(day) + '.';
 
+    const prof = getPulso('profile', {}) || {};
+    const genderLabel = prof.gender === 'M' ? 'Masculino' : (prof.gender === 'F' ? 'Feminino' : '—');
+    const levelTxt = prof.activityLevel!=null ? (String(prof.activityLevel) + '/10') : '—';
+    const lastWeight = (getPulso('weight-entries', [])||[]).slice().reverse().find(x=>x && x.kg!=null);
+    const bmi = (prof.heightCm && lastWeight && lastWeight.kg) ? (Number(lastWeight.kg) / Math.pow(Number(prof.heightCm)/100,2)) : null;
+    const profileCard = '<div class="coach-card"><h3>Perfil do atleta</h3><div class="coach-profile-hero">'+
+      '<div class="coach-profile-main"><strong>'+esc(profileName())+'</strong><span>'+esc(genderLabel)+' · '+(prof.age?esc(prof.age)+' anos':'idade —')+'</span></div>'+
+      '<div class="coach-profile-tile"><strong>'+esc(genderLabel)+'</strong><span>Género</span></div>'+
+      '<div class="coach-profile-tile"><strong>'+(prof.age?esc(prof.age)+' anos':'—')+'</strong><span>Idade</span></div>'+
+      '<div class="coach-profile-tile"><strong>'+(prof.heightCm?esc(prof.heightCm)+' cm':'—')+'</strong><span>Altura</span></div>'+
+      '<div class="coach-profile-tile"><strong>'+levelTxt+'</strong><span>Atividade</span></div>'+
+      '<div class="coach-profile-tile"><strong>'+(lastWeight&&lastWeight.kg?Number(lastWeight.kg).toFixed(1).replace('.', ',')+' kg':'—')+'</strong><span>Último peso</span></div>'+
+      '<div class="coach-profile-tile"><strong>'+(bmi?bmi.toFixed(1).replace('.', ','):'—')+'</strong><span>IMC</span></div>'+
+      '</div></div>';
+
     const health = '<div class="coach-card"><h3>Saúde</h3><div class="coach-metrics-grid">'+
       metricCard('Sono', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
       metricCard('Peso', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
@@ -14626,7 +14648,7 @@ nav.tabbar button.active svg{
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = health + drinks + nutri + wkSummary + recentBox;
+    box.innerHTML = profileCard + health + drinks + nutri + wkSummary + recentBox;
   }
 
   function fillDayPicker(){
@@ -14754,10 +14776,31 @@ nav.tabbar button.active svg{
       if(e.target.closest('#coach-cal-cancel')) disarmWorkout();
     });
     document.getElementById('coach-cal-day-body')?.addEventListener('click', (e)=>{
-      const del = e.target.closest('[data-cal-del]'); if(!del) return;
-      const a = currentAthlete();
-      unscheduleWorkout(a.id, coachSelectedDay, del.getAttribute('data-cal-del'));
-      renderCoachCalendar();
+      const del = e.target.closest('[data-cal-del]');
+      if(del){
+        e.preventDefault(); e.stopPropagation();
+        const a = currentAthlete();
+        unscheduleWorkout(a.id, coachSelectedDay, del.getAttribute('data-cal-del'));
+        renderCoachCalendar();
+        return;
+      }
+      const open = e.target.closest('[data-coach-day-open]');
+      if(open){
+        selectedAthleteId = open.getAttribute('data-coach-day-open') || 'local';
+        const d = open.getAttribute('data-coach-open-day') || coachSelectedDay || todayStr();
+        document.querySelectorAll('[data-coach-tab]').forEach(b=>b.classList.toggle('active', b.dataset.coachTab === 'atleta'));
+        document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
+        document.getElementById('coach-tab-atleta')?.classList.add('active');
+        renderAthletes();
+        fillDayPicker();
+        const sel = document.getElementById('coach-athlete-day');
+        if(sel){
+          if(!Array.from(sel.options).some(o=>o.value===d)) sel.insertAdjacentHTML('afterbegin', `<option value="${esc(d)}">${esc(fmtDayLabel(d))}</option>`);
+          sel.value = d;
+        }
+        renderAthleteData();
+        try{ document.getElementById('coach-tab-atleta')?.scrollIntoView({behavior:'smooth', block:'start'}); }catch(err){}
+      }
     });
 
     // Dados do atleta
