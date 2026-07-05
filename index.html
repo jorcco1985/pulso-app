@@ -5881,6 +5881,71 @@ nav.tabbar button.active svg{
   #coach-content .coach-card.is-minimized .coach-section-head,
   #coach-content .coach-card.is-minimized h3{width:100%;}
 </style>
+
+<style id="pulso-calendar-scroll-race-fix">
+  /* Calendário do atleta: Provas e Treinos prescritos também rolam como os treinos efetuados */
+  #sub-calendario,
+  #sub-calendario.active{
+    min-height:0 !important;
+    height:auto !important;
+    overflow:visible !important;
+  }
+  #tab-treinos:has(#sub-calendario.active){
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  #athlete-cal-day-card{
+    flex:0 0 auto !important;
+    min-height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+  #athlete-cal-day-body{
+    flex:0 0 auto !important;
+    min-height:auto !important;
+    max-height:none !important;
+    height:auto !important;
+    overflow:visible !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  #race-summary .race-list-item:first-of-type{border-top:0 !important;}
+  #race-summary .race-list-item.active strong{color:var(--teal);}
+</style>
+
+<style>
+/* Detalhe de treino Strava: gráficos cardio/velocidade */
+.strava-detail-modal{
+  position:fixed; inset:0; z-index:12000; display:none;
+  background:rgba(3,7,14,.82); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  padding:calc(14px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));
+}
+.strava-detail-modal.active{display:flex;}
+.strava-detail-panel{
+  width:min(760px,100%); max-height:100%; margin:auto; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  background:linear-gradient(180deg, rgba(24,34,56,.98), rgba(10,16,28,.99));
+  border:1px solid rgba(255,255,255,.12); border-radius:30px; padding:18px; box-shadow:0 24px 70px rgba(0,0,0,.55);
+}
+.strava-detail-head{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:12px;}
+.strava-detail-head h2{margin:0; font-size:22px; line-height:1.15;}
+.strava-detail-close{
+  width:42px; height:42px; flex:0 0 auto; border-radius:999px; border:1px solid rgba(255,255,255,.13);
+  background:rgba(7,11,20,.55); color:var(--text); font-size:24px; font-weight:900; cursor:pointer;
+}
+.strava-detail-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0;}
+.strava-detail-kpi{background:rgba(7,11,20,.48); border:1px solid rgba(255,255,255,.075); border-radius:18px; padding:11px; text-align:center;}
+.strava-detail-kpi strong{display:block; font-size:17px; color:#fff;}
+.strava-detail-kpi span{display:block; margin-top:3px; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.35px;}
+.strava-mini-chart{height:190px; min-height:170px; border-radius:20px; background:rgba(7,11,20,.35); border:1px solid rgba(255,255,255,.06); padding:8px; margin-top:8px;}
+.strava-click-row{cursor:pointer;}
+.strava-click-row:active{transform:scale(.995);}
+.athlete-last30-item[data-strava-id]{cursor:pointer;}
+@media(max-width:520px){
+  .strava-detail-panel{border-radius:26px; padding:15px;}
+  .strava-detail-head h2{font-size:19px;}
+  .strava-detail-grid{grid-template-columns:1fr 1fr;}
+  .strava-mini-chart{height:176px;}
+}
+</style>
 </head>
 <body>
 
@@ -6727,6 +6792,28 @@ nav.tabbar button.active svg{
 </nav>
 
 </div><!-- /app-content -->
+
+
+<div class="strava-detail-modal" id="strava-detail-modal" aria-hidden="true">
+  <div class="strava-detail-panel">
+    <div class="strava-detail-head">
+      <div>
+        <h2 id="strava-detail-title">Treino</h2>
+        <p class="help" id="strava-detail-sub" style="margin:6px 0 0;">A carregar detalhe...</p>
+      </div>
+      <button class="strava-detail-close" id="strava-detail-close" type="button" aria-label="Fechar">×</button>
+    </div>
+    <div class="strava-detail-grid" id="strava-detail-kpis"></div>
+    <div class="card" style="margin-top:12px;">
+      <h3>Cardio</h3>
+      <div class="strava-mini-chart" id="strava-hr-chart"></div>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <h3 id="strava-speed-title">Velocidade / ritmo</h3>
+      <div class="strava-mini-chart" id="strava-speed-chart"></div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -9493,6 +9580,119 @@ nav.tabbar button.active svg{
     return min + ':' + String(sec).padStart(2,'0') + '/km';
   }
 
+
+  function fmtPaceFromKmh(kmh){ return fmtPace(kmh); }
+  function fmtTimeAxis(sec){
+    sec = Math.max(0, Number(sec)||0);
+    const m = Math.floor(sec/60), s = Math.round(sec%60);
+    return m + ':' + String(s).padStart(2,'0');
+  }
+  function simplifyStreamRows(rows, maxPoints){
+    rows = (rows || []).filter(r=>r && r.v!=null && !isNaN(Number(r.v))).map(r=>({t:Number(r.t)||0, v:Number(r.v)}));
+    if(rows.length <= (maxPoints||90)) return rows;
+    const step = Math.ceil(rows.length/(maxPoints||90));
+    const out=[];
+    for(let i=0;i<rows.length;i+=step){
+      const chunk = rows.slice(i, i+step);
+      const avg = chunk.reduce((s,r)=>s+r.v,0)/chunk.length;
+      out.push({t:chunk[Math.floor(chunk.length/2)].t, v:avg});
+    }
+    return out;
+  }
+  function renderStreamChart(containerEl, rows, color, formatter){
+    if(!containerEl) return;
+    containerEl.innerHTML = '';
+    rows = simplifyStreamRows(rows, 110);
+    if(!rows.length){ containerEl.innerHTML = '<div class="empty">Sem dados para este gráfico.</div>'; return; }
+    const labels = rows.map(r=>fmtTimeAxis(r.t));
+    renderLineChart(containerEl, labels, rows.map(r=>r.v), color || 'var(--teal)');
+    const footer = document.createElement('div');
+    footer.className = 'help';
+    footer.style.cssText = 'margin-top:6px; display:flex; justify-content:space-between; gap:8px; font-size:11px;';
+    const vals = rows.map(r=>r.v);
+    const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
+    const max = Math.max(...vals);
+    footer.innerHTML = '<span>Média: <strong>' + (formatter ? formatter(avg) : Math.round(avg)) + '</strong></span><span>Máx: <strong>' + (formatter ? formatter(max) : Math.round(max)) + '</strong></span>';
+    containerEl.appendChild(footer);
+  }
+  async function getStravaStreams(activityId){
+    activityId = String(activityId || '');
+    if(!activityId) return null;
+    const cacheKey = 'strava-streams-' + activityId;
+    const cached = await sGet(cacheKey, null);
+    if(cached && cached.savedAt) return cached;
+    const ok = await ensureStravaToken();
+    if(!ok) throw new Error('Strava sem token válido');
+    const url = 'https://www.strava.com/api/v3/activities/' + encodeURIComponent(activityId) + '/streams?keys=time,distance,heartrate,velocity_smooth&key_by_type=true';
+    const res = await fetchStravaApi(url);
+    if(!res || !res.ok){
+      const txt = res ? await res.text().catch(()=> '') : '';
+      throw new Error('Sem streams Strava (' + (res ? res.status : 'sem resposta') + ') ' + txt.slice(0,80));
+    }
+    const data = await res.json();
+    const pack = {
+      time: data.time && Array.isArray(data.time.data) ? data.time.data : [],
+      distance: data.distance && Array.isArray(data.distance.data) ? data.distance.data : [],
+      heartrate: data.heartrate && Array.isArray(data.heartrate.data) ? data.heartrate.data : [],
+      velocity: data.velocity_smooth && Array.isArray(data.velocity_smooth.data) ? data.velocity_smooth.data : [],
+      savedAt: new Date().toISOString()
+    };
+    await sSet(cacheKey, pack);
+    return pack;
+  }
+  function fallbackActivityRows(a){
+    const mins = Math.max(10, Math.round((Number(a.movingSec)||0)/60)||30);
+    const points = Math.min(60, Math.max(12, mins));
+    const rowsHr=[], rowsSpeed=[];
+    const avgHr = Number(a.avgHr)||null;
+    const avgSpeed = Number(a.avgSpeedKmh)||null;
+    for(let i=0;i<points;i++){
+      const t = (Number(a.movingSec)||mins*60) * (i/(points-1));
+      if(avgHr) rowsHr.push({t, v: avgHr + Math.sin(i/3)*4 + Math.sin(i/7)*2});
+      if(avgSpeed) rowsSpeed.push({t, v: Math.max(0, avgSpeed + Math.sin(i/4)*0.6 + Math.sin(i/9)*0.35)});
+    }
+    return {hr:rowsHr, speed:rowsSpeed};
+  }
+  function showStravaDetailShell(a){
+    const modal = document.getElementById('strava-detail-modal');
+    if(!modal) return;
+    modal.classList.add('active'); modal.setAttribute('aria-hidden','false');
+    document.getElementById('strava-detail-title').textContent = a.name || 'Treino Strava';
+    document.getElementById('strava-detail-sub').textContent = fmtDateShort(a.date) + ' · ' + catLabel(sportCategory(a.type || a.sportType));
+    const burned = activityBurnedKcal(a);
+    document.getElementById('strava-detail-kpis').innerHTML =
+      '<div class="strava-detail-kpi"><strong>' + ((a.distanceKm||0) ? Number(a.distanceKm).toFixed(1)+' km' : '—') + '</strong><span>Distância</span></div>'+
+      '<div class="strava-detail-kpi"><strong>' + (a.movingSec ? Math.round(a.movingSec/60)+' min' : '—') + '</strong><span>Duração</span></div>'+
+      '<div class="strava-detail-kpi"><strong>' + (a.avgHr ? Math.round(a.avgHr)+' bpm' : '—') + '</strong><span>FC média</span></div>'+
+      '<div class="strava-detail-kpi"><strong>' + (burned ? burned+' kcal' : '—') + '</strong><span>Kcal</span></div>';
+    const hr = document.getElementById('strava-hr-chart');
+    const sp = document.getElementById('strava-speed-chart');
+    if(hr) hr.innerHTML = '<div class="empty">A carregar gráfico cardio...</div>';
+    if(sp) sp.innerHTML = '<div class="empty">A carregar gráfico velocidade...</div>';
+  }
+  async function openStravaActivityDetail(activityId){
+    const a = (stravaActivities || []).find(x=>String(x.id)===String(activityId));
+    if(!a){ toast('Treino não encontrado'); return; }
+    showStravaDetailShell(a);
+    try{
+      let streams = null;
+      try{ streams = await getStravaStreams(a.id); }
+      catch(err){ console.warn(err); toast('Sem streams do Strava; mostro gráfico estimado com os dados médios.'); }
+      const times = streams && streams.time && streams.time.length ? streams.time : [];
+      const hrRows = streams && streams.heartrate && streams.heartrate.length ? streams.heartrate.map((v,i)=>({t:times[i] || i, v:Number(v)})) : fallbackActivityRows(a).hr;
+      const speedRows = streams && streams.velocity && streams.velocity.length ? streams.velocity.map((v,i)=>({t:times[i] || i, v:Number(v)*3.6})) : fallbackActivityRows(a).speed;
+      renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm');
+      const isRun = sportCategory(a.type || a.sportType)==='run';
+      const st = document.getElementById('strava-speed-title');
+      if(st) st.textContent = isRun ? 'Ritmo' : 'Velocidade';
+      renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--blue)', v=> isRun ? fmtPaceFromKmh(v) : v.toFixed(1)+' km/h');
+    }catch(err){
+      console.error(err);
+      toast('Não foi possível abrir os gráficos deste treino');
+    }
+  }
+  window.PulsoOpenStravaActivityDetail = openStravaActivityDetail;
+
   function renderWorkouts(){
     const list = document.getElementById('workouts-list');
     list.innerHTML = '';
@@ -9504,6 +9704,8 @@ nav.tabbar button.active svg{
     stravaActivities.slice(0,25).forEach(a=>{
       const cat = sportCategory(a.type);
       const tr = document.createElement('tr');
+      tr.className = 'strava-click-row';
+      tr.setAttribute('data-strava-id', String(a.id || ''));
       let detail = '—';
       if(cat==='bike') detail = a.avgWatts ? Math.round(a.avgWatts)+'W méd.' : '—';
       else if(cat==='run') detail = fmtPace(a.avgSpeedKmh);
@@ -9511,6 +9713,7 @@ nav.tabbar button.active svg{
       const kcalLabel = (a.calories != null && !isNaN(Number(a.calories)) && Number(a.calories) > 0) ? burned + ' kcal' : '~' + burned + ' kcal';
       tr.innerHTML = `<td>${fmtDateShort(a.date)}</td><td>${a.name} <span class="badge ${cat==='bike'?'bike':cat==='run'?'run':cat==='forca'?'forca':''}">${catLabel(cat)}</span></td>
         <td>${a.distanceKm ? a.distanceKm.toFixed(1)+'km' : '—'}</td><td>${Math.round(a.movingSec/60)}min</td><td>${kcalLabel}</td><td>${detail}</td>`;
+      tr.addEventListener('click', ()=> openStravaActivityDetail(a.id));
       tbody.appendChild(tr);
     });
     list.appendChild(table);
@@ -9665,10 +9868,20 @@ nav.tabbar button.active svg{
     const elevationM = parseFloat(document.getElementById('race-elev').value) || null;
     const peakHoursManual = parseFloat(document.getElementById('race-peak-hours')?.value) || null;
     if(!name || !date){ toast('Preenche pelo menos o nome e a data da prova'); return; }
-    raceGoal = { name, sport, date, distanceKm, elevationM, peakHoursManual, photoDataUrl: null };
-    await sSet('race-goal', raceGoal);
+    const newRace = { id:'race-'+Date.now().toString(36), name, sport, date, distanceKm, elevationM, peakHoursManual, photoDataUrl: null, createdAt:new Date().toISOString() };
+    let raceGoals = await sGet('race-goals', []);
+    if(!Array.isArray(raceGoals)) raceGoals = [];
+    // Mantém as provas acumuladas: se existir a mesma prova no mesmo dia, atualiza; senão adiciona.
+    const same = raceGoals.findIndex(r=>String(r.date).slice(0,10)===date && String(r.name||'').trim().toLowerCase()===name.toLowerCase());
+    if(same >= 0) raceGoals[same] = Object.assign({}, raceGoals[same], newRace, {id:raceGoals[same].id || newRace.id});
+    else raceGoals.push(newRace);
+    raceGoals.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.name||'').localeCompare(String(b.name||'')));
+    raceGoal = raceGoals.find(r=>String(r.date||'') >= todayStr()) || raceGoals[raceGoals.length-1] || newRace;
+    await sSet('race-goals', raceGoals);
+    await sSet('race-goal', raceGoal); // mantém compatibilidade com o resto da app
     renderRaceAndPlan(); renderDashboard();
-    toast('Objetivo guardado');
+    try{ if(window.PulsoRoleMode && window.PulsoRoleMode.renderCoachWorkouts) setTimeout(()=>document.dispatchEvent(new Event('pulso:races-updated')),0); }catch(err){}
+    toast('Prova guardada');
   });
 
   function raceCategory(sport){ return sport.startsWith('bike') ? 'bike' : 'run'; }
@@ -9676,17 +9889,34 @@ nav.tabbar button.active svg{
     return {'run-road':'Corrida — Estrada','run-trail':'Corrida — Trail','bike-road':'Ciclismo — Estrada','bike-trail':'Ciclismo — BTT'}[sport] || sport;
   }
 
+  function allRaceGoals(){
+    let arr = [];
+    try{ arr = JSON.parse(localStorage.getItem('pulso:race-goals') || '[]'); }catch(e){ arr = []; }
+    if(!Array.isArray(arr)) arr = [];
+    if(raceGoal && raceGoal.date && !arr.some(r=>String(r.date).slice(0,10)===String(raceGoal.date).slice(0,10) && String(r.name||'')===String(raceGoal.name||''))){
+      arr.push(raceGoal);
+    }
+    return arr.filter(r=>r && r.date).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.name||'').localeCompare(String(b.name||'')));
+  }
+
   function renderRaceAndPlan(){
     const summaryEl = document.getElementById('race-summary');
     const planSection = document.getElementById('plan-section');
-    if(!raceGoal){ summaryEl.style.display='none'; planSection.style.display='none'; return; }
+    const races = allRaceGoals();
+    if(!races.length){ summaryEl.style.display='none'; planSection.style.display='none'; return; }
+    const todayKey = todayStr();
+    raceGoal = races.find(r=>String(r.date||'') >= todayKey) || races[races.length-1];
     const today = new Date(); const raceDate = new Date(raceGoal.date);
     const daysLeft = Math.ceil((raceDate-today)/(24*3600*1000));
-    const weeksLeft = Math.max(1, Math.ceil(daysLeft/7));
     summaryEl.style.display = 'block';
-    summaryEl.innerHTML = `<strong>${raceGoal.name}</strong> · ${raceSportLabel(raceGoal.sport)}<br>
-      <span class="help">${fmtDate(raceGoal.date)} · ${raceGoal.distanceKm?raceGoal.distanceKm+'km':'—'}${raceGoal.elevationM?' · '+raceGoal.elevationM+' D+':''}${raceGoal.peakHoursManual?' · pico máx. '+raceGoal.peakHoursManual+'h/sem':''} · faltam ${daysLeft>0?daysLeft+' dias':'já passou'}</span>
-      `;
+    summaryEl.innerHTML = '<h3 style="margin:0 0 10px;">Provas planeadas</h3>' + races.map(r=>{
+      const rd = new Date(r.date); const dl = Math.ceil((rd-today)/(24*3600*1000));
+      const active = r === raceGoal;
+      return `<div class="race-list-item ${active?'active':''}" style="padding:10px 0; border-top:1px solid rgba(255,255,255,.08);">
+        <strong>${esc(r.name||'Prova')}</strong> · ${raceSportLabel(r.sport||'run-road')}<br>
+        <span class="help">${fmtDate(r.date)} · ${r.distanceKm?r.distanceKm+'km':'—'}${r.elevationM?' · '+r.elevationM+' D+':''}${r.peakHoursManual?' · pico máx. '+r.peakHoursManual+'h/sem':''} · ${dl>0?'faltam '+dl+' dias':(dl===0?'é hoje':'já passou')}</span>
+      </div>`;
+    }).join('');
     planSection.style.display = daysLeft > 0 ? 'flex' : 'none';
     const preview = document.getElementById('race-photo-preview');
     if(preview && raceGoal.photoDataUrl){
@@ -14545,18 +14775,28 @@ nav.tabbar button.active svg{
   }
 
   function coachCalendarRaces(){
-    return coachCalendarAthletes().map(a=>{ const r = raceFor(a.id); return r ? Object.assign({}, r, {athleteId:a.id, athleteName:a.name}) : null; }).filter(Boolean);
+    return coachCalendarAthletes().flatMap(a=> racesFor(a.id).map(r=>Object.assign({}, r, {athleteId:a.id, athleteName:a.name})) );
   }
 
   /* ---- Modelo do calendário: pulso:coach-calendar = { athleteId: { 'YYYY-MM-DD': [ {..} ] } } ---- */
   function getCalendarAll(){ const o = getPulso('coach-calendar', {}); return (o && typeof o==='object') ? o : {}; }
   function getCalendarFor(athleteId){ const c = getCalendarAll()[athleteId]; return (c && typeof c==='object') ? c : {}; }
+  function racesFor(athleteId){
+    // Por agora só o atleta local tem provas (guardadas na app). Os restantes: quando ligarmos a cloud.
+    if(athleteId !== 'local') return [];
+    let arr = getPulso('race-goals', []);
+    if(!Array.isArray(arr)) arr = [];
+    const single = getPulso('race-goal', null);
+    if(single && single.date && !arr.some(r=>String(r.date).slice(0,10)===String(single.date).slice(0,10) && String(r.name||'')===String(single.name||''))){
+      arr.push(single);
+    }
+    return arr.filter(r=>r && r.date).map(r=>({ id:r.id||('race-'+String(r.date).slice(0,10)), name:r.name||'Prova', date:String(r.date).slice(0,10), sport:r.sport||'', distanceKm:r.distanceKm||null, elevationM:r.elevationM||null }))
+      .sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.name).localeCompare(String(b.name)));
+  }
   function raceFor(athleteId){
-    // Por agora só o atleta local tem prova (guardada na app). Os restantes: quando ligarmos a cloud.
-    if(athleteId !== 'local') return null;
-    const r = getPulso('race-goal', null);
-    if(r && r.date) return { name:r.name||'Prova', date:String(r.date).slice(0,10), sport:r.sport||'', distanceKm:r.distanceKm||null };
-    return null;
+    const today = todayStr();
+    const arr = racesFor(athleteId);
+    return arr.find(r=>String(r.date) >= today) || arr[arr.length-1] || null;
   }
 
   function scheduleWorkout(athleteId, day, w){
@@ -14748,7 +14988,7 @@ nav.tabbar button.active svg{
     if(a.elevationM) pills.push('<span class="coach-pill">'+Math.round(a.elevationM)+' m D+</span>');
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
-    return '<div class="athlete-last30-item"><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
+    return '<div class="athlete-last30-item" '+(a.source === 'strava' && a.id ? 'data-strava-id="'+esc(String(a.id))+'"' : '')+'><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
   }
   function renderLast30Workouts(days){
     const list = document.getElementById('athlete-last30-list');
@@ -14776,7 +15016,7 @@ nav.tabbar button.active svg{
     const el = document.getElementById('athlete-calendar');
     if(!el) return;
     const data = mergeCalendarWithCompleted(getCalendarFor('local'), completedByDay(30));
-    const race = raceFor('local');
+    const race = racesFor('local');
     el.innerHTML = buildCalendarHTML(athleteCalRef, data, race, athleteSelectedDay);
     renderLast30Workouts();
     renderAthleteCalDay();
@@ -14795,11 +15035,11 @@ nav.tabbar button.active svg{
     if(dayCard) dayCard.classList.remove('is-empty');
     const items = (getCalendarFor('local')[athleteSelectedDay] || []);
     const completed = recentCompletedWorkouts(30).filter(a=>activityDay(a) === athleteSelectedDay);
-    const race = raceFor('local');
+    const races = racesFor('local').filter(r=>r.date === athleteSelectedDay);
     if(title) title.textContent = fmtDayLabel(athleteSelectedDay);
     let html = '';
-    if(race && race.date === athleteSelectedDay){
-      html += `<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="cp-title" style="color:#F2B84B;">🏁 ${esc(race.name)}</div><div class="cp-desc">Dia de prova${race.distanceKm?' · '+race.distanceKm+' km':''}.</div></div>`;
+    if(races.length){
+      html += races.map(race=>`<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="cp-title" style="color:#F2B84B;">🏁 ${esc(race.name)}</div><div class="cp-desc">Dia de prova${race.distanceKm?' · '+race.distanceKm+' km':''}${race.elevationM?' · '+race.elevationM+' D+':''}.</div></div>`).join('');
     }
     if(items.length){
       html += items.map(w=>`<div class="coach-plan-item">
@@ -15388,5 +15628,21 @@ nav.tabbar button.active svg{
 </script>
 
 
+
+<script>
+(function(){
+  function closeStravaDetail(){
+    const m=document.getElementById('strava-detail-modal');
+    if(m){m.classList.remove('active'); m.setAttribute('aria-hidden','true');}
+  }
+  document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'strava-detail-close') closeStravaDetail();
+    if(e.target && e.target.id === 'strava-detail-modal') closeStravaDetail();
+    const item=e.target.closest && e.target.closest('.athlete-last30-item[data-strava-id]');
+    if(item && window.PulsoOpenStravaActivityDetail){ window.PulsoOpenStravaActivityDetail(item.getAttribute('data-strava-id')); }
+  });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeStravaDetail(); });
+})();
+</script>
 </body>
 </html>
