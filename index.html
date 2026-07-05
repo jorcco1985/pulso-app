@@ -5886,11 +5886,19 @@ nav.tabbar button.active svg{
   /* Calendário do atleta: Provas e Treinos prescritos também rolam como os treinos efetuados */
   #sub-calendario,
   #sub-calendario.active{
-    min-height:0 !important;
+    width:100% !important;
+    min-height:auto !important;
     height:auto !important;
+    max-height:none !important;
     overflow:visible !important;
+    flex:0 0 auto !important;
+    padding-bottom:calc(150px + env(safe-area-inset-bottom)) !important;
   }
   #tab-treinos:has(#sub-calendario.active){
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+  }
+  #tab-treinos.active:has(#sub-calendario.active){
     overflow-y:auto !important;
     -webkit-overflow-scrolling:touch !important;
   }
@@ -9599,11 +9607,11 @@ nav.tabbar button.active svg{
     }
     return out;
   }
-  function renderStreamChart(containerEl, rows, color, formatter){
+  function renderStreamChart(containerEl, rows, color, formatter, emptyReason, estimatedTag){
     if(!containerEl) return;
     containerEl.innerHTML = '';
     rows = simplifyStreamRows(rows, 110);
-    if(!rows.length){ containerEl.innerHTML = '<div class="empty">Sem dados para este gráfico.</div>'; return; }
+    if(!rows.length){ containerEl.innerHTML = '<div class="empty">' + (emptyReason || 'Sem dados para este gráfico.') + '</div>'; return; }
     const labels = rows.map(r=>fmtTimeAxis(r.t));
     renderLineChart(containerEl, labels, rows.map(r=>r.v), color || 'var(--teal)');
     const footer = document.createElement('div');
@@ -9612,7 +9620,7 @@ nav.tabbar button.active svg{
     const vals = rows.map(r=>r.v);
     const avg = vals.reduce((s,v)=>s+v,0)/vals.length;
     const max = Math.max(...vals);
-    footer.innerHTML = '<span>Média: <strong>' + (formatter ? formatter(avg) : Math.round(avg)) + '</strong></span><span>Máx: <strong>' + (formatter ? formatter(max) : Math.round(max)) + '</strong></span>';
+    footer.innerHTML = '<span>Média: <strong>' + (formatter ? formatter(avg) : Math.round(avg)) + '</strong>' + (estimatedTag ? ' <em style="opacity:.7; font-style:normal;">(' + estimatedTag + ')</em>' : '') + '</span><span>Máx: <strong>' + (formatter ? formatter(max) : Math.round(max)) + '</strong></span>';
     containerEl.appendChild(footer);
   }
   async function getStravaStreams(activityId){
@@ -9674,18 +9682,29 @@ nav.tabbar button.active svg{
     const a = (stravaActivities || []).find(x=>String(x.id)===String(activityId));
     if(!a){ toast('Treino não encontrado'); return; }
     showStravaDetailShell(a);
+    const isRun = sportCategory(a.type || a.sportType)==='run';
+    const st = document.getElementById('strava-speed-title');
+    if(st) st.textContent = isRun ? 'Ritmo' : 'Velocidade';
     try{
-      let streams = null;
+      let streams = null, streamErr = null;
       try{ streams = await getStravaStreams(a.id); }
-      catch(err){ console.warn(err); toast('Sem streams do Strava; mostro gráfico estimado com os dados médios.'); }
+      catch(err){ streamErr = err; console.warn('[Strava streams]', err && err.message ? err.message : err); }
+
       const times = streams && streams.time && streams.time.length ? streams.time : [];
-      const hrRows = streams && streams.heartrate && streams.heartrate.length ? streams.heartrate.map((v,i)=>({t:times[i] || i, v:Number(v)})) : fallbackActivityRows(a).hr;
-      const speedRows = streams && streams.velocity && streams.velocity.length ? streams.velocity.map((v,i)=>({t:times[i] || i, v:Number(v)*3.6})) : fallbackActivityRows(a).speed;
-      renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm');
-      const isRun = sportCategory(a.type || a.sportType)==='run';
-      const st = document.getElementById('strava-speed-title');
-      if(st) st.textContent = isRun ? 'Ritmo' : 'Velocidade';
-      renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--blue)', v=> isRun ? fmtPaceFromKmh(v) : v.toFixed(1)+' km/h');
+      const hasHrStream = !!(streams && streams.heartrate && streams.heartrate.length);
+      const hasSpeedStream = !!(streams && streams.velocity && streams.velocity.length);
+      const fb = fallbackActivityRows(a);
+      const hrRows = hasHrStream ? streams.heartrate.map((v,i)=>({t:times[i] || i, v:Number(v)})) : fb.hr;
+      const speedRows = hasSpeedStream ? streams.velocity.map((v,i)=>({t:times[i] || i, v:Number(v)*3.6})) : fb.speed;
+
+      const failMsg = 'Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.';
+      const hrEmpty = streamErr ? failMsg : 'Esta atividade não tem frequência cardíaca registada no Strava.';
+      const spEmpty = streamErr ? failMsg : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.');
+
+      renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null);
+      renderStreamChart(document.getElementById('strava-speed-chart'), speedRows, 'var(--blue)', v=> isRun ? fmtPaceFromKmh(v) : v.toFixed(1)+' km/h', spEmpty, (!hasSpeedStream && speedRows.length) ? 'estimado' : null);
+
+      if(streamErr) toast('Sem dados detalhados do Strava; mostro estimativa pelas médias quando existem.');
     }catch(err){
       console.error(err);
       toast('Não foi possível abrir os gráficos deste treino');
