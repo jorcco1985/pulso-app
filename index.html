@@ -13489,6 +13489,17 @@ nav.tabbar button.active svg{
     #coach-athlete-data .coach-activity .act-name{font-size:16px;}
   }
 
+  /* Treinador: todas as cartas podem minimizar */
+  #coach-content .coach-card{position:relative;}
+  .coach-card-min-btn{position:absolute; top:14px; right:14px; width:34px; height:34px; min-height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(9,14,25,.62); color:var(--text-muted); font-size:20px; font-weight:900; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:8;}
+  .coach-card-min-btn:hover{color:var(--teal); border-color:rgba(53,217,166,.42);}
+  .coach-card.is-minimized{padding-bottom:18px !important;}
+  .coach-card.is-minimized > *:not(.coach-section-head):not(.coach-card-min-btn):not(h3){display:none !important;}
+  .coach-card.is-minimized .coach-section-head{margin-bottom:0; padding-right:40px;}
+  .coach-card.is-minimized h3{margin-bottom:0 !important; padding-right:42px;}
+  #coach-athlete-data.is-waiting{display:none;}
+
+
 </style>
 
 <div id="coach-content" aria-hidden="true">
@@ -13667,9 +13678,9 @@ nav.tabbar button.active svg{
           <div class="coach-card">
             <div class="coach-section-head">
               <h2>Biblioteca de treinos</h2>
-              <button class="coach-btn tiny ghost" type="button" id="coach-fav-filter">★ Só favoritos</button>
+              <button class="coach-btn tiny ghost" type="button" id="coach-fav-filter">★ Favoritos</button>
             </div>
-            <div class="coach-note" style="margin-bottom:10px;">Abre um treino pelo nome para editar ou prescrever no calendário do atleta.</div>
+            <div class="coach-note" style="margin-bottom:10px;">Aqui aparecem só os treinos favoritos. Abre pelo nome para editar ou prescrever no calendário do atleta.</div>
             <div id="coach-workouts-list"></div>
           </div>
         </div>
@@ -13712,7 +13723,7 @@ nav.tabbar button.active svg{
     <section id="coach-tab-atleta" class="coach-view">
       <div class="coach-card">
         <div class="coach-section-head">
-          <h2>Dados do atleta</h2>
+          <h2>Escolher atleta</h2>
         </div>
         <div class="coach-select-row" style="grid-template-columns:1fr 1fr;">
           <div>
@@ -13724,7 +13735,7 @@ nav.tabbar button.active svg{
             <select id="coach-athlete-day"></select>
           </div>
         </div>
-        <div class="coach-note" id="coach-athlete-source">Informação exportada da área do atleta deste dispositivo.</div>
+        <div class="coach-note" id="coach-athlete-source">Escolhe primeiro o atleta. Depois aparecem os dados completos.</div>
       </div>
       <div id="coach-athlete-data"></div>
     </section>
@@ -13879,8 +13890,9 @@ nav.tabbar button.active svg{
     const out = [];
     const pushOne = (item, source)=>{ const w = normalizeWorkout(item, source); if(w) out.push(w); };
     const pushArr = (arr, source)=>{ if(Array.isArray(arr)) arr.forEach(x=>pushOne(x, source)); };
+    // No modo treinador a biblioteca mostra apenas favoritos.
+    // Treinos já prescritos só aparecem no calendário do atleta/dia, onde podem ser apagados.
     pushArr(getPulso('favorite-workouts', []), 'Favoritos do atleta');
-    pushArr(getPulso('planned-workouts', []), 'Plano manual');
     const seen = new Set();
     return out.filter(w=>{
       const key = [w.title,w.desc,w.date,w.source].join('|');
@@ -13893,11 +13905,12 @@ nav.tabbar button.active svg{
   function renderCoachWorkouts(){
     const el = document.getElementById('coach-workouts-list');
     if(!el) return;
-    let coachW = getCoachWorkouts();
-    if(favFilterOn) coachW = coachW.filter(w=>w.favorite);
-    const athleteW = favFilterOn ? [] : collectManualWorkouts();
+    // Só favoritos: não mistura aqui treinos prescritos/agendados.
+    // Se um treino prescrito tiver de ser anulado, faz-se no dia do calendário do atleta.
+    let coachW = getCoachWorkouts().filter(w=>w.favorite);
+    const athleteW = collectManualWorkouts();
     if(!coachW.length && !athleteW.length){
-      el.innerHTML = '<div class="coach-empty">' + (favFilterOn ? 'Ainda não marcaste treinos como favoritos.' : 'Ainda não há treinos. Cria um treino no editor acima para começares.') + '</div>';
+      el.innerHTML = '<div class="coach-empty">Ainda não tens treinos favoritos. Marca treinos do treinador como ★ Favorito ou guarda favoritos na área do atleta.</div>';
       return;
     }
     const meta = (type, min, source)=>{
@@ -14232,6 +14245,7 @@ nav.tabbar button.active svg{
      ATLETAS + CALENDÁRIO (agendamento de treinos)
      ===================================================================== */
   let selectedAthleteId = 'local';
+  let coachAthletePicked = false;
   let coachCalendarFilter = 'all';
   let coachCalRef = new Date();              // mês visível no calendário do treinador
   let coachSelectedDay = null;               // dia selecionado no calendário do treinador
@@ -14285,8 +14299,9 @@ nav.tabbar button.active svg{
     const aSel = document.getElementById('coach-athlete-select');
     if(aSel){
       if(!list.some(a=>a.id===selectedAthleteId)) selectedAthleteId = 'local';
-      aSel.innerHTML = list.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
-      aSel.value = selectedAthleteId;
+      const placeholder = coachAthletePicked ? '' : '<option value="">Escolhe o atleta</option>';
+      aSel.innerHTML = placeholder + list.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+      aSel.value = coachAthletePicked ? selectedAthleteId : '';
     }
   }
 
@@ -14409,7 +14424,7 @@ nav.tabbar button.active svg{
     if(!body) return;
     if(!coachSelectedDay){
       if(title) title.textContent = 'Dia selecionado';
-      body.innerHTML = '<div class="coach-empty">Toca num dia do calendário para ver treinos feitos, provas e treinos prescritos.</div>';
+      body.innerHTML = '';
       return;
     }
     if(title) title.textContent = fmtDayLabel(coachSelectedDay) + ' — agenda dos atletas';
@@ -14693,10 +14708,48 @@ nav.tabbar button.active svg{
       '<div class="coach-pill-row act-stats">'+pills.join('')+'</div></div>';
   }
 
+
+  function setCoachAthletePicked(v){
+    coachAthletePicked = !!v;
+    const data = document.getElementById('coach-athlete-data');
+    if(data) data.classList.toggle('is-waiting', !coachAthletePicked);
+    const src = document.getElementById('coach-athlete-source');
+    if(src && !coachAthletePicked) src.textContent = 'Escolhe primeiro o atleta. Depois aparecem aqui os dados completos.';
+  }
+
+  function bindCoachCardCollapse(root){
+    const area = root || document.getElementById('coach-content');
+    if(!area) return;
+    area.querySelectorAll('.coach-card').forEach(card=>{
+      if(card.dataset.minBound === '1') return;
+      card.dataset.minBound = '1';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'coach-card-min-btn';
+      btn.setAttribute('aria-label','Minimizar carta');
+      btn.textContent = '−';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        card.classList.toggle('is-minimized');
+        btn.textContent = card.classList.contains('is-minimized') ? '+' : '−';
+        btn.setAttribute('aria-label', card.classList.contains('is-minimized') ? 'Aumentar carta' : 'Minimizar carta');
+      });
+      card.appendChild(btn);
+    });
+  }
+
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
     const src = document.getElementById('coach-athlete-source');
     if(!box) return;
+    if(!coachAthletePicked){
+      if(src) src.textContent = 'Escolhe primeiro o atleta. Depois aparecem aqui os dados completos.';
+      box.innerHTML = '';
+      box.classList.add('is-waiting');
+      bindCoachCardCollapse(document.getElementById('coach-content'));
+      return;
+    }
+    box.classList.remove('is-waiting');
     const sel = document.getElementById('coach-athlete-day');
     const day = (sel && sel.value) ? sel.value : todayStr();
     const rec = coachDayRecord(day);
@@ -14759,6 +14812,7 @@ nav.tabbar button.active svg{
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
     box.innerHTML = profileCard + health + drinks + nutri + wkSummary + recentBox;
+    bindCoachCardCollapse(box);
   }
 
   function fillDayPicker(){
@@ -14783,18 +14837,20 @@ nav.tabbar button.active svg{
     if(app) app.style.display = 'none';
     if(coach){ coach.style.display = 'flex'; coach.setAttribute('aria-hidden','false'); }
     selectedAthleteId = 'local';
+    coachAthletePicked = false;
     coachCalRef = new Date();
     coachSelectedDay = null;
     disarmWorkout();
     closeCoachEditor();
-    favFilterOn = false;
-    const ff = document.getElementById('coach-fav-filter'); if(ff) ff.classList.remove('active');
+    favFilterOn = true;
+    const ff = document.getElementById('coach-fav-filter'); if(ff) ff.classList.add('active');
     renderCoachWorkouts();
     renderAthletes();
     fillCoachAthleteSelectors();
     renderCoachCalendar();
     fillDayPicker();
     renderAthleteData();
+    bindCoachCardCollapse(document.getElementById('coach-content'));
   }
 
   function bindRoleMode(){
@@ -14862,9 +14918,10 @@ nav.tabbar button.active svg{
       else if(imp) importAthleteWorkout(imp.getAttribute('data-lib-import'));
     });
     document.getElementById('coach-fav-filter')?.addEventListener('click', function(){
-      favFilterOn = !favFilterOn;
-      this.classList.toggle('active', favFilterOn);
+      this.classList.add('active');
+      favFilterOn = true;
       renderCoachWorkouts();
+      toast('A biblioteca mostra apenas favoritos');
     });
 
     // Atletas
@@ -14872,6 +14929,7 @@ nav.tabbar button.active svg{
     document.getElementById('coach-athletes-list')?.addEventListener('click', (e)=>{
       const row = e.target.closest('[data-athlete]'); if(!row) return;
       selectedAthleteId = row.getAttribute('data-athlete');
+      coachAthletePicked = true;
       coachSelectedDay = null;
       renderAthletes();
       fillCoachAthleteSelectors();
@@ -14899,6 +14957,7 @@ nav.tabbar button.active svg{
       const open = e.target.closest('[data-coach-day-open]');
       if(open){
         selectedAthleteId = open.getAttribute('data-coach-day-open') || 'local';
+        coachAthletePicked = true;
         const d = open.getAttribute('data-coach-open-day') || coachSelectedDay || todayStr();
         document.querySelectorAll('[data-coach-tab]').forEach(b=>b.classList.toggle('active', b.dataset.coachTab === 'atleta'));
         document.querySelectorAll('#coach-content .coach-view').forEach(v=>v.classList.remove('active'));
@@ -14922,7 +14981,9 @@ nav.tabbar button.active svg{
       renderCoachCalendar();
     });
     document.getElementById('coach-athlete-select')?.addEventListener('change', function(){
+      if(!this.value){ coachAthletePicked = false; renderAthleteData(); return; }
       selectedAthleteId = this.value || 'local';
+      coachAthletePicked = true;
       renderAthletes();
       fillCoachAthleteSelectors();
       fillDayPicker();
