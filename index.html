@@ -13566,6 +13566,23 @@ nav.tabbar button.active svg{
   #coach-tab-atleta > .coach-card:first-child{margin-top:0 !important;}
 }
 
+
+
+/* Ajuste treinador: botões verdes sem sobreposição + vista geral do atleta */
+#coach-content .coach-card{overflow:hidden;}
+#coach-content .coach-card > .coach-card-min-btn{
+  top:16px !important; right:16px !important; width:38px !important; height:38px !important; min-height:38px !important; z-index:20 !important;
+}
+#coach-content .coach-card > .coach-section-head{padding-right:52px !important;}
+#coach-content .coach-card > .coach-section-head .coach-btn{margin-right:48px !important;}
+#coach-content .coach-card.is-minimized > .coach-section-head .coach-btn{margin-right:48px !important;}
+#coach-content .coach-card.is-minimized{min-height:88px !important;}
+#coach-content .coach-card.is-minimized > .coach-card-min-btn{color:var(--teal) !important; border-color:rgba(53,217,166,.42) !important;}
+.coach-range-tabs{display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin:12px 0 4px;}
+.coach-range-tabs button{min-height:40px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(9,14,25,.56); color:var(--text-muted); font-weight:900; font-size:12px;}
+.coach-range-tabs button.active{background:rgba(53,217,166,.16); color:var(--teal); border-color:rgba(53,217,166,.45);}
+.coach-overview-note{font-size:12px; color:var(--text-muted); line-height:1.45; margin:8px 0 0;}
+@media(max-width:520px){#coach-content .coach-card > .coach-section-head{padding-right:50px !important;} #coach-content .coach-card > .coach-section-head .coach-btn{margin-right:46px !important;} .coach-range-tabs{grid-template-columns:repeat(2,1fr);}}
 </style>
 
 <div id="coach-content" aria-hidden="true">
@@ -13800,6 +13817,12 @@ nav.tabbar button.active svg{
             <label for="coach-athlete-day">Dia</label>
             <select id="coach-athlete-day"></select>
           </div>
+        </div>
+        <div class="coach-range-tabs" id="coach-athlete-range">
+          <button type="button" data-range="1" class="active">Dia</button>
+          <button type="button" data-range="7">7 dias</button>
+          <button type="button" data-range="15">15 dias</button>
+          <button type="button" data-range="30">30 dias</button>
         </div>
         <div class="coach-note" id="coach-athlete-source">Escolhe primeiro o atleta. Depois aparecem os dados completos.</div>
       </div>
@@ -14866,6 +14889,38 @@ nav.tabbar button.active svg{
     });
   }
 
+  function coachRangeDays(endDay, n){
+    const out = [];
+    const base = new Date((endDay || todayStr()) + 'T12:00:00');
+    for(let i=0;i<n;i++){
+      const d = new Date(base);
+      d.setDate(base.getDate()-i);
+      out.push(d.toISOString().slice(0,10));
+    }
+    return out;
+  }
+  function activeCoachRange(){
+    const b = document.querySelector('#coach-athlete-range button.active');
+    return b ? Math.max(1, Number(b.dataset.range)||1) : 1;
+  }
+  function avgNullable(vals){
+    const clean = vals.filter(v=>v!=null && !isNaN(v));
+    if(!clean.length) return null;
+    return clean.reduce((a,b)=>a+Number(b),0) / clean.length;
+  }
+  function avgCoachTotals(days){
+    const records = days.map(coachDayRecord);
+    const keys = ['waterMl','colaMl','outraMl','coffeeCount','alcoholUnits','alcoholMl','totalKcal','foodKcal','protein','carbs','fat','workoutMin','workoutKm','workoutKcal'];
+    const totals = {};
+    keys.forEach(k=>{ totals[k] = records.reduce((sum,r)=>sum+(Number(r.totals[k])||0),0) / Math.max(days.length,1); });
+    totals.sleepHours = avgNullable(records.map(r=>r.totals.sleepHours));
+    totals.weightKg = avgNullable(records.map(r=>r.totals.weightKg));
+    totals.bpSys = avgNullable(records.map(r=>r.totals.bpSys));
+    totals.bpDia = avgNullable(records.map(r=>r.totals.bpDia));
+    totals.restingHr = avgNullable(records.map(r=>r.totals.restingHr));
+    return {days, records, totals, workouts: records.flatMap(r=>r.workouts||[])};
+  }
+
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
     const src = document.getElementById('coach-athlete-source');
@@ -14880,10 +14935,13 @@ nav.tabbar button.active svg{
     box.classList.remove('is-waiting');
     const sel = document.getElementById('coach-athlete-day');
     const day = (sel && sel.value) ? sel.value : todayStr();
-    const rec = coachDayRecord(day);
+    const rangeN = activeCoachRange();
+    const rangePack = avgCoachTotals(coachRangeDays(day, rangeN));
+    const rec = rangeN === 1 ? coachDayRecord(day) : {day, workouts: rangePack.workouts, totals: rangePack.totals};
     const t = rec.totals;
     const selectedA = currentAthlete();
-    if(src) src.textContent = 'Dados de ' + (selectedA.name || profileName()) + ' — ' + fmtDayLabel(day) + '.';
+    const rangeLabel = rangeN === 1 ? fmtDayLabel(day) : ('média dos últimos ' + rangeN + ' dias até ' + fmtDayLabel(day));
+    if(src) src.textContent = 'Dados de ' + (selectedA.name || profileName()) + ' — ' + rangeLabel + '.';
 
     const prof = selectedA.id === 'local' ? (getPulso('profile', {}) || {}) : {};
     const genderLabel = prof.gender === 'M' ? 'Masculino' : (prof.gender === 'F' ? 'Feminino' : '—');
@@ -14899,6 +14957,17 @@ nav.tabbar button.active svg{
       '<div class="coach-profile-tile"><strong>'+(lastWeight&&lastWeight.kg?Number(lastWeight.kg).toFixed(1).replace('.', ',')+' kg':'—')+'</strong><span>Último peso</span></div>'+
       '<div class="coach-profile-tile"><strong>'+(bmi?bmi.toFixed(1).replace('.', ','):'—')+'</strong><span>IMC</span></div>'+
       '</div></div>';
+
+    const overview = '<div class="coach-card"><h3>Vista geral do atleta</h3><div class="coach-metrics-grid">'+
+      metricCard(rangeN === 1 ? 'Tempo no dia' : 'Tempo médio/dia', (t.workoutMin||0)+' min')+
+      metricCard(rangeN === 1 ? 'Distância no dia' : 'Distância média/dia', fmtKm(t.workoutKm))+
+      metricCard(rangeN === 1 ? 'Kcal treino' : 'Kcal treino média/dia', fmtNum(t.workoutKcal))+
+      metricCard(rangeN === 1 ? 'Atividades' : 'Atividades no período', String(rangeN === 1 ? rec.workouts.length : rangePack.workouts.length))+
+      metricCard(rangeN === 1 ? 'Água' : 'Água média/dia', fmtL(t.waterMl))+
+      metricCard(rangeN === 1 ? 'Sono' : 'Sono médio', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
+      metricCard(rangeN === 1 ? 'Peso' : 'Peso médio registado', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
+      metricCard(rangeN === 1 ? 'Pressão' : 'Pressão média', (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
+      '</div><div class="coach-overview-note">'+(rangeN === 1 ? 'Valores do dia selecionado.' : 'Nos períodos de 7, 15 e 30 dias, os cartões mostram a média diária dos valores apresentados; as atividades mostram o total do período.')+'</div></div>';
 
     const health = '<div class="coach-card"><h3>Saúde</h3><div class="coach-metrics-grid">'+
       metricCard('Sono', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
@@ -14939,7 +15008,7 @@ nav.tabbar button.active svg{
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = profileCard + health + drinks + nutri + wkSummary + recentBox;
+    box.innerHTML = profileCard + overview + health + drinks + nutri + wkSummary + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -15121,6 +15190,12 @@ nav.tabbar button.active svg{
       renderAthleteData();
     });
     document.getElementById('coach-athlete-day')?.addEventListener('change', renderAthleteData);
+    document.getElementById('coach-athlete-range')?.addEventListener('click', function(e){
+      const b = e.target.closest('button[data-range]');
+      if(!b) return;
+      this.querySelectorAll('button[data-range]').forEach(x=>x.classList.toggle('active', x===b));
+      renderAthleteData();
+    });
 
     // ===== Lado do ATLETA: calendário + treino do dia no painel =====
     document.addEventListener('click', (e)=>{
