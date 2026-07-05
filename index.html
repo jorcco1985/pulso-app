@@ -14656,7 +14656,8 @@ nav.tabbar button.active svg{
   function recentCompletedWorkouts(days){
     const now = new Date();
     const start = new Date(now); start.setDate(start.getDate() - (days || 30) + 1); start.setHours(0,0,0,0);
-    return (getPulso('strava-activities', []) || []).filter(a=>{
+    const src = (Array.isArray(stravaActivities) && stravaActivities.length) ? stravaActivities : (getPulso('strava-activities', []) || []);
+    return src.filter(a=>{
       const d = activityDay(a); if(!d) return false;
       const dt = new Date(d + 'T12:00:00');
       return !isNaN(dt) && dt >= start && dt <= now;
@@ -14695,7 +14696,9 @@ nav.tabbar button.active svg{
     const sumBox = document.getElementById('athlete-last30-summary');
     const count = document.getElementById('athlete-last30-count');
     if(!list || !sumBox) return;
-    const period = [7,15,30].includes(Number(days)) ? Number(days) : currentTrainingPeriod();
+    const selPeriod = document.getElementById('training-period-select');
+    const fallbackPeriod = selPeriod ? Number(selPeriod.value) : 7;
+    const period = [7,15,30].includes(Number(days)) ? Number(days) : ([7,15,30].includes(fallbackPeriod) ? fallbackPeriod : 7);
     const acts = recentCompletedWorkouts(period);
     const totalMin = acts.reduce((s,a)=>s+activityMinutes(a),0);
     const totalKm = acts.reduce((s,a)=>s+activityKm(a),0);
