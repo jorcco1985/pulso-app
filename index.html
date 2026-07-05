@@ -13315,6 +13315,7 @@ nav.tabbar button.active svg{
 (function(){
   const PROFILE_KEY = 'pulso:profile';
   const MODE_KEY = 'pulso:selected-role';
+  let pulsoRoleBypassOriginalLogin = false;
 
   function safeParse(raw, fallback){ try{ return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; } }
   function getPulso(key, fallback){ return safeParse(localStorage.getItem('pulso:'+key), fallback); }
@@ -13391,16 +13392,23 @@ nav.tabbar button.active svg{
   async function openAthlete(){
     saveName();
     localStorage.setItem(MODE_KEY, 'athlete');
-    const locked = document.getElementById('app-locked');
-    const app = document.getElementById('app-content');
     const coach = document.getElementById('coach-content');
     if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
-    if(locked) locked.style.display = 'none';
-    if(app) app.style.display = 'flex';
+
+    /* IMPORTANTE:
+       Não abrimos a app manualmente aqui.
+       A app original já tem a função completeLogin/unlock/bootApp dentro do seu próprio bloco.
+       Como essa função não é global, a forma certa é deixar o formulário original continuar.
+       Assim o Atleta volta a carregar todos os dados locais: sono, peso, nutrição, saúde, etc. */
+    const form = document.getElementById('login-form');
+    pulsoRoleBypassOriginalLogin = true;
     try{
-      if(typeof window.bootApp === 'function') await window.bootApp();
-      else if(typeof bootApp === 'function') await bootApp();
-    }catch(err){ console.error('Erro ao abrir área atleta', err); }
+      if(form && typeof form.requestSubmit === 'function') form.requestSubmit();
+      else if(form) form.dispatchEvent(new Event('submit', {bubbles:true, cancelable:true}));
+    }catch(err){
+      console.error('Erro ao abrir área atleta pelo login original', err);
+      pulsoRoleBypassOriginalLogin = false;
+    }
   }
 
   function normalizeWorkout(w, source){
@@ -13477,6 +13485,10 @@ nav.tabbar button.active svg{
     const name = document.getElementById('login-name');
 
     const intercept = function(e){
+      if(pulsoRoleBypassOriginalLogin){
+        pulsoRoleBypassOriginalLogin = false;
+        return true;
+      }
       e.preventDefault();
       e.stopImmediatePropagation();
       showRoleStep();
