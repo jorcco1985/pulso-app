@@ -16528,16 +16528,23 @@ nav.tabbar button.active svg{
     const workouts = safeStravaActivities().filter(e=>sameDay(e.date || e.start_date, day));
 
     const byType = (t)=> Math.round(sum(hydration.filter(e=>{ const v=(e.type||'Água'); return t==='Sumo' ? (v==='Sumo'||v==='Cola') : t==='Sumo Zero' ? (v==='Sumo Zero'||v==='Outra') : v===t; }), e=>e.ml));
-    const waterMl = byType('Água'), colaMl = byType('Sumo'), outraMl = byType('Sumo Zero');
-    const coffeeCount = Math.round(sum(coffee, e=>e.units||1));
-    const alcoholUnits = Math.round(sum(alcohol, e=>e.units)*10)/10;
-    const alcoholMl = Math.round(sum(alcohol, alcoholMlOf));
-    const alcoholKcal = Math.round(sum(alcohol, e=>e.kcal));
-    const foodKcal = Math.round(sum(kcal, e=>e.kcal));
-    const colaKcal = Math.round(sum(hydration, e=>e.kcal));
-    const protein = Math.round(sum(kcal, e=>e.protein));
-    const carbs = Math.round(sum(kcal, e=>e.carbs));
-    const fat = Math.round(sum(kcal, e=>e.fat));
+    // Dias antigos: as entradas vivas de nutrição/hidratação podem ter sido limpas,
+    // mas o dia foi arquivado em 'athlete-history'. Usamos o arquivo como recurso.
+    const arch = (aGet('athlete-history', [])||[]).find(r=>r && r.date===day);
+    const at = (arch && arch.totals) ? arch.totals : null;
+    const archNum = (k)=> at ? (Number(at[k])||0) : 0;
+    const waterMl = hydration.length ? byType('Água') : archNum('waterMl');
+    const colaMl = hydration.length ? byType('Sumo') : 0;
+    const outraMl = hydration.length ? byType('Sumo Zero') : 0;
+    const coffeeCount = coffee.length ? Math.round(sum(coffee, e=>e.units||1)) : Math.round(archNum('coffeeCount'));
+    const alcoholUnits = alcohol.length ? Math.round(sum(alcohol, e=>e.units)*10)/10 : archNum('alcoholUnits');
+    const alcoholMl = alcohol.length ? Math.round(sum(alcohol, alcoholMlOf)) : Math.round(archNum('alcoholMl'));
+    const alcoholKcal = alcohol.length ? Math.round(sum(alcohol, e=>e.kcal)) : Math.round(archNum('alcoholKcal'));
+    const foodKcal = kcal.length ? Math.round(sum(kcal, e=>e.kcal)) : Math.round(archNum('foodKcal'));
+    const colaKcal = hydration.length ? Math.round(sum(hydration, e=>e.kcal)) : 0;
+    const protein = kcal.length ? Math.round(sum(kcal, e=>e.protein)) : Math.round(archNum('protein'));
+    const carbs = kcal.length ? Math.round(sum(kcal, e=>e.carbs)) : Math.round(archNum('carbs'));
+    const fat = kcal.length ? Math.round(sum(kcal, e=>e.fat)) : Math.round(archNum('fat'));
     const lastBp = bp.length ? bp[bp.length-1] : null;
 
     return {
