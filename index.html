@@ -16799,6 +16799,13 @@ nav.tabbar button.active svg{
     // (senão bebidas/saúde apareciam a 0 e o intervalo não mudava nada).
     const selIsCloud = cloudAthletes.some(a=>a.id===selectedAthleteId);
     if(!selIsCloud && coachCloudOverride){ coachCloudOverride = null; cloudOverrideUid = null; }
+    // Atleta cloud cujos dados ainda não estão carregados (ou são de outro atleta):
+    // carrega-os frescos e volta a desenhar — senão mostraria dados locais/errados (ex.: comida a 0).
+    if(selIsCloud && cloudOverrideUid !== selectedAthleteId){
+      box.innerHTML = '<div class="coach-empty">A carregar dados do atleta…</div>';
+      loadSelectedAthleteData(()=>{ try{ renderAthleteData(); }catch(e){} });
+      return;
+    }
     const sel = document.getElementById('coach-athlete-day');
     const day = (sel && sel.value) ? sel.value : todayStr();
     const rangeN = activeCoachRange();
