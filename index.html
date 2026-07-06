@@ -8665,16 +8665,20 @@ nav.tabbar button.active svg{
   let kcalEntries = [];
 
   // Chamado pelo reset diário da meia-noite.
-  // Limpa também as variáveis em memória, porque a app pode ficar aberta quando muda o dia.
+  // NÃO apagamos o histórico: as entradas têm data e todas as vistas de "hoje" filtram por dia.
+  // Apenas removemos entradas com mais de ~120 dias, para o armazenamento não crescer sem limite
+  // e para o treinador continuar a ver a evolução de nutrição/hidratação ao longo do tempo.
   window.PulsoResetDailyNutritionMemory = async function(){
-    hydrationEntries = [];
-    coffeeEntries = [];
-    alcoholEntries = [];
-    kcalEntries = [];
-    try{ await sSet('hydration-entries', []); }catch(e){}
-    try{ await sSet('coffee-entries', []); }catch(e){}
-    try{ await sSet('alcohol-entries', []); }catch(e){}
-    try{ await sSet('kcal-entries', []); }catch(e){}
+    const cutoff = (()=>{ const d = new Date(); d.setDate(d.getDate()-120); return d.toISOString().slice(0,10); })();
+    const prune = arr => (Array.isArray(arr) ? arr : []).filter(e => e && e.date && String(e.date).slice(0,10) >= cutoff);
+    hydrationEntries = prune(hydrationEntries);
+    coffeeEntries = prune(coffeeEntries);
+    alcoholEntries = prune(alcoholEntries);
+    kcalEntries = prune(kcalEntries);
+    try{ await sSet('hydration-entries', hydrationEntries); }catch(e){}
+    try{ await sSet('coffee-entries', coffeeEntries); }catch(e){}
+    try{ await sSet('alcohol-entries', alcoholEntries); }catch(e){}
+    try{ await sSet('kcal-entries', kcalEntries); }catch(e){}
     try{ renderDrinks(); }catch(e){}
     try{ renderAlcohol(); }catch(e){}
     try{ renderKcal(); }catch(e){}
@@ -11839,6 +11843,9 @@ nav.tabbar button.active svg{
     */
     Object.keys(localStorage).forEach(key => {
       const lower = key.toLowerCase();
+      // Estas listas têm data e todas as vistas filtram por dia — não as apagamos,
+      // para preservar o histórico de nutrição/hidratação (o treinador precisa dele).
+      if(/^pulso:(hydration|coffee|alcohol|kcal)-entries$/.test(key)) return;
 
       const looksDaily =
         lower.includes('today') ||
@@ -11876,15 +11883,21 @@ nav.tabbar button.active svg{
     });
 
     /*
-      CORREÇÃO 2026-07-05 — reset real da Nutrição às 00:00
-      Antes os totais visuais podiam continuar a ir buscar água, cafés e álcool
-      às listas principais guardadas em localStorage. Agora essas listas diárias
-      também são limpas depois de arquivar o dia anterior.
+      CORREÇÃO 2026-07-06 — a Nutrição/Hidratação deixa de ser APAGADA à meia-noite.
+      As entradas têm data e as vistas de "hoje" filtram por dia, por isso mantemos o
+      histórico (podado a ~120 dias) para o treinador ver a evolução ao longo do tempo.
     */
-    writePulsoJson('hydration-entries', []);
-    writePulsoJson('coffee-entries', []);
-    writePulsoJson('alcohol-entries', []);
-    writePulsoJson('kcal-entries', []);
+    (function(){
+      const cutoffP = (()=>{ const d=new Date(); d.setDate(d.getDate()-120); return d.toISOString().slice(0,10); })();
+      ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries'].forEach(k=>{
+        try{
+          const raw = localStorage.getItem('pulso:'+k);
+          const arr = raw ? JSON.parse(raw) : [];
+          const kept = (Array.isArray(arr)?arr:[]).filter(e=> e && e.date && String(e.date).slice(0,10) >= cutoffP);
+          localStorage.setItem('pulso:'+k, JSON.stringify(kept));
+        }catch(e){}
+      });
+    })();
 
     // Se o reset for chamado com a app aberta, atualiza também as variáveis em memória
     // dentro do módulo principal. Sem isto, alguns cartões podiam continuar com valores antigos.
