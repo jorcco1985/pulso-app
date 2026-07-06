@@ -4588,6 +4588,25 @@ section .scroll-y{overflow-y:auto !important; -webkit-overflow-scrolling:touch !
     linear-gradient(180deg, rgba(23,38,64,.98), rgba(9,17,31,.99)) !important;
   border-color:rgba(56,230,140,.20) !important;
 }
+/* Pills do cabeçalho (Feedback + Beta) e modal de feedback */
+.pulso-v3-pills{display:flex; flex-direction:column; gap:8px; align-items:flex-end;}
+.feedback-pill{cursor:pointer; font-family:inherit; -webkit-appearance:none; appearance:none;
+  background:rgba(53,167,255,.12); border:1px solid rgba(53,167,255,.28); color:#7FC0FF;
+  transition:background .15s, border-color .15s, transform .1s;}
+.feedback-pill:hover{background:rgba(53,167,255,.20); border-color:rgba(53,167,255,.5);}
+.feedback-pill:active{transform:scale(.95);}
+#feedback-modal{position:fixed; inset:0; z-index:100060; display:flex; align-items:center; justify-content:center;
+  background:rgba(4,7,13,.72); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); padding:22px;}
+#feedback-modal[hidden]{display:none;}
+#feedback-modal .feedback-modal-box{width:100%; max-width:440px; background:#0C1322;
+  border:1px solid rgba(255,255,255,.1); border-radius:22px; padding:20px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);}
+#feedback-modal .feedback-modal-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;}
+#feedback-modal .feedback-modal-head h3{font-size:18px; font-weight:800; color:#e6ecf7;}
+#feedback-modal #feedback-close{width:34px; height:34px; min-height:34px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.12); background:rgba(9,14,25,.62); color:var(--text-muted);
+  font-size:22px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+#feedback-modal #feedback-close:hover{color:var(--teal); border-color:rgba(53,217,166,.42);}
 .verdict-wrap{
   width:100%;
   display:grid !important;
@@ -7008,6 +7027,20 @@ nav.tabbar button.active svg{
   <div class="wk-modal-box">
     <div class="wk-modal-head"><h3>Perfil do treino</h3><button type="button" id="wk-modal-close" aria-label="Fechar">×</button></div>
     <div id="wk-modal-body"></div>
+  </div>
+</div>
+
+<div id="feedback-modal" hidden aria-hidden="true">
+  <div class="feedback-modal-box">
+    <div class="feedback-modal-head">
+      <h3 style="margin:0;" data-i18n="Feedback &amp; suggestions">Feedback e sugestões</h3>
+      <button type="button" id="feedback-close" aria-label="Fechar">×</button>
+    </div>
+    <p class="help" style="margin:0 0 10px;" data-i18n="Found something to improve? Leave a comment — it comes straight to me.">Encontraste algo a melhorar? Deixa um comentário — chega diretamente a mim.</p>
+    <textarea id="feedback-message" rows="4" placeholder="O teu comentário…" data-i18n-ph="Your comment…" style="width:100%; resize:vertical; box-sizing:border-box;"></textarea>
+    <input id="feedback-from" type="text" placeholder="Nome (opcional)" data-i18n-ph="Name (optional)" style="width:100%; box-sizing:border-box; margin-top:8px;">
+    <button class="primary block" id="feedback-send" type="button" style="margin-top:10px;" data-i18n="Send feedback">Enviar feedback</button>
+    <div class="help" id="feedback-status" style="margin-top:8px; min-height:1em;"></div>
   </div>
 </div>
 
@@ -14582,7 +14615,7 @@ nav.tabbar button.active svg{
     if(!box){
       box=document.createElement('div');
       box.className='pulso-v3-greeting';
-      box.innerHTML='<div><h2><span id="pulso-v3-greet">'+greetingWord()+'</span>, <span id="pulso-v3-name">'+readProfileName()+'</span> 👋</h2><p>'+todayText()+'</p></div><div class="pulso-v3-pill">● Pulso V3</div>';
+      box.innerHTML='<div><h2><span id="pulso-v3-greet">'+greetingWord()+'</span>, <span id="pulso-v3-name">'+readProfileName()+'</span> 👋</h2><p>'+todayText()+'</p></div><div class="pulso-v3-pills"><button type="button" class="pulso-v3-pill feedback-pill" id="open-feedback">💬 Feedback</button><div class="pulso-v3-pill">● Beta</div></div>';
       dash.insertBefore(box,dash.firstChild);
     }else{
       const g=box.querySelector('#pulso-v3-greet'); if(g) g.textContent=greetingWord();
@@ -18721,6 +18754,95 @@ if ("serviceWorker" in navigator) {
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGate);
   else initGate();
+})();
+</script>
+
+<script id="pulso-feedback">
+(function(){
+  "use strict";
+
+  /* =====================================================================
+     CHAVE DE ENVIO DE EMAIL (Web3Forms)
+     1) Vai a  https://web3forms.com  e cria uma "Access Key" gratuita
+        com o TEU email (é para lá que o feedback chega).
+     2) Cola a chave entre as aspas abaixo. Sem chave, o botão avisa
+        que ainda falta configurar (nada é enviado).
+     O teu email NÃO fica no código — fica só do lado do Web3Forms.
+  ===================================================================== */
+  var WEB3FORMS_ACCESS_KEY = "1c8f1372-06ec-4416-93fd-785e23060429";
+
+  function L(pt, en){ return (window.PulsoI18n && window.PulsoI18n.lang === 'en') ? en : pt; }
+
+  function init(){
+    var btn = document.getElementById('feedback-send');
+    var msgEl = document.getElementById('feedback-message');
+    var fromEl = document.getElementById('feedback-from');
+    var statusEl = document.getElementById('feedback-status');
+    var modal = document.getElementById('feedback-modal');
+
+    // Abrir/fechar o modal (o botão "Feedback" é criado por JS no cabeçalho do Painel).
+    function openModal(){ if(modal){ modal.hidden = false; if(statusEl){ statusEl.textContent=''; } setTimeout(function(){ if(msgEl) msgEl.focus(); }, 60); } }
+    function closeModal(){ if(modal) modal.hidden = true; }
+    document.addEventListener('click', function(e){
+      if(e.target.closest('#open-feedback')){ e.preventDefault(); openModal(); return; }
+      if(e.target.closest('#feedback-close')){ e.preventDefault(); closeModal(); return; }
+      if(e.target === modal){ closeModal(); return; } // tocar fora fecha
+    });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && modal && !modal.hidden) closeModal(); });
+
+    if(!btn || !msgEl) return;
+
+    function setStatus(text, color){ if(statusEl){ statusEl.textContent = text; statusEl.style.color = color || 'var(--text-muted)'; } }
+
+    btn.addEventListener('click', async function(){
+      var msg = (msgEl.value || '').trim();
+      if(!msg){ setStatus(L('Escreve um comentário primeiro.','Write a comment first.'), '#F2994A'); return; }
+
+      if(!WEB3FORMS_ACCESS_KEY){
+        setStatus(L('Envio de email ainda não configurado (falta a chave).','Email sending not set up yet (missing key).'), '#F2555A');
+        return;
+      }
+
+      var who = (fromEl && fromEl.value.trim()) ? fromEl.value.trim() : L('Anónimo','Anonymous');
+      var ctx = [];
+      try{ if(window.PulsoCloud && window.PulsoCloud.currentEmail) ctx.push('conta: ' + window.PulsoCloud.currentEmail()); }catch(e){}
+      ctx.push('idioma: ' + ((window.PulsoI18n && window.PulsoI18n.lang) || 'pt'));
+      ctx.push('data: ' + new Date().toISOString());
+      try{ ctx.push('dispositivo: ' + navigator.userAgent); }catch(e){}
+
+      var payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: 'Pulso — novo feedback de ' + who,
+        from_name: 'App Pulso',
+        message: msg + '\n\n— — —\nDe: ' + who + '\n' + ctx.join('\n')
+      };
+
+      btn.disabled = true;
+      setStatus(L('A enviar…','Sending…'));
+      try{
+        var r = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        var d = await r.json();
+        if(d && d.success){
+          msgEl.value = ''; if(fromEl) fromEl.value = '';
+          setStatus(L('Obrigado! Feedback enviado. ✓','Thanks! Feedback sent. ✓'), '#35D9A6');
+          setTimeout(closeModal, 1500);
+        }else{
+          setStatus(L('Não foi possível enviar. Tenta novamente.','Could not send. Please try again.'), '#F2555A');
+        }
+      }catch(e){
+        setStatus(L('Sem ligação — tenta novamente mais tarde.','No connection — try again later.'), '#F2555A');
+      }finally{
+        btn.disabled = false;
+      }
+    });
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
 </script>
 
