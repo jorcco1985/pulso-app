@@ -6537,6 +6537,7 @@ nav.tabbar button.active svg{
       <button class="ghost active" data-sub="sono" type="button">Sono</button>
       <button class="ghost" data-sub="peso" type="button">Peso</button>
       <button class="ghost" data-sub="pressao" type="button">Pressão</button>
+      <button class="ghost" data-sub="ciclo" type="button" id="cycle-subtab-btn" style="display:none;">Ciclo</button>
     </div>
 
     <div class="subview active" id="sub-sono">
@@ -6600,10 +6601,52 @@ nav.tabbar button.active svg{
       </div>
     </div>
 
-    <div class="section-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg></div>
-  </section>
+    <div class="subview" id="sub-ciclo">
+      <div class="card" id="cycle-summary-card">
+        <div class="row space-between" style="align-items:center; margin-bottom:6px;">
+          <h3 style="margin:0;">Ciclo Menstrual</h3>
+          <span class="cycle-phase-badge" id="cycle-phase-badge">—</span>
+        </div>
+        <div class="cycle-grid">
+          <div class="cycle-tile"><strong id="cycle-day">—</strong><span>Dia do ciclo</span></div>
+          <div class="cycle-tile"><strong id="cycle-phase">—</strong><span>Fase atual</span></div>
+          <div class="cycle-tile"><strong id="cycle-next-period">—</strong><span>Próxima menstruação</span></div>
+          <div class="cycle-tile"><strong id="cycle-next-ovulation">—</strong><span>Próxima ovulação</span></div>
+        </div>
+        <p class="help" id="cycle-tip" style="margin:10px 0 0;"></p>
+        <button class="primary" type="button" id="cycle-register-btn" style="margin-top:12px; width:100%;">Registar início da menstruação</button>
+        <label class="cycle-share-row" style="margin-top:12px;">
+          <span>Partilhar dados com o treinador</span>
+          <input type="checkbox" id="cycle-share">
+        </label>
+        <p class="help" id="cycle-share-note" style="margin:6px 0 0; font-size:11px;"></p>
+      </div>
 
-  <!-- ================= PERFIL (com subgrupos) ================= -->
+      <div class="card" id="cycle-calendar-card">
+        <div class="row space-between" style="align-items:center; margin-bottom:8px;">
+          <button class="ghost" type="button" id="cycle-cal-prev" style="min-width:44px;">‹</button>
+          <h3 style="margin:0;" id="cycle-cal-title">—</h3>
+          <button class="ghost" type="button" id="cycle-cal-next" style="min-width:44px;">›</button>
+        </div>
+        <div id="cycle-calendar"></div>
+        <p class="help" style="margin:8px 0 0;">Toca no <strong>primeiro dia</strong> da menstruação para registar (toca de novo para remover). A Pulso calcula o resto automaticamente.</p>
+        <div class="cycle-stats" id="cycle-stats" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px;">Registo rápido de hoje <span class="help" style="font-weight:400;">(opcional)</span></h3>
+        <div class="cycle-log-grid">
+          <div class="field"><label for="cycle-pain">Dor (0–10)</label><input type="number" id="cycle-pain" min="0" max="10" placeholder="—"></div>
+          <div class="field"><label for="cycle-flow">Fluxo</label><select id="cycle-flow"><option value="">—</option><option value="ligeiro">Ligeiro</option><option value="medio">Médio</option><option value="abundante">Abundante</option></select></div>
+          <div class="field"><label for="cycle-energy">Energia (1–5)</label><input type="number" id="cycle-energy" min="1" max="5" placeholder="—"></div>
+          <div class="field"><label for="cycle-mood">Humor (1–5)</label><input type="number" id="cycle-mood" min="1" max="5" placeholder="—"></div>
+        </div>
+        <button class="primary" type="button" id="cycle-log-save" style="margin-top:10px; width:100%;">Guardar registo de hoje</button>
+        <p class="help" style="margin:8px 0 0;">Estes dados ficam sempre privados. O treinador nunca vê fluxo, sintomas nem notas.</p>
+      </div>
+    </div>
+
+    <div class="section-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg></div>
   <section id="tab-perfil">
     <h2 class="section-title">Perfil</h2>
 
@@ -7099,12 +7142,36 @@ nav.tabbar button.active svg{
   let trainingChartVisible = { Bike:true, Corrida:true, Força:true };
   let hydrationEntries = [], hydrationGoal = 2000;
   let raceGoal = null;
+  let cycleData = { starts: [], periodLen: 5, logs: {}, shareCoach: false };
+  let cycleCalRef = new Date();
   const charts = {};
   let appBooted = false;
 
   // Ponte para outros <script>/IIFE (ex.: área do atleta) acederem à lista viva
   // de atividades. Devolve sempre a referência atual, mesmo após reatribuições.
   window.PulsoGetStravaActivities = function(){ return stravaActivities; };
+
+  // Ponte para o modo Treinador ler os dados VIVOS (em memória) do atleta local,
+  // garantindo que vê exatamente o que o atleta tem, sem depender de leituras
+  // possivelmente desatualizadas do localStorage.
+  window.PulsoGetLocalData = function(key){
+    switch(key){
+      case 'hydration-entries': return hydrationEntries;
+      case 'coffee-entries': return coffeeEntries;
+      case 'alcohol-entries': return alcoholEntries;
+      case 'kcal-entries': return kcalEntries;
+      case 'bp-entries': return bpEntries;
+      case 'weight-entries': return weightEntries;
+      case 'sleep-entries': return sleepEntries;
+      case 'planned-workouts': return plannedWorkouts;
+      case 'strava-activities': return stravaActivities;
+      case 'hydration-goal': return hydrationGoal;
+      case 'profile': return profile;
+      case 'race-goal': return raceGoal;
+      case 'cycle-data': return cycleData;
+      default: return null;
+    }
+  };
 
   // ---------- Tabs ----------
   document.getElementById('tabbar').addEventListener('click', (e)=>{
@@ -7167,6 +7234,7 @@ nav.tabbar button.active svg{
       if(activeSub && activeSub.id === 'sub-peso') renderWeight();
       if(activeSub && activeSub.id === 'sub-sono') renderSleep();
       if(activeSub && activeSub.id === 'sub-pressao') renderBP();
+      if(activeSub && activeSub.id === 'sub-ciclo') renderCycle();
     }
     else if(activeTab.id === 'tab-hidratacao'){
       if(activeSub && activeSub.id === 'sub-bebida') renderDrinks();
@@ -7351,6 +7419,7 @@ nav.tabbar button.active svg{
     toast('Perfil guardado');
     renderDashboard();
     renderKcal();
+    try{ updateCycleSubtabVisibility(); renderCycle(); }catch(err){}
   });
 
   // ================= WEIGHT ================= //
@@ -7830,6 +7899,218 @@ nav.tabbar button.active svg{
   }
 
   window.PulsoGetAlcoholMl = getAlcoholMl;
+
+  /* ================= CICLO MENSTRUAL ================= */
+  const CYCLE_DEFAULT = 28, CYCLE_LUTEAL = 14, CYCLE_PERIOD_DEFAULT = 5;
+  function cycleDaysBetween(a, b){ return Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00')) / 86400000); }
+  function cycleAddDays(dateStr, n){ const d = new Date(dateStr+'T12:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+
+  // Cálculo central do ciclo, a partir das datas de início registadas.
+  function computeCycle(data, refStr){
+    data = data || cycleData || {};
+    const starts = (Array.isArray(data.starts) ? data.starts.slice() : []).sort();
+    const today = refStr || todayStr();
+    const periodLen = Number(data.periodLen) || CYCLE_PERIOD_DEFAULT;
+    if(!starts.length) return { hasData:false };
+
+    // Comprimentos de ciclo entre inícios consecutivos (filtra valores absurdos).
+    const lengths = [];
+    for(let i=1;i<starts.length;i++){ const d = cycleDaysBetween(starts[i-1], starts[i]); if(d>=15 && d<=60) lengths.push(d); }
+    const avgCycle = lengths.length ? Math.round(lengths.reduce((a,b)=>a+b,0)/lengths.length) : CYCLE_DEFAULT;
+
+    // Último início <= hoje (para saber em que dia do ciclo estamos).
+    const past = starts.filter(s=>s<=today);
+    const lastStart = past.length ? past[past.length-1] : starts[0];
+    let cycleDay = cycleDaysBetween(lastStart, today) + 1;
+    if(cycleDay < 1) cycleDay = 1;
+
+    const ovulationDay = Math.max(7, avgCycle - CYCLE_LUTEAL);
+    const nextPeriod = cycleAddDays(lastStart, avgCycle);
+    const nextOvulation = cycleDaysBetween(today, cycleAddDays(lastStart, ovulationDay)) >= 0
+      ? cycleAddDays(lastStart, ovulationDay)
+      : cycleAddDays(nextPeriod, ovulationDay); // já passou -> a do ciclo seguinte
+
+    let phase, phaseKey;
+    if(cycleDay <= periodLen){ phase='Menstrual'; phaseKey='menstrual'; }
+    else if(cycleDay < ovulationDay - 1){ phase='Folicular'; phaseKey='folicular'; }
+    else if(cycleDay <= ovulationDay + 1){ phase='Ovulação'; phaseKey='ovulacao'; }
+    else { phase='Lútea'; phaseKey='lutea'; }
+
+    // Log de hoje (privado) para ajustar disponibilidade/alertas.
+    const log = (data.logs && data.logs[today]) ? data.logs[today] : null;
+    const daysToPeriod = cycleDaysBetween(today, nextPeriod);
+
+    // Índice de disponibilidade para treino (0–100).
+    let avail;
+    if(phaseKey==='menstrual') avail = cycleDay <= 2 ? 45 : 65;
+    else if(phaseKey==='folicular') avail = 90;
+    else if(phaseKey==='ovulacao') avail = 100;
+    else avail = (daysToPeriod<=3) ? 55 : 80; // lútea tardia (TPM) mais baixa
+    if(log){
+      if(Number(log.pain) >= 6) avail -= 20;
+      else if(Number(log.pain) >= 4) avail -= 10;
+      if(Number(log.energy) && Number(log.energy) <= 2) avail -= 15;
+    }
+    avail = Math.max(10, Math.min(100, Math.round(avail)));
+
+    // Alerta para o treinador.
+    let alert, alertKey;
+    const symptoms = log && (Number(log.pain)>=4 || (Number(log.energy)&&Number(log.energy)<=2));
+    if((phaseKey==='menstrual' && cycleDay<=2) || (log && Number(log.pain)>=7) || avail < 45){ alertKey='red'; alert='Recomenda-se reduzir intensidade'; }
+    else if(symptoms){ alertKey='orange'; alert='Sintomas registados'; }
+    else if(phaseKey==='lutea'){ alertKey='yellow'; alert='Recuperação poderá estar reduzida'; }
+    else { alertKey='green'; alert='Sem limitações'; }
+
+    // Dica (a "IA" a considerar o ciclo, de forma leve e local).
+    let tip;
+    if(phaseKey==='folicular') tip='Estás na fase folicular — boa altura para treinos de intensidade.';
+    else if(phaseKey==='ovulacao') tip='Fase de ovulação — pico de energia; aproveita para sessões mais exigentes.';
+    else if(phaseKey==='lutea') tip = (daysToPeriod<=3) ? 'Fase lútea tardia — poderás sentir mais fadiga; ajusta a intensidade se precisares.' : 'Fase lútea — mantém o treino mas ouve o corpo; a recuperação pode ficar mais lenta.';
+    else tip='Menstruação — prioriza recuperação e treinos mais leves nos primeiros dias.';
+    if(phaseKey!=='lutea' && daysToPeriod>=0 && daysToPeriod<=2) tip += ' Entras na fase lútea/menstruação dentro de ' + daysToPeriod + ' dia(s); poderás sentir maior fadiga.';
+
+    return { hasData:true, cycleDay, phase, phaseKey, avgCycle, periodLen, lastStart, nextPeriod, nextOvulation, ovulationDay, availability:avail, alert, alertKey, tip, daysToPeriod, cycleCount: starts.length };
+  }
+
+  function cycleIsFemale(){ return profile && profile.gender === 'F'; }
+
+  async function cycleSave(){ try{ await sSet('cycle-data', cycleData); }catch(e){} }
+
+  function updateCycleSubtabVisibility(){
+    const btn = document.getElementById('cycle-subtab-btn');
+    if(btn) btn.style.display = cycleIsFemale() ? '' : 'none';
+    // Se deixou de ser feminino e estava no subtab do ciclo, volta ao Sono.
+    if(!cycleIsFemale()){
+      const sub = document.getElementById('sub-ciclo');
+      if(sub && sub.classList.contains('active')){
+        const sonoBtn = document.querySelector('#tab-saude .subtabs button[data-sub="sono"]');
+        if(sonoBtn) sonoBtn.click();
+      }
+    }
+  }
+
+  function fmtCycleDate(d){ try{ return new Date(d+'T12:00:00').toLocaleDateString('pt-PT',{day:'2-digit', month:'2-digit'}); }catch(e){ return d; } }
+
+  function renderCycle(){
+    if(!cycleIsFemale()) return;
+    const c = computeCycle(cycleData);
+    const set = (id, v)=>{ const el=document.getElementById(id); if(el) el.textContent = v; };
+    const badge = document.getElementById('cycle-phase-badge');
+    if(c.hasData){
+      set('cycle-day', c.cycleDay + 'º');
+      set('cycle-phase', c.phase);
+      set('cycle-next-period', fmtCycleDate(c.nextPeriod));
+      set('cycle-next-ovulation', fmtCycleDate(c.nextOvulation));
+      set('cycle-tip', c.tip);
+      if(badge){ badge.textContent = c.phase; badge.className = 'cycle-phase-badge ' + c.phaseKey; }
+    }else{
+      ['cycle-day','cycle-phase','cycle-next-period','cycle-next-ovulation'].forEach(id=>set(id,'—'));
+      set('cycle-tip', 'Regista o primeiro dia da tua última menstruação (botão abaixo ou no calendário) para a Pulso começar a calcular o teu ciclo.');
+      if(badge){ badge.textContent = '—'; badge.className = 'cycle-phase-badge'; }
+    }
+    const share = document.getElementById('cycle-share');
+    if(share) share.checked = !!cycleData.shareCoach;
+    const shareNote = document.getElementById('cycle-share-note');
+    if(shareNote) shareNote.textContent = cycleData.shareCoach
+      ? 'O treinador vê apenas: dia do ciclo, fase, próxima menstruação, disponibilidade e alertas. Nunca vê fluxo, sintomas nem notas.'
+      : 'Toda a informação fica apenas contigo. O treinador não vê nada do teu ciclo.';
+    // Stats
+    const statsEl = document.getElementById('cycle-stats');
+    if(statsEl){
+      if(c.hasData){
+        statsEl.innerHTML =
+          '<div class="cycle-stat"><strong>'+c.avgCycle+' dias</strong><span>Média do ciclo</span></div>'+
+          '<div class="cycle-stat"><strong>'+c.periodLen+' dias</strong><span>Duração menstruação</span></div>'+
+          '<div class="cycle-stat"><strong>'+c.cycleCount+'</strong><span>Ciclos registados</span></div>';
+      }else statsEl.innerHTML = '';
+    }
+    renderCycleCalendar();
+    // Pré-preenche o registo rápido com o de hoje, se existir.
+    const today = todayStr();
+    const log = (cycleData.logs && cycleData.logs[today]) ? cycleData.logs[today] : {};
+    const sv = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
+    sv('cycle-pain', log.pain); sv('cycle-flow', log.flow); sv('cycle-energy', log.energy); sv('cycle-mood', log.mood);
+  }
+
+  function renderCycleCalendar(){
+    const el = document.getElementById('cycle-calendar');
+    if(!el) return;
+    const ref = cycleCalRef;
+    const year = ref.getFullYear(), month = ref.getMonth();
+    const title = document.getElementById('cycle-cal-title');
+    if(title) title.textContent = ref.toLocaleDateString('pt-PT',{month:'long', year:'numeric'});
+    const first = new Date(year, month, 1);
+    const startDow = (first.getDay()+6)%7; // segunda=0
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const today = todayStr();
+    const c = computeCycle(cycleData);
+    const starts = new Set((cycleData.starts||[]));
+    // Datas previstas de menstruação (próximos ~3 ciclos) e ovulação.
+    const predicted = new Set(), ovul = new Set();
+    if(c.hasData){
+      for(let k=0;k<3;k++){
+        const p = cycleAddDays(c.nextPeriod, k*c.avgCycle);
+        for(let d=0; d<c.periodLen; d++) predicted.add(cycleAddDays(p, d));
+        ovul.add(cycleAddDays(c.lastStart, c.ovulationDay + k*c.avgCycle));
+      }
+    }
+    const dows = ['S','T','Q','Q','S','S','D'];
+    let html = dows.map(d=>'<div class="cyc-dow">'+d+'</div>').join('');
+    for(let i=0;i<startDow;i++) html += '<div class="cyc-day empty"></div>';
+    for(let day=1; day<=daysInMonth; day++){
+      const ds = year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+      const cls = ['cyc-day'];
+      if(starts.has(ds)) cls.push('period');
+      else if(predicted.has(ds)) cls.push('predicted');
+      if(ovul.has(ds)) cls.push('ovul');
+      if(ds===today) cls.push('today');
+      html += '<div class="'+cls.join(' ')+'" data-cyc-day="'+ds+'">'+day+'</div>';
+    }
+    el.innerHTML = html;
+    el.querySelectorAll('[data-cyc-day]').forEach(d=> d.addEventListener('click', ()=> toggleCycleStart(d.getAttribute('data-cyc-day'))));
+  }
+
+  async function toggleCycleStart(ds){
+    if(!ds) return;
+    if(ds > todayStr()){ pulsoToast('Não dá para registar um dia futuro.'); return; }
+    cycleData.starts = Array.isArray(cycleData.starts) ? cycleData.starts : [];
+    const idx = cycleData.starts.indexOf(ds);
+    if(idx >= 0) cycleData.starts.splice(idx,1);
+    else cycleData.starts.push(ds);
+    cycleData.starts.sort();
+    await cycleSave();
+    renderCycle();
+    if(typeof renderDashboard === 'function') { try{ renderDashboard(); }catch(e){} }
+    pulsoToast(idx>=0 ? 'Início removido' : 'Início da menstruação registado');
+  }
+
+  window.PulsoCycle = {
+    isFemale: cycleIsFemale,
+    shareCoach: ()=> !!(cycleData && cycleData.shareCoach),
+    summary: (refStr)=> computeCycle(cycleData, refStr),
+    compute: (data, refStr)=> computeCycle(data, refStr),
+    starts: ()=> (cycleData && Array.isArray(cycleData.starts)) ? cycleData.starts.slice() : []
+  };
+
+  document.getElementById('cycle-register-btn')?.addEventListener('click', ()=> toggleCycleStart(todayStr()));
+  document.getElementById('cycle-cal-prev')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()-1, 1); renderCycleCalendar(); });
+  document.getElementById('cycle-cal-next')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()+1, 1); renderCycleCalendar(); });
+  document.getElementById('cycle-share')?.addEventListener('change', async function(){ cycleData.shareCoach = this.checked; await cycleSave(); renderCycle(); });
+  document.getElementById('cycle-log-save')?.addEventListener('click', async ()=>{
+    const g = id=>{ const el=document.getElementById(id); return el && el.value!=='' ? el.value : null; };
+    const today = todayStr();
+    cycleData.logs = cycleData.logs || {};
+    const entry = {};
+    const pain=g('cycle-pain'), flow=g('cycle-flow'), energy=g('cycle-energy'), mood=g('cycle-mood');
+    if(pain!=null) entry.pain=Number(pain);
+    if(flow) entry.flow=flow;
+    if(energy!=null) entry.energy=Number(energy);
+    if(mood!=null) entry.mood=Number(mood);
+    if(Object.keys(entry).length) cycleData.logs[today]=entry; else delete cycleData.logs[today];
+    await cycleSave(); renderCycle();
+    pulsoToast('Registo guardado');
+  });
+
 
   function getTodayAlcoholEntries(){
     const today = todayStr();
@@ -10794,6 +11075,9 @@ nav.tabbar button.active svg{
     favoriteWorkouts = await sGet('favorite-workouts', []);
     todayPlan = await sGet('today-plan', null);
     raceGoal = await sGet('race-goal', null);
+    cycleData = await sGet('cycle-data', { starts:[], periodLen:5, logs:{}, shareCoach:false });
+    if(!cycleData || typeof cycleData !== 'object') cycleData = { starts:[], periodLen:5, logs:{}, shareCoach:false };
+    if(!Array.isArray(cycleData.starts)) cycleData.starts = [];
     if(raceGoal){
       setVal('race-name', raceGoal.name || '');
       setVal('race-sport', raceGoal.sport || 'run-road');
@@ -10812,6 +11096,7 @@ nav.tabbar button.active svg{
     safe('updateStravaUI', updateStravaUI); safe('renderVo2UI', renderVo2UI); safe('renderStravaZonesUI', renderStravaZonesUI); safe('renderDashboard', renderDashboard);
     safe('renderTodayWorkout', renderTodayWorkout); safe('checkTodayPlanAgainstStrava', checkTodayPlanAgainstStrava);
     safe('renderFavoritesList', renderFavoritesList);
+    safe('updateCycleSubtabVisibility', updateCycleSubtabVisibility); safe('renderCycle', renderCycle);
 
     if(stravaAuth && stravaAuth.accessToken){ syncStrava({silent:true, recent:true}).catch(err=>console.error('Falha no sync Strava', err)); }
   }
@@ -14590,6 +14875,13 @@ nav.tabbar button.active svg{
       return Object.prototype.hasOwnProperty.call(coachCloudOverride, key)
         ? safeParse(coachCloudOverride[key], fallback) : fallback;
     }
+    // Atleta local: lê os dados vivos (em memória) do atleta, iguais aos que ele vê.
+    try{
+      if(typeof window.PulsoGetLocalData === 'function'){
+        const live = window.PulsoGetLocalData(key);
+        if(live != null) return live;
+      }
+    }catch(e){}
     return getPulso(key, fallback);
   }
   function setPulso(key, value){
@@ -15212,6 +15504,18 @@ nav.tabbar button.active svg{
     if(!list.some(a=>a.id===selectedAthleteId)) selectedAthleteId = 'local';
     el.innerHTML = list.map(a=>{
       const initial = esc((a.name||'A').trim().charAt(0).toUpperCase());
+      // Indicador rápido de ciclo (só atleta local, se for feminino e partilhar).
+      let cycDot = '';
+      try{
+        if(a.local && window.PulsoCycle && window.PulsoCycle.isFemale() && window.PulsoCycle.shareCoach()){
+          const cy = window.PulsoCycle.summary();
+          if(cy && cy.hasData){
+            const dot = cy.availability>=75 ? '🟢' : (cy.availability>=50 ? '🟡' : '🔴');
+            const lbl = cy.availability>=75 ? 'Ciclo favorável' : (cy.availability>=50 ? 'Recuperação reduzida' : 'Atenção ao treino');
+            cycDot = '<span class="coach-athlete-cycdot" title="'+esc(lbl)+'">'+dot+'</span>';
+          }
+        }
+      }catch(e){}
       const badge = a.local
         ? '<span class="coach-athlete-badge local">Este telemóvel</span>'
         : (a.cloud ? '<span class="coach-athlete-badge local">Cloud</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>');
@@ -15222,7 +15526,7 @@ nav.tabbar button.active svg{
       const editBtn = a.cloud ? `<button class="coach-athlete-del" type="button" data-athlete-alias="${esc(a.id)}" aria-label="Editar nome de ${esc(a.name)}" title="Editar nome" style="color:var(--teal); border-color:rgba(53,217,166,.4);">✎</button>` : '';
       return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
         <div class="coach-athlete-av">${initial}</div>
-        <div class="coach-athlete-info"><strong>${esc(a.name)}</strong><span>${sub}</span></div>
+        <div class="coach-athlete-info"><strong>${esc(a.name)}${cycDot}</strong><span>${sub}</span></div>
         ${badge}
         ${editBtn}
         ${delBtn}
@@ -16009,6 +16313,30 @@ nav.tabbar button.active svg{
       metricCard('Cardio', t.restingHr!=null ? Math.round(t.restingHr)+' bpm' : '—')+
       '</div></div>';
 
+    // Saúde Feminina — só se a atleta é do sexo feminino E autorizou a partilha.
+    let femCard = '';
+    try{
+      const cycleRaw = aGet('cycle-data', {}) || {};
+      const isFem = ((aGet('profile', {})||{}).gender === 'F');
+      const shares = !!cycleRaw.shareCoach;
+      if(isFem && shares && window.PulsoCycle && window.PulsoCycle.compute){
+        const cyc = window.PulsoCycle.compute(cycleRaw);
+        if(cyc && cyc.hasData){
+          const alertColors = { green:'#35D9A6', yellow:'#F2B84B', orange:'#FF9D2E', red:'#F2555A' };
+          const alertEmoji = { green:'🟢', yellow:'🟡', orange:'🟠', red:'🔴' };
+          const ac = alertColors[cyc.alertKey] || '#8894a8';
+          femCard = '<div class="coach-card"><h3>Saúde Feminina</h3><div class="coach-metrics-grid">'+
+            metricCard('Dia do ciclo', cyc.cycleDay + 'º')+
+            metricCard('Fase atual', cyc.phase)+
+            metricCard('Próxima menstruação', fmtDayLabel(cyc.nextPeriod))+
+            metricCard('Disponibilidade', cyc.availability + '/100')+
+            '</div>'+
+            '<div class="coach-fem-alert" style="background:'+ac+'22; color:'+ac+'; border:1px solid '+ac+'55;">'+(alertEmoji[cyc.alertKey]||'')+' '+esc(cyc.alert)+'</div>'+
+            '</div>';
+        }
+      }
+    }catch(err){ console.warn('Saúde Feminina falhou', err); }
+
     const drinks = '<div class="coach-card"><h3>Bebidas</h3><div class="coach-metrics-grid">'+
       metricCard('Água', fmtL(t.waterMl))+
       metricCard('Sumo', fmtL(t.colaMl))+
@@ -16035,7 +16363,7 @@ nav.tabbar button.active svg{
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = profileCard + plannedCard + raceCard + overview + health + drinks + nutri + completedBox + recentBox;
+    box.innerHTML = profileCard + plannedCard + raceCard + overview + health + femCard + drinks + nutri + completedBox + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -16468,6 +16796,35 @@ nav.tabbar button.active svg{
 </style>
 
 <!-- ===================== PULSO CLOUD (Firebase) ===================== -->
+<style id="pulso-cycle-css">
+  .cycle-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .cycle-tile{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px;}
+  .cycle-tile strong{display:block; font-size:20px; color:#fff; line-height:1.1;}
+  .cycle-tile span{font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px;}
+  .cycle-phase-badge{font-size:12px; font-weight:800; padding:5px 11px; border-radius:999px; background:rgba(155,140,255,.16); color:#B7ABFF; white-space:nowrap;}
+  .cycle-phase-badge.menstrual{background:rgba(242,85,90,.16); color:#FF7A7E;}
+  .cycle-phase-badge.folicular{background:rgba(53,217,166,.16); color:#35D9A6;}
+  .cycle-phase-badge.ovulacao{background:rgba(242,184,75,.18); color:#F2B84B;}
+  .cycle-phase-badge.lutea{background:rgba(155,140,255,.16); color:#B7ABFF;}
+  .cycle-share-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:11px 13px; font-size:13px; font-weight:600;}
+  .cycle-share-row input{width:22px; height:22px; accent-color:var(--teal);}
+  .cycle-log-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  #cycle-calendar{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .cyc-dow{text-align:center; font-size:10px; color:var(--text-muted); padding:2px 0; text-transform:uppercase;}
+  .cyc-day{aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:13px; color:#cdd6e6; background:rgba(255,255,255,.03); border:1px solid transparent; cursor:pointer; position:relative;}
+  .cyc-day.empty{background:none; cursor:default;}
+  .cyc-day.today{border-color:rgba(53,217,166,.5);}
+  .cyc-day.period{background:rgba(242,85,90,.75); color:#fff; font-weight:800;}
+  .cyc-day.predicted{background:rgba(242,85,90,.16); color:#FF9A9D;}
+  .cyc-day.ovul{box-shadow:inset 0 0 0 2px rgba(242,184,75,.7);}
+  .cycle-stats{display:flex; gap:8px; flex-wrap:wrap;}
+  .cycle-stat{flex:1 1 auto; background:rgba(255,255,255,.04); border-radius:12px; padding:9px 11px; text-align:center;}
+  .cycle-stat strong{display:block; font-size:17px; color:#fff;}
+  .cycle-stat span{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.3px;}
+  .coach-fem-alert{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:7px 11px; border-radius:10px; margin-top:8px;}
+  .coach-athlete-cycdot{margin-left:8px; font-size:13px;}
+</style>
+
 <style id="pulso-cloud-css">
   .pc-overlay{position:fixed; inset:0; z-index:100000; background:#070B14; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:calc(28px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch;}
   .pc-overlay[hidden]{display:none;}
