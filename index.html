@@ -15930,6 +15930,7 @@ nav.tabbar button.active svg{
   function preloadCloudPlans(){
     if(!(window.PulsoCloud && typeof window.PulsoCloud.fetchCoachPlan === 'function')) return;
     cloudAthletes.forEach(a=>{
+      if(cloudPlanCache[a.id]) return; // já carregado nesta sessão — não sobrescrever o que marcaste agora
       window.PulsoCloud.fetchCoachPlan(a.id).then(cal=>{
         cloudPlanCache[a.id] = cal || {};
         try{ renderCoachCalendar(); }catch(e){}
@@ -16174,8 +16175,8 @@ nav.tabbar button.active svg{
     const w = getCoachWorkouts().find(x=>x.id===workoutId);
     if(!w){ toast('Treino não encontrado'); return; }
     armedWorkout = { name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes };
-    const target = currentAthlete();
-    const targetName = (target && target.name) ? target.name : 'atleta';
+    const targetId = prescribeTargetId();
+    const targetName = (getAthletes().find(a=>a.id===targetId)||{}).name || 'atleta';
     const arm = document.getElementById('coach-cal-arm');
     if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> → <strong>' + esc(targetName) + '</strong> — toca no dia do calendário onde o queres colocar. <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">Cancelar</button>'; }
     const cal = document.getElementById('coach-calendar');
@@ -16279,18 +16280,25 @@ nav.tabbar button.active svg{
     body.innerHTML = html;
   }
 
+  function prescribeTargetId(){
+    // Prescreve para o atleta que estás a ver no calendário; senão o selecionado; senão local.
+    if(coachCalendarFilter && coachCalendarFilter !== 'all') return coachCalendarFilter;
+    if(selectedAthleteId) return selectedAthleteId;
+    return 'local';
+  }
   function onCoachDayTap(day){
     if(armedWorkout){
-      const a = currentAthlete();
-      scheduleWorkout(a.id, day, armedWorkout);
-      toast(armedWorkout.name + ' → ' + (a.name || 'atleta') + ' · ' + fmtDayLabel(day));
+      const targetId = prescribeTargetId();
+      const targetName = (getAthletes().find(a=>a.id===targetId)||{}).name || 'atleta';
+      scheduleWorkout(targetId, day, armedWorkout);
+      toast(armedWorkout.name + ' → ' + targetName + ' · ' + fmtDayLabel(day));
       disarmWorkout();
       coachSelectedDay = day;
       // Garante que o calendário mostra o atleta a quem prescreveste (senão o treino "não aparece").
-      if(coachCalendarFilter !== 'all' && coachCalendarFilter !== a.id){
-        coachCalendarFilter = a.id;
+      if(coachCalendarFilter !== 'all' && coachCalendarFilter !== targetId){
+        coachCalendarFilter = targetId;
         const calSel = document.getElementById('coach-calendar-athlete');
-        if(calSel) calSel.value = a.id;
+        if(calSel) calSel.value = targetId;
       }
       renderCoachCalendar();
       return;
@@ -16665,9 +16673,11 @@ nav.tabbar button.active svg{
   }
   function avgCoachTotals(days){
     const records = days.map(coachDayRecord);
-    const keys = ['waterMl','colaMl','outraMl','coffeeCount','alcoholUnits','alcoholMl','totalKcal','foodKcal','protein','carbs','fat','workoutMin','workoutKm','workoutKcal','elevationM'];
+    // Métricas cumulativas: SOMA do período (kcal, nutrientes, água, treino...).
+    const sumKeys = ['waterMl','colaMl','outraMl','coffeeCount','alcoholUnits','alcoholMl','totalKcal','foodKcal','protein','carbs','fat','workoutMin','workoutKm','workoutKcal','elevationM'];
     const totals = {};
-    keys.forEach(k=>{ totals[k] = records.reduce((sum,r)=>sum+(Number(r.totals[k])||0),0) / Math.max(days.length,1); });
+    sumKeys.forEach(k=>{ totals[k] = records.reduce((sum,r)=>sum+(Number(r.totals[k])||0),0); });
+    // Métricas de "nível": MÉDIA (somar não faz sentido).
     totals.sleepHours = avgNullable(records.map(r=>r.totals.sleepHours));
     totals.weightKg = avgNullable(records.map(r=>r.totals.weightKg));
     totals.bpSys = avgNullable(records.map(r=>r.totals.bpSys));
