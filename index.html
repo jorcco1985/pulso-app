@@ -5979,6 +5979,21 @@ nav.tabbar button.active svg{
 </head>
 <body>
 
+<!-- ================= SELETOR DE IDIOMA (só na 1ª vez) ================= -->
+<div id="pulso-lang-gate" hidden>
+  <div class="plg-card">
+    <div class="plg-logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="18" fill="rgba(53,217,166,.14)"/><path d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30" fill="none" stroke="#35D9A6" stroke-width="4" stroke-linecap="round"/><path d="M12 35h10l4-9 5 18 5-13h16" fill="none" stroke="#35D9A6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2>Escolhe o idioma<br><span class="plg-en">Choose your language</span></h2>
+    <div class="plg-opts">
+      <button type="button" class="plg-btn" data-lang="pt"><span class="plg-flag">🇵🇹</span><span>Português</span></button>
+      <button type="button" class="plg-btn" data-lang="en"><span class="plg-flag">🇬🇧</span><span>English</span></button>
+    </div>
+    <p class="plg-note">Podes mudar depois em Perfil · You can change this later in Profile</p>
+  </div>
+</div>
+
 <!-- ================= LOGIN ================= -->
 <div id="app-locked">
   <div class="login-card">
@@ -6033,25 +6048,29 @@ nav.tabbar button.active svg{
   <!-- ================= DASHBOARD (só esta rola) ================= -->
   <section id="tab-dashboard" class="active">
     <div class="card" id="estado-card">
+      <div class="swipe-nav">
+      <button type="button" class="swipe-arrow prev" id="estado-arrow-prev" aria-label="Anterior" hidden>‹</button>
       <div class="estado-swipe" id="estado-swipe">
         <div class="estado-page" data-estado="geral">
           <div class="estado-ball" id="estado-geral-ball"><span class="n" id="verdict-n">—</span></div>
-          <p class="estado-title">Estado geral</p>
-          <p class="estado-legend">Bem-estar e hábitos — sono, treino, peso e álcool</p>
-          <p class="estado-sub" id="estado-geral-sub">Toca para ver a avaliação.</p>
+          <p class="estado-title" data-i18n="Overall status">Estado geral</p>
+          <p class="estado-legend" data-i18n="Wellbeing &amp; habits — sleep, training, weight and alcohol">Bem-estar e hábitos — sono, treino, peso e álcool</p>
+          <p class="estado-sub" id="estado-geral-sub" data-i18n="Tap to see the assessment.">Toca para ver a avaliação.</p>
         </div>
         <div class="estado-page" data-estado="treino" id="estado-page-treino" style="display:none;">
           <div class="estado-ball" id="estado-treino-ball"><span class="n" id="estado-treino-n">—</span></div>
-          <p class="estado-title">Estado geral para treino</p>
-          <p class="estado-legend">Prontidão / risco de overtraining — carga vs. recuperação</p>
-          <p class="estado-sub" id="estado-treino-sub">Toca para saber porquê.</p>
+          <p class="estado-title" data-i18n="Training readiness">Estado geral para treino</p>
+          <p class="estado-legend" data-i18n="Readiness / overtraining risk — load vs. recovery">Prontidão / risco de overtraining — carga vs. recuperação</p>
+          <p class="estado-sub" id="estado-treino-sub" data-i18n="Tap to find out why.">Toca para saber porquê.</p>
         </div>
         <div class="estado-page" data-estado="ciclo" id="estado-page-ciclo" style="display:none;">
           <div class="estado-ball" id="estado-ciclo-ball"><span class="n" id="estado-ciclo-n">—</span></div>
-          <p class="estado-title">Estado do ciclo menstrual</p>
-          <p class="estado-legend">Fase do ciclo, humor, energia e dor</p>
-          <p class="estado-sub" id="estado-ciclo-sub">Toca para saber mais.</p>
+          <p class="estado-title" data-i18n="Menstrual cycle status">Estado do ciclo menstrual</p>
+          <p class="estado-legend" data-i18n="Cycle phase, mood, energy and pain">Fase do ciclo, humor, energia e dor</p>
+          <p class="estado-sub" id="estado-ciclo-sub" data-i18n="Tap to learn more.">Toca para saber mais.</p>
         </div>
+      </div>
+      <button type="button" class="swipe-arrow next" id="estado-arrow-next" aria-label="Seguinte" hidden>›</button>
       </div>
       <div class="estado-dots" id="estado-dots"></div>
     </div>
@@ -6061,63 +6080,63 @@ nav.tabbar button.active svg{
         <div class="dash-big-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 3c.6 2.8-1.8 4-1.8 6.4a3 3 0 0 0 6 0c0-1.2-.5-2-1-2.8 2.2 1 3.8 3.2 3.8 5.9a7 7 0 0 1-14 0C5 8.9 8.5 6.5 12 3Z"/></svg>
         </div>
-        <h3>Comida hoje</h3>
+        <h3 data-i18n="Food today">Comida hoje</h3>
         <div class="stat" id="d-kcal">— <small>kcal</small></div>
-        <div class="trend flat" id="d-kcal-trend">sem dados</div>
+        <div class="trend flat" id="d-kcal-trend" data-i18n="no data">sem dados</div>
       </div>
       <div class="card dashboard-icon-card metric-sleep">
         <div class="dash-big-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 7.5 7.5 0 1 0 20.5 14.5Z"/><path d="M17 4h3l-3 4h3"/><path d="M13.5 2.5h2.5l-2.5 3.5h2.5"/></svg>
         </div>
-        <h3>Sono (última noite)</h3>
+        <h3 data-i18n="Sleep (last night)">Sono (última noite)</h3>
         <div class="stat" id="d-sleep">— <small>h</small></div>
-        <div class="trend flat" id="d-sleep-trend">sem dados</div>
+        <div class="trend flat" id="d-sleep-trend" data-i18n="no data">sem dados</div>
         <div class="detail" id="d-sleep-detail"></div>
       </div>
       <div class="card dashboard-icon-card metric-hydro">
         <div class="dash-big-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 2.5S5.5 9.5 5.5 14.5a6.5 6.5 0 0 0 13 0C18.5 9.5 12 2.5 12 2.5Z"/><path d="M8.5 15.5c1.7 1.3 5.3 1.3 7 0"/></svg>
         </div>
-        <h3>Hidratação hoje</h3>
+        <h3 data-i18n="Hydration today">Hidratação hoje</h3>
         <div class="stat" id="d-hydro">— <small>ml</small></div>
-        <div class="trend flat" id="d-hydro-trend">sem dados</div>
+        <div class="trend flat" id="d-hydro-trend" data-i18n="no data">sem dados</div>
       </div>
       <div class="card dashboard-icon-card metric-last-workout" id="d-workout-card" style="cursor:pointer;">
         <div class="dash-big-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M8 12h8"/><path d="M5 9h2v6H5z"/><path d="M17 9h2v6h-2z"/></svg>
         </div>
-        <h3>Último treino</h3>
+        <h3 data-i18n="Last workout">Último treino</h3>
         <div class="stat" id="d-workout" style="font-size:14px;">—</div>
-        <div class="trend flat" id="d-workout-trend">não ligado</div>
+        <div class="trend flat" id="d-workout-trend" data-i18n="not connected">não ligado</div>
       </div>
     </div>
 
     <div class="card" id="today-workout-card">
       <div class="row space-between" style="align-items:flex-start;">
-        <h3 style="margin:0;">Treino de hoje</h3>
-        <button class="ghost" id="btn-pick-today" type="button">Escolher</button>
+        <h3 style="margin:0;" data-i18n="Today's workout">Treino de hoje</h3>
+        <button class="ghost" id="btn-pick-today" type="button" data-i18n="Choose">Escolher</button>
       </div>
-      <div id="today-workout-body" style="margin-top:10px;"><p class="help" style="margin:0;">Ainda não escolheste o treino de hoje.</p></div>
+      <div id="today-workout-body" style="margin-top:10px;"><p class="help" style="margin:0;" data-i18n="You haven't chosen today's workout yet.">Ainda não escolheste o treino de hoje.</p></div>
     </div>
 
     <div class="card" id="coach-plan-card">
       <div class="row space-between" style="align-items:center;">
-        <h3 style="margin:0;">Treino de hoje</h3>
-        <span class="help" style="margin:0;">Do treinador</span>
+        <h3 style="margin:0;" data-i18n="Today's workout">Treino de hoje</h3>
+        <span class="help" style="margin:0;" data-i18n="From your coach">Do treinador</span>
       </div>
-      <div id="coach-plan-body" style="margin-top:10px;"><p class="help" style="margin:0;">Sem treino do treinador para hoje.</p></div>
+      <div id="coach-plan-body" style="margin-top:10px;"><p class="help" style="margin:0;" data-i18n="No coach workout for today.">Sem treino do treinador para hoje.</p></div>
       <div id="coach-plan-upcoming" style="margin-top:10px;"></div>
     </div>
 
-    <div class="card" id="d-race-card" style="display:none;"><h3>Próxima prova</h3><div class="stat" id="d-race" style="font-size:14px;">—</div><div class="trend flat" id="d-race-trend">sem objetivo</div></div>
+    <div class="card" id="d-race-card" style="display:none;"><h3 data-i18n="Next race">Próxima prova</h3><div class="stat" id="d-race" style="font-size:14px;">—</div><div class="trend flat" id="d-race-trend" data-i18n="no goal">sem objetivo</div></div>
 
   </section>
 
   <!-- ================= HIDRATAÇÃO (fixo) ================= -->
   <section id="tab-hidratacao">
     <div class="subtabs">
-      <button class="ghost active" data-sub="bebida" type="button">Bebida</button>
-      <button class="ghost" data-sub="kcal" type="button">Comida</button>
+      <button class="ghost active" data-sub="bebida" type="button" data-i18n="Drink">Bebida</button>
+      <button class="ghost" data-sub="kcal" type="button" data-i18n="Food">Comida</button>
     </div>
 
     <div class="subview active" id="sub-bebida">
@@ -6149,8 +6168,8 @@ nav.tabbar button.active svg{
         </form>
       </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-        <h3>Registo de hoje</h3>
-        <div id="drink-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste nada hoje.</div></div>
+        <h3 data-i18n="Today's log">Registo de hoje</h3>
+        <div id="drink-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty" data-i18n="Nothing logged today yet.">Ainda não registaste nada hoje.</div></div>
       </div>
     </div>
 
@@ -6168,24 +6187,24 @@ nav.tabbar button.active svg{
           </div>
         </div>
         <div class="alcohol-summary">
-          <div class="mini"><strong id="alcohol-drinks-total">0</strong><span>bebidas hoje</span></div>
-          <div class="mini"><strong id="alcohol-units-total">0</strong><span>ml hoje</span></div>
-          <div class="mini"><strong id="alcohol-kcal-total">0</strong><span>kcal álcool</span></div>
+          <div class="mini"><strong id="alcohol-drinks-total">0</strong><span data-i18n="drinks today">bebidas hoje</span></div>
+          <div class="mini"><strong id="alcohol-units-total">0</strong><span data-i18n="ml today">ml hoje</span></div>
+          <div class="mini"><strong id="alcohol-kcal-total">0</strong><span data-i18n="alcohol kcal">kcal álcool</span></div>
         </div>
         <div class="single-ring-actions">
-          <button class="chip" data-alcohol="beer200" type="button">🍺 Cerveja 200 ml</button>
-          <button class="chip" data-alcohol="beer330" type="button">🍺 Cerveja 330 ml</button>
-          <button class="chip" data-alcohol="beer500" type="button">🍺 Cerveja 500 ml</button>
+          <button class="chip" data-alcohol="beer200" type="button" data-i18n="🍺 Beer 200 ml">🍺 Cerveja 200 ml</button>
+          <button class="chip" data-alcohol="beer330" type="button" data-i18n="🍺 Beer 330 ml">🍺 Cerveja 330 ml</button>
+          <button class="chip" data-alcohol="beer500" type="button" data-i18n="🍺 Beer 500 ml">🍺 Cerveja 500 ml</button>
           <button class="chip" data-alcohol="somersby200" type="button">🍏 Somersby 200 ml</button>
           <button class="chip" data-alcohol="somersby330" type="button">🍏 Somersby 330 ml</button>
-          <button class="chip" data-alcohol="wine" type="button">🍷 Copo de vinho</button>
+          <button class="chip" data-alcohol="wine" type="button" data-i18n="🍷 Glass of wine">🍷 Copo de vinho</button>
           <button class="chip" data-alcohol="gin" type="button">🍸 Gin</button>
         </div>
-        <p class="help single-ring-note">Ideal visual: 0 ml. O álcool soma às kcal do dia e penaliza a pontuação principal.</p>
+        <p class="help single-ring-note" data-i18n="Visual ideal: 0 ml. Alcohol adds to your daily kcal and lowers your main score.">Ideal visual: 0 ml. O álcool soma às kcal do dia e penaliza a pontuação principal.</p>
       </div>
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
-        <h3>Registo de hoje</h3>
-        <div id="alcohol-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty">Ainda não registaste álcool hoje.</div></div>
+        <h3 data-i18n="Today's log">Registo de hoje</h3>
+        <div id="alcohol-today-list" class="scroll-y" style="flex:1; min-height:0;"><div class="empty" data-i18n="No alcohol logged today yet.">Ainda não registaste álcool hoje.</div></div>
       </div>
     </div>
 
@@ -6207,19 +6226,19 @@ nav.tabbar button.active svg{
 
         <div class="macro-row">
           <div class="macro-item carbs">
-            <div class="macro-title"><span></span>Hidratos</div>
+            <div class="macro-title"><span></span><span data-i18n="Carbs">Hidratos</span></div>
             <strong id="kcal-carbs-val">0 g</strong>
             <em id="kcal-carbs-ddr">0% <small>(0% da DDR)</small></em>
           </div>
 
           <div class="macro-item protein">
-            <div class="macro-title"><span></span>Proteína</div>
+            <div class="macro-title"><span></span><span data-i18n="Protein">Proteína</span></div>
             <strong id="kcal-protein-val">0 g</strong>
             <em id="kcal-protein-ddr">0% <small>(0% da DDR)</small></em>
           </div>
 
           <div class="macro-item fat">
-            <div class="macro-title"><span></span>Gordura</div>
+            <div class="macro-title"><span></span><span data-i18n="Fat">Gordura</span></div>
             <strong id="kcal-fat-val">0 g</strong>
             <em id="kcal-fat-ddr">0% <small>(0% da DDR)</small></em>
           </div>
@@ -6228,21 +6247,21 @@ nav.tabbar button.active svg{
       <div class="card fixed-form">
         <div class="entry" id="kcal-food-fields">
           <div class="field" style="min-width:140px;">
-            <label for="kcal-food">Alimento</label>
+            <label for="kcal-food" data-i18n="Food">Alimento</label>
             <div style="position:relative;">
-              <input type="text" id="kcal-food" placeholder="ex: arroz cozido" autocomplete="off" style="width:100%;">
+              <input type="text" id="kcal-food" placeholder="ex: arroz cozido" data-i18n-ph="e.g. cooked rice" autocomplete="off" style="width:100%;">
               <div id="food-suggest" style="display:none;"></div>
             </div>
           </div>
-          <div class="field" style="min-width:80px;"><label for="kcal-grams">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150" min="0" step="any" inputmode="decimal"></div>
+          <div class="field" style="min-width:80px;"><label for="kcal-grams" data-i18n="Qty (g)">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150" min="0" step="any" inputmode="decimal"></div>
         </div>
-        <p class="help" id="kcal-food-note" style="margin-top:4px;">Escreve o alimento e a quantidade — preenchemos calorias e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
+        <p class="help" id="kcal-food-note" style="margin-top:4px;" data-i18n="Type the food and amount — we fill in calories and macros automatically (estimate). You can always adjust by hand.">Escreve o alimento e a quantidade — preenchemos calorias e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
         <div id="kcal-food-actions" style="margin-top:8px; display:none; gap:8px; flex-wrap:wrap;"></div>
         <form class="entry" id="form-kcal-values" style="margin-top:8px;">
           <div class="field" style="min-width:80px;"><label for="kcal-value">Kcal</label><input type="number" step="any" id="kcal-value" placeholder="450" required></div>
-          <div class="field" style="min-width:70px;"><label for="kcal-carbs">Hidr. (g)</label><input type="number" step="any" id="kcal-carbs" placeholder="50"></div>
-          <div class="field" style="min-width:70px;"><label for="kcal-protein">Prot. (g)</label><input type="number" step="any" id="kcal-protein" placeholder="20"></div>
-          <div class="field" style="min-width:70px;"><label for="kcal-fat">Gord. (g)</label><input type="number" step="any" id="kcal-fat" placeholder="15"></div>
+          <div class="field" style="min-width:70px;"><label for="kcal-carbs" data-i18n="Carbs (g)">Hidr. (g)</label><input type="number" step="any" id="kcal-carbs" placeholder="50"></div>
+          <div class="field" style="min-width:70px;"><label for="kcal-protein" data-i18n="Protein (g)">Prot. (g)</label><input type="number" step="any" id="kcal-protein" placeholder="20"></div>
+          <div class="field" style="min-width:70px;"><label for="kcal-fat" data-i18n="Fat (g)">Gord. (g)</label><input type="number" step="any" id="kcal-fat" placeholder="15"></div>
           <button class="primary" type="submit">+</button>
         </form>
       </div>
@@ -6670,15 +6689,23 @@ nav.tabbar button.active svg{
 
   <!-- ================= PERFIL (com subgrupos) ================= -->
   <section id="tab-perfil">
-    <h2 class="section-title">Perfil</h2>
+    <h2 class="section-title" data-i18n="Profile">Perfil</h2>
+
+    <div class="card lang-switch-card">
+      <span data-i18n="Language">Idioma</span>
+      <span class="lang-seg" id="lang-switch">
+        <button type="button" data-lang="pt"><span class="lf">🇵🇹</span>PT</button>
+        <button type="button" data-lang="en"><span class="lf">🇬🇧</span>EN</button>
+      </span>
+    </div>
 
     <div class="subtabs profile-subtabs" id="profile-subtabs">
-      <button class="ghost active" data-profile-tab="atleta" type="button">Atleta</button>
+      <button class="ghost active" data-profile-tab="atleta" type="button" data-i18n="Athlete">Atleta</button>
       <button class="ghost" data-profile-tab="strava" type="button">Strava</button>
-      <button class="ghost" data-profile-tab="zonas" type="button">Zonas cardio</button>
-      <button class="ghost" data-profile-tab="nutricao" type="button">Nutrição IA</button>
-      <button class="ghost" data-profile-tab="dados" type="button">Dados</button>
-      <button class="ghost" data-profile-tab="historico" type="button">Histórico</button>
+      <button class="ghost" data-profile-tab="zonas" type="button" data-i18n="Zones">Zonas</button>
+      <button class="ghost" data-profile-tab="nutricao" type="button" data-i18n="AI Nutrition">Nutrição IA</button>
+      <button class="ghost" data-profile-tab="dados" type="button" data-i18n="Data">Dados</button>
+      <button class="ghost" data-profile-tab="historico" type="button" data-i18n="History">Histórico</button>
     </div>
 
     <div class="fill scroll-y profile-content">
@@ -6794,6 +6821,40 @@ nav.tabbar button.active svg{
             <div class="empty">Sem zonas guardadas.</div>
           </div>
 
+          <div class="profile-group-head" style="margin-top:18px;">
+            <div class="profile-group-icon">⚡</div>
+            <div>
+              <h3>Zonas de potência (bike)</h3>
+              <p class="help" style="margin:0;">Em watts. Baseadas no teu FTP (Strava &gt; Definições &gt; Zonas de treino &gt; Potência).</p>
+            </div>
+          </div>
+          <form class="manual-hr-zone-form zone-ref-grid" id="form-power-zones">
+            <div class="field zone-input z1"><label for="pw-z1-ref">Z1 até</label><input type="number" id="pw-z1-ref" placeholder="150"></div>
+            <div class="field zone-input z2"><label for="pw-z2-ref">Z2 até</label><input type="number" id="pw-z2-ref" placeholder="205"></div>
+            <div class="field zone-input z3"><label for="pw-z3-ref">Z3 até</label><input type="number" id="pw-z3-ref" placeholder="245"></div>
+            <div class="field zone-input z4"><label for="pw-z4-ref">Z4 até</label><input type="number" id="pw-z4-ref" placeholder="290"></div>
+            <div class="field zone-input z5"><label for="pw-z5-ref">Z5 desde</label><input type="number" id="pw-z5-ref" placeholder="291"></div>
+            <button class="primary" type="submit">Guardar potência</button>
+          </form>
+          <div id="power-zones-list" class="strava-zone-list zone-color-list" style="margin-top:12px;"><div class="empty">Sem zonas de potência.</div></div>
+
+          <div class="profile-group-head" style="margin-top:18px;">
+            <div class="profile-group-icon">🏃</div>
+            <div>
+              <h3>Zonas de pace (corrida)</h3>
+              <p class="help" style="margin:0;">Ritmo por km (mm:ss). Do mais lento (Z1) ao mais rápido (Z5).</p>
+            </div>
+          </div>
+          <form class="manual-hr-zone-form zone-ref-grid" id="form-pace-zones">
+            <div class="field zone-input z1"><label for="pc-z1-ref">Z1 até</label><input type="text" inputmode="numeric" id="pc-z1-ref" placeholder="6:00"></div>
+            <div class="field zone-input z2"><label for="pc-z2-ref">Z2 até</label><input type="text" inputmode="numeric" id="pc-z2-ref" placeholder="5:20"></div>
+            <div class="field zone-input z3"><label for="pc-z3-ref">Z3 até</label><input type="text" inputmode="numeric" id="pc-z3-ref" placeholder="4:45"></div>
+            <div class="field zone-input z4"><label for="pc-z4-ref">Z4 até</label><input type="text" inputmode="numeric" id="pc-z4-ref" placeholder="4:15"></div>
+            <div class="field zone-input z5"><label for="pc-z5-ref">Z5 desde</label><input type="text" inputmode="numeric" id="pc-z5-ref" placeholder="4:00"></div>
+            <button class="primary" type="submit">Guardar pace</button>
+          </form>
+          <div id="pace-zones-list" class="strava-zone-list zone-color-list" style="margin-top:12px;"><div class="empty">Sem zonas de pace.</div></div>
+
           <div class="card profile-note-card" style="margin-top:14px; padding:14px; box-shadow:none;">
             <p class="help" id="strava-zones-note" style="margin:0;"><strong>Atalho no Strava:</strong> Perfil &gt; Definições &gt; Zonas de treino &gt; Frequência cardíaca. Copia apenas os valores de referência: Z1 até, Z2 até, Z3 até, Z4 até e Z5 desde.</p>
           </div>
@@ -6882,11 +6943,11 @@ nav.tabbar button.active svg{
 </main>
 
 <nav class="tabbar" id="tabbar">
-  <button data-tab="dashboard" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>Painel</button>
-  <button data-tab="hidratacao" type="button"><svg viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg>Nutrição</button>
-  <button data-tab="treinos" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Treinos</button>
-  <button data-tab="saude" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg>Saúde</button>
-  <button data-tab="perfil" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Perfil</button>
+  <button data-tab="dashboard" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg><span data-i18n="Dashboard">Painel</span></button>
+  <button data-tab="hidratacao" type="button"><svg viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg><span data-i18n="Nutrition">Nutrição</span></button>
+  <button data-tab="treinos" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span data-i18n="Training">Treinos</span></button>
+  <button data-tab="saude" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg><span data-i18n="Health">Saúde</span></button>
+  <button data-tab="perfil" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span data-i18n="Profile">Perfil</span></button>
 </nav>
 
 </div><!-- /app-content -->
@@ -6940,6 +7001,13 @@ nav.tabbar button.active svg{
       <button type="button" id="pulso-confirm-no">Não</button>
       <button type="button" id="pulso-confirm-yes" class="primary">Sim</button>
     </div>
+  </div>
+</div>
+
+<div id="wk-modal" hidden aria-hidden="true">
+  <div class="wk-modal-box">
+    <div class="wk-modal-head"><h3>Perfil do treino</h3><button type="button" id="wk-modal-close" aria-label="Fechar">×</button></div>
+    <div id="wk-modal-body"></div>
   </div>
 </div>
 
@@ -7867,23 +7935,23 @@ nav.tabbar button.active svg{
     const isAlcohol = drink.kind === 'alcohol';
 
     const nameEl = document.getElementById('drink-name');
-    if(nameEl) nameEl.textContent = drink.key;
+    if(nameEl) nameEl.textContent = PL(drink.key, ({'Água':'Water','Café':'Coffee','Sumo':'Juice','Sumo Zero':'Zero juice','Álcool':'Alcohol'})[drink.key] || drink.key);
 
     const valEl  = document.getElementById('drink-ring-val');
     const unitEl = document.getElementById('drink-ring-unit');
     const goalEl = document.getElementById('drink-ring-goal');
     const ringEl = document.getElementById('drink-ring-circle');
     if(valEl) valEl.textContent = total;
-    if(unitEl) unitEl.textContent = isCoffee ? (total===1 ? 'café' : 'cafés') : 'ml';
+    if(unitEl) unitEl.textContent = isCoffee ? (total===1 ? PL('café','coffee') : PL('cafés','coffees')) : 'ml';
 
     const C = 540.35;
     let pct = 0, goalText = '';
     if(isCoffee){
-      const goal = drink.goalMax || 4; pct = Math.min(1, total/goal); goalText = '/ ' + goal + ' cafés';
+      const goal = drink.goalMax || 4; pct = Math.min(1, total/goal); goalText = '/ ' + goal + PL(' cafés',' coffees');
     } else if(isAlcohol){
       pct = Math.min(1, total/1000);
       const totals = getTodayAlcoholTotals();
-      goalText = totals.drinks ? (totals.drinks + ' bebidas · ' + totals.kcal + ' kcal') : 'ideal 0 ml';
+      goalText = totals.drinks ? (totals.drinks + PL(' bebidas · ',' drinks · ') + totals.kcal + ' kcal') : PL('ideal 0 ml','ideal 0 ml');
     } else {
       const goal = drink.key === 'Água' ? getDailyWaterGoalMl() : (drink.goalMl || 1000);
       pct = Math.min(1, goal ? total/goal : 0);
@@ -7915,13 +7983,13 @@ nav.tabbar button.active svg{
 
     const noteEl = document.getElementById('drink-note');
     if(noteEl){
-      const swipe = ' Desliza para ver as bebidas.';
-      if(drink.key === 'Água') noteEl.textContent = 'Meta diária ajustada ao atleta: ' + getDailyWaterGoalMl() + ' ml.' + swipe;
-      else if(isCoffee) noteEl.textContent = 'Cada café conta ' + COFFEE_KCAL + ' kcal.' + swipe;
-      else if(isAlcohol) noteEl.textContent = 'Bebe com moderação.' + swipe;
-      else if(drink.key === 'Sumo') noteEl.textContent = 'Sumo — ~' + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml.' + swipe;
-      else if(drink.key === 'Sumo Zero') noteEl.textContent = 'Sumo zero kcal.' + swipe;
-      else noteEl.textContent = 'Bebida sem calorias.' + swipe;
+      const swipe = PL(' Desliza para ver as bebidas.',' Swipe to see the drinks.');
+      if(drink.key === 'Água') noteEl.textContent = PL('Meta diária ajustada ao atleta: ','Daily goal tailored to the athlete: ') + getDailyWaterGoalMl() + ' ml.' + swipe;
+      else if(isCoffee) noteEl.textContent = PL('Cada café conta ','Each coffee counts ') + COFFEE_KCAL + ' kcal.' + swipe;
+      else if(isAlcohol) noteEl.textContent = PL('Bebe com moderação.','Drink in moderation.') + swipe;
+      else if(drink.key === 'Sumo') noteEl.textContent = PL('Sumo — ~','Juice — ~') + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml.' + swipe;
+      else if(drink.key === 'Sumo Zero') noteEl.textContent = PL('Sumo zero kcal.','Zero-kcal juice.') + swipe;
+      else noteEl.textContent = PL('Bebida sem calorias.','Calorie-free drink.') + swipe;
     }
 
     const customForm = document.getElementById('form-drink-custom');
@@ -7938,7 +8006,7 @@ nav.tabbar button.active svg{
     hydrationEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'hydration', time:e.time, label:drinkDisplayLabel(e.type), qty:(e.ml + ' ml') }));
     coffeeEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'coffee', time:e.time, label:'Café', qty:((e.units||1) + ' café') }));
     alcoholEntries.filter(e=>e.date===today).forEach(e=> rows.push({ id:e.id, store:'alcohol', time:e.time, label:(e.type||'Álcool'), qty:(getAlcoholMl(e) + ' ml') }));
-    if(rows.length === 0){ listEl.innerHTML = '<div class="empty">Ainda não registaste nada hoje.</div>'; return; }
+    if(rows.length === 0){ listEl.innerHTML = '<div class="empty">' + PL('Ainda não registaste nada hoje.','Nothing logged today yet.') + '</div>'; return; }
     rows.sort((a,b)=> new Date(b.time) - new Date(a.time));
     listEl.innerHTML = '<table class="log"><thead><tr><th>Hora</th><th>Bebida</th><th>Qtd.</th><th></th></tr></thead><tbody>' +
       rows.map(r=>`<tr><td>${new Date(r.time).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})}</td><td>${r.label}</td><td>${r.qty}</td><td><button class="icon-btn" data-ddel="${r.id}" data-store="${r.store}">✕</button></td></tr>`).join('') +
@@ -8509,7 +8577,7 @@ nav.tabbar button.active svg{
       const rd = window.PulsoReadiness ? window.PulsoReadiness.compute(readinessLocalGet) : null;
       if(rd && rd.hasData){
         const col = rd.level==='green'?'#35D9A6':(rd.level==='yellow'?'#F2B84B':'#F2555A');
-        const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+        const rlbl = rd.level==='green' ? 'Recuperado' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
         estadoSetBall('estado-treino-ball','estado-treino-n', rd.score, col);
         const sub = document.getElementById('estado-treino-sub'); if(sub) sub.textContent = rlbl + ' · toca para saber porquê.';
         const explain = 'Estado geral para treino: ' + rd.score + '/100 — ' + rlbl + '.\n\n'+
@@ -8536,12 +8604,14 @@ nav.tabbar button.active svg{
         const sc = cyc.wellbeing;
         const col = sc>=75?'#35D9A6':(sc>=50?'#F2B84B':'#F2555A');
         estadoSetBall('estado-ciclo-ball','estado-ciclo-n', sc, col);
-        const sub = document.getElementById('estado-ciclo-sub'); if(sub) sub.textContent = 'Fase ' + cyc.phase + ' · dia ' + cyc.cycleDay + ' · toca para saber mais.';
-        const explain = 'Estado do ciclo menstrual: ' + sc + '/100.\n\n'+
-          'Combina a fase do teu ciclo com o humor, energia e dor que registas.\n\n'+
-          'Fase atual: ' + cyc.phase + ' (dia ' + cyc.cycleDay + ').\n'+
-          'Disponibilidade para treino: ' + cyc.availability + '/100.\n\n'+
-          cyc.tip;
+        const cycDiff = sc>=75 ? 'Fase favorável' : (sc>=50 ? 'Fase exigente' : 'Fase difícil');
+        const sub = document.getElementById('estado-ciclo-sub'); if(sub) sub.textContent = cycDiff + ' · fase ' + cyc.phase + ' · toca para saber mais.';
+        const explain = 'Estado do ciclo menstrual: ' + sc + '/100 — ' + cycDiff + '.\n\n'+
+          'Indica o quanto o ciclo pode dificultar o treino hoje, combinando a fase com o humor, energia e dor que registas. Quanto mais alto, mais favorável.\n\n'+
+          '• 75–100: fase favorável — treina normalmente.\n'+
+          '• 50–74: fase exigente — pode custar mais.\n'+
+          '• Abaixo de 50: fase difícil — alivia a intensidade.\n\n'+
+          'Fase atual: ' + cyc.phase + ' (dia ' + cyc.cycleDay + ').\n' + cyc.tip;
         estadoSetTap('estado-ciclo-ball', explain);
         if(cyclePage) cyclePage.style.display = '';
         visible++;
@@ -8560,6 +8630,10 @@ nav.tabbar button.active svg{
         dots.querySelectorAll('[data-ed]').forEach(d=> d.onclick = ()=>{ const i=Number(d.getAttribute('data-ed')); if(sw) sw.scrollTo({left:i*sw.clientWidth, behavior:'smooth'}); });
       }
     }
+    const aPrev = document.getElementById('estado-arrow-prev');
+    const aNext = document.getElementById('estado-arrow-next');
+    if(aPrev) aPrev.hidden = visible <= 1;
+    if(aNext) aNext.hidden = visible <= 1;
   }
   (function bindEstadoSwipe(){
     const sw = document.getElementById('estado-swipe');
@@ -8568,6 +8642,18 @@ nav.tabbar button.active svg{
       document.querySelectorAll('#estado-dots .estado-dot').forEach((d,idx)=> d.classList.toggle('active', idx===i));
     });
   })();
+
+  // ---- Setas laterais genéricas para carrosséis (permitem navegar com o rato no computador) ----
+  document.addEventListener('click', function(e){
+    const arr = e.target.closest('.swipe-arrow');
+    if(!arr) return;
+    const nav = arr.closest('.swipe-nav'); if(!nav) return;
+    const sc = nav.querySelector('.estado-swipe, .coach-chart-swiper, [data-swipe-scroll]');
+    if(!sc) return;
+    e.preventDefault(); e.stopPropagation();
+    const step = Math.max(1, sc.clientWidth);
+    sc.scrollBy({ left: arr.classList.contains('prev') ? -step : step, behavior:'smooth' });
+  });
 
 
   document.getElementById('cycle-cal-prev')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()-1, 1); renderCycleCalendar(); });
@@ -10361,6 +10447,40 @@ nav.tabbar button.active svg{
     });
   }
 
+  // ---- Zonas de potência (W) e pace (mm:ss/km), manuais ----
+  let powerZones = null, paceZones = null;
+  function zoneRowsHtml(refs, fmt){
+    if(!refs || refs.every(v=>v==null)) return '<div class="empty">Sem zonas guardadas.</div>';
+    return ['Z1','Z2','Z3','Z4','Z5'].map((z,i)=> refs[i]==null ? '' : '<div class="strava-zone-row zone-'+(i+1)+'"><strong>'+z+'</strong><span>'+fmt(refs[i],i)+'</span></div>').filter(Boolean).join('');
+  }
+  function renderPowerZones(){
+    const el = document.getElementById('power-zones-list');
+    if(el) el.innerHTML = zoneRowsHtml(powerZones && powerZones.refs, (v,i)=> i===4 ? ('≥ '+v+' W') : ('até '+v+' W'));
+    if(powerZones && powerZones.refs) for(let i=1;i<=5;i++){ const inp=document.getElementById('pw-z'+i+'-ref'); if(inp && powerZones.refs[i-1]!=null && inp.value==='') inp.value = powerZones.refs[i-1]; }
+  }
+  function renderPaceZones(){
+    const el = document.getElementById('pace-zones-list');
+    if(el) el.innerHTML = zoneRowsHtml(paceZones && paceZones.refs, (v,i)=> (i===4 ? 'mais rápido que ' : 'até ') + v + ' /km');
+    if(paceZones && paceZones.refs) for(let i=1;i<=5;i++){ const inp=document.getElementById('pc-z'+i+'-ref'); if(inp && paceZones.refs[i-1]!=null && inp.value==='') inp.value = paceZones.refs[i-1]; }
+  }
+  window.PulsoRenderZones = function(){ try{ renderPowerZones(); renderPaceZones(); }catch(e){} };
+  const powerForm = document.getElementById('form-power-zones');
+  if(powerForm) powerForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const refs = []; for(let i=1;i<=5;i++){ const el=document.getElementById('pw-z'+i+'-ref'); const v=el&&el.value!==''?Number(el.value):null; refs.push(Number.isFinite(v)?v:null); }
+    if(refs.every(v=>v===null)){ powerZones=null; await sSet('power-zones', null); renderPowerZones(); toast('Zonas de potência apagadas'); return; }
+    powerZones = { refs, updatedAt:new Date().toISOString() };
+    await sSet('power-zones', powerZones); renderPowerZones(); toast('Zonas de potência guardadas');
+  });
+  const paceForm = document.getElementById('form-pace-zones');
+  if(paceForm) paceForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const refs = []; for(let i=1;i<=5;i++){ const el=document.getElementById('pc-z'+i+'-ref'); refs.push(el&&el.value.trim()!==''?el.value.trim():null); }
+    if(refs.every(v=>v===null)){ paceZones=null; await sSet('pace-zones', null); renderPaceZones(); toast('Zonas de pace apagadas'); return; }
+    paceZones = { refs, updatedAt:new Date().toISOString() };
+    await sSet('pace-zones', paceZones); renderPaceZones(); toast('Zonas de pace guardadas');
+  });
+
   function getManualHrRefs(zones){
     if(stravaZones && Array.isArray(stravaZones.refs) && stravaZones.refs.length){
       return stravaZones.refs;
@@ -11415,7 +11535,7 @@ nav.tabbar button.active svg{
     const todaysHydro = hydrationEntries.filter(e=>e.date===today && (e.type||'Água')==='Água').reduce((s,e)=>s+e.ml,0);
     document.getElementById('d-hydro').innerHTML = todaysHydro + ' <small>ml</small>';
     const hydroTrendEl = document.getElementById('d-hydro-trend');
-    hydroTrendEl.textContent = todaysHydro >= WATER_GOAL_ML ? 'meta atingida' : (WATER_GOAL_ML - todaysHydro) + ' ml para a meta';
+    hydroTrendEl.textContent = todaysHydro >= WATER_GOAL_ML ? PL('meta atingida','goal reached') : (WATER_GOAL_ML - todaysHydro) + PL(' ml para a meta',' ml to goal');
     hydroTrendEl.className = 'trend ' + (todaysHydro >= WATER_GOAL_ML ? 'down' : 'flat');
 
     // Kcal de hoje (líquidas: ingeridas - gasto do treino)
@@ -11432,11 +11552,11 @@ nav.tabbar button.active svg{
       const dKcalTrend = document.getElementById('d-kcal-trend');
       if(dKcalTrend){
         const goalK = estimateMaintenanceKcal();
-        if(!kToday.length && !intakeK){ dKcalTrend.textContent = 'sem registos'; dKcalTrend.className = 'trend flat'; }
+        if(!kToday.length && !intakeK){ dKcalTrend.textContent = PL('sem registos','no entries'); dKcalTrend.className = 'trend flat'; }
         else if(goalK){
-          dKcalTrend.textContent = netK <= goalK ? (goalK - netK) + ' kcal p/ meta' : (netK - goalK) + ' kcal acima';
+          dKcalTrend.textContent = netK <= goalK ? (goalK - netK) + PL(' kcal p/ meta',' kcal to goal') : (netK - goalK) + PL(' kcal acima',' kcal over');
           dKcalTrend.className = 'trend ' + (netK <= goalK ? 'down' : 'up');
-        }else{ dKcalTrend.textContent = 'líquidas hoje'; dKcalTrend.className = 'trend flat'; }
+        }else{ dKcalTrend.textContent = PL('líquidas hoje','net today'); dKcalTrend.className = 'trend flat'; }
       }
     }
 
@@ -11446,7 +11566,7 @@ nav.tabbar button.active svg{
       document.getElementById('d-workout-trend').textContent = fmtDateShort(last.date) + ' · ' + (last.distanceKm?last.distanceKm.toFixed(1)+'km':Math.round(last.movingSec/60)+'min');
       document.getElementById('d-workout-trend').className = 'trend flat';
     }else{
-      document.getElementById('d-workout-trend').textContent = stravaAuth && stravaAuth.accessToken ? 'sem treinos ainda' : 'não ligado';
+      document.getElementById('d-workout-trend').textContent = stravaAuth && stravaAuth.accessToken ? PL('sem treinos ainda','no workouts yet') : PL('não ligado','not connected');
     }
 
     const raceCard = document.getElementById('d-race-card');
@@ -11454,7 +11574,7 @@ nav.tabbar button.active svg{
       const daysLeft = Math.ceil((new Date(raceGoal.date)-new Date())/(24*3600*1000));
       document.getElementById('d-race').textContent = raceGoal.name;
       const details = [];
-      if(daysLeft > 0) details.push('faltam ' + daysLeft + ' dias'); else details.push('já realizada');
+      if(daysLeft > 0) details.push(PL('faltam ','in ') + daysLeft + PL(' dias',' days')); else details.push(PL('já realizada','completed'));
       if(raceGoal.distanceKm) details.push(raceGoal.distanceKm + ' km');
       if(raceGoal.elevationM) details.push(raceGoal.elevationM + ' D+');
       document.getElementById('d-race-trend').textContent = details.join(' · ');
@@ -11544,6 +11664,9 @@ nav.tabbar button.active svg{
     todayPlan = await sGet('today-plan', null);
     raceGoal = await sGet('race-goal', null);
     cycleData = await sGet('cycle-data', { starts:[], periodLen:5, logs:{}, shareCoach:false });
+    powerZones = await sGet('power-zones', null);
+    paceZones = await sGet('pace-zones', null);
+    try{ renderPowerZones(); renderPaceZones(); }catch(e){}
     if(!cycleData || typeof cycleData !== 'object') cycleData = { starts:[], periodLen:5, logs:{}, shareCoach:false };
     if(!Array.isArray(cycleData.starts)) cycleData.starts = [];
     if(raceGoal){
@@ -11568,6 +11691,15 @@ nav.tabbar button.active svg{
 
     if(stravaAuth && stravaAuth.accessToken){ syncStrava({silent:true, recent:true}).catch(err=>console.error('Falha no sync Strava', err)); }
   }
+
+  // Re-renderiza conteúdo gerado por JS quando o idioma muda (textos via PL()).
+  window.addEventListener('pulso:langchange', function(){
+    try{ renderDashboard(); }catch(e){}
+    try{ renderTodayWorkout(); }catch(e){}
+    try{ if(typeof renderEstadoBalls === 'function') renderEstadoBalls(); }catch(e){}
+    try{ if(typeof renderDrinks === 'function') renderDrinks(); }catch(e){}
+    try{ if(window.PulsoI18n) window.PulsoI18n.apply(); }catch(e){}
+  });
 })();
 </script>
 
@@ -15166,18 +15298,39 @@ nav.tabbar button.active svg{
               <div class="cwb-sub" id="cwb-main-card">
                 <div class="cwb-field" id="cwb-main-wrap"><label for="cwb-main">Bloco principal</label>
                   <select id="cwb-main">
-                    <option>Tempo</option><option>Intervalos</option><option>Repetições</option>
-                    <option>Subidas</option><option>Pirâmide</option><option>Fartlek</option><option>Livre</option>
+                    <option>Tempo</option><option>Progressivo</option><option>Intervalos</option><option>Repetições</option>
+                    <option>Over/Under</option><option>Subidas</option><option>Acelerações</option>
+                    <option>Pirâmide</option><option>Fartlek</option><option>Livre</option>
                   </select>
                 </div>
 
                 <div class="cwb-row" id="cwb-int-fields" style="display:none; margin-top:9px;">
-                  <div class="cwb-field"><label>Séries</label><select id="cwb-int-series"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select></div>
-                  <div class="cwb-field"><label>Esforço</label><select id="cwb-int-effort"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
+                  <div class="cwb-field"><label>Séries</label><select id="cwb-int-series"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option><option>10</option><option>12</option><option>14</option><option>15</option><option>16</option><option>20</option></select></div>
+                  <div class="cwb-field"><label>Esforço</label><select id="cwb-int-effort"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="90">90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option><option value="360">6 min</option><option value="480">8 min</option><option value="600">10 min</option><option value="720">12 min</option><option value="d200">200 m</option><option value="d300">300 m</option><option value="d400">400 m</option><option value="d600">600 m</option><option value="d800">800 m</option><option value="d1000">1000 m</option><option value="d1200">1200 m</option><option value="d1600">1600 m</option><option value="d2000">2000 m</option></select></div>
                   <div class="cwb-field" id="cwb-int-ex-wrap"><label>Exercício</label><select id="cwb-int-ex"></select></div>
-                  <div class="cwb-field"><label>Intensidade</label><select id="cwb-int-int"><option>Z3</option><option>Z4</option><option selected>Z5</option><option>FTP</option><option>RPE</option><option>Livre</option></select></div>
-                  <div class="cwb-field"><label>Recuperação</label><select id="cwb-int-rec"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
+                  <div class="cwb-field"><label>Intensidade por</label><select id="cwb-int-metric"><option>Zona FC</option><option>Pace</option><option>Watts</option><option>RPE</option><option>Livre</option></select></div>
+                  <div class="cwb-field"><label>Intensidade</label><select id="cwb-int-int"><option>Z1</option><option>Z2</option><option>Z3</option><option>Z4</option><option selected>Z5</option></select></div>
+                  <div class="cwb-field"><label>Recuperação</label><select id="cwb-int-rec"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="90">90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
                   <div class="cwb-field"><label>Tipo recuperação</label><select id="cwb-int-rectype"><option>Parado</option><option>Caminhada</option><option selected>Trote</option><option>Bike leve</option></select></div>
+                </div>
+                <div class="cwb-row" id="cwb-prog-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Duração</label><select id="cwb-prog-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option></select></div>
+                  <div class="cwb-field"><label>Zona inicial</label><select id="cwb-prog-z1"><option>Z1</option><option selected>Z2</option><option>Z3</option></select></div>
+                  <div class="cwb-field"><label>Zona final</label><select id="cwb-prog-z2"><option>Z3</option><option selected>Z4</option><option>Z5</option></select></div>
+                </div>
+                <div class="cwb-row" id="cwb-ou-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Blocos</label><select id="cwb-ou-blocks"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
+                  <div class="cwb-field"><label>Tempo "under"</label><select id="cwb-ou-under"><option value="60">1 min</option><option value="120" selected>2 min</option><option value="180">3 min</option><option value="240">4 min</option></select></div>
+                  <div class="cwb-field"><label>Zona under</label><select id="cwb-ou-uz"><option selected>Z3</option><option>Limiar</option></select></div>
+                  <div class="cwb-field"><label>Tempo "over"</label><select id="cwb-ou-over"><option value="30">30 s</option><option value="60" selected>1 min</option><option value="120">2 min</option></select></div>
+                  <div class="cwb-field"><label>Zona over</label><select id="cwb-ou-oz"><option selected>Z4</option><option>Z5</option></select></div>
+                  <div class="cwb-field"><label>Recuperação entre blocos</label><select id="cwb-ou-rec"><option value="0">Sem</option><option value="60">1 min</option><option value="120" selected>2 min</option><option value="180">3 min</option></select></div>
+                </div>
+                <div class="cwb-row" id="cwb-acc-fields" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label>Número</label><select id="cwb-acc-n"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select></div>
+                  <div class="cwb-field"><label>Duração</label><select id="cwb-acc-dur"><option value="10">10 s</option><option value="15">15 s</option><option value="20" selected>20 s</option><option value="30">30 s</option></select></div>
+                  <div class="cwb-field"><label>Recuperação</label><select id="cwb-acc-rec"><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="90">90 s</option></select></div>
+                  <div class="cwb-field"><label>Intensidade</label><select id="cwb-acc-int"><option selected>Rápido controlado</option><option>Máximo</option><option>Progressivo</option></select></div>
                 </div>
 
                 <div class="cwb-row" id="cwb-time-fields" style="display:none; margin-top:9px;">
@@ -15694,6 +15847,9 @@ nav.tabbar button.active svg{
     cwbShow('cwb-cool-fields', !!(cool && cool.checked));
 
     cwbShow('cwb-int-fields', isSport && !isLongo && (main==='Intervalos' || main==='Repetições'));
+    cwbShow('cwb-prog-fields', isSport && !isLongo && main==='Progressivo');
+    cwbShow('cwb-ou-fields', isSport && !isLongo && main==='Over/Under');
+    cwbShow('cwb-acc-fields', isSport && !isLongo && main==='Acelerações');
     cwbShow('cwb-time-fields', isSport && !isLongo && (main==='Tempo' || main==='Fartlek'));
     cwbShow('cwb-sub-fields', isSport && !isLongo && main==='Subidas');
     cwbShow('cwb-pyr-fields', isSport && !isLongo && main==='Pirâmide');
@@ -15759,14 +15915,42 @@ nav.tabbar button.active svg{
       minutes += d;
     }else if(main==='Intervalos' || main==='Repetições'){
       const n = parseInt(cwbVal('cwb-int-series'),10);
-      const eff = parseInt(cwbVal('cwb-int-effort'),10);
+      const effRaw = cwbVal('cwb-int-effort');
+      let eff, effLabel;
+      if(effRaw && effRaw.charAt(0)==='d'){ const m = parseInt(effRaw.slice(1),10)||400; effLabel = m + ' m'; eff = Math.round(m/1000*270); }
+      else { eff = parseInt(effRaw,10)||60; effLabel = cwbFmtSec(eff); }
       const rec = parseInt(cwbVal('cwb-int-rec'),10);
       const ex = cwbVal('cwb-int-ex');
-      const intn = cwbVal('cwb-int-int');
-      const unit = (ex && ex!=='Tempo livre') ? ex : cwbFmtSec(eff);
-      lines.push(`${n} × ${unit}${intn!=='Livre'?' '+intn:''}`);
+      const metric = cwbVal('cwb-int-metric');
+      const zone = cwbVal('cwb-int-int');
+      let intLabel = '';
+      if(metric !== 'Livre' && zone && zone!=='Livre'){
+        const suffix = metric==='Pace' ? ' (pace)' : metric==='Watts' ? ' (watts)' : metric==='RPE' ? ' (RPE)' : '';
+        intLabel = ' ' + zone + suffix;
+      }
+      const unit = (ex && ex!=='Tempo livre') ? ex : effLabel;
+      lines.push(`${n} × ${unit}${intLabel}`);
       lines.push(`Recuperação ${cwbFmtSec(rec)} — ${cwbVal('cwb-int-rectype')}`);
       minutes += Math.round(n * (eff + rec) / 60);
+    }else if(main==='Progressivo'){
+      const d = parseInt(cwbVal('cwb-prog-dur'),10);
+      lines.push(`${d} min progressivo ${cwbVal('cwb-prog-z1')} → ${cwbVal('cwb-prog-z2')}`);
+      minutes += d;
+    }else if(main==='Over/Under'){
+      const n = parseInt(cwbVal('cwb-ou-blocks'),10);
+      const u = parseInt(cwbVal('cwb-ou-under'),10);
+      const o = parseInt(cwbVal('cwb-ou-over'),10);
+      const rec = parseInt(cwbVal('cwb-ou-rec'),10)||0;
+      lines.push(`${n} × [${cwbFmtSec(u)} ${cwbVal('cwb-ou-uz')} + ${cwbFmtSec(o)} ${cwbVal('cwb-ou-oz')}]`);
+      if(rec>0) lines.push(`Recuperação ${cwbFmtSec(rec)} entre blocos`);
+      minutes += Math.round(n * (u + o + rec) / 60);
+    }else if(main==='Acelerações'){
+      const n = parseInt(cwbVal('cwb-acc-n'),10);
+      const d = parseInt(cwbVal('cwb-acc-dur'),10);
+      const rec = parseInt(cwbVal('cwb-acc-rec'),10);
+      lines.push(`${n} × ${cwbFmtSec(d)} acelerações (${cwbVal('cwb-acc-int')})`);
+      lines.push(`Recuperação ${cwbFmtSec(rec)}`);
+      minutes += Math.round(n * (d + rec) / 60);
     }else if(main==='Subidas'){
       const n = parseInt(cwbVal('cwb-sub-reps'),10);
       const t = parseInt(cwbVal('cwb-sub-time'),10);
@@ -16037,7 +16221,7 @@ nav.tabbar button.active svg{
           const rd = window.PulsoReadiness.compute(athleteGetter(a.id));
           if(rd && rd.hasData){
             const dot = rd.level==='green' ? '🟢' : (rd.level==='yellow' ? '🟡' : '🔴');
-            const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+            const rlbl = rd.level==='green' ? 'Recuperado' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
             const explain = 'Prontidão de ' + (a.name||'atleta') + ': ' + rd.score + '/100 — ' + rlbl + '.\n\n'+
               'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
               (rd.confidence<3 ? '\n\n⚠ Poucos dados — estimativa menos fiável.' : '') +
@@ -16058,11 +16242,11 @@ nav.tabbar button.active svg{
             const cy = window.PulsoCycle.compute(cycleRaw);
             if(cy && cy.hasData){
               const dot = cy.availability>=70 ? '🟢' : (cy.availability>=45 ? '🟡' : '🔴');
-              const lbl = cy.availability>=70 ? 'Ciclo favorável' : (cy.availability>=45 ? 'Recuperação reduzida' : 'Atenção ao treino');
-              const explain = 'Estado do ciclo de ' + (a.name||'atleta') + ': ' + lbl + ' (disponibilidade ' + cy.availability + '/100).\n\n'+
-                '🟢 Favorável (70+): pode treinar normalmente.\n'+
-                '🟡 Recuperação reduzida (45–69): considera ajustar a carga.\n'+
-                '🔴 Atenção (<45): recomenda-se reduzir a intensidade.\n\n'+
+              const lbl = cy.availability>=70 ? 'Fase favorável' : (cy.availability>=45 ? 'Fase exigente' : 'Fase difícil');
+              const explain = 'Estado do ciclo de ' + (a.name||'atleta') + ' — dificuldade em treinar nesta fase: ' + lbl + ' (' + cy.availability + '/100).\n\n'+
+                '🟢 Fase favorável (70+): treina normalmente.\n'+
+                '🟡 Fase exigente (45–69): pode custar mais — considera ajustar a carga.\n'+
+                '🔴 Fase difícil (<45): recomenda-se aliviar a intensidade.\n\n'+
                 'Apoio à decisão, não diagnóstico.';
               cycleDot = '<span class="coach-athlete-cycdot" role="button" data-cyc-explain="'+esc(explain)+'" title="Ciclo '+cy.availability+'/100 — toca para saber mais">🌙'+dot+'</span>';
             }
@@ -16334,6 +16518,7 @@ nav.tabbar button.active svg{
       if(items.length){
         html += items.map(w=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left;">
           <div class="di-title">${esc(a.name)} — ${esc(w.name||'Treino')}</div>
+          ${workoutProfileHTML(w.desc)}
           ${w.desc ? `<div class="di-desc">${esc(w.desc)}</div>` : ''}
           <div class="coach-pill-row">
             ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
@@ -16468,6 +16653,134 @@ nav.tabbar button.active svg{
     list.innerHTML = acts.length ? acts.slice(0,12).map(renderActivityCompact).join('') : '<p class="help" style="margin:0;">Ainda não há treinos registados neste período.</p>';
   }
 
+  // ---- Perfil visual do treino (barras por intensidade/zona) a partir do texto ----
+  const WK_ZONE_COLORS = ['#4A6FA5','#35D9A6','#F2C94C','#F2994A','#F2555A']; // Z1..Z5
+  function wkLevelOf(txt){
+    const t = String(txt||'').toLowerCase();
+    const zm = t.match(/z\s*([1-5])/); if(zm) return Number(zm[1]);
+    if(/desaquec|recupera|trote|caminhad|arrefec|parado|regenerat/.test(t)) return 1;
+    if(/aquec/.test(t)) return 2;
+    if(/vo₂|vo2|sprint|m[áa]x|5k|pot[êe]nc|acelera/.test(t)) return 5;
+    if(/limiar|tempo|10k|over/.test(t)) return 4;
+    if(/meia|marat|progress|cad[êe]nc|t[ée]cnic|fartlek|subida/.test(t)) return 3;
+    if(/base|endurance|longo|cont[íi]nuo|z2/.test(t)) return 2;
+    return 3;
+  }
+  function wkMinsOf(txt){
+    const t = String(txt||''); let m = 0;
+    const a = t.match(/(\d+)\s*min/); if(a) m += Number(a[1]);
+    const b = t.match(/(\d+)\s*s(?![a-z])/i); if(b) m += Number(b[1])/60;
+    if(!m){ const d = t.match(/(\d+)\s*m(?!in)/); if(d) m = Number(d[1])/1000*4.5; }
+    return m;
+  }
+  function workoutProfileSegments(desc){
+    const lines = String(desc||'').split(/\n/).map(s=>s.trim()).filter(Boolean);
+    const recPrev = /degrau anterior/i.test(desc);
+    const segs = [];
+    for(let i=0;i<lines.length;i++){
+      const line = lines[i];
+      // Pirâmide / escada: "2-3-4-3-2 min Z4"
+      const pyr = line.match(/(\d+(?:\s*-\s*\d+)+)\s*min/);
+      if(pyr){
+        const steps = pyr[1].split('-').map(s=>Number(s.trim())).filter(n=>n>0);
+        const level = wkLevelOf(line);
+        steps.forEach((st, idx)=>{ segs.push({min:st, level}); if(idx<steps.length-1) segs.push({min: recPrev ? st : 1, level:1}); });
+        continue;
+      }
+      const rep = line.match(/(\d+)\s*[×x]\s*(.+)/);
+      if(rep && /\d/.test(rep[2])){
+        const n = Math.min(30, Number(rep[1]));
+        const inner = rep[2];
+        // Over/Under: "3 × [2 min Z3 + 1 min Z4]"
+        if(/\+/.test(inner)){
+          const parts = inner.replace(/[\[\]]/g,'').split('+').map(s=>s.trim()).filter(Boolean);
+          for(let k=0;k<n;k++){ parts.forEach(p=>{ segs.push({min: wkMinsOf(p)||1, level: wkLevelOf(p)}); }); }
+          continue;
+        }
+        const wLevel = wkLevelOf(inner);
+        let wMin = wkMinsOf(inner) || 1;
+        let rMin = 0;
+        const next = lines[i+1] || '';
+        if(/^recupera/i.test(next)){ rMin = wkMinsOf(next); i++; }
+        else { const inl = line.match(/recupera\D*(\d+)\s*(min|s)/i); if(inl){ rMin = inl[2].toLowerCase()==='s'?Number(inl[1])/60:Number(inl[1]); } }
+        for(let k=0;k<n;k++){ segs.push({min:wMin, level:wLevel}); if(rMin && k<n-1) segs.push({min:rMin, level:1}); }
+        continue;
+      }
+      // Progressivo: "30 min progressivo Z2 → Z4"
+      const prog = line.match(/(\d+)\s*min\s*progress/i);
+      if(prog){
+        const d = Number(prog[1]);
+        const zs = line.match(/z\s*([1-5]).*?z\s*([1-5])/i);
+        const a = zs ? Number(zs[1]) : 2, b = zs ? Number(zs[2]) : 4;
+        const nseg = Math.max(3, Math.min(6, Math.round(d/8)));
+        for(let k=0;k<nseg;k++){ segs.push({min:d/nseg, level: Math.round(a + (b-a)*k/(nseg-1))}); }
+        continue;
+      }
+      const min = wkMinsOf(line);
+      if(min>0.1) segs.push({min, level:wkLevelOf(line)});
+    }
+    return segs;
+  }
+  function workoutProfileHTML(desc){
+    const segs = workoutProfileSegments(desc);
+    if(segs.length < 1 || segs.length > 160) return '';
+    const total = segs.reduce((s,x)=>s+x.min,0) || 1;
+    const W = 300, H = 66, gap = 1;
+    let x = 0, bars = '';
+    const avail = W - (segs.length-1)*gap;
+    segs.forEach(s=>{
+      const w = Math.max(1.6, (s.min/total)*avail);
+      const h = (s.level/5)*(H-6) + 3;
+      const col = WK_ZONE_COLORS[Math.max(0,Math.min(4,s.level-1))];
+      bars += '<rect x="'+x.toFixed(1)+'" y="'+(H-h).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1.5" fill="'+col+'"></rect>';
+      x += w + gap;
+    });
+    const legend = ['Z1','Z2','Z3','Z4','Z5'].map((z,i)=>'<span><i style="background:'+WK_ZONE_COLORS[i]+'"></i>'+z+'</span>').join('');
+    return '<div class="wk-profile" role="button" tabindex="0" data-wk-desc="'+esc(String(desc||''))+'" title="Toca para ampliar"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+bars+'</svg><div class="wk-profile-legend">'+legend+'<span class="wk-zoom">⤢ ampliar</span></div></div>';
+  }
+  function workoutProfileBigHTML(desc){
+    const segs = workoutProfileSegments(desc);
+    if(!segs.length) return '<p class="help" style="text-align:center;">Este treino não tem estrutura visual (texto livre).</p>';
+    const total = segs.reduce((s,x)=>s+x.min,0) || 1;
+    const W = 1000, H = 240, padB = 30, padT = 16;
+    let x = 0, bars = '', labels = '';
+    segs.forEach(s=>{
+      const w = Math.max(3, (s.min/total)*W);
+      const h = (s.level/5)*(H-padB-padT) + 8;
+      const col = WK_ZONE_COLORS[Math.max(0,Math.min(4,s.level-1))];
+      bars += '<rect x="'+x.toFixed(1)+'" y="'+(H-padB-h).toFixed(1)+'" width="'+Math.max(1.5,w-1).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2.5" fill="'+col+'"></rect>';
+      if(w > 30){
+        const lbl = s.min>=1 ? (Math.round(s.min*10)/10).toString().replace('.',',')+'′' : Math.round(s.min*60)+'″';
+        labels += '<text x="'+(x+w/2).toFixed(1)+'" y="'+(H-padB-h-5).toFixed(1)+'" fill="#e6ecf7" font-size="13" text-anchor="middle" font-weight="700">'+lbl+'</text>';
+      }
+      x += w;
+    });
+    let axis = '<line x1="0" y1="'+(H-padB)+'" x2="'+W+'" y2="'+(H-padB)+'" stroke="rgba(255,255,255,.18)"/>';
+    const ticks = 6;
+    for(let k=0;k<=ticks;k++){
+      const tx = (k/ticks)*W, tmin = Math.round((k/ticks)*total);
+      axis += '<line x1="'+tx.toFixed(1)+'" y1="'+(H-padB)+'" x2="'+tx.toFixed(1)+'" y2="'+(H-padB+5)+'" stroke="rgba(255,255,255,.3)"/>'+
+        '<text x="'+tx.toFixed(1)+'" y="'+(H-8)+'" fill="#8894a8" font-size="13" text-anchor="'+(k===0?'start':k===ticks?'end':'middle')+'">'+tmin+' min</text>';
+    }
+    const legend = ['Z1','Z2','Z3','Z4','Z5'].map((z,i)=>'<span><i style="background:'+WK_ZONE_COLORS[i]+'"></i>'+z+'</span>').join('');
+    return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto;">'+bars+labels+axis+'</svg>'+
+      '<div class="wk-profile-legend" style="justify-content:center; margin-top:10px; font-size:12px;">'+legend+'</div>'+
+      '<p class="help" style="text-align:center; margin-top:8px;">Duração total ≈ '+Math.round(total)+' min</p>';
+  }
+  window.PulsoOpenWorkoutProfile = function(desc){
+    const box = document.getElementById('wk-modal'); const body = document.getElementById('wk-modal-body');
+    if(!box || !body) return;
+    body.innerHTML = workoutProfileBigHTML(desc);
+    box.hidden = false; box.setAttribute('aria-hidden','false');
+  };
+  document.addEventListener('click', function(e){
+    const p = e.target.closest('.wk-profile');
+    if(p && window.PulsoOpenWorkoutProfile){ window.PulsoOpenWorkoutProfile(p.getAttribute('data-wk-desc')||''); return; }
+    if(e.target.closest('#wk-modal-close') || e.target.id==='wk-modal'){
+      const b = document.getElementById('wk-modal'); if(b){ b.hidden = true; b.setAttribute('aria-hidden','true'); }
+    }
+  });
+
   function renderAthleteCalendar(){
     const el = document.getElementById('athlete-calendar');
     if(!el) return;
@@ -16500,6 +16813,7 @@ nav.tabbar button.active svg{
     if(items.length){
       html += items.map(w=>`<div class="coach-plan-item">
         <div class="cp-title">${esc(w.name||'Treino')}</div>
+        ${workoutProfileHTML(w.desc)}
         ${w.desc ? `<div class="cp-desc">${esc(w.desc)}</div>` : ''}
         <div class="coach-pill-row" style="margin-top:6px;">
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
@@ -16524,6 +16838,7 @@ nav.tabbar button.active svg{
     if(todays.length){
       body.innerHTML = todays.map(w=>`<div class="coach-plan-item">
         <div class="cp-title">${esc(w.name||'Treino')}</div>
+        ${workoutProfileHTML(w.desc)}
         ${w.desc ? `<div class="cp-desc">${esc(w.desc)}</div>` : ''}
         <div class="coach-pill-row" style="margin-top:6px;">
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
@@ -16845,7 +17160,7 @@ nav.tabbar button.active svg{
       coachMiniChart('Sono', 'h', rows, r=>r.totals.sleepHours, 'purple', 'avg'),
       coachMiniChart('Peso', 'kg', rows, r=>r.totals.weightKg, 'blue', 'avg')
     ];
-    return '<div class="coach-chart-swiper">'+slides.join('')+'</div><div class="coach-chart-hint">Desliza para ver os gráficos.</div>';
+    return '<div class="swipe-nav"><button type="button" class="swipe-arrow prev" aria-label="Anterior">‹</button><div class="coach-chart-swiper">'+slides.join('')+'</div><button type="button" class="swipe-arrow next" aria-label="Seguinte">›</button></div><div class="coach-chart-hint">Desliza ou usa as setas para ver os gráficos.</div>';
   }
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
@@ -16939,12 +17254,12 @@ nav.tabbar button.active svg{
           const ac = alertColors[cyc.alertKey] || '#8894a8';
           const avail = cyc.availability;
           const ballColor = avail>=70 ? '#35D9A6' : (avail>=45 ? '#F2B84B' : '#F2555A');
-          const ballLbl = avail>=70 ? 'Boa disponibilidade' : (avail>=45 ? 'Disponibilidade reduzida' : 'Baixa — cuidado');
-          const explain = 'Disponibilidade para treinar: ' + avail + '/100.\n\n'+
-            'Combina a carga do ciclo com os sintomas que a atleta registou (dor e energia).\n\n'+
-            '• 70–100 (verde): pronta para treino exigente.\n'+
-            '• 45–69 (amarelo): recuperação pode estar reduzida — ajusta o volume/intensidade.\n'+
-            '• Abaixo de 45 (vermelho): recomenda-se reduzir a intensidade.\n\n'+
+          const ballLbl = avail>=70 ? 'Fase favorável' : (avail>=45 ? 'Fase exigente' : 'Fase difícil');
+          const explain = 'Estado do ciclo — dificuldade prevista em treinar nesta fase: ' + avail + '/100.\n\n'+
+            'Combina a fase do ciclo com os sintomas registados (dor e energia). Quanto mais baixo, mais provável que o treino custe.\n\n'+
+            '• 70–100 (verde): fase favorável — treina normalmente.\n'+
+            '• 45–69 (amarelo): fase exigente — pode custar mais, ajusta o volume/intensidade.\n'+
+            '• Abaixo de 45 (vermelho): fase difícil — recomenda-se aliviar a intensidade.\n\n'+
             'Alerta: ' + cyc.alert + '.';
           femInner = '<div class="coach-fem-sep"><div class="coach-fem-hero">'+
               '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+ballColor+'; color:'+ballColor+'; box-shadow:0 0 0 7px '+ballColor+'14, 0 0 22px '+ballColor+'40;"><strong>'+avail+'</strong><span>/100</span></button>'+
@@ -16971,7 +17286,7 @@ nav.tabbar button.active svg{
         if(rd && rd.hasData){
           const rc = rdColors[rd.level] || '#8894a8';
           const rEmoji = rd.level==='green'?'🟢':(rd.level==='yellow'?'🟡':'🔴');
-          const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+          const rlbl = rd.level==='green' ? 'Recuperado' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
           const isFemAthlete = ((aGet('profile',{})||{}).gender==='F');
           const explain = 'Prontidão para treino: ' + rd.score + '/100.\n\n'+
             'Cruza a carga de treino (últimos 7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (nutrição)'+ (isFemAthlete ? ', mais o ciclo' : '') +'.\n\n'+
@@ -16984,7 +17299,7 @@ nav.tabbar button.active svg{
           readyCard = '<div class="coach-card"><h3>Estado para treino</h3>'+
             '<div class="coach-fem-hero">'+
               '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+rc+'; color:'+rc+'; box-shadow:0 0 0 7px '+rc+'14, 0 0 22px '+rc+'40;"><strong>'+rd.score+'</strong><span>/100</span></button>'+
-              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+rc+';">Pronto para treino</div><div class="coach-fem-hero-sub">'+rlbl+' · toca para saber porquê</div></div>'+
+              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+rc+';">Prontidão para treino</div><div class="coach-fem-hero-sub">'+rlbl+' · toca para saber porquê</div></div>'+
             '</div>'+
             '<div class="coach-fem-alert" style="background:'+rc+'22; color:'+rc+'; border:1px solid '+rc+'55;">'+rEmoji+' '+esc(rd.reasons[0])+'</div>'+
             femInner +
@@ -17476,6 +17791,23 @@ nav.tabbar button.active svg{
 <!-- ===================== PULSO CLOUD (Firebase) ===================== -->
 <style id="pulso-cycle-css">
   #estado-card{padding:18px 12px;}
+  /* Setas laterais reutilizáveis para carrosséis (navegação com rato no computador) */
+  .swipe-nav{position:relative;}
+  .swipe-arrow{position:absolute; top:50%; transform:translateY(-50%); z-index:6;
+    width:30px; height:30px; padding:0; border-radius:50%;
+    border:1px solid rgba(255,255,255,.16); background:rgba(12,19,34,.66);
+    color:#e6ecf7; font-size:19px; font-weight:700; line-height:28px; text-align:center;
+    cursor:pointer; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+    transition:background .15s, border-color .15s, opacity .15s;}
+  .swipe-arrow:hover{background:rgba(53,217,166,.24); border-color:rgba(53,217,166,.55);}
+  .swipe-arrow:active{transform:translateY(-50%) scale(.92);}
+  .swipe-arrow.prev{left:2px;}
+  .swipe-arrow.next{right:2px;}
+  /* "Vista geral do atleta" (treinador): o botão de minimizar fica em top:50%/right:18px,
+     por isso afasto a seta direita para não se sobreporem. */
+  .coach-overview-charts-card .swipe-arrow.next{right:62px;}
+  .swipe-arrow[hidden]{display:none;}
+  @media (hover:none){ .swipe-arrow{opacity:.5;} }
   .estado-swipe{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
   .estado-swipe::-webkit-scrollbar{display:none;}
   .estado-page{flex:0 0 100%; scroll-snap-align:center; text-align:center; padding:4px 6px;}
@@ -17488,6 +17820,19 @@ nav.tabbar button.active svg{
   .estado-dots{display:flex; gap:8px; justify-content:center; margin-top:14px;}
   .estado-dot{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.2); cursor:pointer; transition:background .2s;}
   .estado-dot.active{background:var(--teal); transform:scale(1.15);}
+  .wk-profile{margin:8px 0 4px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:8px 9px 6px;}
+  .wk-profile svg{display:block; width:100%; height:62px;}
+  .wk-profile-legend{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; font-size:9.5px; color:var(--text-muted);}
+  .wk-profile-legend span{display:inline-flex; align-items:center; gap:3px;}
+  .wk-profile-legend i{width:9px; height:9px; border-radius:2px; display:inline-block;}
+  .wk-profile{cursor:pointer;}
+  .wk-zoom{margin-left:auto; color:var(--teal); font-weight:700;}
+  #wk-modal{position:fixed; inset:0; z-index:100060; background:rgba(4,7,13,.8); display:flex; align-items:center; justify-content:center; padding:16px;}
+  #wk-modal[hidden]{display:none;}
+  .wk-modal-box{width:100%; max-width:640px; background:#0C1322; border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:16px 16px 18px;}
+  .wk-modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .wk-modal-head h3{margin:0; font-size:16px;}
+  .wk-modal-head button{width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:#fff; font-size:20px; cursor:pointer;}
   .cycle-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .cycle-tile{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px;}
   .cycle-tile strong{display:block; font-size:20px; color:#fff; line-height:1.1;}
@@ -17607,31 +17952,31 @@ nav.tabbar button.active svg{
 <div id="pulso-cloud-auth" class="pc-overlay" aria-hidden="true">
   <div id="pc-connecting">
     <div class="pc-spin"></div>
-    <div>A ligar ao Pulso Cloud…</div>
-    <button type="button" class="pc-link" id="pc-offline" hidden style="margin-top:14px;">Usar sem cloud (offline)</button>
+    <div data-i18n="Connecting to Pulso Cloud…">A ligar ao Pulso Cloud…</div>
+    <button type="button" class="pc-link" id="pc-offline" hidden style="margin-top:14px;" data-i18n="Use without cloud (offline)">Usar sem cloud (offline)</button>
   </div>
   <div class="pc-card" id="pc-auth" data-mode="signin" hidden>
     <div class="pc-logo" aria-hidden="true">
       <svg viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="18" fill="rgba(53,217,166,.14)"/><path d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30" fill="none" stroke="#35D9A6" stroke-width="4" stroke-linecap="round"/><path d="M12 35h10l4-9 5 18 5-13h16" fill="none" stroke="#35D9A6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <h2 id="pc-title">Entrar no Pulso</h2>
+    <h2 id="pc-title" data-i18n="Sign in to Pulso">Entrar no Pulso</h2>
     <div class="pc-field" id="pc-name-field" style="display:none;">
-      <label for="pc-name">Nome</label>
-      <input id="pc-name" class="pc-input" placeholder="ex: Jorge" autocomplete="name">
+      <label for="pc-name" data-i18n="Name">Nome</label>
+      <input id="pc-name" class="pc-input" placeholder="ex: Jorge" data-i18n-ph="e.g. Jorge" autocomplete="name">
     </div>
     <div class="pc-field">
       <label for="pc-email">Email</label>
-      <input id="pc-email" class="pc-input" type="email" inputmode="email" autocomplete="email" placeholder="o-teu@email.com">
+      <input id="pc-email" class="pc-input" type="email" inputmode="email" autocomplete="email" placeholder="o-teu@email.com" data-i18n-ph="your@email.com">
     </div>
     <div class="pc-field">
-      <label for="pc-pass">Palavra-passe</label>
+      <label for="pc-pass" data-i18n="Password">Palavra-passe</label>
       <input id="pc-pass" class="pc-input" type="password" autocomplete="current-password" placeholder="••••••">
     </div>
-    <button class="pc-btn primary block" id="pc-submit" type="button">Entrar</button>
+    <button class="pc-btn primary block" id="pc-submit" type="button" data-i18n="Sign in">Entrar</button>
     <div class="pc-error" id="pc-error"></div>
     <div class="pc-auth-links">
-      <button class="pc-link" id="pc-toggle" type="button">Criar conta nova</button>
-      <button class="pc-link" id="pc-forgot" type="button">Esqueci a palavra-passe</button>
+      <button class="pc-link" id="pc-toggle" type="button" data-i18n="Create new account">Criar conta nova</button>
+      <button class="pc-link" id="pc-forgot" type="button" data-i18n="Forgot password">Esqueci a palavra-passe</button>
     </div>
   </div>
 </div>
@@ -17927,9 +18272,10 @@ function showAuth(show){
 function setAuthMode(mode){
   $('pc-auth').dataset.mode = mode;
   $('pc-name-field').style.display = mode === 'signup' ? '' : 'none';
-  $('pc-submit').textContent = mode === 'signup' ? 'Criar conta' : 'Entrar';
-  $('pc-toggle').textContent = mode === 'signup' ? 'Já tenho conta' : 'Criar conta nova';
-  $('pc-title').textContent = mode === 'signup' ? 'Criar conta Pulso' : 'Entrar no Pulso';
+  var _t = (window.PulsoI18n ? window.PulsoI18n.t.bind(window.PulsoI18n) : function(pt){ return pt; });
+  $('pc-submit').textContent = mode === 'signup' ? _t('Criar conta','Create account') : _t('Entrar','Sign in');
+  $('pc-toggle').textContent = mode === 'signup' ? _t('Já tenho conta','I already have an account') : _t('Criar conta nova','Create new account');
+  $('pc-title').textContent = mode === 'signup' ? _t('Criar conta Pulso','Create Pulso account') : _t('Entrar no Pulso','Sign in to Pulso');
   $('pc-error').textContent = '';
 }
 function authBusy(b){
@@ -18240,6 +18586,104 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+</script>
+
+<style id="pulso-i18n-css">
+  #pulso-lang-gate{position:fixed; inset:0; z-index:100000; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(120% 120% at 50% 0%, #0e1626 0%, #070b14 70%); padding:24px;}
+  #pulso-lang-gate[hidden]{display:none;}
+  #pulso-lang-gate .plg-card{width:100%; max-width:420px; text-align:center;}
+  #pulso-lang-gate .plg-logo svg{width:64px; height:64px; margin-bottom:14px;}
+  #pulso-lang-gate h2{color:#e6ecf7; font-size:22px; line-height:1.3; margin:0 0 22px; font-weight:800;}
+  #pulso-lang-gate .plg-en{color:#8894a8; font-size:15px; font-weight:600;}
+  #pulso-lang-gate .plg-opts{display:flex; flex-direction:column; gap:12px;}
+  #pulso-lang-gate .plg-btn{display:flex; align-items:center; gap:14px; width:100%; padding:16px 18px;
+    border-radius:16px; border:1px solid rgba(255,255,255,.1); background:#0C1322; color:#e6ecf7;
+    font-size:17px; font-weight:700; cursor:pointer; transition:border-color .15s, background .15s, transform .1s;}
+  #pulso-lang-gate .plg-btn:hover{border-color:rgba(53,217,166,.55); background:rgba(53,217,166,.08);}
+  #pulso-lang-gate .plg-btn:active{transform:scale(.98);}
+  #pulso-lang-gate .plg-flag{font-size:30px; line-height:1;}
+  #pulso-lang-gate .plg-note{color:#6b7688; font-size:12px; margin:20px 0 0;}
+  /* Switch de idioma no perfil */
+  .lang-switch-card{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .lang-seg{display:inline-flex; border:1px solid rgba(255,255,255,.12); border-radius:10px; overflow:hidden;}
+  .lang-seg button{background:transparent; color:var(--text-muted); border:0; padding:8px 14px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:7px;}
+  .lang-seg button.active{background:rgba(53,217,166,.16); color:var(--teal);}
+  .lang-seg button:not(.active):hover{color:var(--text);}
+  .lang-seg .lf{font-size:16px;}
+</style>
+
+<script id="pulso-i18n-engine">
+(function(){
+  "use strict";
+  var LS_KEY = 'pulso_lang';
+  function saved(){ try{ return localStorage.getItem(LS_KEY); }catch(e){ return null; } }
+  function store(l){ try{ localStorage.setItem(LS_KEY, l); }catch(e){} }
+
+  var I18n = window.PulsoI18n = {
+    lang: (saved() === 'en' ? 'en' : 'pt'),
+    // t('texto pt','english text') -> devolve conforme o idioma atual
+    t: function(pt, en){ return this.lang === 'en' ? (en != null ? en : pt) : pt; },
+    apply: applyStatic,
+    setLang: setLang,
+    isChosen: function(){ return !!saved(); }
+  };
+  // Atalho global seguro para usar em qualquer parte do código JS.
+  window.PL = function(pt, en){ return (I18n.lang === 'en') ? (en != null ? en : pt) : pt; };
+
+  // Troca textos/placeholders estáticos marcados com data-i18n / data-i18n-ph.
+  // O PT original é capturado na 1ª aplicação, por isso só marcamos o EN no HTML.
+  function applyStatic(){
+    var en = (I18n.lang === 'en');
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      if(el.getAttribute('data-i18n-pt') === null) el.setAttribute('data-i18n-pt', el.textContent);
+      el.textContent = en ? el.getAttribute('data-i18n') : el.getAttribute('data-i18n-pt');
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+      if(el.getAttribute('data-i18n-ph-pt') === null) el.setAttribute('data-i18n-ph-pt', el.getAttribute('placeholder') || '');
+      el.setAttribute('placeholder', en ? el.getAttribute('data-i18n-ph') : el.getAttribute('data-i18n-ph-pt'));
+    });
+    try{ document.documentElement.setAttribute('lang', en ? 'en' : 'pt'); }catch(e){}
+    syncLangSwitch();
+  }
+
+  function setLang(l){
+    I18n.lang = (l === 'en' ? 'en' : 'pt');
+    store(I18n.lang);
+    applyStatic();
+    // Avisa o resto da app para re-renderizar conteúdo gerado por JS (fases seguintes).
+    try{ window.dispatchEvent(new CustomEvent('pulso:langchange', { detail: { lang: I18n.lang } })); }catch(e){}
+  }
+
+  function syncLangSwitch(){
+    document.querySelectorAll('#lang-switch button[data-lang]').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-lang') === I18n.lang);
+    });
+  }
+
+  function initGate(){
+    var gate = document.getElementById('pulso-lang-gate');
+    if(!I18n.isChosen() && gate){
+      gate.hidden = false;
+      gate.querySelectorAll('.plg-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          setLang(btn.getAttribute('data-lang'));
+          gate.hidden = true;
+        });
+      });
+    }
+    applyStatic(); // aplica o idioma guardado (ou PT por defeito) à casca
+    // Switch do perfil
+    document.addEventListener('click', function(e){
+      var b = e.target.closest('#lang-switch button[data-lang]');
+      if(b) setLang(b.getAttribute('data-lang'));
+    });
+    syncLangSwitch();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGate);
+  else initGate();
+})();
 </script>
 
 </body>
