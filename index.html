@@ -6276,10 +6276,6 @@ nav.tabbar button.active svg{
         <h3 id="training-chart-title">Últimos 7 dias</h3>
         <div class="chart-box" id="chart-7d"></div>
       </div>
-      <div class="card">
-        <h3 id="training-elev-title">Altimetria — últimos 7 dias</h3>
-        <div class="chart-box" id="chart-elev-7d"></div>
-      </div>
       <div class="card metric-total-card">
         <h3 id="training-total-title">TEMPO TOTAL (7 DIAS)</h3>
         <div class="metric-icon teal" aria-hidden="true">
@@ -7059,6 +7055,20 @@ nav.tabbar button.active svg{
     });
   }
 
+  // Depois do login por conta (Firebase), o nome já vem da conta — saltamos o ecrã do nome.
+  window.PulsoCompleteLoginWithName = function(name){
+    try{
+      const nameEl = document.getElementById('login-name');
+      const n = (name || '').trim();
+      if(nameEl && n) nameEl.value = n;
+      if(n || (profile && profile.name)){
+        completeLogin();
+        return true;
+      }
+    }catch(e){}
+    return false;
+  };
+
   async function unlock(){
     lockedEl.style.display = 'none';
     contentEl.style.display = 'flex';
@@ -7748,12 +7758,13 @@ nav.tabbar button.active svg{
 
     const noteEl = document.getElementById('drink-note');
     if(noteEl){
-      if(drink.key === 'Água') noteEl.textContent = 'Meta diária: 2 L ou ajustada pelo peso do atleta (' + getDailyWaterGoalMl() + ' ml). Desliza o círculo para ver outra bebida.';
-      else if(isCoffee) noteEl.textContent = 'Cada café conta como ' + COFFEE_KCAL + ' kcal. Máximo do dia: ' + (drink.goalMax||4) + ' cafés. Desliza o círculo para ver outra bebida.';
-      else if(isAlcohol) noteEl.textContent = 'O álcool fica agora dentro das bebidas. Soma às kcal do dia e penaliza sono, recuperação e hidratação.';
-      else if(drink.key === 'Sumo') noteEl.textContent = 'Sumo com calorias (~' + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml) — soma às kcal do dia. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
-      else if(drink.key === 'Sumo Zero') noteEl.textContent = 'Sumo Zero sem calorias. Atalhos de 200 ml e 330 ml. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
-      else noteEl.textContent = 'Bebida sem calorias. Anel cheio a 1 L. Desliza o círculo para ver outra bebida.';
+      const swipe = ' Desliza para ver as bebidas.';
+      if(drink.key === 'Água') noteEl.textContent = 'Meta diária ajustada ao atleta: ' + getDailyWaterGoalMl() + ' ml.' + swipe;
+      else if(isCoffee) noteEl.textContent = 'Cada café conta ' + COFFEE_KCAL + ' kcal.' + swipe;
+      else if(isAlcohol) noteEl.textContent = 'Bebe com moderação.' + swipe;
+      else if(drink.key === 'Sumo') noteEl.textContent = 'Sumo — ~' + Math.round(COLA_KCAL_PER_ML*100) + ' kcal/100 ml.' + swipe;
+      else if(drink.key === 'Sumo Zero') noteEl.textContent = 'Sumo zero kcal.' + swipe;
+      else noteEl.textContent = 'Bebida sem calorias.' + swipe;
     }
 
     const customForm = document.getElementById('form-drink-custom');
@@ -8253,6 +8264,11 @@ nav.tabbar button.active svg{
     const foodName = document.getElementById('kcal-food').value.trim();
     kcalEntries.push({id:uid(), date: todayStr(), time: new Date().toISOString(), kcal, carbs, protein, fat, food: foodName || null});
     await sSet('kcal-entries', kcalEntries);
+    // Guarda na memória de alimentos, tal como a IA: se o alimento não existir, aprende-o.
+    if(foodName){
+      const grams = parseFloat(document.getElementById('kcal-grams').value) || 0;
+      try{ await saveManualFood(foodName, grams, {kcal, carbs, protein, fat}); }catch(_){}
+    }
     e.target.reset();
     kcalAiBase = null;
     clearFoodActions();
@@ -8337,6 +8353,29 @@ nav.tabbar button.active svg{
       clearFoodActions();
       document.getElementById('kcal-food-note').textContent = 'Ok — usei a estimativa só para este registo, sem guardar.';
     });
+  }
+
+  // Guarda um alimento introduzido à mão na memória (normalizado a 100g), se ainda não existir.
+  async function saveManualFood(name, grams, vals){
+    try{
+      const key = String(name||'').trim().toLowerCase();
+      if(!key) return;
+      if(FOOD_DB[key]) return; // já existe — não sobrescreve o que já está na memória
+      const g = (grams > 0) ? grams : 100;
+      const per100 = 100 / g;
+      const learned = {
+        kcal: Math.round((Number(vals.kcal)||0) * per100),
+        carbs: Math.round((Number(vals.carbs)||0) * per100 * 10) / 10,
+        protein: Math.round((Number(vals.protein)||0) * per100 * 10) / 10,
+        fat: Math.round((Number(vals.fat)||0) * per100 * 10) / 10,
+        defaultG: g,
+        manual: true
+      };
+      FOOD_DB[key] = learned;
+      aiFoods[key] = learned;
+      await sSet('ai-foods', aiFoods);
+      rebuildFoodNames();
+    }catch(_){ /* se falhar, o registo já ficou guardado na mesma */ }
   }
 
   // Guarda o alimento (normalizado para 100g) na memória
@@ -10060,13 +10099,6 @@ nav.tabbar button.active svg{
     const hrAvgEl = document.getElementById('s7-hr-avg'); if(hrAvgEl) hrAvgEl.textContent = hrCount>0 ? Math.round(hrSum/hrCount)+' bpm' : '—';
     const hrMaxEl = document.getElementById('s7-hr-max'); if(hrMaxEl) hrMaxEl.textContent = hrMax>0 ? Math.round(hrMax)+' bpm' : '—';
     const elevAvgEl = document.getElementById('s7-elev-avg'); if(elevAvgEl) elevAvgEl.textContent = elevCount>0 ? Math.round(elevSum/elevCount)+' m' : '—';
-
-    const elevTitle = document.getElementById('training-elev-title');
-    if(elevTitle) elevTitle.textContent = 'Altimetria — últimos ' + period + ' dias';
-    const elevCtx = document.getElementById('chart-elev-7d');
-    if(elevCtx) renderBarChart(elevCtx, days.map(fmtDateShort), [
-      {name:'Altimetria', color:'#5B8DEF', data: days.map(d=>Math.round(byDayElev[d])), active:true}
-    ], false);
 
     const ctx = document.getElementById('chart-7d');
     renderBarChart(ctx, days.map(fmtDateShort), [
@@ -14523,6 +14555,17 @@ nav.tabbar button.active svg{
   /* ---------- Armazenamento ---------- */
   function safeParse(raw, fallback){ try{ return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; } }
   function getPulso(key, fallback){ return safeParse(localStorage.getItem('pulso:'+key), fallback); }
+  // Quando está selecionado um atleta da cloud, os dados DELE (não os locais) vêm deste
+  // override. aGet() lê do atleta selecionado: cloud se houver, senão o local (localStorage).
+  let coachCloudOverride = null;   // { chave: valorJSON } do atleta cloud selecionado
+  let cloudOverrideUid = null;     // uid do atleta cloud cujos dados estão carregados
+  function aGet(key, fallback){
+    if(coachCloudOverride){
+      return Object.prototype.hasOwnProperty.call(coachCloudOverride, key)
+        ? safeParse(coachCloudOverride[key], fallback) : fallback;
+    }
+    return getPulso(key, fallback);
+  }
   function setPulso(key, value){
     try{ localStorage.setItem('pulso:'+key, JSON.stringify(value)); }catch(e){}
     try{ if(window.storage && window.storage.set) window.storage.set(key, JSON.stringify(value), false); }catch(e){}
@@ -14547,6 +14590,8 @@ nav.tabbar button.active svg{
 
 
   function safeStravaActivities(){
+    // Atleta cloud selecionado: usa os treinos DELE (não os locais deste telemóvel).
+    if(coachCloudOverride){ try{ return aGet('strava-activities', []) || []; }catch(e){ return []; } }
     try{
       if(typeof window.PulsoGetStravaActivities === 'function'){
         const live = window.PulsoGetStravaActivities();
@@ -15064,13 +15109,37 @@ nav.tabbar button.active svg{
 
   const DOW = ['S','T','Q','Q','S','S','D']; // seg..dom (curto)
 
+  let cloudAthletes = [];   // atletas ligados via cloud: {id:uid, name, email, cloud:true}
+  function refreshCloudAthletes(){
+    try{
+      if(window.PulsoCloud && typeof window.PulsoCloud.getCoachedAthletes === 'function'){
+        cloudAthletes = (window.PulsoCloud.getCoachedAthletes()||[]).map(a=>({id:a.uid, name:a.name||'Atleta', email:a.email||'', cloud:true}));
+      }else{ cloudAthletes = []; }
+    }catch(e){ cloudAthletes = []; }
+  }
   function getAthletes(){
     const extra = getPulso('coach-athletes', []);
     const list = [{ id:'local', name: profileName(), local:true }];
     (Array.isArray(extra) ? extra : []).forEach(a=>{ if(a && a.id) list.push({id:a.id, name:a.name||'Atleta', local:false}); });
+    cloudAthletes.forEach(a=>{ if(a && a.id && !list.some(x=>x.id===a.id)) list.push({id:a.id, name:a.name, email:a.email, cloud:true}); });
     return list;
   }
   function currentAthlete(){ const l = getAthletes(); return l.find(a=>a.id===selectedAthleteId) || l[0]; }
+  // Carrega (ou limpa) o override com os dados do atleta cloud selecionado e depois re-renderiza.
+  function loadSelectedAthleteData(done){
+    const isCloud = cloudAthletes.some(a=>a.id===selectedAthleteId);
+    if(!isCloud){ coachCloudOverride = null; cloudOverrideUid = null; if(done) done(); return; }
+    if(cloudOverrideUid === selectedAthleteId && coachCloudOverride){ if(done) done(); return; }
+    const uid = selectedAthleteId;
+    if(window.PulsoCloud && typeof window.PulsoCloud.fetchAthleteData === 'function'){
+      toast('A carregar dados do atleta…');
+      window.PulsoCloud.fetchAthleteData(uid).then(keys=>{
+        if(selectedAthleteId !== uid) return;
+        coachCloudOverride = keys || {}; cloudOverrideUid = uid;
+        if(done) done();
+      }).catch(()=>{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); });
+    }else{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); }
+  }
   function addAthlete(){
     const name = (window.prompt('Nome do novo atleta:') || '').trim();
     if(!name) return;
@@ -15088,9 +15157,13 @@ nav.tabbar button.active svg{
     if(!list.some(a=>a.id===selectedAthleteId)) selectedAthleteId = 'local';
     el.innerHTML = list.map(a=>{
       const initial = esc((a.name||'A').trim().charAt(0).toUpperCase());
-      const badge = a.local ? '<span class="coach-athlete-badge local">Este telemóvel</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>';
-      const sub = a.local ? 'Dados locais deste dispositivo' : 'Sincroniza quando ligarmos a cloud';
-      const delBtn = a.local ? '' : `<button class="coach-athlete-del" type="button" data-athlete-del="${esc(a.id)}" aria-label="Eliminar atleta ${esc(a.name)}" title="Eliminar atleta">×</button>`;
+      const badge = a.local
+        ? '<span class="coach-athlete-badge local">Este telemóvel</span>'
+        : (a.cloud ? '<span class="coach-athlete-badge local">Cloud</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>');
+      const sub = a.local
+        ? 'Dados locais deste dispositivo'
+        : (a.cloud ? (a.email || 'Atleta ligado na cloud') : 'Sincroniza quando ligarmos a cloud');
+      const delBtn = (a.local || a.cloud) ? '' : `<button class="coach-athlete-del" type="button" data-athlete-del="${esc(a.id)}" aria-label="Eliminar atleta ${esc(a.name)}" title="Eliminar atleta">×</button>`;
       return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
         <div class="coach-athlete-av">${initial}</div>
         <div class="coach-athlete-info"><strong>${esc(a.name)}</strong><span>${sub}</span></div>
@@ -15175,18 +15248,34 @@ nav.tabbar button.active svg{
 
   /* ---- Modelo do calendário: pulso:coach-calendar = { athleteId: { 'YYYY-MM-DD': [ {..} ] } } ---- */
   function getCalendarAll(){ const o = getPulso('coach-calendar', {}); return (o && typeof o==='object') ? o : {}; }
-  function getCalendarFor(athleteId){ const c = getCalendarAll()[athleteId]; return (c && typeof c==='object') ? c : {}; }
+  function getCalendarFor(athleteId){
+    // Atleta cloud selecionado: os treinos previstos dele estão nos dados dele,
+    // guardados sob a sua própria chave 'local'.
+    if(coachCloudOverride && athleteId === cloudOverrideUid){
+      const all = aGet('coach-calendar', {}) || {};
+      const mine = (all && typeof all==='object') ? (all['local'] || all[cloudOverrideUid]) : null;
+      return (mine && typeof mine==='object') ? mine : {};
+    }
+    const c = getCalendarAll()[athleteId]; return (c && typeof c==='object') ? c : {};
+  }
   function racesFor(athleteId){
-    // Por agora só o atleta local tem provas (guardadas na app). Os restantes: quando ligarmos a cloud.
-    if(athleteId !== 'local') return [];
-    let arr = getPulso('race-goals', []);
+    // Provas do atleta selecionado: local (guardadas na app) ou cloud (dados do atleta ligado).
+    const cloudSel = coachCloudOverride && athleteId === cloudOverrideUid;
+    if(athleteId !== 'local' && !cloudSel) return [];
+    let arr = aGetFor(cloudSel, 'race-goals', []);
     if(!Array.isArray(arr)) arr = [];
-    const single = getPulso('race-goal', null);
+    const single = aGetFor(cloudSel, 'race-goal', null);
     if(single && single.date && !arr.some(r=>String(r.date).slice(0,10)===String(single.date).slice(0,10) && String(r.name||'')===String(single.name||''))){
       arr.push(single);
     }
     return arr.filter(r=>r && r.date).map(r=>({ id:r.id||('race-'+String(r.date).slice(0,10)), name:r.name||'Prova', date:String(r.date).slice(0,10), sport:r.sport||'', distanceKm:r.distanceKm||null, elevationM:r.elevationM||null }))
       .sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.name).localeCompare(String(b.name)));
+  }
+  function aGetFor(useCloud, key, fallback){
+    if(useCloud && coachCloudOverride){
+      return Object.prototype.hasOwnProperty.call(coachCloudOverride, key) ? safeParse(coachCloudOverride[key], fallback) : fallback;
+    }
+    return getPulso(key, fallback);
   }
   function raceFor(athleteId){
     const today = todayStr();
@@ -15528,13 +15617,13 @@ nav.tabbar button.active svg{
   function pace(km, sec){ if(!km || !sec) return null; const p = sec/60/km; const m = Math.floor(p); const s = Math.round((p-m)*60); return m + ':' + String(s).padStart(2,'0') + ' /km'; }
 
   function coachDayRecord(day){
-    const hydration = getPulso('hydration-entries', []).filter(e=>sameDay(e.date, day));
-    const coffee = getPulso('coffee-entries', []).filter(e=>sameDay(e.date, day));
-    const alcohol = getPulso('alcohol-entries', []).filter(e=>sameDay(e.date, day));
-    const kcal = getPulso('kcal-entries', []).filter(e=>sameDay(e.date, day));
-    const weight = getPulso('weight-entries', []).filter(e=>sameDay(e.date, day));
-    const sleep = getPulso('sleep-entries', []).filter(e=>sameDay(e.date, day));
-    const bp = getPulso('bp-entries', []).filter(e=>sameDay(e.date, day));
+    const hydration = aGet('hydration-entries', []).filter(e=>sameDay(e.date, day));
+    const coffee = aGet('coffee-entries', []).filter(e=>sameDay(e.date, day));
+    const alcohol = aGet('alcohol-entries', []).filter(e=>sameDay(e.date, day));
+    const kcal = aGet('kcal-entries', []).filter(e=>sameDay(e.date, day));
+    const weight = aGet('weight-entries', []).filter(e=>sameDay(e.date, day));
+    const sleep = aGet('sleep-entries', []).filter(e=>sameDay(e.date, day));
+    const bp = aGet('bp-entries', []).filter(e=>sameDay(e.date, day));
     const workouts = safeStravaActivities().filter(e=>sameDay(e.date || e.start_date, day));
 
     const byType = (t)=> Math.round(sum(hydration.filter(e=>{ const v=(e.type||'Água'); return t==='Sumo' ? (v==='Sumo'||v==='Cola') : t==='Sumo Zero' ? (v==='Sumo Zero'||v==='Outra') : v===t; }), e=>e.ml));
@@ -15573,7 +15662,7 @@ nav.tabbar button.active svg{
   function availableDays(){
     const set = new Set([todayStr()]);
     ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','sleep-entries','weight-entries','bp-entries'].forEach(k=>{
-      (getPulso(k, [])||[]).forEach(e=>{ if(e && e.date) set.add(String(e.date).slice(0,10)); });
+      (aGet(k, [])||[]).forEach(e=>{ if(e && e.date) set.add(String(e.date).slice(0,10)); });
     });
     safeStravaActivities().forEach(e=>{ const d = e.date||e.start_date; if(d) set.add(String(d).slice(0,10)); });
     return Array.from(set).sort((a,b)=>b.localeCompare(a)).slice(0,60);
@@ -15776,7 +15865,6 @@ nav.tabbar button.active svg{
     const slides = [
       coachMiniChart('Tempo de treino', 'min', rows, r=>r.totals.workoutMin, 'green'),
       coachMiniChart('Distância', 'km', rows, r=>r.totals.workoutKm, 'blue'),
-      coachMiniChart('Altimetria', 'm', rows, r=>r.totals.elevationM, 'blue'),
       coachMiniChart('Kcal treino', 'kcal', rows, r=>r.totals.workoutKcal, 'amber'),
       coachMiniChart('Água', 'L', rows, r=>r.totals.waterMl, 'green'),
       coachMiniChart('Sono', 'h', rows, r=>r.totals.sleepHours, 'purple'),
@@ -15806,10 +15894,10 @@ nav.tabbar button.active svg{
     const rangeLabel = rangeN === 1 ? fmtDayLabel(day) : ('média dos últimos ' + rangeN + ' dias até ' + fmtDayLabel(day));
     if(src) src.textContent = 'Dados de ' + (selectedA.name || profileName()) + ' — ' + rangeLabel + '.';
 
-    const prof = selectedA.id === 'local' ? (getPulso('profile', {}) || {}) : {};
+    const prof = (selectedA.local || selectedA.cloud) ? (aGet('profile', {}) || {}) : {};
     const genderLabel = prof.gender === 'M' ? 'Masculino' : (prof.gender === 'F' ? 'Feminino' : '—');
     const levelTxt = prof.activityLevel!=null ? (String(prof.activityLevel) + '/10') : '—';
-    const lastWeight = (getPulso('weight-entries', [])||[]).slice().reverse().find(x=>x && x.kg!=null);
+    const lastWeight = (aGet('weight-entries', [])||[]).slice().reverse().find(x=>x && x.kg!=null);
     const bmi = (prof.heightCm && lastWeight && lastWeight.kg) ? (Number(lastWeight.kg) / Math.pow(Number(prof.heightCm)/100,2)) : null;
     const profileCard = '<div class="coach-card"><h3>Perfil do atleta</h3><div class="coach-profile-hero">'+
       '<div class="coach-profile-main"><strong>'+esc(selectedA.name || profileName())+'</strong><span>'+esc(genderLabel)+' · '+(prof.age?esc(prof.age)+' anos':'idade —')+'</span></div>'+
@@ -16024,10 +16112,19 @@ nav.tabbar button.active svg{
       selectedAthleteId = row.getAttribute('data-athlete');
       coachAthletePicked = true;
       coachSelectedDay = null;
-      renderAthletes();
-      fillCoachAthleteSelectors();
-      renderCoachCalendar();
+      loadSelectedAthleteData(()=>{
+        renderAthletes();
+        fillCoachAthleteSelectors();
+        renderCoachCalendar();
+        try{ renderAthleteData(); }catch(err){}
+      });
     });
+
+    document.addEventListener('pulso:cloud-athletes', function(){
+      refreshCloudAthletes();
+      try{ renderAthletes(); fillCoachAthleteSelectors(); renderCoachCalendar(); }catch(e){}
+    });
+    refreshCloudAthletes();
 
     // Calendário do treinador (delegação)
     document.getElementById('coach-calendar')?.addEventListener('click', (e)=>{
@@ -16062,7 +16159,7 @@ nav.tabbar button.active svg{
           if(!Array.from(sel.options).some(o=>o.value===d)) sel.insertAdjacentHTML('afterbegin', `<option value="${esc(d)}">${esc(fmtDayLabel(d))}</option>`);
           sel.value = d;
         }
-        renderAthleteData();
+        loadSelectedAthleteData(()=>{ try{ renderAthleteData(); }catch(e){} });
         try{ document.getElementById('coach-tab-atleta')?.scrollIntoView({behavior:'smooth', block:'start'}); }catch(err){}
       }
     });
@@ -16077,10 +16174,12 @@ nav.tabbar button.active svg{
       if(!this.value){ coachAthletePicked = false; renderAthleteData(); return; }
       selectedAthleteId = this.value || 'local';
       coachAthletePicked = true;
-      renderAthletes();
-      fillCoachAthleteSelectors();
-      fillDayPicker();
-      renderAthleteData();
+      loadSelectedAthleteData(()=>{
+        renderAthletes();
+        fillCoachAthleteSelectors();
+        fillDayPicker();
+        renderAthleteData();
+      });
     });
     document.getElementById('coach-athlete-day')?.addEventListener('change', renderAthleteData);
     document.getElementById('coach-athlete-range')?.addEventListener('click', function(e){
@@ -16388,6 +16487,13 @@ nav.tabbar button.active svg{
   </div>
 </div>
 
+<div id="pc-qr-overlay" class="pc-sheet" hidden aria-hidden="true" style="align-items:center;">
+  <div class="pc-av-inner" style="text-align:center;">
+    <div class="pc-sheet-head"><h3>Código QR</h3><button class="pc-close" id="pc-qr-close" type="button" aria-label="Fechar">×</button></div>
+    <div id="pc-qr-body"></div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -16523,7 +16629,7 @@ async function requestLink(otherCode, asRole){
     base.status = (base.athleteConsent && base.trainerConsent) ? 'active' : 'pending';
     await setDoc(ref, base, { merge:true });
     cloudToast(base.status === 'active' ? 'Ligação ativa!' : 'Convite enviado. Falta a outra pessoa aceitar.');
-    renderSheet();
+    renderSheet(); loadCoachedAthletes();
   }catch(err){ console.error(err); cloudToast('Não foi possível enviar o convite.'); }
 }
 
@@ -16541,12 +16647,12 @@ async function respondLink(id, accept){
     patch.status = bothOk ? 'active' : 'pending';
     await updateDoc(ref, patch);
     cloudToast(bothOk ? 'Ligação ativa!' : 'Aceite. Falta a outra parte.');
-    renderSheet();
+    renderSheet(); loadCoachedAthletes();
   }catch(err){ console.error(err); cloudToast('Não foi possível responder.'); }
 }
 
 async function unlink(id){
-  try{ await deleteDoc(doc(db, 'links', id)); cloudToast('Ligação removida.'); renderSheet(); }
+  try{ await deleteDoc(doc(db, 'links', id)); cloudToast('Ligação removida.'); renderSheet(); loadCoachedAthletes(); }
   catch(err){ console.error(err); cloudToast('Não foi possível remover.'); }
 }
 
@@ -16566,6 +16672,37 @@ async function myLinks(){
 async function nameForUid(uid){
   try{ const s = await getDoc(doc(db,'users',uid)); return s.exists() ? (s.data().name || s.data().email || uid) : uid; }
   catch(e){ return uid; }
+}
+
+// ---------- atletas que este utilizador treina (ligações ativas onde sou treinador) ----------
+let coachedCache = [];
+async function loadCoachedAthletes(){
+  if(!currentUser){ coachedCache = []; notifyCoached(); return coachedCache; }
+  let out = [];
+  try{
+    const links = await myLinks();
+    const active = links.filter(l=> l.status === 'active' && l.iAm === 'trainer');
+    for(const l of active){
+      let name = l.athleteUid, email = '';
+      try{
+        const s = await getDoc(doc(db, 'users', l.athleteUid));
+        if(s.exists()){ name = s.data().name || s.data().email || l.athleteUid; email = s.data().email || ''; }
+      }catch(e){}
+      out.push({ uid: l.athleteUid, name, email });
+    }
+  }catch(e){ console.warn('Falha ao carregar atletas ligados', e); }
+  coachedCache = out;
+  notifyCoached();
+  return out;
+}
+function notifyCoached(){
+  try{ document.dispatchEvent(new CustomEvent('pulso:cloud-athletes', { detail: coachedCache.slice() })); }catch(e){}
+}
+async function fetchAthleteData(uid){
+  try{
+    const s = await getDoc(doc(db, 'athleteData', uid));
+    return (s.exists() && s.data() && s.data().keys) ? s.data().keys : {};
+  }catch(e){ console.warn('Falha ao buscar dados do atleta', e); return {}; }
 }
 
 // ---------- UI: ecrã de autenticação ----------
@@ -16656,7 +16793,7 @@ async function renderSheet(){
 
   let html = '';
   html += '<div class="pc-row"><div><div class="pc-k">'+esc(currentUser.displayName||'—')+'</div><div class="pc-muted">'+esc(currentUser.email||'')+' · '+esc(roleLabel(currentRole))+'</div></div></div>';
-  html += '<div class="pc-code"><div class="pc-muted">O teu código Pulso (partilha para te ligarem):</div><div class="pc-code-val" id="pc-my-code">'+esc(currentUser.uid)+'</div><button type="button" class="pc-btn tiny" id="pc-copy-code">Copiar</button></div>';
+  html += '<div class="pc-code"><div class="pc-muted">O teu código Pulso (partilha para te ligarem):</div><div class="pc-code-val" id="pc-my-code">'+esc(currentUser.uid)+'</div><div class="pc-2col"><button type="button" class="pc-btn tiny" id="pc-copy-code">Copiar</button><button type="button" class="pc-btn tiny" id="pc-qr-code">QR code</button></div></div>';
 
   html += '<h4 class="pc-h">Ligar a alguém</h4>';
   html += '<div class="pc-muted" style="margin-bottom:6px;">Cola o código da outra pessoa e escolhe como te queres ligar.</div>';
@@ -16684,6 +16821,7 @@ async function renderSheet(){
   body.innerHTML = html;
 
   const copyBtn = $('pc-copy-code'); if(copyBtn) copyBtn.onclick = ()=>{ try{ navigator.clipboard.writeText(currentUser.uid); cloudToast('Código copiado.'); }catch(e){ cloudToast('Copia manualmente.'); } };
+  const qrBtn = $('pc-qr-code'); if(qrBtn) qrBtn.onclick = ()=> showQr(currentUser.uid);
   const la = $('pc-link-as-athlete'); if(la) la.onclick = ()=> requestLink($('pc-link-code').value, 'athlete');
   const lt = $('pc-link-as-trainer'); if(lt) lt.onclick = ()=> requestLink($('pc-link-code').value, 'trainer');
   body.querySelectorAll('[data-accept]').forEach(b=> b.onclick = ()=> respondLink(b.getAttribute('data-accept'), true));
@@ -16721,6 +16859,40 @@ async function viewAthlete(athleteUid){
   }catch(err){ console.error(err); cloudToast('Sem permissão ou sem dados.'); }
 }
 function safeParse(v, f){ try{ return v!=null ? JSON.parse(v) : f; }catch(e){ return f; } }
+
+// ---------- QR code do código Pulso ----------
+let qrLibLoading = null;
+function loadQrLib(){
+  if(window.qrcode) return Promise.resolve(window.qrcode);
+  if(qrLibLoading) return qrLibLoading;
+  qrLibLoading = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+    s.onload = ()=> resolve(window.qrcode);
+    s.onerror = ()=> reject(new Error('qr lib falhou'));
+    document.head.appendChild(s);
+  });
+  return qrLibLoading;
+}
+async function showQr(text){
+  const box = $('pc-qr-overlay'); const body = $('pc-qr-body');
+  if(!box || !body) return;
+  body.innerHTML = '<p class="pc-muted">A gerar QR…</p>';
+  box.hidden = false; box.setAttribute('aria-hidden','false');
+  try{
+    const qrcode = await loadQrLib();
+    const qr = qrcode(0, 'M');
+    qr.addData(String(text||''));
+    qr.make();
+    const img = qr.createDataURL(6, 10);
+    body.innerHTML = '<img src="'+img+'" alt="QR do código Pulso" style="width:100%; max-width:260px; image-rendering:pixelated; border-radius:12px; background:#fff; padding:10px;">'+
+      '<p class="pc-muted" style="margin-top:10px; word-break:break-all;">'+esc(text)+'</p>'+
+      '<button type="button" class="pc-btn tiny" id="pc-qr-copy" style="margin-top:8px;">Copiar código</button>';
+    const c = $('pc-qr-copy'); if(c) c.onclick = ()=>{ try{ navigator.clipboard.writeText(String(text||'')); cloudToast('Código copiado.'); }catch(e){ cloudToast('Copia manualmente.'); } };
+  }catch(e){
+    body.innerHTML = '<p class="pc-muted">Não foi possível gerar o QR (sem internet?). Usa o botão Copiar em alternativa.</p>';
+  }
+}
 
 // ---------- UI: Central principal (dono) ----------
 function openCentral(){ const c=$('pulso-central'); if(c){ c.hidden=false; c.setAttribute('aria-hidden','false'); renderCentral(); } }
@@ -16772,13 +16944,19 @@ onAuthStateChanged(auth, async (user)=>{
   if(needsReload){ location.reload(); return; }
   showAuth(false);
   if(btn) btn.hidden = false;
-  // pré-preenche o nome no ecrã inicial da app
+  // O nome vem da conta — salta o ecrã do nome em vez de o mostrar.
   try{
-    const nameEl = $('login-name');
-    if(nameEl && !nameEl.value) nameEl.value = user.displayName || '';
+    if(window.PulsoCompleteLoginWithName){
+      window.PulsoCompleteLoginWithName(user.displayName || '');
+    }else{
+      const nameEl = $('login-name');
+      if(nameEl && !nameEl.value) nameEl.value = user.displayName || '';
+    }
   }catch(e){}
   // uma sincronização inicial (garante a cloud coerente com o local)
   uploadData();
+  // carrega os atletas que este utilizador treina (para aparecerem no modo Treinador)
+  loadCoachedAthletes();
 });
 
 // ---------- ligações de UI estáticas ----------
@@ -16794,6 +16972,7 @@ function wireStaticUI(){
   const sheetClose = $('pc-sheet-close'); if(sheetClose) sheetClose.onclick = closeSheet;
   const centralClose = $('pc-central-close'); if(centralClose) centralClose.onclick = closeCentral;
   const avClose = $('pc-athlete-view-close'); if(avClose) avClose.onclick = ()=>{ const b=$('pc-athlete-view'); if(b){ b.hidden=true; b.setAttribute('aria-hidden','true'); } };
+  const qrClose = $('pc-qr-close'); if(qrClose) qrClose.onclick = ()=>{ const b=$('pc-qr-overlay'); if(b){ b.hidden=true; b.setAttribute('aria-hidden','true'); } };
   setAuthMode('signin');
 }
 
@@ -16802,7 +16981,10 @@ window.PulsoCloud = {
   uploadData,
   get user(){ return currentUser; },
   get role(){ return currentRole; },
-  openSheet, openCentral, signOut: doSignOut
+  openSheet, openCentral, signOut: doSignOut,
+  getCoachedAthletes: ()=> coachedCache.slice(),
+  reloadCoachedAthletes: loadCoachedAthletes,
+  fetchAthleteData
 };
 
 </script>
