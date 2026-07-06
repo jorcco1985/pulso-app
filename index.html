@@ -6032,40 +6032,25 @@ nav.tabbar button.active svg{
 
   <!-- ================= DASHBOARD (só esta rola) ================= -->
   <section id="tab-dashboard" class="active">
-    <div class="card" id="verdict-main-card">
-      <div class="verdict-wrap">
-        <div class="verdict-left">
-          <div class="verdict-score" id="verdict-ring" role="button" tabindex="0" title="Toca para ver a avaliação"><span class="n" id="verdict-n">—</span></div>
-          <p class="verdict-title" id="verdict-title">Ainda sem dados</p>
-          <p class="help verdict-legend" id="verdict-sub">A bola mostra o teu estado geral numa escala de 0 a 100 — quanto mais alto, melhor. 70+ ótimo · 40–69 razoável · abaixo de 40 requer atenção. Toca na bola para veres a avaliação completa.</p>
-          <div class="verdict-detail" id="verdict-detail" style="display:none;"></div>
+    <div class="card" id="estado-card">
+      <div class="estado-swipe" id="estado-swipe">
+        <div class="estado-page" data-estado="geral">
+          <div class="estado-ball" id="estado-geral-ball"><span class="n" id="verdict-n">—</span></div>
+          <p class="estado-title">Estado geral</p>
+          <p class="estado-sub" id="estado-geral-sub">Toca para ver a avaliação.</p>
         </div>
-        <div class="verdict-right">
-          <ul class="verdict-list" id="verdict-list"></ul>
+        <div class="estado-page" data-estado="treino" id="estado-page-treino" style="display:none;">
+          <div class="estado-ball" id="estado-treino-ball"><span class="n" id="estado-treino-n">—</span></div>
+          <p class="estado-title">Estado geral para treino</p>
+          <p class="estado-sub" id="estado-treino-sub">Prontidão / risco de overtraining. Toca para saber porquê.</p>
         </div>
-      </div>
-      <div id="verdict-gauge-wrap" style="display:none;"></div>
-    </div>
-
-    <div class="card" id="cycle-dash-card" style="display:none;">
-      <div class="cycle-dash-swipe" id="cycle-dash-swipe">
-        <div class="cycle-dash-page">
-          <div class="cycle-ring" id="cycle-dash-ring"><span class="n" id="cycle-dash-n">—</span></div>
-          <p class="cycle-dash-phase" id="cycle-dash-phase">—</p>
-          <p class="help" style="text-align:center; margin:2px 0 0;">Estado do ciclo (0–100), com base na fase, humor, energia e dor. Desliza para analisar. →</p>
-        </div>
-        <div class="cycle-dash-page" style="text-align:left;">
-          <h3 style="margin:0 0 8px;">Análise do ciclo</h3>
-          <div id="cycle-dash-analysis"></div>
+        <div class="estado-page" data-estado="ciclo" id="estado-page-ciclo" style="display:none;">
+          <div class="estado-ball" id="estado-ciclo-ball"><span class="n" id="estado-ciclo-n">—</span></div>
+          <p class="estado-title">Estado do ciclo menstrual</p>
+          <p class="estado-sub" id="estado-ciclo-sub">Toca para saber mais.</p>
         </div>
       </div>
-      <div class="cycle-dash-dots"><span class="cdd active" data-cdd="0"></span><span class="cdd" data-cdd="1"></span></div>
-    </div>
-
-    <div class="card" id="readiness-dash-card" style="display:none; text-align:center;">
-      <div class="cycle-ring" id="readiness-ring"><span class="n" id="readiness-n">—</span></div>
-      <p class="cycle-dash-phase" id="readiness-lbl">—</p>
-      <p class="help" style="text-align:center; margin:2px 0 0;">Prontidão para treino (0–100), com base na carga, recuperação e alimentação. Toca para saber porquê.</p>
+      <div class="estado-dots" id="estado-dots"></div>
     </div>
 
     <div class="grid3">
@@ -7490,7 +7475,7 @@ nav.tabbar button.active svg{
   // ================= PROFILE ================= //
   document.getElementById('profile-gender')?.addEventListener('change', function(){
     profile.gender = this.value || null;
-    try{ updateCycleSubtabVisibility(); renderCycle(); renderCycleDash(); }catch(err){}
+    try{ updateCycleSubtabVisibility(); renderCycle(); renderEstadoBalls(); }catch(err){}
   });
   document.getElementById('form-profile').addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -7503,7 +7488,7 @@ nav.tabbar button.active svg{
     toast('Perfil guardado');
     renderDashboard();
     renderKcal();
-    try{ updateCycleSubtabVisibility(); renderCycle(); renderCycleDash(); }catch(err){}
+    try{ updateCycleSubtabVisibility(); renderCycle(); renderEstadoBalls(); }catch(err){}
   });
 
   // ================= WEIGHT ================= //
@@ -8450,6 +8435,107 @@ nav.tabbar button.active svg{
       '\n\nNota: é um apoio à decisão, não um diagnóstico.';
     if(ring){ ring.onclick = ()=>{ if(window.pulsoInfo) window.pulsoInfo(explain); }; }
   }
+
+  /* ===== Bolas de estado consolidadas (Geral / Treino / Ciclo) com swipe ===== */
+  function estadoSetBall(ballId, nId, val, color){
+    const ball = document.getElementById(ballId);
+    const n = document.getElementById(nId);
+    if(ball){ ball.style.borderColor = color; ball.style.boxShadow = '0 0 0 12px '+color+'12, 0 0 40px '+color+'3a'; }
+    if(n){ n.textContent = val; n.style.color = color; }
+  }
+  function estadoSetTap(ballId, explain){
+    const ball = document.getElementById(ballId);
+    if(ball) ball.onclick = ()=>{ if(window.pulsoInfo) window.pulsoInfo(explain); };
+  }
+  function renderEstadoBalls(){
+    const card = document.getElementById('estado-card');
+    if(!card) return;
+    let visible = 0;
+
+    // 1) Estado geral (avaliação de saúde).
+    try{
+      const assessment = (typeof computeHealthAssessment==='function') ? computeHealthAssessment() : null;
+      if(assessment){
+        const sc = Math.max(0, Math.min(100, assessment.overall));
+        const col = sc>=70 ? '#35D9A6' : (sc>=40 ? '#F2B84B' : '#F2555A');
+        estadoSetBall('estado-geral-ball','verdict-n', sc, col);
+        const sub = document.getElementById('estado-geral-sub'); if(sub) sub.textContent = (assessment.title||'Estado geral') + ' · toca para ver a avaliação.';
+        const explain = (assessment.title||'Estado geral') + ' · ' + sc + '/100.\n\n'+
+          'Reflete os teus registos recentes (sono, hidratação, nutrição, álcool, treino...). Quanto mais alto, melhor.\n\n'+
+          (assessment.notes && assessment.notes.length ? assessment.notes.map(n=>'• '+n).join('\n') : 'Sem notas por agora.');
+        estadoSetTap('estado-geral-ball', explain);
+      }else{
+        estadoSetBall('estado-geral-ball','verdict-n','—','#8894a8');
+        estadoSetTap('estado-geral-ball','Ainda sem dados suficientes para o estado geral. Regista sono, nutrição e treinos.');
+      }
+      visible++;
+    }catch(e){ estadoSetBall('estado-geral-ball','verdict-n','—','#8894a8'); visible++; }
+
+    // 2) Estado geral para treino (prontidão / overtraining).
+    const treinoPage = document.getElementById('estado-page-treino');
+    try{
+      const rd = window.PulsoReadiness ? window.PulsoReadiness.compute(readinessLocalGet) : null;
+      if(rd && rd.hasData){
+        const col = rd.level==='green'?'#35D9A6':(rd.level==='yellow'?'#F2B84B':'#F2555A');
+        const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+        estadoSetBall('estado-treino-ball','estado-treino-n', rd.score, col);
+        const sub = document.getElementById('estado-treino-sub'); if(sub) sub.textContent = rlbl + ' · toca para saber porquê.';
+        const explain = 'Estado geral para treino: ' + rd.score + '/100 — ' + rlbl + '.\n\n'+
+          'Cruza a carga de treino (7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (alimentação).\n\n'+
+          '• 70–100 (verde): fresco, podes treinar forte.\n'+
+          '• 45–69 (amarelo): fadiga a acumular — vigia e ajusta.\n'+
+          '• Abaixo de 45 (vermelho): sinais de sobrecarga — considera uma descarga.\n\n'+
+          'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
+          (rd.confidence<3 ? '\n\n⚠ Poucos dados registados — estimativa menos fiável.' : '') +
+          '\n\nApoio à decisão, não diagnóstico.';
+        estadoSetTap('estado-treino-ball', explain);
+        if(treinoPage) treinoPage.style.display = '';
+        visible++;
+      }else{
+        if(treinoPage) treinoPage.style.display = 'none';
+      }
+    }catch(e){ if(treinoPage) treinoPage.style.display = 'none'; }
+
+    // 3) Estado do ciclo menstrual (só feminino, com dados).
+    const cyclePage = document.getElementById('estado-page-ciclo');
+    try{
+      const cyc = cycleIsFemale() ? computeCycle(cycleData) : null;
+      if(cyc && cyc.hasData){
+        const sc = cyc.wellbeing;
+        const col = sc>=75?'#35D9A6':(sc>=50?'#F2B84B':'#F2555A');
+        estadoSetBall('estado-ciclo-ball','estado-ciclo-n', sc, col);
+        const sub = document.getElementById('estado-ciclo-sub'); if(sub) sub.textContent = 'Fase ' + cyc.phase + ' · dia ' + cyc.cycleDay + ' · toca para saber mais.';
+        const explain = 'Estado do ciclo menstrual: ' + sc + '/100.\n\n'+
+          'Combina a fase do teu ciclo com o humor, energia e dor que registas.\n\n'+
+          'Fase atual: ' + cyc.phase + ' (dia ' + cyc.cycleDay + ').\n'+
+          'Disponibilidade para treino: ' + cyc.availability + '/100.\n\n'+
+          cyc.tip;
+        estadoSetTap('estado-ciclo-ball', explain);
+        if(cyclePage) cyclePage.style.display = '';
+        visible++;
+      }else{
+        if(cyclePage) cyclePage.style.display = 'none';
+      }
+    }catch(e){ if(cyclePage) cyclePage.style.display = 'none'; }
+
+    // Pontinhos de navegação.
+    const dots = document.getElementById('estado-dots');
+    const sw = document.getElementById('estado-swipe');
+    if(dots){
+      if(visible <= 1){ dots.innerHTML = ''; }
+      else {
+        dots.innerHTML = Array.from({length:visible}).map((_,i)=>'<span class="estado-dot'+(i===0?' active':'')+'" data-ed="'+i+'"></span>').join('');
+        dots.querySelectorAll('[data-ed]').forEach(d=> d.onclick = ()=>{ const i=Number(d.getAttribute('data-ed')); if(sw) sw.scrollTo({left:i*sw.clientWidth, behavior:'smooth'}); });
+      }
+    }
+  }
+  (function bindEstadoSwipe(){
+    const sw = document.getElementById('estado-swipe');
+    if(sw) sw.addEventListener('scroll', ()=>{
+      const i = Math.round(sw.scrollLeft / Math.max(1, sw.clientWidth));
+      document.querySelectorAll('#estado-dots .estado-dot').forEach((d,idx)=> d.classList.toggle('active', idx===i));
+    });
+  })();
 
 
   document.getElementById('cycle-cal-prev')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()-1, 1); renderCycleCalendar(); });
@@ -11276,8 +11362,6 @@ nav.tabbar button.active svg{
   }
 
   function renderDashboard(){
-    try{ renderCycleDash(); }catch(e){}
-    try{ renderReadinessDash(); }catch(e){}
     if(sleepEntries.length){
       const last = sleepEntries[sleepEntries.length-1]; const prev = sleepEntries[sleepEntries.length-2];
       document.getElementById('d-sleep').innerHTML = last.hours.toFixed(1) + ' <small>h</small>';
@@ -11350,25 +11434,7 @@ nav.tabbar button.active svg{
           <div><strong>${fmtDateShort(w.date)}</strong> · ${w.type}</div><div style="color:var(--text-muted); font-size:12px;">${w.goal||''}</div></div>`).join('');
     }
 
-    const assessment = computeHealthAssessment();
-    if(assessment){
-      const verdictScore = Math.max(0, Math.min(100, assessment.overall));
-      const verdictHue = Math.round((verdictScore / 100) * 135); // 0 vermelho, 135 verde
-      const verdictColor = `hsl(${verdictHue} 78% 56%)`;
-      const verdictRing = document.getElementById('verdict-ring');
-      document.getElementById('verdict-n').textContent = assessment.overall;
-      verdictRing.style.setProperty('--verdict-color', verdictColor);
-      verdictRing.style.setProperty('--verdict-pct', verdictScore + '%');
-      document.getElementById('verdict-title').textContent = assessment.title;
-      const verdictDetail = document.getElementById('verdict-detail');
-      if(verdictDetail){
-        verdictDetail.innerHTML = '<strong>' + assessment.title + ' · ' + assessment.overall + '/100</strong>' +
-          '<span class="verdict-detail-sub">Com base nos teus registos mais recentes.</span>' +
-          (assessment.notes && assessment.notes.length ? '<ul>' + assessment.notes.map(n=>`<li>${n}</li>`).join('') + '</ul>' : '');
-      }
-      document.getElementById('verdict-list').innerHTML = assessment.notes.map(n=>`<li>${n}</li>`).join('');
-      document.getElementById('verdict-gauge-wrap').style.display = 'none';
-    }
+    try{ renderEstadoBalls(); }catch(e){ console.warn('renderEstadoBalls falhou', e); }
   }
 
   // ================= EXPORT ================= //
@@ -16617,13 +16683,19 @@ nav.tabbar button.active svg{
     if(unit === 'm') return Math.round(n) + ' m';
     return Math.round(n) + '';
   }
-  function coachMiniChart(title, unit, rows, key, colorClass){
+  function coachMiniChart(title, unit, rows, key, colorClass, agg){
+    agg = agg || 'sum';
     const vals = rows.map(r=>coachChartNum(key(r))).filter(v=>v!=null);
     const all = rows.map(r=>coachChartNum(key(r)));
     const w = 320, h = 138, padL = 24, padR = 10, padT = 12, padB = 28;
     if(!vals.length){
       return '<div class="coach-chart-slide"><div class="coach-chart-title">'+esc(title)+'</div><div class="coach-empty">Sem dados suficientes.</div></div>';
     }
+    // Valor em destaque: soma do período (métricas cumulativas) ou média (nível: peso/sono).
+    const headline = agg === 'avg'
+      ? (vals.reduce((s,v)=>s+v,0) / vals.length)
+      : vals.reduce((s,v)=>s+v,0);
+    const headlineLbl = rows.length <= 1 ? '' : (agg === 'avg' ? ' <small>média</small>' : ' <small>total</small>');
     let min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
     if(min === max){ min = Math.max(0, min - 1); max = max + 1; }
     const innerW = w-padL-padR, innerH = h-padT-padB;
@@ -16651,7 +16723,7 @@ nav.tabbar button.active svg{
     const lastDay = rows[rows.length-1]?.day || rows[rows.length-1]?.date || '';
     return '<div class="coach-chart-slide">'+
       '<div class="coach-chart-title">'+esc(title)+'</div>'+
-      '<div class="coach-chart-value">'+esc(coachChartFmt(vals[vals.length-1], unit))+'</div>'+
+      '<div class="coach-chart-value">'+esc(coachChartFmt(headline, unit))+headlineLbl+'</div>'+
       '<svg class="coach-chart-svg" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+
       '<line class="coach-chart-grid" x1="'+padL+'" y1="'+padT+'" x2="'+(w-padR)+'" y2="'+padT+'"></line>'+
       '<line class="coach-chart-grid" x1="'+padL+'" y1="'+(padT+innerH/2).toFixed(1)+'" x2="'+(w-padR)+'" y2="'+(padT+innerH/2).toFixed(1)+'"></line>'+
@@ -16664,15 +16736,15 @@ nav.tabbar button.active svg{
       '</svg></div>';
   }
   function coachOverviewCharts(day, rangeN){
-    const n = rangeN === 1 ? 7 : rangeN;
+    const n = Math.max(1, rangeN); // no "Dia" mostra só o próprio dia
     const rows = coachRangeDays(day, n).reverse().map(d=>coachDayRecord(d));
     const slides = [
-      coachMiniChart('Tempo de treino', 'min', rows, r=>r.totals.workoutMin, 'green'),
-      coachMiniChart('Distância', 'km', rows, r=>r.totals.workoutKm, 'blue'),
-      coachMiniChart('Kcal treino', 'kcal', rows, r=>r.totals.workoutKcal, 'amber'),
-      coachMiniChart('Água', 'L', rows, r=>r.totals.waterMl, 'green'),
-      coachMiniChart('Sono', 'h', rows, r=>r.totals.sleepHours, 'purple'),
-      coachMiniChart('Peso', 'kg', rows, r=>r.totals.weightKg, 'blue')
+      coachMiniChart('Tempo de treino', 'min', rows, r=>r.totals.workoutMin, 'green', 'sum'),
+      coachMiniChart('Distância', 'km', rows, r=>r.totals.workoutKm, 'blue', 'sum'),
+      coachMiniChart('Kcal treino', 'kcal', rows, r=>r.totals.workoutKcal, 'amber', 'sum'),
+      coachMiniChart('Água', 'L', rows, r=>r.totals.waterMl, 'green', 'sum'),
+      coachMiniChart('Sono', 'h', rows, r=>r.totals.sleepHours, 'purple', 'avg'),
+      coachMiniChart('Peso', 'kg', rows, r=>r.totals.weightKg, 'blue', 'avg')
     ];
     return '<div class="coach-chart-swiper">'+slides.join('')+'</div><div class="coach-chart-hint">Desliza para ver os gráficos.</div>';
   }
@@ -17303,6 +17375,18 @@ nav.tabbar button.active svg{
 
 <!-- ===================== PULSO CLOUD (Firebase) ===================== -->
 <style id="pulso-cycle-css">
+  #estado-card{padding:18px 12px;}
+  .estado-swipe{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .estado-swipe::-webkit-scrollbar{display:none;}
+  .estado-page{flex:0 0 100%; scroll-snap-align:center; text-align:center; padding:4px 6px;}
+  .estado-ball{width:150px; height:150px; border-radius:50%; margin:4px auto 14px; display:flex; align-items:center; justify-content:center; border:12px solid var(--teal); box-shadow:0 0 0 12px rgba(53,217,166,.05), 0 0 40px rgba(53,217,166,.25); cursor:pointer; transition:border-color .3s, box-shadow .3s;}
+  .estado-ball:active{transform:scale(.97);}
+  .estado-ball .n{font-family:var(--font-display,inherit); font-size:52px; font-weight:800; line-height:.95;}
+  .estado-title{font-size:18px; font-weight:800; margin:0 0 3px;}
+  .estado-sub{font-size:12.5px; color:var(--text-muted); margin:0 auto; max-width:340px; line-height:1.4;}
+  .estado-dots{display:flex; gap:8px; justify-content:center; margin-top:14px;}
+  .estado-dot{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.2); cursor:pointer; transition:background .2s;}
+  .estado-dot.active{background:var(--teal); transform:scale(1.15);}
   .cycle-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .cycle-tile{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px;}
   .cycle-tile strong{display:block; font-size:20px; color:#fff; line-height:1.1;}
