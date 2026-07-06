@@ -6844,6 +6844,10 @@ nav.tabbar button.active svg{
       <h3>Potência</h3>
       <div class="strava-mini-chart" id="strava-power-chart"></div>
     </div>
+    <div class="card" style="margin-top:12px; display:none;" id="strava-alt-card">
+      <h3>Altimetria</h3>
+      <div class="strava-mini-chart" id="strava-alt-chart"></div>
+    </div>
   </div>
 </div>
 
@@ -9788,7 +9792,7 @@ nav.tabbar button.active svg{
     if(cached && cached.savedAt) return cached;
     const ok = await ensureStravaToken();
     if(!ok) throw new Error('Strava sem token válido');
-    const url = 'https://www.strava.com/api/v3/activities/' + encodeURIComponent(activityId) + '/streams?keys=time,distance,heartrate,velocity_smooth,watts&key_by_type=true';
+    const url = 'https://www.strava.com/api/v3/activities/' + encodeURIComponent(activityId) + '/streams?keys=time,distance,heartrate,velocity_smooth,watts,altitude&key_by_type=true';
     const res = await fetchStravaApi(url);
     if(!res || !res.ok){
       const txt = res ? await res.text().catch(()=> '') : '';
@@ -9801,6 +9805,7 @@ nav.tabbar button.active svg{
       heartrate: data.heartrate && Array.isArray(data.heartrate.data) ? data.heartrate.data : [],
       velocity: data.velocity_smooth && Array.isArray(data.velocity_smooth.data) ? data.velocity_smooth.data : [],
       watts: data.watts && Array.isArray(data.watts.data) ? data.watts.data : [],
+      altitude: data.altitude && Array.isArray(data.altitude.data) ? data.altitude.data : [],
       savedAt: new Date().toISOString()
     };
     await sSet(cacheKey, pack);
@@ -9900,6 +9905,10 @@ nav.tabbar button.active svg{
     const shellIsBike = sportCategory(a.type || a.sportType)==='bike';
     if(pwCard) pwCard.style.display = shellIsBike ? 'block' : 'none';
     if(pw) pw.innerHTML = '<div class="empty">A carregar gráfico de potência...</div>';
+    const altCard = document.getElementById('strava-alt-card');
+    const alt = document.getElementById('strava-alt-chart');
+    if(altCard) altCard.style.display = 'none';
+    if(alt) alt.innerHTML = '<div class="empty">A carregar altimetria...</div>';
   }
   async function openStravaActivityDetail(activityId){
     let a = (stravaActivities || []).find(x=>String(x.id)===String(activityId));
@@ -9929,6 +9938,9 @@ nav.tabbar button.active svg{
       const powerRows = hasPowerStream
         ? streams.watts.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)}))
         : fbPower.map((r,i)=>Object.assign({}, r, {d: a.distanceKm ? (a.distanceKm*1000)*(i/Math.max(1, fbPower.length-1)) : null}));
+      // Altimetria: só quando o Strava tem o stream de altitude (não se estima).
+      const hasAltStream = !!(streams && streams.altitude && streams.altitude.length);
+      const altRows = hasAltStream ? streams.altitude.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)})) : [];
 
       const failMsg = 'Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.';
       const hrEmpty = streamErr ? failMsg : 'Esta atividade não tem frequência cardíaca registada no Strava.';
@@ -9950,6 +9962,16 @@ nav.tabbar button.active svg{
         renderStreamChart(document.getElementById('strava-power-chart'), powerRows, 'var(--cyan)', v=>Math.round(v)+' W', pwEmpty, (!hasPowerStream && powerRows.length) ? 'estimado' : null, {roundY:20});
       }else if(powerCard){
         powerCard.style.display = 'none';
+      }
+
+      // Altimetria de cada treino (perfil de altitude), como cardio/velocidade/potência.
+      const altCard = document.getElementById('strava-alt-card');
+      if(altRows.length){
+        if(altCard) altCard.style.display = 'block';
+        const altEmpty = streamErr ? failMsg : 'Esta atividade não tem altimetria registada no Strava.';
+        renderStreamChart(document.getElementById('strava-alt-chart'), altRows, 'var(--blue)', v=>Math.round(v)+' m', altEmpty, null, {roundY:10});
+      }else if(altCard){
+        altCard.style.display = 'none';
       }
 
       if(streamErr) toast('Sem dados detalhados do Strava; mostro estimativa pelas médias quando existem.');
@@ -14570,6 +14592,28 @@ nav.tabbar button.active svg{
     try{ localStorage.setItem('pulso:'+key, JSON.stringify(value)); }catch(e){}
     try{ if(window.storage && window.storage.set) window.storage.set(key, JSON.stringify(value), false); }catch(e){}
   }
+  // Kcal de treino: o Strava não traz 'calories' no resumo, por isso estimamos (como no atleta).
+  function coachLastWeightKg(){
+    const w = (aGet('weight-entries', [])||[]).slice().reverse().find(x=>x && x.kg!=null);
+    return w ? Number(w.kg) : 70;
+  }
+  function coachActivityKcal(a){
+    if(!a) return 0;
+    const c = Number(a.calories);
+    if(a.calories != null && !isNaN(c) && c > 0) return Math.round(c);
+    const kj = Number(a.kilojoules);
+    if(a.kilojoules != null && !isNaN(kj) && kj > 0) return Math.round(kj);
+    const type = String(a.type || a.sportType || '').toLowerCase();
+    const isRun = /run|corr|trail|walk|hik|jog/.test(type);
+    const isBike = /ride|bike|cycl|bicicl/.test(type);
+    const isForca = /weight|workout|strength|forç|forc|gym|muscul/.test(type);
+    const weight = coachLastWeightKg();
+    const distanceKm = Number(a.distanceKm != null ? a.distanceKm : (Number(a.distance)||0)/1000) || 0;
+    const hours = (Number(a.movingSec || a.moving_time || a.elapsed_time || 0)) / 3600;
+    if(isRun && distanceKm) return Math.round(weight * distanceKm); // ~1 kcal/kg/km
+    const met = isBike ? 8 : isForca ? 5 : 4;
+    return Math.round(met * weight * hours);
+  }
   function getRaw(key, fallback){ return safeParse(localStorage.getItem(key), fallback); }
   function esc(v){ return String(v ?? '').replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
   function cuid(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -15484,7 +15528,8 @@ nav.tabbar button.active svg{
     if(isBikeActivity(a) && watts) pills.push('<span class="coach-pill">'+Math.round(watts)+' W</span>');
     if(a.elevationM) pills.push('<span class="coach-pill">'+Math.round(a.elevationM)+' m D+</span>');
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
-    if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
+    const kcalPill = coachActivityKcal(a);
+    if(kcalPill) pills.push('<span class="coach-pill">'+Math.round(kcalPill)+' kcal</span>');
     return '<div class="athlete-last30-item" '+(a.source === 'strava' && a.id ? 'data-strava-id="'+esc(String(a.id))+'"' : '')+'><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
   }
   function renderLast30Workouts(days){
@@ -15498,7 +15543,7 @@ nav.tabbar button.active svg{
     const acts = recentCompletedWorkouts(period);
     const totalMin = acts.reduce((s,a)=>s+activityMinutes(a),0);
     const totalKm = acts.reduce((s,a)=>s+activityKm(a),0);
-    const kcal = acts.reduce((s,a)=>s+(Number(a.calories)||0),0);
+    const kcal = acts.reduce((s,a)=>s+coachActivityKcal(a),0);
     if(count) count.textContent = acts.length + (acts.length === 1 ? ' treino' : ' treinos');
     sumBox.innerHTML = '<div class="athlete-last30-mini"><strong>'+acts.length+'</strong><span>Treinos</span></div>' +
       '<div class="athlete-last30-mini"><strong>'+Math.round(totalMin/60*10)/10+' h</strong><span>Tempo</span></div>' +
@@ -15653,7 +15698,7 @@ nav.tabbar button.active svg{
         restingHr: (lastBp && lastBp.hr!=null && lastBp.hr!=='') ? Number(lastBp.hr) : null,
         workoutMin: Math.round(sum(workouts, e=>(e.movingSec||e.elapsed_time||0))/60),
         workoutKm: Math.round(sum(workouts, e=>e.distanceKm||((e.distance||0)/1000))*10)/10,
-        workoutKcal: Math.round(sum(workouts, e=>e.calories)),
+        workoutKcal: Math.round(sum(workouts, e=>coachActivityKcal(e))),
         elevationM: Math.round(sum(workouts, e=>e.elevationM||e.total_elevation_gain||0))
       }
     };
@@ -15682,7 +15727,8 @@ nav.tabbar button.active svg{
     if(isBikeActivity(a) && watts) pills.push('<span class="coach-pill">'+Math.round(watts)+' W</span>');
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     if(a.maxHr) pills.push('<span class="coach-pill">'+Math.round(a.maxHr)+' bpm máx.</span>');
-    if(a.calories) pills.push('<span class="coach-pill">'+Math.round(a.calories)+' kcal</span>');
+    const kcalP = coachActivityKcal(a);
+    if(kcalP) pills.push('<span class="coach-pill">'+Math.round(kcalP)+' kcal</span>');
     const aid = a.id!=null ? String(a.id) : '';
     return '<div class="coach-activity coach-activity-clickable" data-strava-id="'+esc(aid)+'" role="button" tabindex="0" style="margin-bottom:9px;">'+
       '<div class="act-head"><div class="act-name">'+esc(a.name||'Atividade')+'</div><div class="act-date">'+esc(shortDate(a.date||a.start_date))+'</div></div>'+
