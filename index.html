@@ -6047,6 +6047,27 @@ nav.tabbar button.active svg{
       <div id="verdict-gauge-wrap" style="display:none;"></div>
     </div>
 
+    <div class="card" id="cycle-dash-card" style="display:none;">
+      <div class="cycle-dash-swipe" id="cycle-dash-swipe">
+        <div class="cycle-dash-page">
+          <div class="cycle-ring" id="cycle-dash-ring"><span class="n" id="cycle-dash-n">—</span></div>
+          <p class="cycle-dash-phase" id="cycle-dash-phase">—</p>
+          <p class="help" style="text-align:center; margin:2px 0 0;">Estado do ciclo (0–100), com base na fase, humor, energia e dor. Desliza para analisar. →</p>
+        </div>
+        <div class="cycle-dash-page" style="text-align:left;">
+          <h3 style="margin:0 0 8px;">Análise do ciclo</h3>
+          <div id="cycle-dash-analysis"></div>
+        </div>
+      </div>
+      <div class="cycle-dash-dots"><span class="cdd active" data-cdd="0"></span><span class="cdd" data-cdd="1"></span></div>
+    </div>
+
+    <div class="card" id="readiness-dash-card" style="display:none; text-align:center;">
+      <div class="cycle-ring" id="readiness-ring"><span class="n" id="readiness-n">—</span></div>
+      <p class="cycle-dash-phase" id="readiness-lbl">—</p>
+      <p class="help" style="text-align:center; margin:2px 0 0;">Prontidão para treino (0–100), com base na carga, recuperação e alimentação. Toca para saber porquê.</p>
+    </div>
+
     <div class="grid3">
       <div class="card dashboard-icon-card metric-kcal" id="d-kcal-card">
         <div class="dash-big-icon" aria-hidden="true">
@@ -6614,10 +6635,9 @@ nav.tabbar button.active svg{
           <div class="cycle-tile"><strong id="cycle-next-ovulation">—</strong><span>Próxima ovulação</span></div>
         </div>
         <p class="help" id="cycle-tip" style="margin:10px 0 0;"></p>
-        <button class="primary" type="button" id="cycle-register-btn" style="margin-top:12px; width:100%;">Registar início da menstruação</button>
         <label class="cycle-share-row" style="margin-top:12px;">
           <span>Partilhar dados com o treinador</span>
-          <input type="checkbox" id="cycle-share">
+          <span class="cycle-switch"><input type="checkbox" id="cycle-share"><span class="cycle-switch-track"></span></span>
         </label>
         <p class="help" id="cycle-share-note" style="margin:6px 0 0; font-size:11px;"></p>
       </div>
@@ -6629,24 +6649,31 @@ nav.tabbar button.active svg{
           <button class="ghost" type="button" id="cycle-cal-next" style="min-width:44px;">›</button>
         </div>
         <div id="cycle-calendar"></div>
-        <p class="help" style="margin:8px 0 0;">Toca no <strong>primeiro dia</strong> da menstruação para registar (toca de novo para remover). A Pulso calcula o resto automaticamente.</p>
+        <div class="cycle-legend" id="cycle-legend"></div>
+        <p class="help" style="margin:8px 0 0;">Toca no <strong>primeiro dia</strong> da menstruação para registar (toca de novo para remover). A Pulso calcula o resto automaticamente e colore os dias por fase.</p>
         <div class="cycle-stats" id="cycle-stats" style="margin-top:10px;"></div>
       </div>
 
       <div class="card">
         <h3 style="margin:0 0 8px;">Registo rápido de hoje <span class="help" style="font-weight:400;">(opcional)</span></h3>
-        <div class="cycle-log-grid">
-          <div class="field"><label for="cycle-pain">Dor (0–10)</label><input type="number" id="cycle-pain" min="0" max="10" placeholder="—"></div>
-          <div class="field"><label for="cycle-flow">Fluxo</label><select id="cycle-flow"><option value="">—</option><option value="ligeiro">Ligeiro</option><option value="medio">Médio</option><option value="abundante">Abundante</option></select></div>
-          <div class="field"><label for="cycle-energy">Energia (1–5)</label><input type="number" id="cycle-energy" min="1" max="5" placeholder="—"></div>
-          <div class="field"><label for="cycle-mood">Humor (1–5)</label><input type="number" id="cycle-mood" min="1" max="5" placeholder="—"></div>
-        </div>
-        <button class="primary" type="button" id="cycle-log-save" style="margin-top:10px; width:100%;">Guardar registo de hoje</button>
+        <div class="cycle-log-field"><label>Dor (0–10)</label><div class="cycle-chips" id="cycle-pain-chips" data-cycle-field="pain"></div><span class="cycle-scale">0 = sem dor · 10 = dor máxima</span></div>
+        <div class="cycle-log-field"><label>Fluxo</label><div class="cycle-chips" id="cycle-flow-chips" data-cycle-field="flow"></div><span class="cycle-scale">ligeiro → abundante</span></div>
+        <div class="cycle-log-field"><label>Energia (1–5)</label><div class="cycle-chips" id="cycle-energy-chips" data-cycle-field="energy"></div><span class="cycle-scale">1 = muito baixa · 5 = muito alta</span></div>
+        <div class="cycle-log-field"><label>Humor (1–5)</label><div class="cycle-chips" id="cycle-mood-chips" data-cycle-field="mood"></div><span class="cycle-scale">1 = muito mau · 5 = muito bom</span></div>
+        <button class="primary" type="button" id="cycle-log-save" style="margin-top:12px; width:100%;">Guardar registo de hoje</button>
         <p class="help" style="margin:8px 0 0;">Estes dados ficam sempre privados. O treinador nunca vê fluxo, sintomas nem notas.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px;">Registos do ciclo</h3>
+        <div id="cycle-history"></div>
       </div>
     </div>
 
     <div class="section-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg></div>
+  </section>
+
+  <!-- ================= PERFIL (com subgrupos) ================= -->
   <section id="tab-perfil">
     <h2 class="section-title">Perfil</h2>
 
@@ -6673,7 +6700,7 @@ nav.tabbar button.active svg{
             <div class="field"><label for="profile-name">Nome</label><input type="text" id="profile-name"></div>
             <div class="field"><label for="profile-age">Idade</label><input type="number" id="profile-age" placeholder="34"></div>
             <div class="field">
-              <label for="profile-gender">Género</label>
+              <label for="profile-gender">Sexo</label>
               <select id="profile-gender"><option value="">—</option><option value="M">Masculino</option><option value="F">Feminino</option></select>
             </div>
             <div class="field"><label for="profile-height">Altura (cm)</label><input type="number" id="profile-height" placeholder="178"></div>
@@ -6901,6 +6928,26 @@ nav.tabbar button.active svg{
 
 <div class="toast" id="toast"></div>
 
+<style id="pulso-confirm-css">
+  #pulso-confirm{position:fixed; inset:0; z-index:100050; background:rgba(4,7,13,.72); display:flex; align-items:center; justify-content:center; padding:24px;}
+  #pulso-confirm[hidden]{display:none;}
+  .pulso-confirm-box{width:100%; max-width:360px; background:#0C1322; border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:20px; text-align:center;}
+  .pulso-confirm-box p{margin:0 0 16px; font-size:14.5px; color:#fff; line-height:1.45; white-space:pre-line; text-align:left;}
+  .pulso-confirm-btns{display:flex; gap:10px;}
+  .pulso-confirm-btns button{flex:1; padding:13px; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:#fff; min-height:48px;}
+  .pulso-confirm-btns button.primary{background:var(--teal); border-color:var(--teal); color:#052018;}
+  .pulso-confirm-btns button:active{transform:scale(.98);}
+</style>
+<div id="pulso-confirm" hidden aria-hidden="true">
+  <div class="pulso-confirm-box">
+    <p id="pulso-confirm-msg"></p>
+    <div class="pulso-confirm-btns">
+      <button type="button" id="pulso-confirm-no">Não</button>
+      <button type="button" id="pulso-confirm-yes" class="primary">Sim</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -6971,6 +7018,39 @@ nav.tabbar button.active svg{
     pulsoToast._t = setTimeout(()=>t.classList.remove('show'), 2400);
   }
   window.showToast = pulsoToast;
+
+  // Confirmação própria (o window.confirm nativo é bloqueado em alguns webviews).
+  let _pulsoConfirmResolve = null;
+  function pulsoConfirm(msg, opts){
+    opts = opts || {};
+    return new Promise((resolve)=>{
+      const box = document.getElementById('pulso-confirm');
+      const msgEl = document.getElementById('pulso-confirm-msg');
+      const yes = document.getElementById('pulso-confirm-yes');
+      const no = document.getElementById('pulso-confirm-no');
+      if(!box || !msgEl){ resolve(window.confirm ? window.confirm(msg) : true); return; }
+      msgEl.textContent = msg;
+      if(yes) yes.textContent = opts.yesLabel || (opts.okOnly ? 'OK' : 'Sim');
+      if(no) no.style.display = opts.okOnly ? 'none' : '';
+      box.hidden = false; box.setAttribute('aria-hidden','false');
+      _pulsoConfirmResolve = resolve;
+    });
+  }
+  window.pulsoInfo = (msg)=> pulsoConfirm(msg, {okOnly:true});
+  (function bindPulsoConfirm(){
+    const box = document.getElementById('pulso-confirm');
+    const yes = document.getElementById('pulso-confirm-yes');
+    const no = document.getElementById('pulso-confirm-no');
+    function close(val){
+      if(box){ box.hidden = true; box.setAttribute('aria-hidden','true'); }
+      const r = _pulsoConfirmResolve; _pulsoConfirmResolve = null;
+      if(r) r(val);
+    }
+    if(yes) yes.addEventListener('click', ()=>close(true));
+    if(no) no.addEventListener('click', ()=>close(false));
+    if(box) box.addEventListener('click', (e)=>{ if(e.target===box) close(false); });
+  })();
+  window.pulsoConfirm = pulsoConfirm;
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function workoutVisualType(type, name){
     const t = String(type || '').toLowerCase();
@@ -7408,6 +7488,10 @@ nav.tabbar button.active svg{
 
 
   // ================= PROFILE ================= //
+  document.getElementById('profile-gender')?.addEventListener('change', function(){
+    profile.gender = this.value || null;
+    try{ updateCycleSubtabVisibility(); renderCycle(); renderCycleDash(); }catch(err){}
+  });
   document.getElementById('form-profile').addEventListener('submit', async (e)=>{
     e.preventDefault();
     profile.name = document.getElementById('profile-name').value.trim();
@@ -7419,7 +7503,7 @@ nav.tabbar button.active svg{
     toast('Perfil guardado');
     renderDashboard();
     renderKcal();
-    try{ updateCycleSubtabVisibility(); renderCycle(); }catch(err){}
+    try{ updateCycleSubtabVisibility(); renderCycle(); renderCycleDash(); }catch(err){}
   });
 
   // ================= WEIGHT ================= //
@@ -7926,9 +8010,8 @@ nav.tabbar button.active svg{
 
     const ovulationDay = Math.max(7, avgCycle - CYCLE_LUTEAL);
     const nextPeriod = cycleAddDays(lastStart, avgCycle);
-    const nextOvulation = cycleDaysBetween(today, cycleAddDays(lastStart, ovulationDay)) >= 0
-      ? cycleAddDays(lastStart, ovulationDay)
-      : cycleAddDays(nextPeriod, ovulationDay); // já passou -> a do ciclo seguinte
+    const ovThisCycle = cycleAddDays(lastStart, ovulationDay);
+    const nextOvulation = (ovThisCycle >= today) ? ovThisCycle : cycleAddDays(lastStart, ovulationDay + avgCycle);
 
     let phase, phaseKey;
     if(cycleDay <= periodLen){ phase='Menstrual'; phaseKey='menstrual'; }
@@ -7969,10 +8052,74 @@ nav.tabbar button.active svg{
     else tip='Menstruação — prioriza recuperação e treinos mais leves nos primeiros dias.';
     if(phaseKey!=='lutea' && daysToPeriod>=0 && daysToPeriod<=2) tip += ' Entras na fase lútea/menstruação dentro de ' + daysToPeriod + ' dia(s); poderás sentir maior fadiga.';
 
-    return { hasData:true, cycleDay, phase, phaseKey, avgCycle, periodLen, lastStart, nextPeriod, nextOvulation, ovulationDay, availability:avail, alert, alertKey, tip, daysToPeriod, cycleCount: starts.length };
+    // Score de bem-estar do ciclo (0–100): parte da disponibilidade e ajusta com humor/fluxo.
+    let wellbeing = avail;
+    if(log){
+      if(log.mood != null) wellbeing = wellbeing*0.75 + (Number(log.mood)/5*100)*0.25;
+      if(log.flow === 'abundante') wellbeing -= 6;
+      else if(log.flow === 'medio') wellbeing -= 2;
+    }
+    wellbeing = Math.max(5, Math.min(100, Math.round(wellbeing)));
+
+    return { hasData:true, cycleDay, phase, phaseKey, avgCycle, periodLen, lastStart, nextPeriod, nextOvulation, ovulationDay, availability:avail, wellbeing, alert, alertKey, tip, daysToPeriod, cycleCount: starts.length };
   }
 
   function cycleIsFemale(){ return profile && profile.gender === 'F'; }
+
+  function renderCycleDash(){
+    const card = document.getElementById('cycle-dash-card');
+    if(!card) return;
+    if(!cycleIsFemale()){ card.style.display = 'none'; return; }
+    const c = computeCycle(cycleData);
+    if(!c.hasData){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    const score = c.wellbeing;
+    const color = score>=75 ? '#35D9A6' : (score>=50 ? '#F2B84B' : '#F2555A');
+    const ring = document.getElementById('cycle-dash-ring');
+    if(ring){ ring.style.borderColor = color; ring.style.boxShadow = '0 0 0 12px '+color+'12, 0 0 34px '+color+'3a'; }
+    const n = document.getElementById('cycle-dash-n'); if(n){ n.textContent = score; n.style.color = color; }
+    const ph = document.getElementById('cycle-dash-phase'); if(ph){ ph.textContent = 'Fase ' + c.phase + ' · dia ' + c.cycleDay; }
+    const an = document.getElementById('cycle-dash-analysis');
+    if(an){
+      const log = (cycleData.logs && cycleData.logs[todayStr()]) ? cycleData.logs[todayStr()] : {};
+      const flowLbl = {sem:'Sem fluxo', ligeiro:'Ligeiro', medio:'Médio', abundante:'Abundante'};
+      an.innerHTML =
+        '<div class="cyc-an-row"><strong>'+c.phase+'</strong><span>Fase atual</span></div>'+
+        '<div class="cyc-an-row"><strong>'+c.availability+'/100</strong><span>Disponibilidade p/ treino</span></div>'+
+        '<div class="cyc-an-row"><strong>'+(log.mood!=null?log.mood+'/5':'—')+'</strong><span>Humor de hoje</span></div>'+
+        '<div class="cyc-an-row"><strong>'+(log.energy!=null?log.energy+'/5':'—')+'</strong><span>Energia de hoje</span></div>'+
+        '<div class="cyc-an-row"><strong>'+(log.pain!=null?log.pain+'/10':'—')+'</strong><span>Dor de hoje</span></div>'+
+        '<div class="cyc-an-row"><strong>'+(log.flow?(flowLbl[log.flow]||log.flow):'—')+'</strong><span>Fluxo de hoje</span></div>'+
+        '<p class="help" style="margin:10px 0 0;">'+String(c.tip||'')+'</p>';
+    }
+  }
+  (function bindCycleDash(){
+    document.querySelectorAll('#cycle-dash-card .cdd').forEach(dot=> dot.addEventListener('click', ()=>{
+      const i = Number(dot.getAttribute('data-cdd'))||0;
+      const sw = document.getElementById('cycle-dash-swipe');
+      if(sw) sw.scrollTo({left:i*sw.clientWidth, behavior:'smooth'});
+    }));
+    const sw = document.getElementById('cycle-dash-swipe');
+    if(sw) sw.addEventListener('scroll', ()=>{
+      const i = Math.round(sw.scrollLeft / Math.max(1, sw.clientWidth));
+      document.querySelectorAll('#cycle-dash-card .cdd').forEach((d,idx)=> d.classList.toggle('active', idx===i));
+    });
+    // Toca na bola do ciclo → explicação (como na bola de estado geral).
+    const ring = document.getElementById('cycle-dash-ring');
+    if(ring){
+      ring.style.cursor = 'pointer';
+      ring.addEventListener('click', ()=>{
+        const c = computeCycle(cycleData);
+        if(!c.hasData){ if(window.pulsoInfo) window.pulsoInfo('Regista o início da tua menstruação no separador Saúde → Ciclo para a Pulso calcular o teu estado.'); return; }
+        const msg = 'Estado do ciclo: ' + c.wellbeing + '/100.\n\n'+
+          'Este número combina a fase do teu ciclo com o humor, energia e dor que registas. Quanto mais alto (verde), melhor estás para treinar; mais baixo (amarelo/vermelho), maior a probabilidade de precisares de abrandar.\n\n'+
+          'Fase atual: ' + c.phase + ' (dia ' + c.cycleDay + ' do ciclo).\n'+
+          'Disponibilidade para treino: ' + c.availability + '/100.\n\n'+
+          c.tip;
+        if(window.pulsoInfo) window.pulsoInfo(msg);
+      });
+    }
+  })();
 
   async function cycleSave(){ try{ await sSet('cycle-data', cycleData); }catch(e){} }
 
@@ -8027,9 +8174,53 @@ nav.tabbar button.active svg{
     renderCycleCalendar();
     // Pré-preenche o registo rápido com o de hoje, se existir.
     const today = todayStr();
-    const log = (cycleData.logs && cycleData.logs[today]) ? cycleData.logs[today] : {};
-    const sv = (id,v)=>{ const el=document.getElementById(id); if(el && v!=null) el.value = v; };
-    sv('cycle-pain', log.pain); sv('cycle-flow', log.flow); sv('cycle-energy', log.energy); sv('cycle-mood', log.mood);
+    cycleLogDraft = Object.assign({}, (cycleData.logs && cycleData.logs[today]) ? cycleData.logs[today] : {});
+    renderCycleChips();
+    renderCycleHistory();
+  }
+
+  let cycleLogDraft = {};
+  const CYCLE_CHIP_DEFS = {
+    pain: { values: [0,1,2,3,4,5,6,7,8,9,10], labels: null },
+    flow: { values: ['sem','ligeiro','medio','abundante'], labels: {sem:'Sem fluxo', ligeiro:'Ligeiro', medio:'Médio', abundante:'Abundante'} },
+    energy: { values: [1,2,3,4,5], labels: null },
+    mood: { values: [1,2,3,4,5], labels: null }
+  };
+  function renderCycleChips(){
+    Object.keys(CYCLE_CHIP_DEFS).forEach(field=>{
+      const wrap = document.getElementById('cycle-'+field+'-chips');
+      if(!wrap) return;
+      const def = CYCLE_CHIP_DEFS[field];
+      const cur = cycleLogDraft[field];
+      wrap.innerHTML = def.values.map(v=>{
+        const on = (cur!=null && String(cur)===String(v)) ? ' on' : '';
+        const lbl = def.labels ? def.labels[v] : v;
+        return '<button type="button" class="cyc-chip'+on+'" data-cyc-val="'+v+'">'+lbl+'</button>';
+      }).join('');
+      wrap.querySelectorAll('[data-cyc-val]').forEach(b=> b.addEventListener('click', ()=>{
+        let val = b.getAttribute('data-cyc-val');
+        if(field!=='flow') val = Number(val);
+        if(cycleLogDraft[field]!=null && String(cycleLogDraft[field])===String(val)) delete cycleLogDraft[field];
+        else cycleLogDraft[field] = val;
+        renderCycleChips();
+      }));
+    });
+  }
+  function renderCycleHistory(){
+    const el = document.getElementById('cycle-history');
+    if(!el) return;
+    const logs = cycleData.logs || {};
+    const flowLbl = {sem:'Sem fluxo', ligeiro:'Ligeiro', medio:'Médio', abundante:'Abundante'};
+    const days = Object.keys(logs).sort((a,b)=>b.localeCompare(a)).slice(0,30);
+    if(!days.length){ el.innerHTML = '<p class="help" style="margin:0;">Ainda sem registos. Guarda o registo de hoje acima.</p>'; return; }
+    el.innerHTML = days.map(d=>{
+      const l = logs[d]; const tags = [];
+      if(l.pain!=null) tags.push('Dor '+l.pain);
+      if(l.flow) tags.push('Fluxo '+(flowLbl[l.flow]||l.flow));
+      if(l.energy!=null) tags.push('Energia '+l.energy);
+      if(l.mood!=null) tags.push('Humor '+l.mood);
+      return '<div class="cyc-hist-row"><strong>'+fmtCycleDate(d)+'</strong><span class="cyc-hist-tags">'+(tags.join(' · ')||'—')+'</span></div>';
+    }).join('');
   }
 
   function renderCycleCalendar(){
@@ -8045,29 +8236,51 @@ nav.tabbar button.active svg{
     const today = todayStr();
     const c = computeCycle(cycleData);
     const starts = new Set((cycleData.starts||[]));
-    // Datas previstas de menstruação (próximos ~3 ciclos) e ovulação.
-    const predicted = new Set(), ovul = new Set();
-    if(c.hasData){
-      for(let k=0;k<3;k++){
-        const p = cycleAddDays(c.nextPeriod, k*c.avgCycle);
-        for(let d=0; d<c.periodLen; d++) predicted.add(cycleAddDays(p, d));
-        ovul.add(cycleAddDays(c.lastStart, c.ovulationDay + k*c.avgCycle));
-      }
-    }
     const dows = ['S','T','Q','Q','S','S','D'];
     let html = dows.map(d=>'<div class="cyc-dow">'+d+'</div>').join('');
     for(let i=0;i<startDow;i++) html += '<div class="cyc-day empty"></div>';
     for(let day=1; day<=daysInMonth; day++){
       const ds = year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
       const cls = ['cyc-day'];
-      if(starts.has(ds)) cls.push('period');
-      else if(predicted.has(ds)) cls.push('predicted');
-      if(ovul.has(ds)) cls.push('ovul');
+      const ph = cyclePhaseForDay(ds, c);
+      if(ph) cls.push(ph);
+      if(starts.has(ds)) cls.push('cyc-start');
       if(ds===today) cls.push('today');
       html += '<div class="'+cls.join(' ')+'" data-cyc-day="'+ds+'">'+day+'</div>';
     }
     el.innerHTML = html;
     el.querySelectorAll('[data-cyc-day]').forEach(d=> d.addEventListener('click', ()=> toggleCycleStart(d.getAttribute('data-cyc-day'))));
+    const legend = document.getElementById('cycle-legend');
+    if(legend){
+      legend.innerHTML =
+        '<span><i style="background:rgba(242,85,90,.75); box-shadow:0 0 0 2px #35D9A6;"></i>Início marcado</span>'+
+        '<span><i style="background:rgba(242,85,90,.75)"></i>Menstruação</span>'+
+        '<span><i style="background:rgba(242,85,90,.18)"></i>Prevista</span>'+
+        '<span><i style="background:rgba(53,217,166,.26)"></i>Folicular (bem)</span>'+
+        '<span><i style="background:rgba(242,184,75,.32)"></i>Ovulação (pico)</span>'+
+        '<span><i style="background:rgba(155,140,255,.2)"></i>Lútea</span>'+
+        '<span><i style="background:rgba(255,157,46,.24)"></i>Pré-menstrual</span>';
+    }
+  }
+
+  // Fase (classe de cor) de um dia qualquer, com base no ciclo calculado (inclui previsões).
+  function cyclePhaseForDay(ds, c){
+    if(!c || !c.hasData) return null;
+    const starts = (cycleData.starts||[]).slice().sort();
+    for(const s of starts){ const diff = cycleDaysBetween(s, ds); if(diff >= 0 && diff < c.periodLen) return 'ph-menstrual'; }
+    let anchor = null;
+    for(const s of starts){ if(s <= ds) anchor = s; }
+    if(!anchor) anchor = starts[0];
+    let rel = cycleDaysBetween(anchor, ds);
+    if(rel < 0) return null;
+    const avg = c.avgCycle || 28;
+    const cd = (rel % avg) + 1;
+    const ov = c.ovulationDay;
+    if(cd <= c.periodLen) return 'ph-predicted';
+    if(cd < ov-1) return 'ph-folicular';
+    if(cd <= ov+1) return 'ph-ovulacao';
+    if(cd > avg-3) return 'ph-lutea-late';
+    return 'ph-lutea';
   }
 
   async function toggleCycleStart(ds){
@@ -8075,8 +8288,19 @@ nav.tabbar button.active svg{
     if(ds > todayStr()){ pulsoToast('Não dá para registar um dia futuro.'); return; }
     cycleData.starts = Array.isArray(cycleData.starts) ? cycleData.starts : [];
     const idx = cycleData.starts.indexOf(ds);
-    if(idx >= 0) cycleData.starts.splice(idx,1);
-    else cycleData.starts.push(ds);
+    const isStart = idx >= 0;
+    const msg = isStart
+      ? 'Remover o início da menstruação em ' + fmtCycleDate(ds) + '?'
+      : 'Marcar ' + fmtCycleDate(ds) + ' como início da menstruação?';
+    const ok = await pulsoConfirm(msg);
+    if(!ok) return;
+    if(isStart) cycleData.starts.splice(idx,1);
+    else {
+      // Só pode haver UM início por ciclo: se já existir um início próximo (mesmo ciclo,
+      // dentro de ~21 dias), esse é removido automaticamente e fica só o novo.
+      cycleData.starts = cycleData.starts.filter(s=> Math.abs(cycleDaysBetween(s, ds)) > 21);
+      cycleData.starts.push(ds);
+    }
     cycleData.starts.sort();
     await cycleSave();
     renderCycle();
@@ -8092,22 +8316,156 @@ nav.tabbar button.active svg{
     starts: ()=> (cycleData && Array.isArray(cycleData.starts)) ? cycleData.starts.slice() : []
   };
 
-  document.getElementById('cycle-register-btn')?.addEventListener('click', ()=> toggleCycleStart(todayStr()));
+  /* ================= PRONTIDÃO / RISCO DE OVERTRAINING ================= */
+  // Índice 0–100 (alto = fresco/pronto; baixo = fadiga acumulada / risco de overtraining).
+  // Cruza carga de treino (ACWR + monotonia), recuperação (sono + FC repouso),
+  // combustível (nutrição) e, no feminino, a disponibilidade do ciclo.
+  // `get(key)` devolve os dados do atleta em questão (local, cloud ou override do treinador).
+  function readinessDayKey(v){ return String(v || '').slice(0,10); }
+  function computeReadiness(get){
+    try{
+      const today = new Date(todayStr()+'T12:00:00');
+      const acts = (get('strava-activities') || []) || [];
+      const sleep = (get('sleep-entries') || []) || [];
+      const bp = (get('bp-entries') || []) || [];
+      const food = (get('kcal-entries') || []) || [];
+      const weight = (get('weight-entries') || []) || [];
+      const profile = (get('profile') || {}) || {};
+      const cycleRaw = get('cycle-data');
+
+      const dayOffset = (ds)=> Math.round((today - new Date(readinessDayKey(ds)+'T12:00:00'))/86400000);
+      // Carga diária dos últimos 28 dias (duração × fator de intensidade por FC).
+      const daily = new Array(28).fill(0);
+      acts.forEach(a=>{
+        const off = dayOffset(a.date || a.start_date || a.time);
+        if(off>=0 && off<28){
+          const min = (Number(a.movingSec || a.moving_time || a.elapsed_time || 0))/60;
+          const hr = Number(a.avgHr)||0;
+          const intensity = hr>0 ? Math.max(0.6, Math.min(1.6, hr/150)) : 1;
+          daily[off] += min * intensity;
+        }
+      });
+      const acute = daily.slice(0,7).reduce((s,v)=>s+v,0);
+      const chronicWeekly = daily.slice(0,28).reduce((s,v)=>s+v,0)/4;
+      const acwr = chronicWeekly>0 ? acute/chronicWeekly : null;
+      // Monotonia (7 dias): média/desvio-padrão.
+      const w = daily.slice(0,7); const mean = w.reduce((s,v)=>s+v,0)/7;
+      const sd = Math.sqrt(w.reduce((s,v)=>s+Math.pow(v-mean,2),0)/7) || 0;
+      const monotony = sd>0 ? mean/sd : (mean>0?3:0);
+
+      // Sono médio (7 dias).
+      const sl7 = sleep.filter(e=>{ const o=dayOffset(e.date); return o>=0&&o<7; }).map(e=>Number(e.hours)).filter(v=>v>0);
+      const avgSleep = sl7.length ? sl7.reduce((s,v)=>s+v,0)/sl7.length : null;
+
+      // FC de repouso: recente vs base (dias 7–28).
+      const rhrAll = bp.filter(e=>e.hr!=null && e.hr!=='').map(e=>({o:dayOffset(e.date), v:Number(e.hr)})).filter(x=>x.v>0);
+      const rhrRecent = rhrAll.filter(x=>x.o>=0&&x.o<7).map(x=>x.v);
+      const rhrBase = rhrAll.filter(x=>x.o>=7&&x.o<28).map(x=>x.v);
+      const recentRhr = rhrRecent.length ? rhrRecent.reduce((s,v)=>s+v,0)/rhrRecent.length : null;
+      const baseRhr = rhrBase.length ? rhrBase.reduce((s,v)=>s+v,0)/rhrBase.length : null;
+      const rhrDelta = (recentRhr!=null && baseRhr!=null) ? (recentRhr-baseRhr) : null;
+
+      // Nutrição: dias em défice acentuado nos últimos 7 (comida vs necessidade estimada).
+      const lastKg = (weight.slice().reverse().find(x=>x&&x.kg!=null)||{}).kg;
+      let deficitDays = 0, foodDays = 0;
+      for(let d=0; d<7; d++){
+        const dayFood = food.filter(e=>dayOffset(e.date)===d);
+        if(!dayFood.length) continue;
+        foodDays++;
+        const kcalIn = dayFood.reduce((s,e)=>s+(Number(e.kcal)||0),0);
+        const need = (lastKg? lastKg*28 : 1900) + (daily[d]*7); // BMR aprox + treino
+        if(kcalIn>0 && kcalIn < need*0.6) deficitDays++;
+      }
+
+      // Ciclo (só feminino, com dados).
+      let cycleAvail = null;
+      if(profile.gender==='F' && cycleRaw && Array.isArray(cycleRaw.starts) && cycleRaw.starts.length){
+        const cyc = computeCycle(cycleRaw);
+        if(cyc && cyc.hasData) cycleAvail = cyc.availability;
+      }
+
+      // Confiança: quantos sinais temos?
+      const signals = [acts.length>=4, sl7.length>=2, rhrDelta!=null, foodDays>=2].filter(Boolean).length;
+      if(acts.length < 2 && sl7.length < 2){
+        return { hasData:false, reason:'Ainda sem dados suficientes (treinos, sono ou FC) para avaliar a prontidão.' };
+      }
+
+      let score = 100; const reasons = [];
+      if(acwr!=null){
+        const pct = Math.round((acwr-1)*100);
+        if(acwr > 1.5){ score -= 28; reasons.push('Carga dos últimos 7 dias muito acima da média (+'+pct+'%) — risco de sobrecarga.'); }
+        else if(acwr > 1.3){ score -= 15; reasons.push('Carga a subir depressa face às últimas 4 semanas (+'+pct+'%).'); }
+        else if(acwr < 0.7 && chronicWeekly>0){ score -= 6; reasons.push('Carga baixa face à média — pouco estímulo.'); }
+      }
+      if(monotony > 2.2 && acute > chronicWeekly*0.7){ score -= 8; reasons.push('Treino monótono, sem dias verdadeiramente fáceis.'); }
+      if(avgSleep!=null){
+        if(avgSleep < 6){ score -= 16; reasons.push('Sono médio baixo ('+avgSleep.toFixed(1).replace('.',',')+' h).'); }
+        else if(avgSleep < 6.5){ score -= 8; reasons.push('Sono ligeiramente curto ('+avgSleep.toFixed(1).replace('.',',')+' h).'); }
+      }
+      if(rhrDelta!=null){
+        if(rhrDelta >= 7){ score -= 16; reasons.push('FC de repouso elevada (+'+Math.round(rhrDelta)+' bpm face à base) — sinal de fadiga.'); }
+        else if(rhrDelta >= 4){ score -= 8; reasons.push('FC de repouso a subir (+'+Math.round(rhrDelta)+' bpm).'); }
+      }
+      if(deficitDays >= 3){ score -= 12; reasons.push(deficitDays+' dias em défice calórico acentuado — recuperação comprometida.'); }
+      else if(deficitDays === 2){ score -= 6; reasons.push('Alguns dias com pouco combustível.'); }
+      if(cycleAvail!=null){
+        if(cycleAvail < 50){ score -= 12; reasons.push('Fase do ciclo com recuperação reduzida.'); }
+        else if(cycleAvail < 70){ score -= 6; reasons.push('Ciclo em fase de recuperação moderada.'); }
+      }
+
+      score = Math.max(5, Math.min(100, Math.round(score)));
+      const level = score>=70 ? 'green' : (score>=45 ? 'yellow' : 'red');
+      if(!reasons.length) reasons.push('Sem sinais de sobrecarga — carga, recuperação e combustível equilibrados.');
+      return { hasData:true, score, level, reasons, confidence:signals, acwr };
+    }catch(err){ console.warn('computeReadiness falhou', err); return { hasData:false, reason:'Não foi possível calcular a prontidão.' }; }
+  }
+  window.PulsoReadiness = { compute: computeReadiness };
+
+  function readinessLocalGet(key){
+    if(typeof window.PulsoGetLocalData==='function'){ const v = window.PulsoGetLocalData(key); if(v!=null) return v; }
+    return undefined;
+  }
+  function renderReadinessDash(){
+    const card = document.getElementById('readiness-dash-card');
+    if(!card || !window.PulsoReadiness) return;
+    let rd = null;
+    try{ rd = window.PulsoReadiness.compute(readinessLocalGet); }catch(e){}
+    if(!rd || !rd.hasData){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    const color = rd.level==='green'?'#35D9A6':(rd.level==='yellow'?'#F2B84B':'#F2555A');
+    const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+    const ring = document.getElementById('readiness-ring');
+    const n = document.getElementById('readiness-n');
+    const lbl = document.getElementById('readiness-lbl');
+    if(ring){ ring.style.borderColor = color; ring.style.boxShadow = '0 0 0 12px '+color+'12, 0 0 34px '+color+'3a'; ring.style.cursor='pointer'; }
+    if(n){ n.textContent = rd.score; n.style.color = color; }
+    if(lbl){ lbl.textContent = rlbl; lbl.style.color = color; }
+    const explain = 'Prontidão para treino: ' + rd.score + '/100.\n\n'+
+      'Cruza a tua carga de treino (últimos 7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (alimentação).\n\n'+
+      '• 70–100 (verde): fresco, podes treinar forte.\n'+
+      '• 45–69 (amarelo): fadiga a acumular — vigia e ajusta.\n'+
+      '• Abaixo de 45 (vermelho): sinais de sobrecarga — considera uma descarga.\n\n'+
+      'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
+      (rd.confidence<3 ? '\n\n⚠ Poucos dados registados — estimativa menos fiável. Regista sono, FC de repouso e alimentação para afinar.' : '') +
+      '\n\nNota: é um apoio à decisão, não um diagnóstico.';
+    if(ring){ ring.onclick = ()=>{ if(window.pulsoInfo) window.pulsoInfo(explain); }; }
+  }
+
+
   document.getElementById('cycle-cal-prev')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()-1, 1); renderCycleCalendar(); });
   document.getElementById('cycle-cal-next')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()+1, 1); renderCycleCalendar(); });
   document.getElementById('cycle-share')?.addEventListener('change', async function(){ cycleData.shareCoach = this.checked; await cycleSave(); renderCycle(); });
   document.getElementById('cycle-log-save')?.addEventListener('click', async ()=>{
-    const g = id=>{ const el=document.getElementById(id); return el && el.value!=='' ? el.value : null; };
     const today = todayStr();
     cycleData.logs = cycleData.logs || {};
     const entry = {};
-    const pain=g('cycle-pain'), flow=g('cycle-flow'), energy=g('cycle-energy'), mood=g('cycle-mood');
-    if(pain!=null) entry.pain=Number(pain);
-    if(flow) entry.flow=flow;
-    if(energy!=null) entry.energy=Number(energy);
-    if(mood!=null) entry.mood=Number(mood);
-    if(Object.keys(entry).length) cycleData.logs[today]=entry; else delete cycleData.logs[today];
+    if(cycleLogDraft.pain!=null) entry.pain = Number(cycleLogDraft.pain);
+    if(cycleLogDraft.flow) entry.flow = cycleLogDraft.flow;
+    if(cycleLogDraft.energy!=null) entry.energy = Number(cycleLogDraft.energy);
+    if(cycleLogDraft.mood!=null) entry.mood = Number(cycleLogDraft.mood);
+    if(Object.keys(entry).length) cycleData.logs[today] = entry; else delete cycleData.logs[today];
     await cycleSave(); renderCycle();
+    if(typeof renderDashboard === 'function'){ try{ renderDashboard(); }catch(e){} }
     pulsoToast('Registo guardado');
   });
 
@@ -10918,6 +11276,8 @@ nav.tabbar button.active svg{
   }
 
   function renderDashboard(){
+    try{ renderCycleDash(); }catch(e){}
+    try{ renderReadinessDash(); }catch(e){}
     if(sleepEntries.length){
       const last = sleepEntries[sleepEntries.length-1]; const prev = sleepEntries[sleepEntries.length-2];
       document.getElementById('d-sleep').innerHTML = last.hours.toFixed(1) + ' <small>h</small>';
@@ -15450,6 +15810,38 @@ nav.tabbar button.active svg{
   const DOW = ['S','T','Q','Q','S','S','D']; // seg..dom (curto)
 
   let cloudAthletes = [];   // atletas ligados via cloud: {id:uid, name, email, cloud:true}
+  let cloudPlanCache = {};  // uid -> calendário prescrito (coachPlans), carregado ao selecionar
+  let cloudDataCache = {};  // uid -> dados (keys) do atleta cloud, para calcular prontidão na lista
+  function preloadCloudData(){
+    if(!(window.PulsoCloud && typeof window.PulsoCloud.fetchAthleteData === 'function')) return;
+    cloudAthletes.forEach(a=>{
+      window.PulsoCloud.fetchAthleteData(a.id).then(keys=>{
+        cloudDataCache[a.id] = keys || {};
+        try{ renderAthletes(); }catch(e){}
+      }).catch(()=>{});
+    });
+  }
+  function athleteGetter(athleteId){
+    if(athleteId === 'local' || !isCloudAthlete(athleteId)){
+      return function(key){
+        if(typeof window.PulsoGetLocalData==='function'){ const v=window.PulsoGetLocalData(key); if(v!=null) return v; }
+        return getPulso(key, undefined);
+      };
+    }
+    const keys = cloudDataCache[athleteId] || (cloudOverrideUid===athleteId ? coachCloudOverride : null) || {};
+    return function(key){ return Object.prototype.hasOwnProperty.call(keys, key) ? safeParse(keys[key], undefined) : undefined; };
+  }
+  function isCloudAthlete(id){ return cloudAthletes.some(a=>a.id===id); }
+  function mergeCalendars(a, b){
+    const out = {};
+    [a, b].forEach(cal=>{
+      if(cal && typeof cal==='object') Object.keys(cal).forEach(day=>{
+        if(!Array.isArray(out[day])) out[day] = [];
+        (Array.isArray(cal[day]) ? cal[day] : []).forEach(w=> out[day].push(w));
+      });
+    });
+    return out;
+  }
   function getAthleteAliases(){ const a = getPulso('coach-athlete-aliases', {}); return (a && typeof a==='object') ? a : {}; }
   function setAthleteAlias(uid, name){
     const a = getAthleteAliases();
@@ -15463,6 +15855,17 @@ nav.tabbar button.active svg{
         cloudAthletes = (window.PulsoCloud.getCoachedAthletes()||[]).map(a=>({id:a.uid, name: (aliases[a.uid] || a.name || 'Atleta'), email:a.email||'', cloud:true}));
       }else{ cloudAthletes = []; }
     }catch(e){ cloudAthletes = []; }
+  }
+  // Carrega os planos prescritos de TODOS os atletas cloud, para o calendário
+  // "Todos os atletas" os mostrar sem ser preciso selecionar cada um.
+  function preloadCloudPlans(){
+    if(!(window.PulsoCloud && typeof window.PulsoCloud.fetchCoachPlan === 'function')) return;
+    cloudAthletes.forEach(a=>{
+      window.PulsoCloud.fetchCoachPlan(a.id).then(cal=>{
+        cloudPlanCache[a.id] = cal || {};
+        try{ renderCoachCalendar(); }catch(e){}
+      }).catch(()=>{});
+    });
   }
   function getAthletes(){
     const extra = getPulso('coach-athletes', []);
@@ -15480,9 +15883,13 @@ nav.tabbar button.active svg{
     const uid = selectedAthleteId;
     if(window.PulsoCloud && typeof window.PulsoCloud.fetchAthleteData === 'function'){
       toast('A carregar dados do atleta…');
-      window.PulsoCloud.fetchAthleteData(uid).then(keys=>{
+      Promise.all([
+        window.PulsoCloud.fetchAthleteData(uid),
+        (window.PulsoCloud.fetchCoachPlan ? window.PulsoCloud.fetchCoachPlan(uid) : Promise.resolve({}))
+      ]).then(([keys, plan])=>{
         if(selectedAthleteId !== uid) return;
         coachCloudOverride = keys || {}; cloudOverrideUid = uid;
+        cloudPlanCache[uid] = plan || {};
         if(done) done();
       }).catch(()=>{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); });
     }else{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); }
@@ -15504,15 +15911,20 @@ nav.tabbar button.active svg{
     if(!list.some(a=>a.id===selectedAthleteId)) selectedAthleteId = 'local';
     el.innerHTML = list.map(a=>{
       const initial = esc((a.name||'A').trim().charAt(0).toUpperCase());
-      // Indicador rápido de ciclo (só atleta local, se for feminino e partilhar).
+      // Pontinho de prontidão (risco de overtraining) — para todos os atletas com dados.
       let cycDot = '';
       try{
-        if(a.local && window.PulsoCycle && window.PulsoCycle.isFemale() && window.PulsoCycle.shareCoach()){
-          const cy = window.PulsoCycle.summary();
-          if(cy && cy.hasData){
-            const dot = cy.availability>=75 ? '🟢' : (cy.availability>=50 ? '🟡' : '🔴');
-            const lbl = cy.availability>=75 ? 'Ciclo favorável' : (cy.availability>=50 ? 'Recuperação reduzida' : 'Atenção ao treino');
-            cycDot = '<span class="coach-athlete-cycdot" title="'+esc(lbl)+'">'+dot+'</span>';
+        const hasData = a.local || cloudDataCache[a.id];
+        if(hasData && window.PulsoReadiness && window.PulsoReadiness.compute){
+          const rd = window.PulsoReadiness.compute(athleteGetter(a.id));
+          if(rd && rd.hasData){
+            const dot = rd.level==='green' ? '🟢' : (rd.level==='yellow' ? '🟡' : '🔴');
+            const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+            const explain = 'Prontidão de ' + (a.name||'atleta') + ': ' + rd.score + '/100 — ' + rlbl + '.\n\n'+
+              'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
+              (rd.confidence<3 ? '\n\n⚠ Poucos dados — estimativa menos fiável.' : '') +
+              '\n\nApoio à decisão, não diagnóstico.';
+            cycDot = '<span class="coach-athlete-cycdot" role="button" data-cyc-explain="'+esc(explain)+'" title="Prontidão '+rd.score+'/100 — toca para saber mais">'+dot+'</span>';
           }
         }
       }catch(e){}
@@ -15610,12 +16022,16 @@ nav.tabbar button.active svg{
   /* ---- Modelo do calendário: pulso:coach-calendar = { athleteId: { 'YYYY-MM-DD': [ {..} ] } } ---- */
   function getCalendarAll(){ const o = getPulso('coach-calendar', {}); return (o && typeof o==='object') ? o : {}; }
   function getCalendarFor(athleteId){
-    // Atleta cloud selecionado: os treinos previstos dele estão nos dados dele,
-    // guardados sob a sua própria chave 'local'.
-    if(coachCloudOverride && athleteId === cloudOverrideUid){
-      const all = aGet('coach-calendar', {}) || {};
-      const mine = (all && typeof all==='object') ? (all['local'] || all[cloudOverrideUid]) : null;
-      return (mine && typeof mine==='object') ? mine : {};
+    // Atleta cloud: os treinos prescritos estão na cloud (coachPlans), carregados no cache.
+    if(isCloudAthlete(athleteId)){
+      return cloudPlanCache[athleteId] || {};
+    }
+    // Atleta local (o dono deste telemóvel): junta os treinos que o treinador local marcou
+    // com os que um treinador remoto lhe prescreveu pela cloud.
+    if(athleteId === 'local'){
+      const local = getCalendarAll()['local'] || {};
+      const fromCoach = getPulso('cloud-coach-plan', {}) || {};
+      return mergeCalendars(local, fromCoach);
     }
     const c = getCalendarAll()[athleteId]; return (c && typeof c==='object') ? c : {};
   }
@@ -15645,13 +16061,38 @@ nav.tabbar button.active svg{
   }
 
   function scheduleWorkout(athleteId, day, w){
+    const item = { id:cuid(), name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes, assignedAt:new Date().toISOString() };
+    if(isCloudAthlete(athleteId)){
+      const cal = cloudPlanCache[athleteId] || {};
+      if(!Array.isArray(cal[day])) cal[day] = [];
+      cal[day].push(item);
+      cloudPlanCache[athleteId] = cal;
+      if(window.PulsoCloud && window.PulsoCloud.saveCoachPlan){
+        window.PulsoCloud.saveCoachPlan(athleteId, cal)
+          .then(()=> toast('Treino prescrito ao atleta'))
+          .catch(err=>{ console.warn(err); toast('Falha ao guardar na cloud'); });
+      }else{ toast('Liga a cloud para prescrever a este atleta'); }
+      return;
+    }
     const all = getCalendarAll();
     if(!all[athleteId] || typeof all[athleteId] !== 'object') all[athleteId] = {};
     if(!Array.isArray(all[athleteId][day])) all[athleteId][day] = [];
-    all[athleteId][day].push({ id:cuid(), name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes, assignedAt:new Date().toISOString() });
+    all[athleteId][day].push(item);
     setPulso('coach-calendar', all);
   }
   function unscheduleWorkout(athleteId, day, id){
+    if(isCloudAthlete(athleteId)){
+      const cal = cloudPlanCache[athleteId] || {};
+      if(Array.isArray(cal[day])){
+        cal[day] = cal[day].filter(x=>x.id!==id);
+        if(!cal[day].length) delete cal[day];
+        cloudPlanCache[athleteId] = cal;
+        if(window.PulsoCloud && window.PulsoCloud.saveCoachPlan){
+          window.PulsoCloud.saveCoachPlan(athleteId, cal).catch(err=>console.warn(err));
+        }
+      }
+      return;
+    }
     const all = getCalendarAll();
     if(all[athleteId] && Array.isArray(all[athleteId][day])){
       all[athleteId][day] = all[athleteId][day].filter(x=>x.id!==id);
@@ -16325,17 +16766,62 @@ nav.tabbar button.active svg{
           const alertColors = { green:'#35D9A6', yellow:'#F2B84B', orange:'#FF9D2E', red:'#F2555A' };
           const alertEmoji = { green:'🟢', yellow:'🟡', orange:'🟠', red:'🔴' };
           const ac = alertColors[cyc.alertKey] || '#8894a8';
-          femCard = '<div class="coach-card"><h3>Saúde Feminina</h3><div class="coach-metrics-grid">'+
-            metricCard('Dia do ciclo', cyc.cycleDay + 'º')+
-            metricCard('Fase atual', cyc.phase)+
-            metricCard('Próxima menstruação', fmtDayLabel(cyc.nextPeriod))+
-            metricCard('Disponibilidade', cyc.availability + '/100')+
+          const avail = cyc.availability;
+          const ballColor = avail>=70 ? '#35D9A6' : (avail>=45 ? '#F2B84B' : '#F2555A');
+          const ballLbl = avail>=70 ? 'Boa disponibilidade' : (avail>=45 ? 'Disponibilidade reduzida' : 'Baixa — cuidado');
+          const explain = 'Disponibilidade para treinar: ' + avail + '/100.\n\n'+
+            'Combina a carga do ciclo com os sintomas que a atleta registou (dor e energia).\n\n'+
+            '• 70–100 (verde): pronta para treino exigente.\n'+
+            '• 45–69 (amarelo): recuperação pode estar reduzida — ajusta o volume/intensidade.\n'+
+            '• Abaixo de 45 (vermelho): recomenda-se reduzir a intensidade.\n\n'+
+            'Dia do ciclo: ' + cyc.cycleDay + '. Alerta: ' + cyc.alert + '.';
+          femCard = '<div class="coach-card"><h3>Saúde Feminina</h3>'+
+            '<div class="coach-fem-hero">'+
+              '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+ballColor+'; color:'+ballColor+'; box-shadow:0 0 0 7px '+ballColor+'14, 0 0 22px '+ballColor+'40;"><strong>'+avail+'</strong><span>/100</span></button>'+
+              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+ballColor+';">'+ballLbl+'</div><div class="coach-fem-hero-sub">Disponibilidade para treinar · toca para saber mais</div></div>'+
+            '</div>'+
+            '<div class="coach-metrics-grid">'+
+              metricCard('Dia do ciclo', cyc.cycleDay + 'º')+
+              metricCard('Próxima menstruação', fmtDayLabel(cyc.nextPeriod))+
+              metricCard('Disponibilidade', avail + '/100')+
             '</div>'+
             '<div class="coach-fem-alert" style="background:'+ac+'22; color:'+ac+'; border:1px solid '+ac+'55;">'+(alertEmoji[cyc.alertKey]||'')+' '+esc(cyc.alert)+'</div>'+
             '</div>';
         }
       }
     }catch(err){ console.warn('Saúde Feminina falhou', err); }
+
+    // Prontidão / risco de overtraining — para todos os atletas (masculino e feminino).
+    let readyCard = '';
+    try{
+      if(window.PulsoReadiness && window.PulsoReadiness.compute){
+        const rd = window.PulsoReadiness.compute(aGet);
+        const rdColors = { green:'#35D9A6', yellow:'#F2B84B', red:'#F2555A' };
+        if(rd && rd.hasData){
+          const rc = rdColors[rd.level] || '#8894a8';
+          const rEmoji = rd.level==='green'?'🟢':(rd.level==='yellow'?'🟡':'🔴');
+          const rlbl = rd.level==='green' ? 'Pronto para treinar' : (rd.level==='yellow' ? 'Fadiga a acumular' : 'Risco de overtraining');
+          const isFemAthlete = ((aGet('profile',{})||{}).gender==='F');
+          const explain = 'Prontidão para treino: ' + rd.score + '/100.\n\n'+
+            'Cruza a carga de treino (últimos 7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (nutrição)'+ (isFemAthlete ? ', mais o ciclo' : '') +'.\n\n'+
+            '• 70–100 (verde): fresco, pode treinar forte.\n'+
+            '• 45–69 (amarelo): fadiga a acumular — vigiar e ajustar.\n'+
+            '• Abaixo de 45 (vermelho): sinais de sobrecarga — recomenda-se descarga.\n\n'+
+            'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
+            (rd.confidence<3 ? '\n\n⚠ Poucos dados registados — estimativa menos fiável.' : '') +
+            '\n\nNota: é um apoio à decisão, não um diagnóstico médico.';
+          readyCard = '<div class="coach-card"><h3>Prontidão para treino</h3>'+
+            '<div class="coach-fem-hero">'+
+              '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+rc+'; color:'+rc+'; box-shadow:0 0 0 7px '+rc+'14, 0 0 22px '+rc+'40;"><strong>'+rd.score+'</strong><span>/100</span></button>'+
+              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+rc+';">'+rlbl+'</div><div class="coach-fem-hero-sub">Risco de overtraining · toca para saber porquê</div></div>'+
+            '</div>'+
+            '<div class="coach-fem-alert" style="background:'+rc+'22; color:'+rc+'; border:1px solid '+rc+'55;">'+rEmoji+' '+esc(rd.reasons[0])+'</div>'+
+            '</div>';
+        }else if(rd){
+          readyCard = '<div class="coach-card"><h3>Prontidão para treino</h3><div class="coach-empty">'+esc(rd.reason||'Sem dados suficientes.')+'</div></div>';
+        }
+      }
+    }catch(err){ console.warn('Prontidão falhou', err); }
 
     const drinks = '<div class="coach-card"><h3>Bebidas</h3><div class="coach-metrics-grid">'+
       metricCard('Água', fmtL(t.waterMl))+
@@ -16363,7 +16849,7 @@ nav.tabbar button.active svg{
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = profileCard + plannedCard + raceCard + overview + health + femCard + drinks + nutri + completedBox + recentBox;
+    box.innerHTML = profileCard + readyCard + plannedCard + raceCard + overview + health + femCard + drinks + nutri + completedBox + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -16494,6 +16980,12 @@ nav.tabbar button.active svg{
     document.getElementById('coach-add-athlete')?.addEventListener('click', addAthlete);
 
     document.getElementById('coach-athletes-list')?.addEventListener('click', (e)=>{
+      const cyc = e.target.closest('[data-cyc-explain]');
+      if(cyc){
+        e.preventDefault(); e.stopPropagation();
+        if(window.pulsoInfo) window.pulsoInfo(cyc.getAttribute('data-cyc-explain')||'');
+        return;
+      }
       const alias = e.target.closest('[data-athlete-alias]');
       if(alias){
         e.preventDefault(); e.stopPropagation();
@@ -16531,9 +17023,23 @@ nav.tabbar button.active svg{
 
     document.addEventListener('pulso:cloud-athletes', function(){
       refreshCloudAthletes();
+      preloadCloudPlans();
+      preloadCloudData();
       try{ renderAthletes(); fillCoachAthleteSelectors(); renderCoachCalendar(); }catch(e){}
     });
+    // O atleta recebeu treinos prescritos pelo treinador (via cloud) — atualiza a vista.
+    document.addEventListener('pulso:coach-plan-updated', function(){
+      try{ if(window.PulsoRenderAthleteSide) window.PulsoRenderAthleteSide(); }catch(e){}
+      try{ renderCoachCalendar(); }catch(e){}
+    });
+    // Explicação da bola de disponibilidade (Saúde Feminina).
+    document.addEventListener('click', function(e){
+      const ball = e.target.closest('.coach-fem-ball');
+      if(ball && window.pulsoInfo){ window.pulsoInfo(ball.getAttribute('data-fem-explain')||''); }
+    });
     refreshCloudAthletes();
+    preloadCloudPlans();
+    preloadCloudData();
 
     // Calendário do treinador (delegação)
     document.getElementById('coach-calendar')?.addEventListener('click', (e)=>{
@@ -16806,22 +17312,63 @@ nav.tabbar button.active svg{
   .cycle-phase-badge.folicular{background:rgba(53,217,166,.16); color:#35D9A6;}
   .cycle-phase-badge.ovulacao{background:rgba(242,184,75,.18); color:#F2B84B;}
   .cycle-phase-badge.lutea{background:rgba(155,140,255,.16); color:#B7ABFF;}
-  .cycle-share-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:11px 13px; font-size:13px; font-weight:600;}
-  .cycle-share-row input{width:22px; height:22px; accent-color:var(--teal);}
+  .cycle-share-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 13px; font-size:13px; font-weight:600;}
+  .cycle-switch{position:relative; flex:0 0 auto; width:46px; height:26px;}
+  .cycle-switch input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:2;}
+  .cycle-switch-track{position:absolute; inset:0; border-radius:999px; background:rgba(255,255,255,.16); transition:background .18s;}
+  .cycle-switch-track::after{content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:transform .18s;}
+  .cycle-switch input:checked + .cycle-switch-track{background:var(--teal);}
+  .cycle-switch input:checked + .cycle-switch-track::after{transform:translateX(20px);}
+  .cycle-log-field{margin-bottom:12px;}
+  .cycle-log-field > label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:800; margin-bottom:6px;}
+  .cycle-scale{display:block; margin-top:6px; font-size:11px; color:var(--text-muted);}
+  .cycle-chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .cyc-chip{min-width:38px; text-align:center; padding:8px 12px; border-radius:10px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:#cdd6e6; font-size:14px; font-weight:700; cursor:pointer;}
+  .cyc-chip.on{background:var(--teal); border-color:var(--teal); color:#052018;}
+  .cyc-chip:active{transform:scale(.96);}
   .cycle-log-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   #cycle-calendar{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
   .cyc-dow{text-align:center; font-size:10px; color:var(--text-muted); padding:2px 0; text-transform:uppercase;}
   .cyc-day{aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:13px; color:#cdd6e6; background:rgba(255,255,255,.03); border:1px solid transparent; cursor:pointer; position:relative;}
   .cyc-day.empty{background:none; cursor:default;}
-  .cyc-day.today{border-color:rgba(53,217,166,.5);}
-  .cyc-day.period{background:rgba(242,85,90,.75); color:#fff; font-weight:800;}
-  .cyc-day.predicted{background:rgba(242,85,90,.16); color:#FF9A9D;}
-  .cyc-day.ovul{box-shadow:inset 0 0 0 2px rgba(242,184,75,.7);}
+  .cyc-day.today{border-color:rgba(255,255,255,.55);}
+  .cyc-day.ph-menstrual{background:rgba(242,85,90,.75); color:#fff; font-weight:800;}
+  .cyc-day.ph-predicted{background:rgba(242,85,90,.18); color:#FF9A9D;}
+  .cyc-day.ph-folicular{background:rgba(53,217,166,.26); color:#8affd0;}
+  .cyc-day.ph-ovulacao{background:rgba(242,184,75,.32); color:#ffd98a; font-weight:800;}
+  .cyc-day.ph-lutea{background:rgba(155,140,255,.2); color:#c8bcff;}
+  .cyc-day.ph-lutea-late{background:rgba(255,157,46,.24); color:#ffc18a;}
+  .cyc-day.cyc-start{box-shadow:0 0 0 2px #35D9A6, 0 0 8px rgba(53,217,166,.6);}
+  .cycle-legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; font-size:10.5px; color:var(--text-muted);}
+  .cycle-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .cycle-legend i{width:11px; height:11px; border-radius:3px; display:inline-block;}
+  .cyc-hist-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid rgba(255,255,255,.07); font-size:13px;}
+  .cyc-hist-row:first-child{border-top:none;}
+  .cyc-hist-tags{color:var(--text-muted); font-size:12px;}
+  .cycle-dash-swipe{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .cycle-dash-swipe::-webkit-scrollbar{display:none;}
+  .cycle-dash-page{flex:0 0 100%; scroll-snap-align:center; text-align:center; padding:4px 2px;}
+  .cycle-ring{width:132px; height:132px; border-radius:50%; margin:6px auto 12px; display:flex; align-items:center; justify-content:center; flex-direction:column; border:11px solid var(--teal); flex:0 0 auto; box-shadow:0 0 0 12px rgba(53,217,166,.05), 0 0 34px rgba(53,217,166,.22); transition:border-color .3s, box-shadow .3s;}
+  .cycle-ring .n{font-family:var(--font-display,inherit); font-size:44px; font-weight:800; line-height:.95;}
+  .cycle-dash-phase{font-size:15px; font-weight:800; margin:0 0 2px;}
+  .cycle-dash-dots{display:flex; gap:7px; justify-content:center; margin-top:10px;}
+  .cdd{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.2); cursor:pointer;}
+  .cdd.active{background:var(--teal);}
+  .cyc-an-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-top:1px solid rgba(255,255,255,.07); font-size:13px;}
+  .cyc-an-row:first-child{border-top:none;}
+  .cyc-an-row span{color:var(--text-muted);}
   .cycle-stats{display:flex; gap:8px; flex-wrap:wrap;}
   .cycle-stat{flex:1 1 auto; background:rgba(255,255,255,.04); border-radius:12px; padding:9px 11px; text-align:center;}
   .cycle-stat strong{display:block; font-size:17px; color:#fff;}
   .cycle-stat span{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.3px;}
   .coach-fem-alert{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:7px 11px; border-radius:10px; margin-top:8px;}
+  .coach-fem-hero{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .coach-fem-ball{flex:0 0 auto; width:86px; height:86px; border-radius:50%; border:7px solid var(--teal); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:transform .12s;}
+  .coach-fem-ball:active{transform:scale(.96);}
+  .coach-fem-ball strong{font-size:28px; font-weight:800; line-height:1;}
+  .coach-fem-ball span{font-size:11px; color:var(--text-muted);}
+  .coach-fem-hero-lbl{font-size:16px; font-weight:800;}
+  .coach-fem-hero-sub{font-size:12px; color:var(--text-muted); margin-top:2px;}
   .coach-athlete-cycdot{margin-left:8px; font-size:13px;}
 </style>
 
@@ -17156,6 +17703,31 @@ async function fetchAthleteData(uid){
   }catch(e){ console.warn('Falha ao buscar dados do atleta', e); return {}; }
 }
 
+// Plano de treinos prescritos pelo treinador (coleção coachPlans/{atletaUid}).
+async function saveCoachPlan(athleteUid, calendar){
+  await setDoc(doc(db, 'coachPlans', athleteUid), {
+    calendar: calendar || {},
+    updatedBy: currentUser ? currentUser.uid : '',
+    updatedAt: new Date().toISOString()
+  }, { merge: true });
+}
+async function fetchCoachPlan(athleteUid){
+  try{
+    const s = await getDoc(doc(db, 'coachPlans', athleteUid));
+    return (s.exists() && s.data() && s.data().calendar) ? s.data().calendar : {};
+  }catch(e){ console.warn('Falha ao buscar plano do treinador', e); return {}; }
+}
+// O atleta descarrega os treinos que o SEU treinador lhe prescreveu e guarda-os
+// localmente para a app os mostrar no calendário/plano.
+async function pullMyCoachPlan(){
+  if(!currentUser) return;
+  try{
+    const cal = await fetchCoachPlan(currentUser.uid);
+    localStorage.setItem('pulso:cloud-coach-plan', JSON.stringify(cal || {}));
+    document.dispatchEvent(new Event('pulso:coach-plan-updated'));
+  }catch(e){ console.warn('pullMyCoachPlan falhou', e); }
+}
+
 // ---------- UI: ecrã de autenticação ----------
 function showAuth(show){
   const el = $('pulso-cloud-auth'); if(!el) return;
@@ -17410,6 +17982,8 @@ onAuthStateChanged(auth, async (user)=>{
   uploadData();
   // carrega os atletas que este utilizador treina (para aparecerem no modo Treinador)
   loadCoachedAthletes();
+  // descarrega os treinos que o treinador prescreveu a este atleta
+  pullMyCoachPlan();
 });
 
 // ---------- ligações de UI estáticas ----------
@@ -17437,7 +18011,10 @@ window.PulsoCloud = {
   openSheet, openCentral, signOut: doSignOut,
   getCoachedAthletes: ()=> coachedCache.slice(),
   reloadCoachedAthletes: loadCoachedAthletes,
-  fetchAthleteData
+  fetchAthleteData,
+  saveCoachPlan,
+  fetchCoachPlan,
+  pullMyCoachPlan
 };
 
 </script>
