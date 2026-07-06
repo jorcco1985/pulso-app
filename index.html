@@ -6616,6 +6616,11 @@ nav.tabbar button.active svg{
           <h3 style="margin:0;">Ciclo Menstrual</h3>
           <span class="cycle-phase-badge" id="cycle-phase-badge">—</span>
         </div>
+        <label class="cycle-share-row" id="cycle-pill-row" style="margin-bottom:10px;">
+          <span>Toma pílula anticoncecional?</span>
+          <span class="cycle-switch"><input type="checkbox" id="cycle-pill"><span class="cycle-switch-track"></span></span>
+        </label>
+        <div id="cycle-body">
         <div class="cycle-grid">
           <div class="cycle-tile"><strong id="cycle-day">—</strong><span>Dia do ciclo</span></div>
           <div class="cycle-tile"><strong id="cycle-phase">—</strong><span>Fase atual</span></div>
@@ -6628,6 +6633,8 @@ nav.tabbar button.active svg{
           <span class="cycle-switch"><input type="checkbox" id="cycle-share"><span class="cycle-switch-track"></span></span>
         </label>
         <p class="help" id="cycle-share-note" style="margin:6px 0 0; font-size:11px;"></p>
+        </div>
+        <p class="help" id="cycle-pill-note" style="margin:2px 0 0; font-size:12px; display:none;">Com pílula, a Pulso não calcula fases nem estado do ciclo — o teu treino é avaliado normalmente, como qualquer atleta. Desliga se quiseres voltar a acompanhar o ciclo natural.</p>
       </div>
 
       <div class="card" id="cycle-calendar-card">
@@ -7980,6 +7987,9 @@ nav.tabbar button.active svg{
   // Cálculo central do ciclo, a partir das datas de início registadas.
   function computeCycle(data, refStr){
     data = data || cycleData || {};
+    // Com pílula anticoncecional, a Pulso não calcula fases (o ciclo natural fica suprimido) —
+    // trata-se como sem ciclo, tal como para um homem.
+    if(data.pill) return { hasData:false, onPill:true };
     const starts = (Array.isArray(data.starts) ? data.starts.slice() : []).sort();
     const today = refStr || todayStr();
     const periodLen = Number(data.periodLen) || CYCLE_PERIOD_DEFAULT;
@@ -8128,6 +8138,25 @@ nav.tabbar button.active svg{
 
   function renderCycle(){
     if(!cycleIsFemale()) return;
+    const onPill = !!cycleData.pill;
+    const pillEl = document.getElementById('cycle-pill'); if(pillEl) pillEl.checked = onPill;
+    const body = document.getElementById('cycle-body');
+    const calCard = document.getElementById('cycle-calendar-card');
+    const pillNote = document.getElementById('cycle-pill-note');
+    const badgeEl = document.getElementById('cycle-phase-badge');
+    // Cartões de calendário / registo / histórico (a seguir ao resumo).
+    const extraCards = [];
+    if(calCard){ extraCards.push(calCard); let n = calCard.nextElementSibling; while(n){ extraCards.push(n); n = n.nextElementSibling; } }
+    if(onPill){
+      if(body) body.style.display = 'none';
+      if(pillNote) pillNote.style.display = '';
+      if(badgeEl){ badgeEl.textContent = 'Com pílula'; badgeEl.className = 'cycle-phase-badge'; }
+      extraCards.forEach(c=>{ if(c) c.style.display = 'none'; });
+      return;
+    }
+    if(body) body.style.display = '';
+    if(pillNote) pillNote.style.display = 'none';
+    extraCards.forEach(c=>{ if(c) c.style.display = ''; });
     const c = computeCycle(cycleData);
     const set = (id, v)=>{ const el=document.getElementById(id); if(el) el.textContent = v; };
     const badge = document.getElementById('cycle-phase-badge');
@@ -8367,7 +8396,7 @@ nav.tabbar button.active svg{
 
       // Ciclo (só feminino, com dados).
       let cycleAvail = null;
-      if(profile.gender==='F' && cycleRaw && Array.isArray(cycleRaw.starts) && cycleRaw.starts.length){
+      if(profile.gender==='F' && cycleRaw && !cycleRaw.pill && Array.isArray(cycleRaw.starts) && cycleRaw.starts.length){
         const cyc = computeCycle(cycleRaw);
         if(cyc && cyc.hasData) cycleAvail = cyc.availability;
       }
@@ -8544,6 +8573,12 @@ nav.tabbar button.active svg{
   document.getElementById('cycle-cal-prev')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()-1, 1); renderCycleCalendar(); });
   document.getElementById('cycle-cal-next')?.addEventListener('click', ()=>{ cycleCalRef = new Date(cycleCalRef.getFullYear(), cycleCalRef.getMonth()+1, 1); renderCycleCalendar(); });
   document.getElementById('cycle-share')?.addEventListener('change', async function(){ cycleData.shareCoach = this.checked; await cycleSave(); renderCycle(); });
+  document.getElementById('cycle-pill')?.addEventListener('change', async function(){
+    cycleData.pill = this.checked;
+    await cycleSave();
+    renderCycle();
+    if(typeof renderDashboard === 'function'){ try{ renderDashboard(); }catch(e){} }
+  });
   document.getElementById('cycle-log-save')?.addEventListener('click', async ()=>{
     const today = todayStr();
     cycleData.logs = cycleData.logs || {};
@@ -16011,6 +16046,29 @@ nav.tabbar button.active svg{
           }
         }
       }catch(e){}
+      // Ponto do CICLO — só quando a atleta é feminina, partilha com o treinador e não está com pílula.
+      let cycleDot = '';
+      try{
+        const hasCyc = a.local || cloudDataCache[a.id];
+        if(hasCyc && window.PulsoCycle && window.PulsoCycle.compute){
+          const g = athleteGetter(a.id);
+          const cycleRaw = g('cycle-data');
+          const isFem = ((g('profile')||{}) || {}).gender === 'F';
+          if(isFem && cycleRaw && cycleRaw.shareCoach && !cycleRaw.pill){
+            const cy = window.PulsoCycle.compute(cycleRaw);
+            if(cy && cy.hasData){
+              const dot = cy.availability>=70 ? '🟢' : (cy.availability>=45 ? '🟡' : '🔴');
+              const lbl = cy.availability>=70 ? 'Ciclo favorável' : (cy.availability>=45 ? 'Recuperação reduzida' : 'Atenção ao treino');
+              const explain = 'Estado do ciclo de ' + (a.name||'atleta') + ': ' + lbl + ' (disponibilidade ' + cy.availability + '/100).\n\n'+
+                '🟢 Favorável (70+): pode treinar normalmente.\n'+
+                '🟡 Recuperação reduzida (45–69): considera ajustar a carga.\n'+
+                '🔴 Atenção (<45): recomenda-se reduzir a intensidade.\n\n'+
+                'Apoio à decisão, não diagnóstico.';
+              cycleDot = '<span class="coach-athlete-cycdot" role="button" data-cyc-explain="'+esc(explain)+'" title="Ciclo '+cy.availability+'/100 — toca para saber mais">🌙'+dot+'</span>';
+            }
+          }
+        }
+      }catch(e){}
       const badge = a.local
         ? '<span class="coach-athlete-badge local">Este telemóvel</span>'
         : (a.cloud ? '<span class="coach-athlete-badge local">Cloud</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>');
@@ -16021,7 +16079,7 @@ nav.tabbar button.active svg{
       const editBtn = a.cloud ? `<button class="coach-athlete-del" type="button" data-athlete-alias="${esc(a.id)}" aria-label="Editar nome de ${esc(a.name)}" title="Editar nome" style="color:var(--teal); border-color:rgba(53,217,166,.4);">✎</button>` : '';
       return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
         <div class="coach-athlete-av">${initial}</div>
-        <div class="coach-athlete-info"><strong>${esc(a.name)}${cycDot}</strong><span>${sub}</span></div>
+        <div class="coach-athlete-info"><strong>${esc(a.name)}${cycDot}${cycleDot}</strong><span>${sub}</span></div>
         ${badge}
         ${editBtn}
         ${delBtn}
@@ -16888,10 +16946,9 @@ nav.tabbar button.active svg{
             '• 45–69 (amarelo): recuperação pode estar reduzida — ajusta o volume/intensidade.\n'+
             '• Abaixo de 45 (vermelho): recomenda-se reduzir a intensidade.\n\n'+
             'Alerta: ' + cyc.alert + '.';
-          femInner = '<div class="coach-fem-sep"><h4 class="coach-subhead">Saúde Feminina</h4>'+
-            '<div class="coach-fem-hero">'+
+          femInner = '<div class="coach-fem-sep"><div class="coach-fem-hero">'+
               '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+ballColor+'; color:'+ballColor+'; box-shadow:0 0 0 7px '+ballColor+'14, 0 0 22px '+ballColor+'40;"><strong>'+avail+'</strong><span>/100</span></button>'+
-              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+ballColor+';">'+ballLbl+'</div><div class="coach-fem-hero-sub">Disponibilidade para treinar · toca para saber mais</div></div>'+
+              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+ballColor+';">Estado do ciclo</div><div class="coach-fem-hero-sub">'+ballLbl+' · toca para saber mais</div></div>'+
             '</div>'+
             '<div class="coach-fem-alert" style="background:'+ac+'22; color:'+ac+'; border:1px solid '+ac+'55;">'+(alertEmoji[cyc.alertKey]||'')+' '+esc(cyc.alert)+'</div>'+
           '</div>';
@@ -16904,7 +16961,7 @@ nav.tabbar button.active svg{
       metricCard('Peso', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
       metricCard('Pressão', (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
       metricCard('Cardio', t.restingHr!=null ? Math.round(t.restingHr)+' bpm' : '—')+
-      '</div>' + femInner + '</div>';
+      '</div></div>';
     // Prontidão / risco de overtraining — para todos os atletas (masculino e feminino).
     let readyCard = '';
     try{
@@ -16924,12 +16981,13 @@ nav.tabbar button.active svg{
             'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
             (rd.confidence<3 ? '\n\n⚠ Poucos dados registados — estimativa menos fiável.' : '') +
             '\n\nNota: é um apoio à decisão, não um diagnóstico médico.';
-          readyCard = '<div class="coach-card"><h3>Prontidão para treino</h3>'+
+          readyCard = '<div class="coach-card"><h3>Estado para treino</h3>'+
             '<div class="coach-fem-hero">'+
               '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+rc+'; color:'+rc+'; box-shadow:0 0 0 7px '+rc+'14, 0 0 22px '+rc+'40;"><strong>'+rd.score+'</strong><span>/100</span></button>'+
-              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+rc+';">'+rlbl+'</div><div class="coach-fem-hero-sub">Risco de overtraining · toca para saber porquê</div></div>'+
+              '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+rc+';">Pronto para treino</div><div class="coach-fem-hero-sub">'+rlbl+' · toca para saber porquê</div></div>'+
             '</div>'+
             '<div class="coach-fem-alert" style="background:'+rc+'22; color:'+rc+'; border:1px solid '+rc+'55;">'+rEmoji+' '+esc(rd.reasons[0])+'</div>'+
+            femInner +
             '</div>';
         }else if(rd){
           readyCard = '<div class="coach-card"><h3>Prontidão para treino</h3><div class="coach-empty">'+esc(rd.reason||'Sem dados suficientes.')+'</div></div>';
