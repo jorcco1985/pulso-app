@@ -7070,6 +7070,10 @@ nav.tabbar button.active svg{
     }catch(e){ /* window.storage not available here — fall through to localStorage */ }
     try{ localStorage.setItem('pulso:'+key, JSON.stringify(value)); }
     catch(e){ if(!savedRemote) console.error("storage set failed", key, e); }
+    // Espelha para a cloud (Firebase) a cada gravação, para a cloud não ficar atrasada
+    // face ao local. É debounced (1,4 s) do lado do módulo cloud, por isso gravações
+    // seguidas são agrupadas. Falha em silêncio se não houver sessão/rede.
+    try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
   }
 
   function pulsoToast(msg){
@@ -18067,10 +18071,44 @@ function localPulsoSnapshot(){
   }
   return out;
 }
+// Une dois arrays de registos, sem duplicar (por id, ou pelo conteúdo se não houver id).
+function mergePulsoArrays(localArr, cloudArr){
+  const seen = new Set();
+  const out = [];
+  [].concat(Array.isArray(cloudArr)?cloudArr:[], Array.isArray(localArr)?localArr:[]).forEach(function(e){
+    let key;
+    if(e && typeof e === 'object') key = (e.id != null) ? ('id:'+e.id) : JSON.stringify(e);
+    else key = 'v:'+String(e);
+    if(seen.has(key)) return;
+    seen.add(key);
+    out.push(e);
+  });
+  return out;
+}
+// Aplica os dados da cloud ao localStorage FUNDINDO com o que já existe localmente.
+// Antes sobrepunha tudo — o que apagava registos locais ainda não sincronizados
+// (ex.: kcal acabadas de escrever, alimentos aprendidos pela IA). Agora nunca se perde
+// o que está local: os registos com data (arrays) são unidos e os dicionários também.
 function hydrateLocalFrom(keys){
   if(!keys) return;
-  Object.keys(keys).forEach(k=>{
-    try{ localStorage.setItem('pulso:'+k, keys[k]); }catch(e){}
+  Object.keys(keys).forEach(function(k){
+    try{
+      const cloudRaw = keys[k];
+      const localRaw = localStorage.getItem('pulso:'+k);
+      if(localRaw == null){ localStorage.setItem('pulso:'+k, cloudRaw); return; }
+      let cloudVal, localVal;
+      try{ cloudVal = JSON.parse(cloudRaw); }catch(e){ cloudVal = undefined; }
+      try{ localVal = JSON.parse(localRaw); }catch(e){ localVal = undefined; }
+      if(Array.isArray(cloudVal) && Array.isArray(localVal)){
+        localStorage.setItem('pulso:'+k, JSON.stringify(mergePulsoArrays(localVal, cloudVal)));
+      }else if(cloudVal && localVal && typeof cloudVal === 'object' && typeof localVal === 'object'){
+        // Dicionários (ex.: ai-foods): une os dois, dando prioridade ao local em conflito.
+        localStorage.setItem('pulso:'+k, JSON.stringify(Object.assign({}, cloudVal, localVal)));
+      }else{
+        // Valores simples: mantém a cloud (comportamento anterior).
+        localStorage.setItem('pulso:'+k, cloudRaw);
+      }
+    }catch(e){}
   });
 }
 
