@@ -6037,16 +6037,19 @@ nav.tabbar button.active svg{
         <div class="estado-page" data-estado="geral">
           <div class="estado-ball" id="estado-geral-ball"><span class="n" id="verdict-n">—</span></div>
           <p class="estado-title">Estado geral</p>
+          <p class="estado-legend">Bem-estar e hábitos — sono, treino, peso e álcool</p>
           <p class="estado-sub" id="estado-geral-sub">Toca para ver a avaliação.</p>
         </div>
         <div class="estado-page" data-estado="treino" id="estado-page-treino" style="display:none;">
           <div class="estado-ball" id="estado-treino-ball"><span class="n" id="estado-treino-n">—</span></div>
           <p class="estado-title">Estado geral para treino</p>
-          <p class="estado-sub" id="estado-treino-sub">Prontidão / risco de overtraining. Toca para saber porquê.</p>
+          <p class="estado-legend">Prontidão / risco de overtraining — carga vs. recuperação</p>
+          <p class="estado-sub" id="estado-treino-sub">Toca para saber porquê.</p>
         </div>
         <div class="estado-page" data-estado="ciclo" id="estado-page-ciclo" style="display:none;">
           <div class="estado-ball" id="estado-ciclo-ball"><span class="n" id="estado-ciclo-n">—</span></div>
           <p class="estado-title">Estado do ciclo menstrual</p>
+          <p class="estado-legend">Fase do ciclo, humor, energia e dor</p>
           <p class="estado-sub" id="estado-ciclo-sub">Toca para saber mais.</p>
         </div>
       </div>
@@ -16171,8 +16174,10 @@ nav.tabbar button.active svg{
     const w = getCoachWorkouts().find(x=>x.id===workoutId);
     if(!w){ toast('Treino não encontrado'); return; }
     armedWorkout = { name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes };
+    const target = currentAthlete();
+    const targetName = (target && target.name) ? target.name : 'atleta';
     const arm = document.getElementById('coach-cal-arm');
-    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> — toca no dia do calendário onde o queres colocar. <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">Cancelar</button>'; }
+    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> → <strong>' + esc(targetName) + '</strong> — toca no dia do calendário onde o queres colocar. <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">Cancelar</button>'; }
     const cal = document.getElementById('coach-calendar');
     if(cal){ try{ cal.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} }
   }
@@ -16278,9 +16283,15 @@ nav.tabbar button.active svg{
     if(armedWorkout){
       const a = currentAthlete();
       scheduleWorkout(a.id, day, armedWorkout);
-      toast(armedWorkout.name + ' → ' + fmtDayLabel(day));
+      toast(armedWorkout.name + ' → ' + (a.name || 'atleta') + ' · ' + fmtDayLabel(day));
       disarmWorkout();
       coachSelectedDay = day;
+      // Garante que o calendário mostra o atleta a quem prescreveste (senão o treino "não aparece").
+      if(coachCalendarFilter !== 'all' && coachCalendarFilter !== a.id){
+        coachCalendarFilter = a.id;
+        const calSel = document.getElementById('coach-calendar-athlete');
+        if(calSel) calSel.value = a.id;
+      }
       renderCoachCalendar();
       return;
     }
@@ -16819,15 +16830,8 @@ nav.tabbar button.active svg{
         : '<div class="coach-empty">Sem prova marcada.</div>')+
       '</div>';
 
-    const health = '<div class="coach-card"><h3>Saúde</h3><div class="coach-metrics-grid">'+
-      metricCard('Sono', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
-      metricCard('Peso', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
-      metricCard('Pressão', (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
-      metricCard('Cardio', t.restingHr!=null ? Math.round(t.restingHr)+' bpm' : '—')+
-      '</div></div>';
-
-    // Saúde Feminina — só se a atleta é do sexo feminino E autorizou a partilha.
-    let femCard = '';
+    // Saúde Feminina (simplificada): só a bola + recomendação. A explicação (legenda) abre ao tocar na bola.
+    let femInner = '';
     try{
       const cycleRaw = aGet('cycle-data', {}) || {};
       const isFem = ((aGet('profile', {})||{}).gender === 'F');
@@ -16846,23 +16850,24 @@ nav.tabbar button.active svg{
             '• 70–100 (verde): pronta para treino exigente.\n'+
             '• 45–69 (amarelo): recuperação pode estar reduzida — ajusta o volume/intensidade.\n'+
             '• Abaixo de 45 (vermelho): recomenda-se reduzir a intensidade.\n\n'+
-            'Dia do ciclo: ' + cyc.cycleDay + '. Alerta: ' + cyc.alert + '.';
-          femCard = '<div class="coach-card"><h3>Saúde Feminina</h3>'+
+            'Alerta: ' + cyc.alert + '.';
+          femInner = '<div class="coach-fem-sep"><h4 class="coach-subhead">Saúde Feminina</h4>'+
             '<div class="coach-fem-hero">'+
               '<button type="button" class="coach-fem-ball" data-fem-explain="'+esc(explain)+'" style="border-color:'+ballColor+'; color:'+ballColor+'; box-shadow:0 0 0 7px '+ballColor+'14, 0 0 22px '+ballColor+'40;"><strong>'+avail+'</strong><span>/100</span></button>'+
               '<div class="coach-fem-hero-txt"><div class="coach-fem-hero-lbl" style="color:'+ballColor+';">'+ballLbl+'</div><div class="coach-fem-hero-sub">Disponibilidade para treinar · toca para saber mais</div></div>'+
             '</div>'+
-            '<div class="coach-metrics-grid">'+
-              metricCard('Dia do ciclo', cyc.cycleDay + 'º')+
-              metricCard('Próxima menstruação', fmtDayLabel(cyc.nextPeriod))+
-              metricCard('Disponibilidade', avail + '/100')+
-            '</div>'+
             '<div class="coach-fem-alert" style="background:'+ac+'22; color:'+ac+'; border:1px solid '+ac+'55;">'+(alertEmoji[cyc.alertKey]||'')+' '+esc(cyc.alert)+'</div>'+
-            '</div>';
+          '</div>';
         }
       }
     }catch(err){ console.warn('Saúde Feminina falhou', err); }
 
+    const health = '<div class="coach-card"><h3>Saúde</h3><div class="coach-metrics-grid">'+
+      metricCard('Sono', t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
+      metricCard('Peso', t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
+      metricCard('Pressão', (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
+      metricCard('Cardio', t.restingHr!=null ? Math.round(t.restingHr)+' bpm' : '—')+
+      '</div>' + femInner + '</div>';
     // Prontidão / risco de overtraining — para todos os atletas (masculino e feminino).
     let readyCard = '';
     try{
@@ -16921,7 +16926,7 @@ nav.tabbar button.active svg{
     const recentBox = '<div class="coach-card"><h3>Últimas atividades Strava</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">Strava ainda sem atividades sincronizadas.</div>')+'</div>';
 
-    box.innerHTML = profileCard + readyCard + plannedCard + raceCard + overview + health + femCard + drinks + nutri + completedBox + recentBox;
+    box.innerHTML = profileCard + readyCard + overview + health + nutri + plannedCard + raceCard + completedBox + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -17383,6 +17388,7 @@ nav.tabbar button.active svg{
   .estado-ball:active{transform:scale(.97);}
   .estado-ball .n{font-family:var(--font-display,inherit); font-size:52px; font-weight:800; line-height:.95;}
   .estado-title{font-size:18px; font-weight:800; margin:0 0 3px;}
+  .estado-legend{font-size:11.5px; color:var(--teal); font-weight:600; margin:0 auto 5px; max-width:340px; line-height:1.35;}
   .estado-sub{font-size:12.5px; color:var(--text-muted); margin:0 auto; max-width:340px; line-height:1.4;}
   .estado-dots{display:flex; gap:8px; justify-content:center; margin-top:14px;}
   .estado-dot{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.2); cursor:pointer; transition:background .2s;}
@@ -17453,6 +17459,8 @@ nav.tabbar button.active svg{
   .coach-fem-ball span{font-size:11px; color:var(--text-muted);}
   .coach-fem-hero-lbl{font-size:16px; font-weight:800;}
   .coach-fem-hero-sub{font-size:12px; color:var(--text-muted); margin-top:2px;}
+  .coach-fem-sep{margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.09);}
+  .coach-subhead{font-size:13px; font-weight:800; margin:0 0 10px; color:#B7ABFF; letter-spacing:.3px;}
   .coach-athlete-cycdot{margin-left:8px; font-size:13px;}
 </style>
 
