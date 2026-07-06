@@ -64,6 +64,11 @@
   .brand-text{display:flex; flex-direction:column; min-width:0;}
   .brand h1{font-family:var(--font-display); font-size:18px; letter-spacing:0.5px; margin:0; font-weight:700; line-height:1.05;}
   .brand .tagline{font-size:10.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pulso-sync-status{display:inline-flex; align-items:center; gap:5px; margin-top:4px; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); font-size:10px; font-weight:700; letter-spacing:.2px; color:var(--text-muted); white-space:nowrap; width:fit-content;}
+  .pulso-sync-status .dot{width:7px; height:7px; border-radius:50%; background:#8894a8; flex:0 0 auto;}
+  .pulso-sync-status.ok{color:#35D9A6;} .pulso-sync-status.ok .dot{background:#35D9A6; box-shadow:0 0 8px rgba(53,217,166,.6);}
+  .pulso-sync-status.sync{color:#F2B84B;} .pulso-sync-status.sync .dot{background:#F2B84B;}
+  .pulso-sync-status.off{color:#8894a8;} .pulso-sync-status.off .dot{background:#8894a8;}
   .ecg-wrap{width:100%; height:24px; margin-top:5px; opacity:0.8;}
   .ecg-wrap svg{width:100%; height:100%; display:block;}
   .ecg-path{fill:none; stroke:var(--teal); stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
@@ -6012,7 +6017,7 @@ nav.tabbar button.active svg{
         <path class="pm-p" d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30"/>
         <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"/>
       </svg>
-    </div><div class="brand-text"><h1>PULSO</h1><span class="tagline">Health &amp; Training</span></div></div>
+    </div><div class="brand-text"><h1>PULSO</h1><span class="tagline">Health &amp; Training</span><span class="pulso-sync-status off" title="Estado da sincronização" aria-live="polite"><span class="dot"></span><span class="txt">Offline</span></span></div></div>
   <button id="athlete-switch-role" class="athlete-switch-btn" type="button" aria-label="Voltar à escolha de área" title="Voltar à escolha de área">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
   </button>
@@ -11005,7 +11010,7 @@ nav.tabbar button.active svg{
     const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
     const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
     const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
-    const workoutKcal = Math.round(sum(workouts, e=>e.calories));
+    const workoutKcal = Math.round(sum(workouts, e=>activityBurnedKcal(e)));
 
     const hasData = hydration.length || coffee.length || alcohol.length || kcal.length || weight.length || sleep.length || bp.length || workouts.length || planned.length;
     if(!hasData) return;
@@ -12860,7 +12865,7 @@ nav.tabbar button.active svg{
     const coffeeCount = Math.round(sum(coffee, e=>e.units || 1));
     const workoutMin = Math.round(sum(workouts, e=>(e.movingSec || e.elapsed_time || 0)) / 60);
     const workoutKm = Math.round(sum(workouts, e=>e.distanceKm || ((e.distance || 0)/1000)) * 10) / 10;
-    const workoutKcal = Math.round(sum(workouts, e=>e.calories));
+    const workoutKcal = Math.round(sum(workouts, e=>activityBurnedKcal(e)));
     const penalty = alcoholUnits <= 0 ? 0 : alcoholUnits <= 1 ? 3 : alcoholUnits <= 2 ? 7 : alcoholUnits <= 3 ? 12 : alcoholUnits <= 4 ? 18 : 25;
     const lastBp = bp.length ? bp[bp.length-1] : null;
     const bpSys = lastBp ? Number(lastBp.sys) : null;
@@ -13015,7 +13020,7 @@ nav.tabbar button.active svg{
             metric('Gorduras', Math.round(t.fat || 0) + ' g')+
             metric('Treino', (t.workoutMin || 0) + ' min')+
             metric('Distância', (t.workoutKm || 0).toFixed(1).replace('.', ',') + ' km')+
-            metric('Kcal treino', Math.round(t.workoutKcal || 0))+
+            metric('Kcal treino', (Number(t.workoutKcal)>0 ? '-' : '') + Math.round(t.workoutKcal || 0))+
           '</div>'+ compactDetails(rec) +
         '</div>'+
       '</div>';
@@ -14330,7 +14335,7 @@ nav.tabbar button.active svg{
             <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"></path>
           </svg>
         </div>
-        <div class="coach-title"><h1>PULSO</h1><span>Modo Treinador</span></div>
+        <div class="coach-title"><h1>PULSO</h1><span>Modo Treinador</span><span class="pulso-sync-status off" title="Estado da sincronização" aria-live="polite"><span class="dot"></span><span class="txt">Offline</span></span></div>
       </div>
       <button class="coach-switch-btn" type="button" id="coach-back-athlete" aria-label="Voltar à escolha de área" title="Voltar à escolha de área">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
@@ -14509,9 +14514,8 @@ nav.tabbar button.active svg{
           <div class="coach-card">
             <div class="coach-section-head">
               <h2>Atletas</h2>
-              <button class="coach-btn tiny ghost" type="button" id="coach-add-athlete">+ Atleta</button>
             </div>
-            <div class="coach-note" style="margin-bottom:10px;">Escolhe o atleta para quem estás a planear.</div>
+            <div class="coach-note" style="margin-bottom:10px;">Os atletas ligam-se pela Cloud (☁). Escolhe para quem estás a planear.</div>
             <div id="coach-athletes-list"></div>
           </div>
 
@@ -15154,10 +15158,17 @@ nav.tabbar button.active svg{
   const DOW = ['S','T','Q','Q','S','S','D']; // seg..dom (curto)
 
   let cloudAthletes = [];   // atletas ligados via cloud: {id:uid, name, email, cloud:true}
+  function getAthleteAliases(){ const a = getPulso('coach-athlete-aliases', {}); return (a && typeof a==='object') ? a : {}; }
+  function setAthleteAlias(uid, name){
+    const a = getAthleteAliases();
+    if(name && name.trim()) a[uid] = name.trim(); else delete a[uid];
+    setPulso('coach-athlete-aliases', a);
+  }
   function refreshCloudAthletes(){
     try{
       if(window.PulsoCloud && typeof window.PulsoCloud.getCoachedAthletes === 'function'){
-        cloudAthletes = (window.PulsoCloud.getCoachedAthletes()||[]).map(a=>({id:a.uid, name:a.name||'Atleta', email:a.email||'', cloud:true}));
+        const aliases = getAthleteAliases();
+        cloudAthletes = (window.PulsoCloud.getCoachedAthletes()||[]).map(a=>({id:a.uid, name: (aliases[a.uid] || a.name || 'Atleta'), email:a.email||'', cloud:true}));
       }else{ cloudAthletes = []; }
     }catch(e){ cloudAthletes = []; }
   }
@@ -15208,10 +15219,12 @@ nav.tabbar button.active svg{
         ? 'Dados locais deste dispositivo'
         : (a.cloud ? (a.email || 'Atleta ligado na cloud') : 'Sincroniza quando ligarmos a cloud');
       const delBtn = (a.local || a.cloud) ? '' : `<button class="coach-athlete-del" type="button" data-athlete-del="${esc(a.id)}" aria-label="Eliminar atleta ${esc(a.name)}" title="Eliminar atleta">×</button>`;
+      const editBtn = a.cloud ? `<button class="coach-athlete-del" type="button" data-athlete-alias="${esc(a.id)}" aria-label="Editar nome de ${esc(a.name)}" title="Editar nome" style="color:var(--teal); border-color:rgba(53,217,166,.4);">✎</button>` : '';
       return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
         <div class="coach-athlete-av">${initial}</div>
         <div class="coach-athlete-info"><strong>${esc(a.name)}</strong><span>${sub}</span></div>
         ${badge}
+        ${editBtn}
         ${delBtn}
       </div>`;
     }).join('');
@@ -15930,6 +15943,11 @@ nav.tabbar button.active svg{
       return;
     }
     box.classList.remove('is-waiting');
+    // Garante que a fonte de dados corresponde ao atleta selecionado: se o atleta atual não é
+    // da cloud mas ficou um override antigo em memória, limpamo-lo para voltar aos dados locais
+    // (senão bebidas/saúde apareciam a 0 e o intervalo não mudava nada).
+    const selIsCloud = cloudAthletes.some(a=>a.id===selectedAthleteId);
+    if(!selIsCloud && coachCloudOverride){ coachCloudOverride = null; cloudOverrideUid = null; }
     const sel = document.getElementById('coach-athlete-day');
     const day = (sel && sel.value) ? sel.value : todayStr();
     const rangeN = activeCoachRange();
@@ -16146,7 +16164,24 @@ nav.tabbar button.active svg{
 
     // Atletas
     document.getElementById('coach-add-athlete')?.addEventListener('click', addAthlete);
+
     document.getElementById('coach-athletes-list')?.addEventListener('click', (e)=>{
+      const alias = e.target.closest('[data-athlete-alias]');
+      if(alias){
+        e.preventDefault(); e.stopPropagation();
+        const uid = alias.getAttribute('data-athlete-alias');
+        const cur = cloudAthletes.find(a=>a.id===uid);
+        const proposed = window.prompt('Nome a mostrar para este atleta:', (cur && cur.name) || '');
+        if(proposed !== null){
+          setAthleteAlias(uid, proposed);
+          refreshCloudAthletes();
+          renderAthletes();
+          fillCoachAthleteSelectors();
+          try{ renderAthleteData(); }catch(err){}
+          toast('Nome atualizado');
+        }
+        return;
+      }
       const del = e.target.closest('[data-athlete-del]');
       if(del){
         e.preventDefault();
@@ -16570,6 +16605,17 @@ function cloudToast(msg){
 }
 function esc(v){ return String(v ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+// Indicador de estado de sincronização no cabeçalho.
+function setSyncStatus(state, label){
+  try{
+    document.querySelectorAll('.pulso-sync-status').forEach(el=>{
+      el.classList.remove('ok','sync','off');
+      el.classList.add(state);
+      const t = el.querySelector('.txt'); if(t) t.textContent = label;
+    });
+  }catch(e){}
+}
+
 // Chaves locais que NÃO vão para a cloud (caches grandes/voláteis).
 const EXCLUDE_PREFIXES = ['strava-streams-'];
 const EXCLUDE_KEYS = ['pulso-last-push'];
@@ -16602,6 +16648,7 @@ async function uploadData(){
   if(!currentUser) return;
   clearTimeout(uploadTimer);
   uploadTimer = setTimeout(async ()=>{
+    setSyncStatus('sync', 'A sincronizar');
     try{
       const keys = localPulsoSnapshot();
       await setDoc(doc(db, 'athleteData', currentUser.uid), {
@@ -16610,7 +16657,8 @@ async function uploadData(){
         email: (currentUser.email || ''),
         updatedAt: new Date().toISOString()
       }, { merge: true });
-    }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); }
+      setSyncStatus('ok', 'Sincronizado');
+    }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); setSyncStatus('off', 'Sem sincronização'); }
   }, 1400);
 }
 
@@ -16979,12 +17027,14 @@ onAuthStateChanged(auth, async (user)=>{
   currentUser = user || null;
   const btn = $('pulso-cloud-btn');
   if(!user){
+    setSyncStatus('off', 'Offline');
     showAuth(true);
     if(btn) btn.hidden = true;
     const card = $('pc-auth');
     setAuthMode(card && card.dataset.mode ? card.dataset.mode : 'signin');
     return;
   }
+  setSyncStatus('ok', 'Ligado');
   try{ currentRole = await ensureUserDoc(user); }catch(e){ currentRole = 'athlete'; }
   const needsReload = await hydrateFromCloudOnce(user);
   if(needsReload){ location.reload(); return; }
