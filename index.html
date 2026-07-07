@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
+  <script>
+    /* Rede de segurança de arranque: garante que window.PL existe SEMPRE, mesmo que
+       algum bloco corra antes do motor de idiomas ser definido (mais abaixo no body).
+       O motor real substitui esta versão quando carrega. Devolve o texto PT por
+       omissão — nunca rebenta com "PL is not defined". */
+    (function(){
+      try{
+        var savedLang = null;
+        try{ savedLang = localStorage.getItem('pulso_lang'); }catch(e){}
+        if (typeof window.PL !== 'function') {
+          window.PL = function(pt, en){ return (savedLang === 'en' && en != null) ? en : pt; };
+        }
+      }catch(e){ if (typeof window.PL !== 'function') window.PL = function(pt, en){ return pt; }; }
+    })();
+  </script>
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -2464,7 +2479,7 @@ body.keyboard-open main > section.active{
   gap:7px;
   white-space:nowrap;
 }
-.macro-title span{
+.macro-title span:first-child{
   width:9px;
   height:9px;
   border-radius:50%;
@@ -2473,9 +2488,9 @@ body.keyboard-open main > section.active{
 .macro-item.carbs .macro-title{color:#35D9A6;}
 .macro-item.protein .macro-title{color:#F2B84B;}
 .macro-item.fat .macro-title{color:#9B8CFF;}
-.macro-item.carbs .macro-title span{background:#35D9A6;}
-.macro-item.protein .macro-title span{background:#F2B84B;}
-.macro-item.fat .macro-title span{background:#9B8CFF;}
+.macro-item.carbs .macro-title span:first-child{background:#35D9A6;}
+.macro-item.protein .macro-title span:first-child{background:#F2B84B;}
+.macro-item.fat .macro-title span:first-child{background:#9B8CFF;}
 .macro-item strong{
   display:block;
   font-family:var(--font-display);
@@ -2511,7 +2526,7 @@ body.keyboard-open main > section.active{
   .macro-row{padding-top:18px;}
   .macro-item{padding:0 6px;}
   .macro-title{font-size:10.5px;gap:5px;}
-  .macro-title span{width:7px;height:7px;}
+  .macro-title span:first-child{width:7px;height:7px;}
   .macro-item strong{font-size:22px;margin-top:11px;}
   .macro-item em{font-size:15px;}
   .macro-item em small{display:block;font-size:10.5px;margin-top:3px;}
@@ -6583,7 +6598,7 @@ nav.tabbar button.active svg{
     <div class="subtabs">
       <button class="ghost active" data-sub="sono" type="button" data-i18n="Sleep">Sono</button>
       <button class="ghost" data-sub="peso" type="button" data-i18n="Weight">Peso</button>
-      <button class="ghost" data-sub="pressao" type="button" data-i18n="Pressure">Pressão</button>
+      <button class="ghost" data-sub="pressao" type="button" data-i18n="BP">Tensão</button>
       <button class="ghost" data-sub="ciclo" type="button" id="cycle-subtab-btn" style="display:none;" data-i18n="Cycle">Ciclo</button>
     </div>
 
@@ -6927,8 +6942,8 @@ nav.tabbar button.active svg{
                 <option value="workoutMin" data-i18n="Training minutes">Minutos de treino</option>
                 <option value="workoutKm" data-i18n="Training distance">Distância treino</option>
                 <option value="alcoholMl" data-i18n="Alcohol">Álcool</option>
-                <option value="bpSys" data-i18n="Max pressure">Pressão máxima</option>
-                <option value="bpDia" data-i18n="Min pressure">Pressão mínima</option>
+                <option value="bpSys" data-i18n="Max BP">Tensão máxima</option>
+                <option value="bpDia" data-i18n="Min BP">Tensão mínima</option>
                 <option value="restingHr" data-i18n="HR (bpm)">Cardio (bpm)</option>
               </select>
             </div>
@@ -6945,12 +6960,16 @@ nav.tabbar button.active svg{
             <div class="profile-group-icon">💾</div>
             <div>
               <h3 data-i18n="App data">Dados da aplicação</h3>
-              <p class="help" style="margin:0;">Exportação e cópia de segurança.</p>
+              <p class="help" style="margin:0;" data-i18n="Export and backup.">Exportação e cópia de segurança.</p>
             </div>
           </div>
           <div class="row">
             <button class="ghost" id="btn-export" type="button" data-i18n="Export data (.json)">Exportar dados (.json)</button>
           </div>
+          <div class="row" style="margin-top:8px;">
+            <button class="ghost" id="btn-restore-backup" type="button" data-i18n="Restore backup">Restaurar cópia de segurança</button>
+          </div>
+          <p class="help" style="margin:8px 0 0; font-size:11.5px;" data-i18n="Automatic local backups are kept before each cloud sync, in case anything is overwritten.">São guardadas cópias locais automáticas antes de cada sincronização com a cloud, caso algo seja sobreposto.</p>
         </div>
       </div>
     </div>
@@ -7655,7 +7674,7 @@ nav.tabbar button.active svg{
     await sSet('bp-entries', bpEntries);
     e.target.reset(); document.getElementById('bp-date').value = todayStr();
     renderBP();
-    toast(PL('Pressão guardada','Pressure saved'));
+    toast(PL('Tensão guardada','Blood pressure saved'));
   });
 
   // Classificação europeia (ESC/ESH)
@@ -8428,7 +8447,7 @@ nav.tabbar button.active svg{
     await cycleSave();
     renderCycle();
     if(typeof renderDashboard === 'function') { try{ renderDashboard(); }catch(e){} }
-    pulsoToast(idx>=0 ? 'Início removido' : 'Início da menstruação registado');
+    pulsoToast(idx>=0 ? PL('Início removido','Start removed') : PL('Início da menstruação registado','Period start logged'));
   }
 
   window.PulsoCycle = {
@@ -9110,7 +9129,7 @@ nav.tabbar button.active svg{
     }
     const match = findFoodMatch(rawName);
     if(!match){
-      noteEl.textContent = '"' + rawName.trim() + '" não está na lista de alimentos. Queres pesquisar na IA?';
+      noteEl.textContent = '"' + rawName.trim() + '" ' + PL('não está na lista de alimentos. Queres pesquisar na IA?','is not in the food list. Search with AI?');
       showSearchAiPrompt(rawName.trim());
       return;
     }
@@ -9137,7 +9156,7 @@ nav.tabbar button.active svg{
     document.getElementById('kcal-carbs').value = Math.round(food.carbs*factor*10)/10;
     document.getElementById('kcal-protein').value = Math.round(food.protein*factor*10)/10;
     document.getElementById('kcal-fat').value = Math.round(food.fat*factor*10)/10;
-    noteEl.textContent = grams===food.defaultG ? 'Porção típica de "' + match.name + '" preenchida automaticamente (' + food.defaultG + 'g) — ajusta se souberes o valor exato.' : 'Valores estimados a partir da nossa tabela — ajusta se souberes o valor exato.';
+    noteEl.textContent = grams===food.defaultG ? PL('Porção típica de "','Typical portion of "') + match.name + PL('" preenchida automaticamente (','" filled in automatically (') + food.defaultG + PL('g) — ajusta se souberes o valor exato.','g) — adjust if you know the exact value.') : PL('Valores estimados a partir da nossa tabela — ajusta se souberes o valor exato.','Values estimated from our table — adjust if you know the exact value.');
   }
   document.getElementById('kcal-food').addEventListener('input', applyFoodEstimate);
   document.getElementById('kcal-food').addEventListener('change', applyFoodEstimate);
@@ -9228,7 +9247,7 @@ nav.tabbar button.active svg{
       document.getElementById('kcal-fat').value = Math.round(kcalAiBase.fat*10)/10;
       document.getElementById('kcal-food').value = name;
       const itensTxt = (data.itens||[]).map(i=>i.nome+' ('+Math.round(i.kcal)+'kcal)').join(', ');
-      noteEl.textContent = 'IA estimou (para ~' + baseGrams + 'g): ' + (itensTxt || (kcalAiBase.kcal+' kcal')) + '. Queres adicionar este alimento à lista?';
+      noteEl.textContent = PL('IA estimou (para ~','AI estimated (for ~') + baseGrams + PL('g): ','g): ') + (itensTxt || (kcalAiBase.kcal+' kcal')) + PL('. Queres adicionar este alimento à lista?','. Add this food to the list?');
       showAddToListPrompt(name, baseGrams);
     }catch(err){
       noteEl.textContent = PL('Não foi possível ligar à IA (função não encontrada ou sem internet). Preenche os valores à mão.','Couldn\'t reach the AI (function not found or no internet). Fill in the values by hand.');
@@ -9366,7 +9385,7 @@ nav.tabbar button.active svg{
     const kcalVal = document.getElementById('kcal-ring-val');
     const kcalGoal = document.getElementById('kcal-ring-goal');
     if(kcalVal) kcalVal.textContent = Math.round(safeKcal);
-    if(kcalGoal) kcalGoal.textContent = safeGoal ? `/ ${Math.round(safeGoal)} kcal líquidos` : '/ — kcal líquidos';
+    if(kcalGoal) kcalGoal.textContent = safeGoal ? `/ ${Math.round(safeGoal)} ` + PL('kcal líquidos','net kcal') : '/ — ' + PL('kcal líquidos','net kcal');
 
     const carbsVal = document.getElementById('kcal-carbs-val');
     const proteinVal = document.getElementById('kcal-protein-val');
@@ -10163,6 +10182,34 @@ nav.tabbar button.active svg{
     }
   }
 
+  // #2 (segurança): troca de token do Strava.
+  // Preferimos uma função Netlify (first-party) para que o Client Secret nunca passe
+  // por um proxy público de terceiros. Se a função não estiver publicada, faz FALLBACK
+  // para o método atual (direto -> corsproxy) — por isso nada parte se ainda não a tiveres.
+  async function stravaTokenExchange(payload){
+    // 1) Função Netlify (se existir)
+    try{
+      const r = await fetch('/.netlify/functions/strava-token', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      if(r.ok){
+        const d = await r.json();
+        if(d && d.access_token) return d;            // sucesso via função
+        if(d && d.errors) throw new Error('Strava: ' + JSON.stringify(d.errors));
+      }
+      // status 404 / outro -> cai para o fallback abaixo
+    }catch(fnErr){
+      // função indisponível ou erro de rede -> fallback
+      if(fnErr && /Strava:/.test(String(fnErr.message||''))) throw fnErr;
+    }
+    // 2) Fallback: comportamento atual (direto -> corsproxy)
+    const res = await fetchStrava('https://www.strava.com/oauth/token', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('Falha na troca de token (' + res.status + ')');
+    return await res.json();
+  }
+
   document.getElementById('form-strava-creds').addEventListener('input', async ()=>{
     stravaAuth = stravaAuth || {};
     stravaAuth.clientId = document.getElementById('strava-client-id').value.trim();
@@ -10184,10 +10231,7 @@ nav.tabbar button.active svg{
     if(code.includes('code=')){ const m = code.match(/code=([^&]+)/); if(m) code = m[1]; }
     if(!clientId || !clientSecret || !code){ toast(PL('Preenche Client ID, Secret e código','Fill in Client ID, Secret and code')); return; }
     try{
-      const res = await fetchStrava('https://www.strava.com/oauth/token', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({client_id:clientId, client_secret:clientSecret, code, grant_type:'authorization_code'}) });
-      if(!res.ok) throw new Error('Falha na troca do código (' + res.status + ')');
-      const data = await res.json();
+      const data = await stravaTokenExchange({client_id:clientId, client_secret:clientSecret, code, grant_type:'authorization_code'});
       stravaAuth = { clientId, clientSecret, accessToken: data.access_token, refreshToken: data.refresh_token, expiresAt: data.expires_at,
         athleteName: data.athlete ? [data.athlete.firstname, data.athlete.lastname].filter(Boolean).join(' ') : '' };
       await sSet('strava-auth', stravaAuth);
@@ -10211,10 +10255,7 @@ nav.tabbar button.active svg{
     const now = Math.floor(Date.now()/1000);
     if(stravaAuth.expiresAt && stravaAuth.expiresAt > now + 60) return true;
     try{
-      const res = await fetchStrava('https://www.strava.com/oauth/token', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({client_id:stravaAuth.clientId, client_secret:stravaAuth.clientSecret, refresh_token:stravaAuth.refreshToken, grant_type:'refresh_token'}) });
-      if(!res.ok) throw new Error('refresh failed');
-      const data = await res.json();
+      const data = await stravaTokenExchange({client_id:stravaAuth.clientId, client_secret:stravaAuth.clientSecret, refresh_token:stravaAuth.refreshToken, grant_type:'refresh_token'});
       stravaAuth.accessToken = data.access_token; stravaAuth.refreshToken = data.refresh_token; stravaAuth.expiresAt = data.expires_at;
       await sSet('strava-auth', stravaAuth);
       return true;
@@ -10448,7 +10489,7 @@ nav.tabbar button.active svg{
         icon.textContent = '!';
         label.textContent = stravaAuth && stravaAuth.accessToken ? PL('Falha ao sincronizar','Sync failed') : PL('Strava não ligado','Strava not connected');
         indicator.classList.add('visible');
-        toast(stravaAuth && stravaAuth.accessToken ? 'Não foi possível sincronizar o Strava' : 'Liga primeiro o Strava');
+        toast(stravaAuth && stravaAuth.accessToken ? PL('Não foi possível sincronizar o Strava','Couldn\'t sync Strava') : PL('Liga primeiro o Strava','Connect Strava first'));
       }finally{
         setTimeout(()=>{ refreshing = false; setState('idle',0); }, 1300);
       }
@@ -10495,12 +10536,12 @@ nav.tabbar button.active svg{
   }
   function renderPowerZones(){
     const el = document.getElementById('power-zones-list');
-    if(el) el.innerHTML = zoneRowsHtml(powerZones && powerZones.refs, (v,i)=> i===4 ? ('≥ '+v+' W') : ('até '+v+' W'));
+    if(el) el.innerHTML = zoneRowsHtml(powerZones && powerZones.refs, (v,i)=> i===4 ? ('≥ '+v+' W') : (PL('até ','up to ')+v+' W'));
     if(powerZones && powerZones.refs) for(let i=1;i<=5;i++){ const inp=document.getElementById('pw-z'+i+'-ref'); if(inp && powerZones.refs[i-1]!=null && inp.value==='') inp.value = powerZones.refs[i-1]; }
   }
   function renderPaceZones(){
     const el = document.getElementById('pace-zones-list');
-    if(el) el.innerHTML = zoneRowsHtml(paceZones && paceZones.refs, (v,i)=> (i===4 ? 'mais rápido que ' : 'até ') + v + ' /km');
+    if(el) el.innerHTML = zoneRowsHtml(paceZones && paceZones.refs, (v,i)=> (i===4 ? PL('mais rápido que ','faster than ') : PL('até ','up to ')) + v + ' /km');
     if(paceZones && paceZones.refs) for(let i=1;i<=5;i++){ const inp=document.getElementById('pc-z'+i+'-ref'); if(inp && paceZones.refs[i-1]!=null && inp.value==='') inp.value = paceZones.refs[i-1]; }
   }
   window.PulsoRenderZones = function(){ try{ renderPowerZones(); renderPaceZones(); }catch(e){} };
@@ -10639,7 +10680,7 @@ nav.tabbar button.active svg{
     options = options || {};
     containerEl.innerHTML = '';
     rows = simplifyStreamRows(rows, 120);
-    if(!rows.length){ containerEl.innerHTML = '<div class="empty">' + (emptyReason || 'Sem dados para este gráfico.') + '</div>'; return; }
+    if(!rows.length){ containerEl.innerHTML = '<div class="empty">' + (emptyReason || PL('Sem dados para este gráfico.','No data for this chart.')) + '</div>'; return; }
 
     const W = containerEl.clientWidth || 320, H = Math.max(containerEl.clientHeight || 176, 170);
     const padL = options.padL || 48, padR = 12, padT = 18, padB = 28;
@@ -11504,7 +11545,7 @@ nav.tabbar button.active svg{
   function trendEl(el, current, previous, higherIsBad){
     if(previous===undefined || previous===null){ el.textContent='sem dados anteriores'; el.className='trend flat'; return; }
     const diff = current - previous;
-    if(Math.abs(diff) < 0.05){ el.textContent='estável'; el.className='trend flat'; return; }
+    if(Math.abs(diff) < 0.05){ el.textContent=PL('estável','stable'); el.className='trend flat'; return; }
     const goingUp = diff > 0; const bad = higherIsBad ? goingUp : !goingUp;
     el.textContent = (goingUp?'▲ ':'▼ ') + Math.abs(diff).toFixed(1);
     el.className = 'trend ' + (bad ? 'up':'down');
@@ -11662,12 +11703,31 @@ nav.tabbar button.active svg{
   });
 
   document.getElementById('btn-export').addEventListener('click', ()=>{
-    const payload = { profile, weightEntries, sleepEntries, plannedWorkouts, stravaActivities, stravaZones, stravaVo2, hydrationEntries, hydrationGoal, coffeeEntries, alcoholEntries, kcalEntries, favoriteWorkouts, todayPlan, raceGoal, exportedAt: new Date().toISOString() };
+    const payload = { schemaVersion: (window.PULSO_SCHEMA_VERSION || 1), profile, weightEntries, sleepEntries, plannedWorkouts, stravaActivities, stravaZones, stravaVo2, hydrationEntries, hydrationGoal, coffeeEntries, alcoholEntries, kcalEntries, favoriteWorkouts, todayPlan, raceGoal, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'pulso-dados.json'; a.click();
     URL.revokeObjectURL(url);
   });
+
+  // #4: restaurar a cópia de segurança local mais recente (com confirmação).
+  (function(){
+    const rb = document.getElementById('btn-restore-backup');
+    if(!rb) return;
+    rb.addEventListener('click', ()=>{
+      try{
+        const list = (window.PulsoListBackups ? window.PulsoListBackups() : []);
+        if(!list || !list.length){ toast(PL('Ainda não há cópias de segurança guardadas.','No backups saved yet.')); return; }
+        const b = list[0];
+        const when = (()=>{ try{ return new Date(b.at).toLocaleString(PL('pt-PT','en-GB')); }catch(e){ return b.at; } })();
+        const msg = PL('Restaurar a cópia de '+when+' ('+b.itens+' itens)? Os dados atuais são guardados numa cópia antes de restaurar, para poderes desfazer.',
+                       'Restore the backup from '+when+' ('+b.itens+' items)? Current data is saved to a backup first, so you can undo.');
+        if(window.confirm(msg)){
+          if(window.PulsoRestoreBackup) window.PulsoRestoreBackup(0);
+        }
+      }catch(e){ toast(PL('Não foi possível restaurar.','Couldn\'t restore.')); }
+    });
+  })();
 
   // ================= BOOT ================= //
   async function bootApp(){
@@ -13863,8 +13923,8 @@ nav.tabbar button.active svg{
     workoutMin:{label:'Minutos de treino', unit:' min', get:function(rec){return rec.totals ? Number(rec.totals.workoutMin)||0 : 0;}},
     workoutKm:{label:'Distância treino', unit:' km', get:function(rec){return rec.totals ? Number(rec.totals.workoutKm)||0 : 0;}},
     alcoholMl:{label:'Álcool', unit:' ml', get:function(rec){return rec.totals ? Number(rec.totals.alcoholMl)||0 : 0;}},
-    bpSys:{label:'Pressão máxima', unit:' mmHg', get:function(rec){return rec.totals && rec.totals.bpSys != null ? Number(rec.totals.bpSys) : null;}},
-    bpDia:{label:'Pressão mínima', unit:' mmHg', get:function(rec){return rec.totals && rec.totals.bpDia != null ? Number(rec.totals.bpDia) : null;}},
+    bpSys:{label:'Tensão máxima', unit:' mmHg', get:function(rec){return rec.totals && rec.totals.bpSys != null ? Number(rec.totals.bpSys) : null;}},
+    bpDia:{label:'Tensão mínima', unit:' mmHg', get:function(rec){return rec.totals && rec.totals.bpDia != null ? Number(rec.totals.bpDia) : null;}},
     restingHr:{label:'Cardio (bpm)', unit:' bpm', get:function(rec){return rec.totals && rec.totals.restingHr != null ? Number(rec.totals.restingHr) : null;}}
   };
 
@@ -13923,7 +13983,7 @@ nav.tabbar button.active svg{
     const first = rows[0].value, last = rows[rows.length-1].value;
     const diff = Math.round((last-first)*10)/10;
     const sign = diff > 0 ? '+' : '';
-    if(note) note.textContent = cfg.label + ': ' + sign + String(diff).replace('.', ',') + cfg.unit + ' nos últimos ' + rows.length + ' registos.';
+    if(note) note.textContent = cfg.label + ': ' + sign + String(diff).replace('.', ',') + cfg.unit + PL(' nos últimos ',' in the last ') + rows.length + PL(' registos.',' entries.');
   }
 
   function renderAthleteHistory(){
@@ -13952,7 +14012,7 @@ nav.tabbar button.active svg{
           '<div class="athlete-metrics-grid">'+
             metric('Sono', fmtHours(t.sleepHours))+
             metric('Peso', t.weightKg ? Number(t.weightKg).toFixed(1).replace('.', ',') + ' kg' : '—')+
-            metric('Pressão', (t.bpSys != null && t.bpDia != null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)+' mmHg') : '—')+
+            metric(PL('Tensão','BP'), (t.bpSys != null && t.bpDia != null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)+' mmHg') : '—')+
             metric('Cardio', t.restingHr != null ? (Math.round(t.restingHr) + ' bpm') : '—')+
             metric('Água', fmtL(t.waterMl))+
             metric('Cafés', t.coffeeCount || 0)+
@@ -13984,7 +14044,7 @@ nav.tabbar button.active svg{
     if(archiveBtn){
       archiveBtn.addEventListener('click', function(){
         const ok = saveDay(todayKey());
-        if(typeof window.showToast === 'function') window.showToast(ok ? 'Resumo de hoje guardado' : 'Ainda não há dados para guardar');
+        if(typeof window.showToast === 'function') window.showToast(ok ? PL('Resumo de hoje guardado','Today\'s summary saved') : PL('Ainda não há dados para guardar','No data to save yet'));
       });
     }
     const trendSelect = document.getElementById('athlete-trend-metric');
@@ -14780,7 +14840,7 @@ nav.tabbar button.active svg{
     var name=document.getElementById('profileActivityName');
     var lvl=document.getElementById('profileActivityLevel');
     if(name) name.textContent=tierName(v);
-    if(lvl) lvl.textContent='Nível '+v;
+    if(lvl) lvl.textContent=PL('Nível ','Level ')+v;
     r.style.setProperty('--afill', ((v-1)/9*100)+'%');
   }
   document.addEventListener('DOMContentLoaded',function(){
@@ -16137,7 +16197,7 @@ nav.tabbar button.active svg{
       if(filtered.length !== arr.length) setPulso(key, filtered);
     });
     renderCoachWorkouts();
-    toast(deleted ? 'Treino apagado' : 'Treino não encontrado');
+    toast(deleted ? PL('Treino apagado','Workout deleted') : PL('Treino não encontrado','Workout not found'));
   }
   function importAthleteWorkout(id){
     const w = collectManualWorkouts().find(x=>x.id===id);
@@ -16484,7 +16544,7 @@ nav.tabbar button.active svg{
     const targetId = prescribeTargetId();
     const targetName = (getAthletes().find(a=>a.id===targetId)||{}).name || 'atleta';
     const arm = document.getElementById('coach-cal-arm');
-    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> → <strong>' + esc(targetName) + '</strong> — toca no dia do calendário onde o queres colocar. <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">Cancelar</button>'; }
+    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> → <strong>' + esc(targetName) + '</strong> ' + PL('— toca no dia do calendário onde o queres colocar.','— tap the calendar day where you want to place it.') + ' <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">' + PL('Cancelar','Cancel') + '</button>'; }
     const cal = document.getElementById('coach-calendar');
     if(cal){ try{ cal.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} }
   }
@@ -17325,7 +17385,7 @@ nav.tabbar button.active svg{
     const health = '<div class="coach-card"><h3>'+PL('Saúde','Health')+'</h3><div class="coach-metrics-grid">'+
       metricCard(PL('Sono','Sleep'), t.sleepHours!=null ? Number(t.sleepHours).toFixed(1).replace('.', ',')+' h' : '—')+
       metricCard(PL('Peso','Weight'), t.weightKg!=null ? Number(t.weightKg).toFixed(1).replace('.', ',')+' kg' : '—')+
-      metricCard(PL('Pressão','Pressure'), (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
+      metricCard(PL('Tensão','BP'), (t.bpSys!=null && t.bpDia!=null) ? (Math.round(t.bpSys)+'/'+Math.round(t.bpDia)) : '—')+
       metricCard(PL('Cardio','HR'), t.restingHr!=null ? Math.round(t.restingHr)+' bpm' : '—')+
       '</div></div>';
     // Prontidão / risco de overtraining — para todos os atletas (masculino e feminino).
@@ -18103,9 +18163,9 @@ function setSyncStatus(state, label){
   }catch(e){}
 }
 
-// Chaves locais que NÃO vão para a cloud (caches grandes/voláteis).
-const EXCLUDE_PREFIXES = ['strava-streams-'];
-const EXCLUDE_KEYS = ['pulso-last-push'];
+// Chaves locais que NÃO vão para a cloud (caches grandes/voláteis, cópias de segurança).
+const EXCLUDE_PREFIXES = ['strava-streams-', '_bak:'];
+const EXCLUDE_KEYS = ['pulso-last-push', '_schema', '_bak_meta'];
 function localPulsoSnapshot(){
   const out = {};
   for(let i=0;i<localStorage.length;i++){
@@ -18118,6 +18178,64 @@ function localPulsoSnapshot(){
   }
   return out;
 }
+
+// ---------- #4 SEGURANÇA DOS DADOS: versão de esquema + cópias de segurança ----------
+// Versão do esquema dos dados. Serve para futuras migrações saberem o formato.
+const PULSO_SCHEMA_VERSION = 1;
+try{ window.PULSO_SCHEMA_VERSION = PULSO_SCHEMA_VERSION; }catch(e){}
+try{ localStorage.setItem('pulso:_schema', String(PULSO_SCHEMA_VERSION)); }catch(e){}
+
+const PULSO_BACKUP_SLOTS = 3;   // guarda as 3 cópias mais recentes
+let pulsoBackupDoneThisSession = false;
+// Faz uma cópia de segurança LOCAL de todos os dados (rotativa), antes de operações
+// que possam sobrepor dados (ex.: merge da cloud). Nunca pode partir nada: tudo em try/catch.
+function pulsoWriteBackup(reason, force){
+  try{
+    if(pulsoBackupDoneThisSession && !force) return;
+    pulsoBackupDoneThisSession = true;
+    const snap = localPulsoSnapshot();           // já exclui as próprias cópias e caches
+    if(!snap || Object.keys(snap).length === 0) return;   // nada para copiar
+    // roda as cópias: _bak:1 -> _bak:2, _bak:0 -> _bak:1
+    for(let i=PULSO_BACKUP_SLOTS-1;i>0;i--){
+      const prev = localStorage.getItem('pulso:_bak:'+(i-1));
+      if(prev != null){ try{ localStorage.setItem('pulso:_bak:'+i, prev); }catch(e){} }
+    }
+    localStorage.setItem('pulso:_bak:0', JSON.stringify({
+      at: new Date().toISOString(), reason: reason || '', schema: PULSO_SCHEMA_VERSION, keys: snap
+    }));
+  }catch(e){ /* uma cópia falhada nunca deve impedir a app de funcionar */ }
+}
+// Lista as cópias existentes (para o utilizador/console).
+window.PulsoListBackups = function(){
+  const list = [];
+  for(let i=0;i<PULSO_BACKUP_SLOTS;i++){
+    try{
+      const raw = localStorage.getItem('pulso:_bak:'+i);
+      if(raw==null) continue;
+      const b = JSON.parse(raw);
+      list.push({ slot:i, at:b.at, reason:b.reason, itens:(b.keys?Object.keys(b.keys).length:0) });
+    }catch(e){}
+  }
+  return list;
+};
+// Restaura uma cópia (por omissão a mais recente, slot 0). Faz primeiro uma cópia do
+// estado atual (force) para poderes desfazer, e recarrega a app no fim.
+window.PulsoRestoreBackup = function(slot){
+  try{
+    slot = slot || 0;
+    const raw = localStorage.getItem('pulso:_bak:'+slot);
+    if(raw==null){ console.warn('Pulso: não há cópia no slot '+slot); return false; }
+    const b = JSON.parse(raw);
+    if(!b || !b.keys){ console.warn('Pulso: cópia inválida'); return false; }
+    pulsoWriteBackup('antes-de-restaurar', true);   // salvaguarda o estado atual
+    Object.keys(b.keys).forEach(function(k){
+      try{ localStorage.setItem('pulso:'+k, b.keys[k]); }catch(e){}
+    });
+    console.info('Pulso: cópia de '+b.at+' restaurada ('+Object.keys(b.keys).length+' itens). A recarregar…');
+    try{ location.reload(); }catch(e){}
+    return true;
+  }catch(e){ console.warn('Pulso: falha ao restaurar', e); return false; }
+};
 // Une dois arrays de registos, sem duplicar (por id, ou pelo conteúdo se não houver id).
 function mergePulsoArrays(localArr, cloudArr){
   const seen = new Set();
@@ -18138,6 +18256,8 @@ function mergePulsoArrays(localArr, cloudArr){
 // o que está local: os registos com data (arrays) são unidos e os dicionários também.
 function hydrateLocalFrom(keys){
   if(!keys) return;
+  // #4: cópia de segurança local ANTES de fundir a cloud (ponto de recuperação).
+  try{ pulsoWriteBackup('antes-de-fundir-cloud'); }catch(e){}
   Object.keys(keys).forEach(function(k){
     try{
       const cloudRaw = keys[k];
@@ -18243,7 +18363,7 @@ async function requestLink(otherCode, asRole){
     base.updatedAt = new Date().toISOString();
     base.status = (base.athleteConsent && base.trainerConsent) ? 'active' : 'pending';
     await setDoc(ref, base, { merge:true });
-    cloudToast(base.status === 'active' ? 'Ligação ativa!' : 'Convite enviado. Falta a outra pessoa aceitar.');
+    cloudToast(base.status === 'active' ? PL('Ligação ativa!','Link active!') : PL('Convite enviado. Falta a outra pessoa aceitar.','Invite sent. The other person still needs to accept.'));
     renderSheet(); loadCoachedAthletes();
   }catch(err){ console.error(err); cloudToast(PL('Não foi possível enviar o convite.','Couldn\'t send the invite.')); }
 }
@@ -18261,7 +18381,7 @@ async function respondLink(id, accept){
     const bothOk = (iAmAthlete ? true : d.athleteConsent) && (iAmAthlete ? d.trainerConsent : true);
     patch.status = bothOk ? 'active' : 'pending';
     await updateDoc(ref, patch);
-    cloudToast(bothOk ? 'Ligação ativa!' : 'Aceite. Falta a outra parte.');
+    cloudToast(bothOk ? PL('Ligação ativa!','Link active!') : PL('Aceite. Falta a outra parte.','Accepted. The other side is still pending.'));
     renderSheet(); loadCoachedAthletes();
   }catch(err){ console.error(err); cloudToast(PL('Não foi possível responder.','Couldn\'t respond.')); }
 }
@@ -18494,7 +18614,7 @@ async function viewAthlete(athleteUid){
       '<div class="pc-row"><div class="pc-k">'+(prof.age?esc(prof.age)+' anos':'—')+'</div><div class="pc-muted">Idade</div></div>'+
       '<div class="pc-row"><div class="pc-k">'+(prof.heightCm?esc(prof.heightCm)+' cm':'—')+'</div><div class="pc-muted">Altura</div></div>'+
       '<div class="pc-row"><div class="pc-k">'+(lastW&&lastW.kg?esc(lastW.kg)+' kg':'—')+'</div><div class="pc-muted">Último peso</div></div>'+
-      '<div class="pc-row"><div class="pc-k">'+(lastBp?esc(lastBp.sys)+'/'+esc(lastBp.dia)+' mmHg':'—')+'</div><div class="pc-muted">Última pressão</div></div>'+
+      '<div class="pc-row"><div class="pc-k">'+(lastBp?esc(lastBp.sys)+'/'+esc(lastBp.dia)+' mmHg':'—')+'</div><div class="pc-muted">'+PL('Última tensão','Last BP')+'</div></div>'+
       '<p class="pc-muted" style="margin-top:10px;">Vista completa no modo Treinador a caminho.</p>';
     box.hidden = false; box.setAttribute('aria-hidden','false');
   }catch(err){ console.error(err); cloudToast(PL('Sem permissão ou sem dados.','No permission or no data.')); }
@@ -18526,7 +18646,7 @@ async function showQr(text){
     qr.addData(String(text||''));
     qr.make();
     const img = qr.createDataURL(6, 10);
-    body.innerHTML = '<img src="'+img+'" alt="QR do código Pulso" style="width:100%; max-width:260px; image-rendering:pixelated; border-radius:12px; background:#fff; padding:10px;">'+
+    body.innerHTML = '<img src="'+img+'" alt="'+PL('QR do código Pulso','Pulso code QR')+'" style="width:100%; max-width:260px; image-rendering:pixelated; border-radius:12px; background:#fff; padding:10px;">'+
       '<p class="pc-muted" style="margin-top:10px; word-break:break-all;">'+esc(text)+'</p>'+
       '<button type="button" class="pc-btn tiny" id="pc-qr-copy" style="margin-top:8px;">Copiar código</button>';
     const c = $('pc-qr-copy'); if(c) c.onclick = ()=>{ try{ navigator.clipboard.writeText(String(text||'')); cloudToast(PL('Código copiado.','Code copied.')); }catch(e){ cloudToast(PL('Copia manualmente.','Copy manually.')); } };
@@ -18657,11 +18777,30 @@ document.addEventListener("click", function(e){
 <script>
 // Regista o service worker (PWA / offline). Recarrega uma vez quando entra uma
 // versão nova, mas nunca na primeira instalação nem em ciclo.
-if ("serviceWorker" in navigator) {
+// Só tenta registar num contexto seguro e de topo (site real). Dentro de
+// pré-visualizações / webviews (iOS "non app-bound domain"), salta em silêncio —
+// aí o service worker não é suportado e o erro seria só ruído.
+(function(){
+  if (!("serviceWorker" in navigator)) return;
+  var secure = (window.isSecureContext === true) ||
+    location.protocol === "https:" ||
+    location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  if (!secure) {
+    console.info("Pulso: service worker ignorado (contexto não seguro / pré-visualização).");
+    return;
+  }
   window.addEventListener("load", function () {
     var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register("/sw.js").catch(function (e) {
-      console.warn("Registo do service worker falhou", e);
+    navigator.serviceWorker.register("/sw.js").then(function(){
+      console.info("Pulso: service worker registado (offline/PWA ativo).");
+    }).catch(function (e) {
+      var msg = (e && e.message ? e.message : String(e || ""));
+      if (/app-bound|not allowed|insecure|SecurityError/i.test(msg)) {
+        // Limitação conhecida de webview/pré-visualização no iOS — não é um erro do site.
+        console.info("Pulso: service worker indisponível neste contexto (webview/pré-visualização). No site publicado funciona normalmente.");
+      } else {
+        console.warn("Pulso: não foi possível registar o service worker:", msg);
+      }
     });
     var reloaded = false;
     navigator.serviceWorker.addEventListener("controllerchange", function () {
@@ -18670,7 +18809,7 @@ if ("serviceWorker" in navigator) {
       window.location.reload();
     });
   });
-}
+})();
 </script>
 
 <style id="pulso-i18n-css">
