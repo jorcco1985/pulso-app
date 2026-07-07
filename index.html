@@ -6835,11 +6835,17 @@ nav.tabbar button.active svg{
             </div>
           </div>
           <div class="row" style="margin-top:10px;">
-            <input type="file" id="import-workouts-file" accept=".tcx,.gpx,.fit,.zip" multiple style="display:none;">
-            <button class="ghost" id="btn-import-workouts" type="button" data-i18n="Choose files (.TCX / .GPX)">Escolher ficheiros (.TCX / .GPX)</button>
+            <input type="file" id="import-workouts-file" multiple style="display:none;">
+            <button class="ghost" id="btn-import-workouts" type="button" data-i18n="Choose file">Escolher ficheiro</button>
           </div>
           <p class="help" id="import-workouts-status" style="margin:8px 0 0; min-height:1em;"></p>
-          <p class="help" style="margin:6px 0 0; font-size:11px;" data-i18n="Tip: on the Garmin Connect phone app, open an activity → ••• → Export. Bulk .FIT / .ZIP export (from the computer) is coming soon.">Dica: na app Garmin Connect do telemóvel, abre uma atividade → ••• → Exportar. A importação em massa .FIT / .ZIP (do computador) está para breve.</p>
+          <p class="help" style="margin:6px 0 0; font-size:11px;" data-i18n="Tip: if the picker doesn't show the file, it now lists all files — pick your .TCX/.GPX from Files/Downloads.">Dica: se o seletor não mostrar o ficheiro, agora ele lista todos — escolhe o teu .TCX/.GPX em Ficheiros/Transferências.</p>
+          <details style="margin-top:10px;">
+            <summary class="help" style="cursor:pointer;" data-i18n="…or paste the workout text">…ou colar o texto do treino</summary>
+            <p class="help" style="margin:8px 0 6px; font-size:11px;" data-i18n="Open the .TCX/.GPX file, copy everything and paste it here. Useful when the file is hard to find.">Abre o ficheiro .TCX/.GPX, copia tudo e cola aqui. Útil quando o ficheiro é difícil de encontrar.</p>
+            <textarea id="import-workouts-paste" rows="4" style="width:100%; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#fff; font-size:12px; padding:8px;" placeholder="Cola aqui todo o conteúdo do ficheiro .TCX ou .GPX"></textarea>
+            <button class="ghost" id="btn-import-paste" type="button" style="margin-top:8px;" data-i18n="Import from pasted text">Importar do texto colado</button>
+          </details>
         </div>
 
       </div>
@@ -10437,46 +10443,72 @@ nav.tabbar button.active svg{
     const a = _impMake({ startISO:first, sport, totalSec, distM, cal:0, avgHr: hrCount?Math.round(hrSum/hrCount):null, maxHr: maxHr||null, elevM: Math.round(elevM) });
     return a ? [a] : [];
   }
+  // Deteta TCX ou GPX pelo CONTEÚDO (não depende da extensão — útil no iPhone, onde o
+  // seletor esconde .tcx/.gpx, e para texto colado).
+  function parseWorkoutText(text){
+    const t = String(text || '');
+    if(/<TrainingCenterDatabase/i.test(t)) return parseTcxText(t);
+    if(/<gpx[\s>]/i.test(t)) return parseGpxText(t);
+    return [];
+  }
+  async function commitImportedActivities(collected){
+    if(!collected || !collected.length) return;
+    stravaActivities = mergeStravaActivities(stravaActivities, collected);
+    await sSet('strava-activities', stravaActivities);
+    try{ updateStravaUI(); }catch(e){}
+    try{ renderDashboard(); }catch(e){}
+    try{
+      const days = {};
+      collected.forEach(a=>{ const d = String(a.date||'').slice(0,10); if(d) days[d] = 1; });
+      if(window.PulsoArchiveDay) Object.keys(days).forEach(d=> window.PulsoArchiveDay(d));
+      if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData();
+    }catch(e){}
+  }
   (function bindImportWorkouts(){
     const btn = document.getElementById('btn-import-workouts');
     const input = document.getElementById('import-workouts-file');
     const status = document.getElementById('import-workouts-status');
-    if(!btn || !input) return;
-    btn.addEventListener('click', ()=> input.click());
-    input.addEventListener('change', async ()=>{
-      const files = Array.from(input.files || []);
-      if(!files.length) return;
-      if(status) status.textContent = PL('A ler ficheiros…','Reading files…');
-      let unsupported = 0; const collected = [];
-      for(const f of files){
-        const name = (f.name || '').toLowerCase();
-        try{
-          if(name.endsWith('.tcx')) collected.push(...parseTcxText(await f.text()));
-          else if(name.endsWith('.gpx')) collected.push(...parseGpxText(await f.text()));
-          else unsupported++;  // .fit / .zip — ainda não suportado nesta versão
-        }catch(e){ console.warn('Falha a ler', f.name, e); }
-      }
-      if(collected.length){
-        stravaActivities = mergeStravaActivities(stravaActivities, collected);
-        await sSet('strava-activities', stravaActivities);
-        try{ updateStravaUI(); }catch(e){}
-        try{ renderDashboard(); }catch(e){}
-        // Os treinos importados podem ser de dias passados — re-arquiva esses dias no histórico.
-        try{
-          const days = {};
-          collected.forEach(a=>{ const d = String(a.date||'').slice(0,10); if(d) days[d] = 1; });
-          if(window.PulsoArchiveDay) Object.keys(days).forEach(d=> window.PulsoArchiveDay(d));
-          if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData();
-        }catch(e){}
-      }
-      input.value = '';
-      let msg = collected.length
-        ? PL(collected.length+' treino(s) importado(s).', collected.length+' workout(s) imported.')
-        : PL('Nenhum treino lido (verifica se são .TCX ou .GPX).','No workouts read (check they are .TCX or .GPX).');
-      if(unsupported) msg += ' ' + PL('('+unsupported+' ficheiro(s) .FIT/.ZIP ainda não suportados — exporta em .TCX/.GPX.)','('+unsupported+' .FIT/.ZIP file(s) not supported yet — export as .TCX/.GPX.)');
-      if(status) status.textContent = msg;
-      toast(msg);
-    });
+    const pasteBtn = document.getElementById('btn-import-paste');
+    const pasteEl = document.getElementById('import-workouts-paste');
+    if(btn && input){
+      btn.addEventListener('click', ()=> input.click());
+      input.addEventListener('change', async ()=>{
+        const files = Array.from(input.files || []);
+        if(!files.length) return;
+        if(status) status.textContent = PL('A ler ficheiros…','Reading files…');
+        let unsupported = 0; const collected = [];
+        for(const f of files){
+          const name = (f.name || '').toLowerCase();
+          try{
+            if(name.endsWith('.fit') || name.endsWith('.zip')){ unsupported++; continue; } // binário — não suportado
+            collected.push(...parseWorkoutText(await f.text()));
+          }catch(e){ console.warn('Falha a ler', f.name, e); }
+        }
+        await commitImportedActivities(collected);
+        input.value = '';
+        let msg = collected.length
+          ? PL(collected.length+' treino(s) importado(s).', collected.length+' workout(s) imported.')
+          : PL('Nenhum treino lido (o ficheiro tem de ser .TCX ou .GPX).','No workouts read (the file must be .TCX or .GPX).');
+        if(unsupported) msg += ' ' + PL('('+unsupported+' ficheiro(s) .FIT/.ZIP ainda não suportados — exporta em .TCX/.GPX.)','('+unsupported+' .FIT/.ZIP file(s) not supported yet — export as .TCX/.GPX.)');
+        if(status) status.textContent = msg;
+        toast(msg);
+      });
+    }
+    if(pasteBtn && pasteEl){
+      pasteBtn.addEventListener('click', async ()=>{
+        const text = pasteEl.value || '';
+        if(!text.trim()){ toast(PL('Cola primeiro o texto do treino.','Paste the workout text first.')); return; }
+        if(status) status.textContent = PL('A ler…','Reading…');
+        const collected = parseWorkoutText(text);
+        await commitImportedActivities(collected);
+        const msg = collected.length
+          ? PL(collected.length+' treino(s) importado(s).', collected.length+' workout(s) imported.')
+          : PL('Não reconheci um treino .TCX/.GPX no texto colado.','Couldn\'t recognise a .TCX/.GPX workout in the pasted text.');
+        if(status) status.textContent = msg;
+        toast(msg);
+        if(collected.length) pasteEl.value = '';
+      });
+    }
   })();
 
   async function ensureFreshToken(){
