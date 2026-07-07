@@ -4392,16 +4392,20 @@ details[open] .coach-collapse-icon{transform:rotate(90deg);}
 
 /* Gráficos Strava mais parecidos: área preenchida, linha limpa e ritmo em min/km */
 .strava-mini-chart{
-  height:220px !important;
-  min-height:210px !important;
-  padding:10px 8px 6px !important;
+  height:248px !important;
+  min-height:238px !important;
+  padding:10px 8px 8px !important;
   background:rgba(7,11,20,.46) !important;
   border-radius:24px !important;
+  display:flex !important;
+  flex-direction:column !important;
 }
+.strava-mini-chart > svg{ flex:1 1 auto !important; min-height:0 !important; height:auto !important; }
+.strava-mini-chart > .help{ flex:0 0 auto !important; margin-top:6px !important; }
 .strava-area-svg text{font-family:var(--font-body);}
 #strava-speed-title::after{content:'';}
 @media(max-width:520px){
-  .strava-mini-chart{height:205px !important; min-height:198px !important;}
+  .strava-mini-chart{height:232px !important; min-height:224px !important;}
 }
 </style>
 
@@ -10384,6 +10388,41 @@ nav.tabbar button.active svg{
     const a = Math.sin(dLa/2)**2 + Math.cos(la1*toR)*Math.cos(la2*toR)*Math.sin(dLo/2)**2;
     return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
   }
+  // Reduz o número de pontos das curvas (para não encher o armazenamento local).
+  function _impDownsample(arrs, maxN){
+    const len = arrs.time ? arrs.time.length : 0;
+    if(len <= maxN) return arrs;
+    const step = len / maxN; const out = {}; Object.keys(arrs).forEach(k=> out[k] = []);
+    for(let i=0;i<maxN;i++){ const idx = Math.min(len-1, Math.floor(i*step)); Object.keys(arrs).forEach(k=> out[k].push(arrs[k][idx])); }
+    return out;
+  }
+  // Extrai as CURVAS reais de um TCX (FC, distância, altitude, velocidade, potência).
+  function _impTcxStreams(actEl){
+    const tps = _impEls(actEl, 'Trackpoint'); if(!tps.length) return null;
+    const time=[], distance=[], heartrate=[], altitude=[], velocity=[], watts=[];
+    let t0=null, prevD=null, prevT=null;
+    for(let i=0;i<tps.length;i++){
+      const p = tps[i];
+      const tv = _impText(p,'Time'); const tt = tv ? Date.parse(tv) : NaN;
+      if(t0==null && !isNaN(tt)) t0 = tt;
+      const tsec = (!isNaN(tt) && t0!=null) ? Math.round((tt-t0)/1000) : (time.length ? time[time.length-1]+1 : 0);
+      const d = _impNum(_impText(p,'DistanceMeters'));
+      const hrEl = _impEls(p,'HeartRateBpm')[0];
+      const hr = hrEl ? _impNum(((_impEls(hrEl,'Value')[0])||{textContent:''}).textContent) : 0;
+      const alt = _impNum(_impText(p,'AltitudeMeters'));
+      let sp = _impNum(_impText(p,'Speed'));                 // extensão ns3:Speed
+      if(!sp && prevD!=null && prevT!=null && tsec>prevT) sp = (d-prevD)/(tsec-prevT);
+      const w = _impNum(_impText(p,'Watts'));                // extensão ns3:Watts
+      time.push(tsec); distance.push(d); heartrate.push(hr); altitude.push(alt); velocity.push(sp>0?sp:0); watts.push(w);
+      prevD=d; prevT=tsec;
+    }
+    const has = a => a.some(v=>v>0);
+    const s = _impDownsample({time, distance, heartrate, altitude, velocity, watts}, 300);
+    return { time:s.time, distance:s.distance,
+      heartrate: has(s.heartrate)?s.heartrate:[], altitude: has(s.altitude)?s.altitude:[],
+      velocity: has(s.velocity)?s.velocity:[], watts: has(s.watts)?s.watts:[],
+      savedAt: new Date().toISOString() };
+  }
   function _impMake(o){
     if(!o || (!o.startISO && !o.totalSec && !o.distM)) return null;
     let date; try{ date = o.startISO ? new Date(o.startISO).toISOString() : new Date().toISOString(); }catch(e){ date = new Date().toISOString(); }
@@ -10432,7 +10471,7 @@ nav.tabbar button.active svg{
         if(av !== ''){ const alt = _impNum(av); if(prevAlt!=null && alt>prevAlt) elevM += (alt-prevAlt); prevAlt = alt; }
       }
       const a = _impMake({ startISO, sport, totalSec, distM, cal, avgHr: hrT?Math.round(hrW/hrT):null, maxHr: maxHr||null, elevM: Math.round(elevM) });
-      if(a) out.push(a);
+      if(a){ try{ a._streams = _impTcxStreams(act); }catch(e){ a._streams = null; } out.push(a); }
     }
     return out;
   }
@@ -10441,17 +10480,31 @@ nav.tabbar button.active svg{
     if(!doc || doc.getElementsByTagName('parsererror').length) return [];
     const pts = _impEls(doc, 'trkpt'); if(!pts.length) return [];
     let distM=0, pLa=null, pLo=null, hrSum=0, hrCount=0, maxHr=0, first=null, last=null, elevM=0, prevAlt=null;
+    const sTime=[], sDist=[], sHr=[], sAlt=[], sVel=[]; let t0=null, prevD=0, prevT=null;
     for(let i=0;i<pts.length;i++){
       const p = pts[i];
       const la = parseFloat(p.getAttribute('lat')), lo = parseFloat(p.getAttribute('lon'));
       if(!isNaN(la) && !isNaN(lo)){ if(pLa!=null) distM += _impHaversine(pLa,pLo,la,lo); pLa=la; pLo=lo; }
       const tv = _impText(p,'time'); if(tv){ if(!first) first = tv; last = tv; }
-      const hv = _impText(p,'hr'); if(hv){ const hr = _impNum(hv); if(hr){ hrSum+=hr; hrCount++; if(hr>maxHr)maxHr=hr; } }
-      const ev = _impText(p,'ele'); if(ev !== ''){ const alt = _impNum(ev); if(prevAlt!=null && alt>prevAlt) elevM += (alt-prevAlt); prevAlt = alt; }
+      const hv = _impText(p,'hr'); let hr=0; if(hv){ hr = _impNum(hv); if(hr){ hrSum+=hr; hrCount++; if(hr>maxHr)maxHr=hr; } }
+      const ev = _impText(p,'ele'); let alt=0; if(ev !== ''){ alt = _impNum(ev); if(prevAlt!=null && alt>prevAlt) elevM += (alt-prevAlt); prevAlt = alt; }
+      // curvas
+      const tt = tv ? Date.parse(tv) : NaN; if(t0==null && !isNaN(tt)) t0 = tt;
+      const tsec = (!isNaN(tt) && t0!=null) ? Math.round((tt-t0)/1000) : (sTime.length?sTime[sTime.length-1]+1:0);
+      let vel=0; if(prevT!=null && tsec>prevT) vel = (distM-prevD)/(tsec-prevT);
+      sTime.push(tsec); sDist.push(Math.round(distM)); sHr.push(hr); sAlt.push(alt); sVel.push(vel>0?vel:0);
+      prevD=distM; prevT=tsec;
     }
     let totalSec=0; if(first && last){ const d=(Date.parse(last)-Date.parse(first))/1000; if(d>0) totalSec=Math.round(d); }
     const sport = _impText(doc,'type') || (_impEls(doc,'trk')[0] ? _impText(_impEls(doc,'trk')[0],'type') : '');
     const a = _impMake({ startISO:first, sport, totalSec, distM, cal:0, avgHr: hrCount?Math.round(hrSum/hrCount):null, maxHr: maxHr||null, elevM: Math.round(elevM) });
+    if(a){
+      try{
+        const has = arr => arr.some(v=>v>0);
+        const s = _impDownsample({time:sTime, distance:sDist, heartrate:sHr, altitude:sAlt, velocity:sVel}, 300);
+        a._streams = { time:s.time, distance:s.distance, heartrate:has(s.heartrate)?s.heartrate:[], altitude:has(s.altitude)?s.altitude:[], velocity:has(s.velocity)?s.velocity:[], watts:[], savedAt:new Date().toISOString() };
+      }catch(e){ a._streams = null; }
+    }
     return a ? [a] : [];
   }
   // Deteta TCX ou GPX pelo CONTEÚDO (não depende da extensão — útil no iPhone, onde o
@@ -10464,6 +10517,14 @@ nav.tabbar button.active svg{
   }
   async function commitImportedActivities(collected){
     if(!collected || !collected.length) return;
+    // Guarda as curvas reais (streams) de cada treino importado na cache local, e retira
+    // a propriedade transitória antes de gravar a atividade (para não inchar a sincronização).
+    for(const a of collected){
+      if(a && a._streams){
+        try{ await sSet('strava-streams-' + a.id, a._streams); }catch(e){}
+        try{ delete a._streams; }catch(e){ a._streams = undefined; }
+      }
+    }
     stravaActivities = mergeStravaActivities(stravaActivities, collected);
     await sSet('strava-activities', stravaActivities);
     try{ updateStravaUI(); }catch(e){}
@@ -11190,8 +11251,14 @@ nav.tabbar button.active svg{
     if(st) st.textContent = isRun ? 'Ritmo' : 'Velocidade';
     try{
       let streams = null, streamErr = null;
-      try{ streams = await getStravaStreams(a.id); }
-      catch(err){ streamErr = err; console.warn('[Strava streams]', err && err.message ? err.message : err); }
+      // Treinos importados por ficheiro: usam as curvas reais guardadas do próprio ficheiro
+      // (FC, velocidade, altitude). Se não houver, caem nas curvas estimadas. Sem rede.
+      if(a.source === 'import'){
+        try{ streams = await sGet('strava-streams-' + a.id, null); }catch(e){ streams = null; }
+      }else{
+        try{ streams = await getStravaStreams(a.id); }
+        catch(err){ streamErr = err; console.warn('[Strava streams]', err && err.message ? err.message : err); }
+      }
 
       const times = streams && streams.time && streams.time.length ? streams.time : [];
       const hasHrStream = !!(streams && streams.heartrate && streams.heartrate.length);
