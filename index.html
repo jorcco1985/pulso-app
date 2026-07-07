@@ -18737,16 +18737,48 @@ function closeCentral(){ const c=$('pulso-central'); if(c){ c.hidden=true; c.set
 
 async function renderCentral(){
   const body = $('pc-central-body'); if(!body) return;
-  body.innerHTML = '<p class="pc-muted">A carregar utilizadores…</p>';
+  body.innerHTML = '<p class="pc-muted">'+PL('A carregar utilizadores…','Loading users…')+'</p>';
   try{
     const snap = await getDocs(collection(db,'users'));
     const users = []; snap.forEach(s=> users.push(Object.assign({uid:s.id}, s.data())));
-    users.sort((a,b)=> String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));
-    let html = '<div class="pc-muted" style="margin-bottom:8px;">'+users.length+' utilizador(es). Muda o papel de cada um.</div>';
-    html += users.map(u=>'<div class="pc-row"><div style="min-width:0;"><div class="pc-k">'+esc(u.name||'—')+'</div><div class="pc-muted">'+esc(u.email||'')+' · '+esc(roleLabel(u.role))+'</div></div>'+
-      '<select class="pc-input" style="width:auto; min-width:120px;" data-role-for="'+esc(u.uid)+'">'+
-        ['athlete','trainer','owner'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+roleLabel(r)+'</option>').join('')+
-      '</select></div>').join('');
+    // Última sincronização de cada utilizador (athleteData.updatedAt) — mostra quem anda a usar a app.
+    await Promise.all(users.map(async u=>{
+      try{ const d = await getDoc(doc(db,'athleteData',u.uid)); u.lastSync = (d.exists() && d.data()) ? (d.data().updatedAt || null) : null; }
+      catch(e){ u.lastSync = null; }
+    }));
+    // Ordena: ativos primeiro, depois por nome.
+    const now = Date.now();
+    const ACTIVE_MS = 7*24*3600*1000;
+    const tms = ds => { const t = ds ? Date.parse(ds) : NaN; return isNaN(t) ? 0 : t; };
+    const isActive = u => u.lastSync && (now - tms(u.lastSync)) < ACTIVE_MS;
+    users.sort((a,b)=> (tms(b.lastSync) - tms(a.lastSync)) || String(a.name||a.email||'').localeCompare(String(b.name||b.email||'')));
+
+    const nAth = users.filter(u=>u.role==='athlete').length;
+    const nTr  = users.filter(u=>u.role==='trainer').length;
+    const nAct = users.filter(isActive).length;
+    const fmt = ds => { const t = tms(ds); if(!t) return PL('nunca','never'); try{ return new Date(t).toLocaleDateString(PL('pt-PT','en-GB'),{day:'2-digit',month:'2-digit',year:'numeric'}); }catch(e){ return String(ds); } };
+
+    const tile = (n,l)=>'<div style="flex:1; min-width:70px; text-align:center; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 6px;"><div style="font-size:20px; font-weight:800; color:#e6ecf7;">'+n+'</div><div style="font-size:11px; color:#8894a8;">'+l+'</div></div>';
+    let html = '<div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">'
+      + tile(users.length, PL('utilizadores','users'))
+      + tile(nAct, PL('ativos · 7 dias','active · 7 days'))
+      + tile(nAth, PL('atletas','athletes'))
+      + tile(nTr, PL('treinadores','trainers'))
+      + '</div>';
+    html += '<div class="pc-muted" style="margin:0 0 8px;">'+PL('Ponto verde = usou a app nos últimos 7 dias. Toca no papel para o mudar.','Green dot = used the app in the last 7 days. Tap the role to change it.')+'</div>';
+    html += users.map(u=>{
+      const active = isActive(u);
+      const dot = '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align:middle; background:'+(active?'#35D9A6':'#5a6472')+';"></span>';
+      const meta = PL('registado ','joined ')+fmt(u.createdAt)+' · '+PL('ativo ','active ')+fmt(u.lastSync);
+      return '<div class="pc-row"><div style="min-width:0;">'
+        + '<div class="pc-k">'+dot+esc(u.name||'—')+'</div>'
+        + '<div class="pc-muted" style="overflow:hidden; text-overflow:ellipsis;">'+esc(u.email||'')+'</div>'
+        + '<div class="pc-muted" style="font-size:11px;">'+meta+'</div>'
+        + '</div>'
+        + '<select class="pc-input" style="width:auto; min-width:120px;" data-role-for="'+esc(u.uid)+'">'
+          + ['athlete','trainer','owner'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+roleLabel(r)+'</option>').join('')
+        + '</select></div>';
+    }).join('');
     body.innerHTML = html;
     body.querySelectorAll('[data-role-for]').forEach(sel=>{
       sel.onchange = async ()=>{
