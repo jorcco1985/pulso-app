@@ -18577,7 +18577,7 @@ function setSyncStatus(state, label){
 
 // Chaves locais que NÃO vão para a cloud (caches grandes/voláteis, cópias de segurança).
 const EXCLUDE_PREFIXES = ['strava-streams-', '_bak:'];
-const EXCLUDE_KEYS = ['pulso-last-push', '_schema', '_bak_meta', '_local-owner'];
+const EXCLUDE_KEYS = ['pulso-last-push', '_schema', '_bak_meta', '_local-owner', '_synced-once'];
 function localPulsoSnapshot(){
   const out = {};
   for(let i=0;i<localStorage.length;i++){
@@ -18723,6 +18723,9 @@ async function uploadData(){
         email: (currentUser.email || ''),
         updatedAt: new Date().toISOString()
       }, { merge: true });
+      // Marca de que estes dados locais pertencem a esta conta e já foram sincronizados
+      // (usado para isolar contas no mesmo dispositivo). Não é sincronizado.
+      try{ localStorage.setItem('pulso:_local-owner', currentUser.uid); localStorage.setItem('pulso:_synced-once', '1'); }catch(e){}
       setSyncStatus('ok', 'Sincronizado');
     }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); setSyncStatus('off', 'Sem sincronização'); }
   }, 1400);
@@ -18749,9 +18752,14 @@ async function hydrateFromCloudOnce(user){
   // não misturar nem enviar dados de uma conta para outra. A marca do dono não é
   // sincronizada (está em EXCLUDE_KEYS).
   const OWNER_KEY = 'pulso:_local-owner';
-  let localOwner = null;
+  let localOwner = null, everSynced = false;
   try{ localOwner = localStorage.getItem(OWNER_KEY); }catch(e){}
-  const switchedAccount = !!(localOwner && localOwner !== user.uid);
+  // Estes dados locais já foram alguma vez sincronizados por uma conta cloud?
+  try{ everSynced = !!(localStorage.getItem('pulso:_synced-once') || localStorage.getItem('pulso:pulso-last-push')); }catch(e){}
+  // Conta diferente: ou a marca do dono não bate certo, OU não há marca mas os dados
+  // já foram sincronizados por ALGUMA conta (dados antigos, de outra conta) — nesse caso
+  // não são desta conta, por isso limpamos. (Dados só-locais, nunca sincronizados, ficam.)
+  const switchedAccount = !!(localOwner && localOwner !== user.uid) || (!localOwner && everSynced);
   if(switchedAccount){
     clearLocalPulsoData();
     sessionStorage.removeItem('pulso-hydrated-uid');
