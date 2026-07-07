@@ -6743,7 +6743,7 @@ nav.tabbar button.active svg{
 
     <div class="subtabs profile-subtabs" id="profile-subtabs">
       <button class="ghost active" data-profile-tab="atleta" type="button" data-i18n="Athlete">Atleta</button>
-      <button class="ghost" data-profile-tab="strava" type="button">Strava</button>
+      <button class="ghost" data-profile-tab="strava" type="button" data-i18n="Import workouts">Importar treinos</button>
       <button class="ghost" data-profile-tab="zonas" type="button" data-i18n="Zones">Zonas</button>
       <button class="ghost" data-profile-tab="nutricao" type="button" data-i18n="AI Nutrition">Nutrição IA</button>
       <button class="ghost" data-profile-tab="dados" type="button" data-i18n="Data">Dados</button>
@@ -6793,12 +6793,15 @@ nav.tabbar button.active svg{
       </div>
 
       <div class="profile-subview" id="profile-sub-strava">
+        <div class="card" style="background:transparent; border:0; padding:4px 2px 0;">
+          <p class="help" style="margin:0;" data-i18n="Two ways to get your workouts into Pulso: automatically via Strava, or manually by uploading a file.">Duas formas de trazer os teus treinos para o Pulso: automaticamente pelo Strava, ou manualmente carregando um ficheiro.</p>
+        </div>
         <div class="card fixed-form">
           <div class="profile-group-head">
             <div class="profile-group-icon">🔗</div>
             <div>
-              <h3 data-i18n="Strava connection">Ligação Strava</h3>
-              <p class="help" style="margin:0;" data-i18n="Sync of activities and training data.">Sincronização de atividades e dados de treino.</p>
+              <h3 data-i18n="Automatic — Strava">Automático — Strava</h3>
+              <p class="help" style="margin:0;" data-i18n="Connect once and activities sync on their own (also covers Garmin, Coros, Wahoo… if they sync to Strava).">Liga uma vez e as atividades sincronizam sozinhas (cobre também Garmin, Coros, Wahoo… se sincronizarem para o Strava).</p>
             </div>
           </div>
           <p class="help">Cria uma app em <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a>.</p>
@@ -6821,6 +6824,22 @@ nav.tabbar button.active svg{
             <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2" data-i18n="Not connected">Não ligado</span></div>
             <button class="ghost" id="btn-strava-disconnect" type="button" data-i18n="Disconnect">Desligar</button>
           </div>
+        </div>
+
+        <div class="card fixed-form" style="margin-top:12px;">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">📥</div>
+            <div>
+              <h3 data-i18n="Manual — file">Manual — ficheiro</h3>
+              <p class="help" style="margin:0;" data-i18n="From Garmin, TrainingPeaks, Polar… export the activity as .TCX or .GPX and load it here. You can pick several at once.">Do Garmin, TrainingPeaks, Polar… exporta a atividade em .TCX ou .GPX e carrega-a aqui. Podes escolher vários de uma vez.</p>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <input type="file" id="import-workouts-file" accept=".tcx,.gpx,.fit,.zip" multiple style="display:none;">
+            <button class="ghost" id="btn-import-workouts" type="button" data-i18n="Choose files (.TCX / .GPX)">Escolher ficheiros (.TCX / .GPX)</button>
+          </div>
+          <p class="help" id="import-workouts-status" style="margin:8px 0 0; min-height:1em;"></p>
+          <p class="help" style="margin:6px 0 0; font-size:11px;" data-i18n="Tip: on the Garmin Connect phone app, open an activity → ••• → Export. Bulk .FIT / .ZIP export (from the computer) is coming soon.">Dica: na app Garmin Connect do telemóvel, abre uma atividade → ••• → Exportar. A importação em massa .FIT / .ZIP (do computador) está para breve.</p>
         </div>
 
       </div>
@@ -7305,8 +7324,12 @@ nav.tabbar button.active svg{
     const errEl = document.getElementById('login-error');
     const nameEl = document.getElementById('login-name');
     if(errEl) errEl.textContent = '';
-    const name = (nameEl && nameEl.value ? nameEl.value : '').trim();
+    // Usa o nome escrito; se o campo estiver vazio (ex.: login por conta cloud),
+    // recorre ao nome do perfil já guardado. Só falha se não houver mesmo nenhum.
+    const typed = (nameEl && nameEl.value ? nameEl.value : '').trim();
+    const name = typed || (profile && profile.name ? String(profile.name).trim() : '');
     if(!name){ if(errEl) errEl.textContent = 'Escreve o teu nome.'; if(nameEl) nameEl.focus(); return false; }
+    if(nameEl && !nameEl.value) nameEl.value = name;
     profile.name = name;
     try{ await sSet('profile', profile); }
     catch(err){ console.warn('Não consegui guardar localmente o nome; vou abrir a app na mesma.', err); }
@@ -10272,6 +10295,127 @@ nav.tabbar button.active svg{
     renderStravaZonesUI();
     toast(PL('Strava desligado','Strava disconnected'));
   });
+
+  // ---------- Importar treinos (.TCX / .GPX) ----------
+  // Leitura nativa (sem bibliotecas). Produz atividades no mesmo formato do Strava,
+  // por isso entram no histórico e nos cálculos. Dedup por hora de início.
+  function _impEls(parent, name){ return parent.getElementsByTagNameNS('*', name); }
+  function _impText(parent, name){ const e = _impEls(parent, name)[0]; return e ? e.textContent.trim() : ''; }
+  function _impNum(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function _impInnerValue(parent, name){ const e = _impEls(parent, name)[0]; if(!e) return 0; const v = _impEls(e, 'Value')[0]; return _impNum(v ? v.textContent : e.textContent); }
+  function _impMapSport(s){
+    const t = String(s||'').toLowerCase();
+    if(t.includes('run') || t.includes('corr')) return 'Run';
+    if(t.includes('bik') || t.includes('cycl') || t.includes('ride') || t.includes('bicic')) return 'Ride';
+    if(t.includes('swim') || t.includes('nat')) return 'Swim';
+    if(t.includes('walk') || t.includes('camin')) return 'Walk';
+    if(t.includes('hik') || t.includes('trail')) return 'Hike';
+    return 'Workout';
+  }
+  function _impHaversine(la1, lo1, la2, lo2){
+    const R = 6371000, toR = Math.PI/180;
+    const dLa = (la2-la1)*toR, dLo = (lo2-lo1)*toR;
+    const a = Math.sin(dLa/2)**2 + Math.cos(la1*toR)*Math.cos(la2*toR)*Math.sin(dLo/2)**2;
+    return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+  function _impMake(o){
+    if(!o || (!o.startISO && !o.totalSec && !o.distM)) return null;
+    let date; try{ date = o.startISO ? new Date(o.startISO).toISOString() : new Date().toISOString(); }catch(e){ date = new Date().toISOString(); }
+    const act = normaliseStravaActivity({
+      id: 'imp-' + (o.startISO || date),
+      name: (o.sport ? _impMapSport(o.sport) : 'Workout') + ' · ' + PL('importado','imported'),
+      type: _impMapSport(o.sport), sport_type: _impMapSport(o.sport),
+      start_date: date,
+      distanceKm: o.distM ? o.distM/1000 : 0,
+      movingSec: o.totalSec || 0, elapsed_time: o.totalSec || 0,
+      average_heartrate: o.avgHr || null, max_heartrate: o.maxHr || null,
+      calories: o.cal || null
+    });
+    act.source = 'import';
+    return act;
+  }
+  function parseTcxText(text){
+    let doc; try{ doc = new DOMParser().parseFromString(text, 'application/xml'); }catch(e){ return []; }
+    if(!doc || doc.getElementsByTagName('parsererror').length) return [];
+    const acts = _impEls(doc, 'Activity'); const out = [];
+    for(let i=0;i<acts.length;i++){
+      const act = acts[i];
+      const sport = act.getAttribute('Sport') || 'Workout';
+      let startISO = _impText(act, 'Id');
+      const laps = _impEls(act, 'Lap');
+      if(!startISO && laps[0]) startISO = laps[0].getAttribute('StartTime');
+      let totalSec=0, distM=0, cal=0, hrW=0, hrT=0, maxHr=0;
+      for(let j=0;j<laps.length;j++){
+        const lap = laps[j];
+        const t = _impNum(_impText(lap,'TotalTimeSeconds')); totalSec += t;
+        distM += _impNum(_impText(lap,'DistanceMeters'));
+        cal   += _impNum(_impText(lap,'Calories'));
+        const ah = _impInnerValue(lap,'AverageHeartRateBpm'); if(ah){ hrW += ah*(t||1); hrT += (t||1); }
+        const mh = _impInnerValue(lap,'MaximumHeartRateBpm'); if(mh>maxHr) maxHr = mh;
+      }
+      const a = _impMake({ startISO, sport, totalSec, distM, cal, avgHr: hrT?Math.round(hrW/hrT):null, maxHr: maxHr||null });
+      if(a) out.push(a);
+    }
+    return out;
+  }
+  function parseGpxText(text){
+    let doc; try{ doc = new DOMParser().parseFromString(text, 'application/xml'); }catch(e){ return []; }
+    if(!doc || doc.getElementsByTagName('parsererror').length) return [];
+    const pts = _impEls(doc, 'trkpt'); if(!pts.length) return [];
+    let distM=0, pLa=null, pLo=null, hrSum=0, hrCount=0, maxHr=0, first=null, last=null;
+    for(let i=0;i<pts.length;i++){
+      const p = pts[i];
+      const la = parseFloat(p.getAttribute('lat')), lo = parseFloat(p.getAttribute('lon'));
+      if(!isNaN(la) && !isNaN(lo)){ if(pLa!=null) distM += _impHaversine(pLa,pLo,la,lo); pLa=la; pLo=lo; }
+      const tv = _impText(p,'time'); if(tv){ if(!first) first = tv; last = tv; }
+      const hv = _impText(p,'hr'); if(hv){ const hr = _impNum(hv); if(hr){ hrSum+=hr; hrCount++; if(hr>maxHr)maxHr=hr; } }
+    }
+    let totalSec=0; if(first && last){ const d=(Date.parse(last)-Date.parse(first))/1000; if(d>0) totalSec=Math.round(d); }
+    const sport = _impText(doc,'type') || (_impEls(doc,'trk')[0] ? _impText(_impEls(doc,'trk')[0],'type') : '');
+    const a = _impMake({ startISO:first, sport, totalSec, distM, cal:0, avgHr: hrCount?Math.round(hrSum/hrCount):null, maxHr: maxHr||null });
+    return a ? [a] : [];
+  }
+  (function bindImportWorkouts(){
+    const btn = document.getElementById('btn-import-workouts');
+    const input = document.getElementById('import-workouts-file');
+    const status = document.getElementById('import-workouts-status');
+    if(!btn || !input) return;
+    btn.addEventListener('click', ()=> input.click());
+    input.addEventListener('change', async ()=>{
+      const files = Array.from(input.files || []);
+      if(!files.length) return;
+      if(status) status.textContent = PL('A ler ficheiros…','Reading files…');
+      let unsupported = 0; const collected = [];
+      for(const f of files){
+        const name = (f.name || '').toLowerCase();
+        try{
+          if(name.endsWith('.tcx')) collected.push(...parseTcxText(await f.text()));
+          else if(name.endsWith('.gpx')) collected.push(...parseGpxText(await f.text()));
+          else unsupported++;  // .fit / .zip — ainda não suportado nesta versão
+        }catch(e){ console.warn('Falha a ler', f.name, e); }
+      }
+      if(collected.length){
+        stravaActivities = mergeStravaActivities(stravaActivities, collected);
+        await sSet('strava-activities', stravaActivities);
+        try{ updateStravaUI(); }catch(e){}
+        try{ renderDashboard(); }catch(e){}
+        // Os treinos importados podem ser de dias passados — re-arquiva esses dias no histórico.
+        try{
+          const days = {};
+          collected.forEach(a=>{ const d = String(a.date||'').slice(0,10); if(d) days[d] = 1; });
+          if(window.PulsoArchiveDay) Object.keys(days).forEach(d=> window.PulsoArchiveDay(d));
+          if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData();
+        }catch(e){}
+      }
+      input.value = '';
+      let msg = collected.length
+        ? PL(collected.length+' treino(s) importado(s).', collected.length+' workout(s) imported.')
+        : PL('Nenhum treino lido (verifica se são .TCX ou .GPX).','No workouts read (check they are .TCX or .GPX).');
+      if(unsupported) msg += ' ' + PL('('+unsupported+' ficheiro(s) .FIT/.ZIP ainda não suportados — exporta em .TCX/.GPX.)','('+unsupported+' .FIT/.ZIP file(s) not supported yet — export as .TCX/.GPX.)');
+      if(status) status.textContent = msg;
+      toast(msg);
+    });
+  })();
 
   async function ensureFreshToken(){
     if(!stravaAuth || !stravaAuth.refreshToken) return false;
@@ -18770,14 +18914,19 @@ async function renderCentral(){
       const active = isActive(u);
       const dot = '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align:middle; background:'+(active?'#35D9A6':'#5a6472')+';"></span>';
       const meta = PL('registado ','joined ')+fmt(u.createdAt)+' · '+PL('ativo ','active ')+fmt(u.lastSync);
+      const isMe = currentUser && u.uid === currentUser.uid;
+      // O próprio dono NÃO se pode alterar aqui (evita trancar-se fora sem querer).
+      const control = isMe
+        ? '<span style="min-width:120px; text-align:right; font-weight:700; color:#35D9A6; white-space:nowrap;">'+roleLabel(u.role)+' · '+PL('tu','you')+'</span>'
+        : '<select class="pc-input" style="width:auto; min-width:120px;" data-role-for="'+esc(u.uid)+'">'
+            + ['athlete','trainer','owner'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+roleLabel(r)+'</option>').join('')
+          + '</select>';
       return '<div class="pc-row"><div style="min-width:0;">'
         + '<div class="pc-k">'+dot+esc(u.name||'—')+'</div>'
         + '<div class="pc-muted" style="overflow:hidden; text-overflow:ellipsis;">'+esc(u.email||'')+'</div>'
         + '<div class="pc-muted" style="font-size:11px;">'+meta+'</div>'
         + '</div>'
-        + '<select class="pc-input" style="width:auto; min-width:120px;" data-role-for="'+esc(u.uid)+'">'
-          + ['athlete','trainer','owner'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+roleLabel(r)+'</option>').join('')
-        + '</select></div>';
+        + control + '</div>';
     }).join('');
     body.innerHTML = html;
     body.querySelectorAll('[data-role-for]').forEach(sel=>{
@@ -18866,14 +19015,19 @@ window.PulsoCloud = {
 </script>
 
 <script>
-// Fallback: se o modulo cloud nao carregar (sem rede/CDN), permite usar offline.
-setTimeout(function(){
-  try{
-    if(!window.PulsoCloud){
-      var o=document.getElementById("pc-offline"); if(o) o.hidden=false;
-    }
-  }catch(e){}
-}, 7000);
+// Fallback offline: se não houver rede/CDN, não deixa a app presa no ecrã "A ligar…".
+(function(){
+  function showOfflineBtn(){ try{ var o=document.getElementById("pc-offline"); if(o) o.hidden=false; }catch(e){} }
+  function dismissCloud(){ try{ var ov=document.getElementById("pulso-cloud-auth"); if(ov){ ov.hidden=true; ov.setAttribute("aria-hidden","true"); } }catch(e){} }
+  // Offline evidente: mostra já o botão e, se o módulo cloud não carregar, dispensa sozinho.
+  if(navigator.onLine === false){
+    showOfflineBtn();
+    setTimeout(function(){ if(!window.PulsoCloud) dismissCloud(); }, 1500);
+  }
+  window.addEventListener("offline", showOfflineBtn);
+  // Mesmo online, se o módulo cloud não carregar (CDN em baixo), mostra o botão.
+  setTimeout(function(){ try{ if(!window.PulsoCloud) showOfflineBtn(); }catch(e){} }, 4000);
+})();
 document.addEventListener("click", function(e){
   if(e.target && e.target.id==="pc-offline"){
     var ov=document.getElementById("pulso-cloud-auth"); if(ov){ ov.hidden=true; ov.setAttribute("aria-hidden","true"); }
