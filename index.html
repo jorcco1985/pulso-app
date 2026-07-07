@@ -6552,6 +6552,7 @@ nav.tabbar button.active svg{
               <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Model">Modelo</label><select id="wb-pyr-model"><option selected>1-2-3-2-1</option><option>2-3-4-3-2</option><option value="custom" data-i18n="Custom">Personalizada</option></select></div>
               <div class="field" style="flex:1; min-width:150px; display:none;" id="wb-pyr-custom-wrap"><label data-i18n="Steps (min)">Degraus (min)</label><input type="text" id="wb-pyr-custom" placeholder="ex: 1-3-5-3-1"></div>
               <div class="field" style="flex:1; min-width:90px;"><label data-i18n="Intensity">Intensidade</label><select id="wb-pyr-int"><option>Z3</option><option selected>Z4</option><option>Z5</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Recovery">Recuperação</label><select id="wb-pyr-rec"><option value="prev" selected data-i18n="= previous step">= degrau anterior</option><option value="1" data-i18n="1 min">1 min</option><option value="2" data-i18n="2 min">2 min</option><option value="none" data-i18n="None">Sem recuperação</option></select></div>
             </div>
 
             <div id="wb-free-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
@@ -7414,6 +7415,7 @@ nav.tabbar button.active svg{
   // ================= APP STATE ================= //
   let weightEntries = [], sleepEntries = [], plannedWorkouts = [], bpEntries = [];
   let planFeedback = {}; // cumprimento do plano: { 'YYYY-MM-DD|workoutId': {status, note, feel, at} }
+  let planMessages = {}; // mensagens do atleta por treino: { 'YYYY-MM-DD|workoutId': [{text, at}] }
   let deletedActivityIds = []; // ids de treinos apagados à mão (para o Strava não os voltar a trazer)
   let stravaAuth = null, stravaActivities = [], stravaZones = null, stravaVo2 = {run:null, bike:null};
   let trainingChartVisible = { Bike:true, Corrida:true, Força:true };
@@ -10000,8 +10002,11 @@ nav.tabbar button.active svg{
     }else if(main==='Pirâmide'){
       const steps = wbPyramidSteps();
       lines.push(`Pirâmide ${steps.join('-')} min ${wbVal('wb-pyr-int')}`);
-      lines.push(`Recuperação = tempo do degrau anterior`);
-      minutes += Math.round(steps.reduce((a,b)=>a+b,0) * 2);
+      const rec = wbVal('wb-pyr-rec') || 'prev';
+      const stepMin = steps.reduce((a,b)=>a+b,0);
+      if(rec==='none'){ lines.push('Sem recuperação entre degraus'); minutes += stepMin; }
+      else if(rec==='prev'){ lines.push('Recuperação = tempo do degrau anterior'); minutes += Math.round(stepMin*2); }
+      else { const rm = Number(rec)||1; lines.push(`Recuperação ${rm} min entre degraus`); minutes += stepMin + rm*Math.max(0,steps.length-1); }
     }else if(main==='Fartlek'){
       const d = parseInt(wbVal('wb-time-dur'),10);
       lines.push(`${d} min fartlek ${wbVal('wb-time-zone')!=='Livre'?wbVal('wb-time-zone'):''} — variações livres de ritmo`.replace('  ',' '));
@@ -12383,6 +12388,7 @@ nav.tabbar button.active svg{
     bpEntries = await sGet('bp-entries', []);
     plannedWorkouts = await sGet('planned-workouts', []);
     planFeedback = await sGet('plan-feedback', {}) || {};
+    planMessages = await sGet('plan-messages', {}) || {};
     deletedActivityIds = await sGet('deleted-activity-ids', []) || [];
     stravaAuth = await sGet('strava-auth', null);
     stravaActivities = await sGet('strava-activities', []);
@@ -15676,6 +15682,18 @@ nav.tabbar button.active svg{
   .coach-day-item .di-desc{font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; line-height:1.45;}
   .coach-plan-item{border:1px solid rgba(53,217,166,.22); border-radius:14px; padding:11px 12px; background:rgba(53,217,166,.06); margin-bottom:8px;}
   .cp-fb{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);}
+  .cp-thread{margin-top:10px; padding:10px 11px; border-radius:14px; background:rgba(9,14,25,.5); border:1px solid rgba(255,255,255,.08);}
+  .cp-thread-title{font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:8px;}
+  .cp-msgs{display:flex; flex-direction:column; gap:6px; margin-bottom:8px; max-height:220px; overflow-y:auto;}
+  .cp-msg{max-width:85%; padding:7px 10px; border-radius:12px; font-size:13px; line-height:1.35; color:#fff; word-break:break-word;}
+  .cp-msg .cp-msg-who{display:block; font-size:10px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; opacity:.7; margin-bottom:2px;}
+  .cp-msg.coach{align-self:flex-start; background:rgba(53,217,166,.16); border:1px solid rgba(53,217,166,.32);}
+  .cp-msg.athlete{align-self:flex-end; background:rgba(91,141,239,.16); border:1px solid rgba(91,141,239,.32);}
+  .cp-msg-empty{font-size:12px; color:var(--text-muted); text-align:center; padding:4px 0;}
+  .cp-msg-input{display:flex; gap:6px;}
+  .cp-msg-text{flex:1; min-width:0; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:8px 11px; color:#fff; font-size:13px;}
+  .cp-msg-send{flex:0 0 auto; border:0; border-radius:12px; padding:8px 14px; background:var(--teal); color:#05240f; font-weight:800; font-size:13px; cursor:pointer;}
+  .cp-msg-send:disabled{opacity:.5;}
   .cp-fb-row{display:flex; gap:6px; flex-wrap:wrap;}
   .cp-fb-status-btn{flex:1; min-width:84px; padding:8px 6px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text-muted); font-weight:800; font-size:12.5px; cursor:pointer;}
   .cp-fb-status-btn.on.done{background:rgba(53,217,166,.18); border-color:#35D9A6; color:#35D9A6;}
@@ -16228,6 +16246,7 @@ nav.tabbar button.active svg{
                   <div class="cwb-field"><label data-i18n="Model">Modelo</label><select id="cwb-pyr-model"><option selected>1-2-3-2-1</option><option>2-3-4-3-2</option><option value="custom" data-i18n="Custom">Personalizada</option></select></div>
                   <div class="cwb-field" id="cwb-pyr-custom-wrap" style="display:none;"><label data-i18n="Steps (min)">Degraus (min)</label><input type="text" id="cwb-pyr-custom" placeholder="ex: 1-3-5-3-1"></div>
                   <div class="cwb-field"><label data-i18n="Intensity">Intensidade</label><select id="cwb-pyr-int"><option>Z3</option><option selected>Z4</option><option>Z5</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Recovery">Recuperação</label><select id="cwb-pyr-rec"><option value="prev" selected data-i18n="= previous step">= degrau anterior</option><option value="1" data-i18n="1 min">1 min</option><option value="2" data-i18n="2 min">2 min</option><option value="none" data-i18n="None">Sem recuperação</option></select></div>
                 </div>
 
                 <div class="cwb-row" id="cwb-free-fields" style="display:none; margin-top:9px;">
@@ -16850,8 +16869,11 @@ nav.tabbar button.active svg{
     }else if(main==='Pirâmide'){
       const steps = cwbPyramidSteps();
       lines.push(`Pirâmide ${steps.join('-')} min ${cwbVal('cwb-pyr-int')}`);
-      lines.push(`Recuperação = tempo do degrau anterior`);
-      minutes += Math.round(steps.reduce((a,b)=>a+b,0) * 2);
+      const rec = cwbVal('cwb-pyr-rec') || 'prev';
+      const stepMin = steps.reduce((a,b)=>a+b,0);
+      if(rec==='none'){ lines.push('Sem recuperação entre degraus'); minutes += stepMin; }
+      else if(rec==='prev'){ lines.push('Recuperação = tempo do degrau anterior'); minutes += Math.round(stepMin*2); }
+      else { const rm = Number(rec)||1; lines.push(`Recuperação ${rm} min entre degraus`); minutes += stepMin + rm*Math.max(0,steps.length-1); }
     }else if(main==='Fartlek'){
       const d = parseInt(cwbVal('cwb-time-dur'),10);
       lines.push(`${d} min fartlek ${cwbVal('cwb-time-zone')!=='Livre'?cwbVal('cwb-time-zone'):''} — variações livres de ritmo`.replace('  ',' '));
@@ -17550,7 +17572,8 @@ nav.tabbar button.active svg{
           </div>
           <div class="lib-actions"><span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">Abrir treino efetivo</span>${a.id===selectedAthleteId?`<span class="coach-btn tiny danger" data-cal-del="${esc(w.id)}">Remover</span>`:''}</div>
           ${fbMiniHTML(coachSelectedDay, w, a.id)}
-        </button>`).join('');
+        </button>
+        ${threadHTML(coachSelectedDay, w, 'coach', a.id)}`).join('');
       }
       if(completed.length){
         html += '<div class="help" style="margin:10px 0 6px;">Treinos efetuados neste dia</div>' + completed.map(renderActivityCompact).join('');
@@ -17893,15 +17916,23 @@ nav.tabbar button.active svg{
   function workoutProfileSegments(desc){
     const lines = String(desc||'').split(/\n/).map(s=>s.trim()).filter(Boolean);
     const recPrev = /degrau anterior/i.test(desc);
+    const noRec = /sem recupera/i.test(desc);
+    const recFixedM = desc.match(/recupera\D*(\d+)\s*min\s*entre/i);
+    const recFixed = recFixedM ? Number(recFixedM[1]) : null;
     const segs = [];
     for(let i=0;i<lines.length;i++){
       const line = lines[i];
+      // Linhas que só descrevem a recuperação da pirâmide não são barras.
+      if(/degrau anterior|sem recupera|min\s*entre\s*degrau/i.test(line)) continue;
       // Pirâmide / escada: "2-3-4-3-2 min Z4"
       const pyr = line.match(/(\d+(?:\s*-\s*\d+)+)\s*min/);
       if(pyr){
         const steps = pyr[1].split('-').map(s=>Number(s.trim())).filter(n=>n>0);
         const level = wkLevelOf(line);
-        steps.forEach((st, idx)=>{ segs.push({min:st, level}); if(idx<steps.length-1) segs.push({min: recPrev ? st : 1, level:1}); });
+        steps.forEach((st, idx)=>{
+          segs.push({min:st, level});
+          if(idx<steps.length-1 && !noRec){ segs.push({min: recPrev ? st : (recFixed != null ? recFixed : 1), level:1}); }
+        });
         continue;
       }
       const rep = line.match(/(\d+)\s*[×x]\s*(.+)/);
@@ -18088,6 +18119,7 @@ nav.tabbar button.active svg{
       + '<div class="cp-fb-feel"><span class="cp-fb-h">'+PL('Como te sentiste?','How did it feel?')+'</span><div class="cp-fb-bars">'+fbBarsHTML(fb.feel||0)+'</div></div>'
       + '<div class="cp-fb-chips">'+chips+'</div>'
       + '<input type="text" class="cp-fb-note" data-fb-note maxlength="140" placeholder="'+PL('Nota (opcional)','Note (optional)')+'" value="'+esc(fb.note||'')+'">'
+      + threadHTML(date, w, 'athlete', 'local')
       + '</div>';
   }
   // Resumo só de leitura para o treinador ver a marcação do atleta.
@@ -18111,6 +18143,77 @@ nav.tabbar button.active svg{
     h += '</div>';
     return h;
   }
+
+  // ---------- Fio de mensagens treinador ↔ atleta (por treino) ----------
+  function coachMsgsOf(w){ return (w && Array.isArray(w.coachMsgs)) ? w.coachMsgs : []; }
+  function athleteMsgsFor(date, w, athleteId){
+    const key = fbKey(date, w);
+    if(!athleteId || athleteId === 'local'){ return (planMessages[key] || []); }
+    // Treinador a ver atleta na cloud: lê as mensagens dele se os dados estiverem carregados.
+    if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
+      const store = safeParse(coachCloudOverride['plan-messages'], {}) || {};
+      return store[key] || [];
+    }
+    return [];
+  }
+  function threadHTML(date, w, side, athleteId){
+    const cm = coachMsgsOf(w).map(m=>({from:'coach', text:m.text, at:m.at}));
+    const am = athleteMsgsFor(date, w, athleteId).map(m=>({from:'athlete', text:m.text, at:m.at}));
+    const all = cm.concat(am).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+    const bubbles = all.length ? all.map(m=>{
+      const who = m.from==='coach' ? PL('Treinador','Coach') : PL('Atleta','Athlete');
+      return '<div class="cp-msg '+m.from+'"><span class="cp-msg-who">'+who+'</span>'+esc(m.text||'')+'</div>';
+    }).join('') : '<div class="cp-msg-empty">'+PL('Ainda sem mensagens.','No messages yet.')+'</div>';
+    const placeholder = side==='coach' ? PL('Escrever ao atleta…','Message the athlete…') : PL('Escrever ao treinador…','Message the coach…');
+    return '<div class="cp-thread" data-msg-date="'+esc(date)+'" data-msg-wid="'+esc((w&&(w.id||w.name))||'x')+'" data-msg-athlete="'+esc(athleteId||'local')+'">'
+      + '<div class="cp-thread-title">💬 '+PL('Mensagens','Messages')+'</div>'
+      + '<div class="cp-msgs">'+bubbles+'</div>'
+      + '<div class="cp-msg-input"><input type="text" class="cp-msg-text" maxlength="240" placeholder="'+placeholder+'"><button type="button" class="cp-msg-send" data-msg-side="'+side+'">'+PL('Enviar','Send')+'</button></div>'
+      + '</div>';
+  }
+  async function addAthleteMessage(date, wid, text){
+    const key = date + '|' + wid;
+    if(!Array.isArray(planMessages[key])) planMessages[key] = [];
+    planMessages[key].push({ text:text, at:new Date().toISOString() });
+    try{ await sSet('plan-messages', planMessages); }catch(e){}
+    try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
+  }
+  function addCoachMessage(athleteId, date, wid, text){
+    const msg = { text:text, at:new Date().toISOString() };
+    const apply = (w)=>{ if(!Array.isArray(w.coachMsgs)) w.coachMsgs = []; w.coachMsgs.push(msg); };
+    let done = false;
+    if(isCloudAthlete(athleteId)){
+      const cal = cloudPlanCache[athleteId] || {};
+      (cal[date]||[]).forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ apply(x); done=true; } });
+      if(done){ cloudPlanCache[athleteId] = cal; if(window.PulsoCloud && window.PulsoCloud.saveCoachPlan){ window.PulsoCloud.saveCoachPlan(athleteId, cal).catch(err=>console.warn(err)); } }
+    }else{
+      const all = getCalendarAll();
+      const arr = (all[athleteId] && all[athleteId][date]) || [];
+      arr.forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ apply(x); done=true; } });
+      if(done) setPulso('coach-calendar', all);
+    }
+    return done;
+  }
+  // Envio (delegado): funciona no atleta e no treinador.
+  document.addEventListener('click', async function(e){
+    const send = e.target.closest('.cp-msg-send');
+    if(!send) return;
+    const thread = send.closest('.cp-thread'); if(!thread) return;
+    const input = thread.querySelector('.cp-msg-text');
+    const text = (input && input.value || '').trim(); if(!text) return;
+    const date = thread.getAttribute('data-msg-date');
+    const wid = thread.getAttribute('data-msg-wid');
+    const athleteId = thread.getAttribute('data-msg-athlete') || 'local';
+    const side = send.getAttribute('data-msg-side');
+    send.disabled = true;
+    if(side === 'athlete'){ await addAthleteMessage(date, wid, text); }
+    else { addCoachMessage(athleteId, date, wid, text); }
+    if(input) input.value = '';
+    try{ renderAthletePlanCard(); }catch(_){}
+    try{ if(typeof renderAthleteCalDay === 'function') renderAthleteCalDay(); }catch(_){}
+    try{ if(typeof renderCoachDay === 'function') renderCoachDay(); }catch(_){}
+    send.disabled = false;
+  });
 
   function renderAthletePlanCard(){
     const body = document.getElementById('coach-plan-body');
