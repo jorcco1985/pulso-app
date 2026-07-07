@@ -7383,6 +7383,7 @@ nav.tabbar button.active svg{
 
   // ================= APP STATE ================= //
   let weightEntries = [], sleepEntries = [], plannedWorkouts = [], bpEntries = [];
+  let planFeedback = {}; // cumprimento do plano: { 'YYYY-MM-DD|workoutId': {status, note, feel, at} }
   let stravaAuth = null, stravaActivities = [], stravaZones = null, stravaVo2 = {run:null, bike:null};
   let trainingChartVisible = { Bike:true, Corrida:true, Força:true };
   let hydrationEntries = [], hydrationGoal = 2000;
@@ -12031,6 +12032,7 @@ nav.tabbar button.active svg{
     sleepEntries = await sGet('sleep-entries', []);
     bpEntries = await sGet('bp-entries', []);
     plannedWorkouts = await sGet('planned-workouts', []);
+    planFeedback = await sGet('plan-feedback', {}) || {};
     stravaAuth = await sGet('strava-auth', null);
     stravaActivities = await sGet('strava-activities', []);
     stravaZones = await sGet('strava-zones', null);
@@ -15316,6 +15318,23 @@ nav.tabbar button.active svg{
   .coach-day-item .di-title{font-size:14px; font-weight:900; color:#fff; margin:0 0 3px;}
   .coach-day-item .di-desc{font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; line-height:1.45;}
   .coach-plan-item{border:1px solid rgba(53,217,166,.22); border-radius:14px; padding:11px 12px; background:rgba(53,217,166,.06); margin-bottom:8px;}
+  .cp-fb{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);}
+  .cp-fb-row{display:flex; gap:6px; flex-wrap:wrap;}
+  .cp-fb-status-btn{flex:1; min-width:84px; padding:8px 6px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text-muted); font-weight:800; font-size:12.5px; cursor:pointer;}
+  .cp-fb-status-btn.on.done{background:rgba(53,217,166,.18); border-color:#35D9A6; color:#35D9A6;}
+  .cp-fb-status-btn.on.diff{background:rgba(242,184,75,.18); border-color:#F2B84B; color:#F2B84B;}
+  .cp-fb-status-btn.on.skip{background:rgba(242,85,90,.18); border-color:#F2555A; color:#F2555A;}
+  .cp-fb-feel{margin-top:9px;}
+  .cp-fb-h{font-size:11px; color:var(--text-muted);}
+  .cp-fb-bars{display:flex; gap:3px; margin-top:5px;}
+  .cp-fb-bar{flex:1; height:20px; border-radius:4px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); cursor:pointer; padding:0;}
+  .cp-fb-chips{display:flex; gap:5px; flex-wrap:wrap; margin-top:9px;}
+  .cp-fb-chip{padding:5px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text-muted); font-size:11px; font-weight:700; cursor:pointer;}
+  .cp-fb-chip.on{background:rgba(53,217,166,.16); border-color:#35D9A6; color:#35D9A6;}
+  .cp-fb-note{width:100%; margin-top:9px; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#fff; font-size:12.5px;}
+  .cp-fb-mini{margin-top:6px; font-size:11.5px; color:var(--text-muted);}
+  .cp-fb-mini b{color:#fff;}
+  .cp-fb-mini .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle;}
   .coach-plan-item .cp-title{font-weight:900; color:#fff; font-size:14px;}
   .coach-plan-item .cp-desc{font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; margin-top:3px; line-height:1.45;}
   .coach-fav-star{background:none; border:0; cursor:pointer; font-size:18px; line-height:1; color:#4a566b; padding:2px 4px;}
@@ -16938,6 +16957,7 @@ nav.tabbar button.active svg{
             ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
           </div>
           <div class="lib-actions"><span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">Abrir treino efetivo</span>${a.id===selectedAthleteId?`<span class="coach-btn tiny danger" data-cal-del="${esc(w.id)}">Remover</span>`:''}</div>
+          ${fbMiniHTML(coachSelectedDay, w, a.id)}
         </button>`).join('');
       }
       if(completed.length){
@@ -17232,6 +17252,7 @@ nav.tabbar button.active svg{
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
           ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
         </div>
+        ${planFeedbackHTML(athleteSelectedDay, w)}
       </div>`).join('');
     }
     if(completed.length){
@@ -17239,6 +17260,68 @@ nav.tabbar button.active svg{
     }
     if(!html) html = '<p class="help" style="margin:0;">Nada agendado neste dia.</p>';
     body.innerHTML = html;
+  }
+
+  // ---------- Cumprimento do plano (marcação do atleta) ----------
+  const FB_QUICK = [
+    ['Correu bem','Went well'], ['Pernas pesadas','Heavy legs'], ['Cansado','Tired'],
+    ['Sem tempo','No time'], ['Dor/lesão','Pain/injury'], ['Fácil','Easy'], ['Duro','Hard']
+  ];
+  function fbKey(date, w){ return date + '|' + ((w && (w.id || w.name)) || 'x'); }
+  function getFb(date, w){ return (planFeedback && planFeedback[fbKey(date,w)]) || null; }
+  async function setFb(date, w, patch){
+    const k = fbKey(date, w);
+    planFeedback[k] = Object.assign({}, planFeedback[k], patch, { at: new Date().toISOString() });
+    try{ await sSet('plan-feedback', planFeedback); }catch(e){}
+    try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
+    try{ renderAthletePlanCard(); }catch(e){}
+  }
+  function fbFeelColor(v){ const h = Math.max(0, Math.min(10, v)); return 'hsl(' + Math.round((h-1)/9*120) + ',70%,52%)'; }
+  function fbStatusLabel(s){ return s==='done'?PL('Feito','Done'):(s==='skip'?PL('Não fiz','Skipped'):(s==='diff'?PL('Fiz diferente','Did differently'):'')); }
+  // Barrinhas 0–10 (vermelho→verde).
+  function fbBarsHTML(feel){
+    let h = '';
+    for(let i=1;i<=10;i++){
+      const on = feel && i<=feel;
+      h += '<button type="button" class="cp-fb-bar'+(on?' on':'')+'" data-fb-feel="'+i+'" style="'+(on?'background:'+fbFeelColor(i)+';':'')+'" aria-label="'+i+'"></button>';
+    }
+    return h;
+  }
+  function planFeedbackHTML(date, w){
+    const fb = getFb(date, w) || {};
+    const btn = (s, label)=> '<button type="button" class="cp-fb-status-btn'+(fb.status===s?' on '+s:'')+'" data-fb-status="'+s+'">'+label+'</button>';
+    const chips = FB_QUICK.map(c=>{
+      const txt = PL(c[0], c[1]);
+      const on = fb.note && String(fb.note).indexOf(txt) !== -1;
+      return '<button type="button" class="cp-fb-chip'+(on?' on':'')+'" data-fb-chip="'+esc(txt)+'">'+esc(txt)+'</button>';
+    }).join('');
+    return '<div class="cp-fb" data-fb-date="'+esc(date)+'" data-fb-id="'+esc((w&&(w.id||w.name))||'x')+'">'
+      + '<div class="cp-fb-row">'+btn('done','✓ '+PL('Feito','Done'))+btn('diff','✎ '+PL('Diferente','Different'))+btn('skip','✗ '+PL('Não fiz','Skipped'))+'</div>'
+      + '<div class="cp-fb-feel"><span class="cp-fb-h">'+PL('Como te sentiste?','How did it feel?')+'</span><div class="cp-fb-bars">'+fbBarsHTML(fb.feel||0)+'</div></div>'
+      + '<div class="cp-fb-chips">'+chips+'</div>'
+      + '<input type="text" class="cp-fb-note" data-fb-note maxlength="140" placeholder="'+PL('Nota (opcional)','Note (optional)')+'" value="'+esc(fb.note||'')+'">'
+      + '</div>';
+  }
+  // Resumo só de leitura para o treinador ver a marcação do atleta.
+  function fbStoreFor(athleteId){
+    if(athleteId === 'local') return getPulso('plan-feedback', {}) || {};
+    if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
+      return safeParse(coachCloudOverride['plan-feedback'], {}) || {};
+    }
+    return null; // dados desse atleta não estão carregados agora
+  }
+  function fbMiniHTML(date, w, athleteId){
+    const store = fbStoreFor(athleteId);
+    if(store === null) return ''; // não mostra nada enganador
+    const fb = store[date + '|' + ((w && (w.id || w.name)) || 'x')];
+    if(!fb || (!fb.status && !fb.feel && !fb.note)) return '<div class="cp-fb-mini">'+PL('Ainda não marcado pelo atleta.','Not marked by the athlete yet.')+'</div>';
+    const col = fb.status==='done'?'#35D9A6':(fb.status==='skip'?'#F2555A':(fb.status==='diff'?'#F2B84B':'#8894a8'));
+    let h = '<div class="cp-fb-mini">';
+    if(fb.status) h += '<span class="dot" style="background:'+col+'"></span><b>'+fbStatusLabel(fb.status)+'</b>';
+    if(fb.feel){ h += (fb.status?' · ':'')+PL('sensação ','feel ')+'<b style="color:'+fbFeelColor(fb.feel)+'">'+fb.feel+'/10</b>'; }
+    if(fb.note) h += '<br>“'+esc(fb.note)+'”';
+    h += '</div>';
+    return h;
   }
 
   function renderAthletePlanCard(){
@@ -17257,6 +17340,7 @@ nav.tabbar button.active svg{
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
           ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
         </div>
+        ${planFeedbackHTML(today, w)}
       </div>`).join('');
     }else{
       body.innerHTML = '<p class="help" style="margin:0;">'+PL('Sem treino do treinador para hoje.','No coach workout for today.')+'</p>';
@@ -17278,6 +17362,30 @@ nav.tabbar button.active svg{
     renderAthleteCalendar();
     renderLast30Workouts();
   }
+  // Toques da marcação do plano (estado / barras 0–10 / notas rápidas / texto).
+  (function bindPlanFeedback(){
+    document.addEventListener('click', function(e){
+      const fb = e.target.closest ? e.target.closest('.cp-fb') : null;
+      if(!fb) return;
+      const date = fb.getAttribute('data-fb-date'), id = fb.getAttribute('data-fb-id');
+      const cur = planFeedback[date+'|'+id] || {};
+      const sb = e.target.closest('[data-fb-status]');
+      if(sb){ const s = sb.getAttribute('data-fb-status'); setFb(date, {id:id}, { status: cur.status===s ? null : s }); return; }
+      const vb = e.target.closest('[data-fb-feel]');
+      if(vb){ const v = Number(vb.getAttribute('data-fb-feel')); setFb(date, {id:id}, { feel: cur.feel===v ? 0 : v }); return; }
+      const ch = e.target.closest('[data-fb-chip]');
+      if(ch){ const txt = ch.getAttribute('data-fb-chip'); let note = cur.note || '';
+        if(note.indexOf(txt) !== -1){ note = note.split(',').map(s=>s.trim()).filter(s=>s && s!==txt).join(', '); }
+        else { note = note ? (note + ', ' + txt) : txt; }
+        setFb(date, {id:id}, { note: note }); return; }
+    });
+    document.addEventListener('change', function(e){
+      if(e.target && e.target.classList && e.target.classList.contains('cp-fb-note')){
+        const fb = e.target.closest('.cp-fb'); if(!fb) return;
+        setFb(fb.getAttribute('data-fb-date'), {id:fb.getAttribute('data-fb-id')}, { note: e.target.value.trim() });
+      }
+    });
+  })();
   window.PulsoRenderAthleteSide = renderAthleteSide;
   window.PulsoRenderLast30Workouts = renderLast30Workouts;
 
@@ -18469,7 +18577,7 @@ function setSyncStatus(state, label){
 
 // Chaves locais que NÃO vão para a cloud (caches grandes/voláteis, cópias de segurança).
 const EXCLUDE_PREFIXES = ['strava-streams-', '_bak:'];
-const EXCLUDE_KEYS = ['pulso-last-push', '_schema', '_bak_meta'];
+const EXCLUDE_KEYS = ['pulso-last-push', '_schema', '_bak_meta', '_local-owner'];
 function localPulsoSnapshot(){
   const out = {};
   for(let i=0;i<localStorage.length;i++){
@@ -18481,6 +18589,19 @@ function localPulsoSnapshot(){
     out[k] = localStorage.getItem(full);
   }
   return out;
+}
+// Apaga TODOS os dados locais do Pulso (usado ao trocar de conta no mesmo dispositivo).
+// Mantém só o esquema. As cópias de segurança (_bak) também saem, para não deixar
+// dados de outra conta neste telemóvel.
+function clearLocalPulsoData(){
+  try{
+    const remove = [];
+    for(let i=0;i<localStorage.length;i++){
+      const full = localStorage.key(i);
+      if(full && full.indexOf('pulso:') === 0 && full !== 'pulso:_schema') remove.push(full);
+    }
+    remove.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  }catch(e){ console.warn('Falha ao limpar dados locais', e); }
 }
 
 // ---------- #4 SEGURANÇA DOS DADOS: versão de esquema + cópias de segurança ----------
@@ -18623,18 +18744,33 @@ async function ensureUserDoc(user){
 }
 
 async function hydrateFromCloudOnce(user){
+  // --- Isolamento de contas no mesmo dispositivo ---
+  // Se os dados locais pertencem a OUTRA conta, limpa-os antes de hidratar, para
+  // não misturar nem enviar dados de uma conta para outra. A marca do dono não é
+  // sincronizada (está em EXCLUDE_KEYS).
+  const OWNER_KEY = 'pulso:_local-owner';
+  let localOwner = null;
+  try{ localOwner = localStorage.getItem(OWNER_KEY); }catch(e){}
+  const switchedAccount = !!(localOwner && localOwner !== user.uid);
+  if(switchedAccount){
+    clearLocalPulsoData();
+    sessionStorage.removeItem('pulso-hydrated-uid');
+  }
+  try{ localStorage.setItem(OWNER_KEY, user.uid); }catch(e){}
+
   const already = sessionStorage.getItem('pulso-hydrated-uid');
   const ref = doc(db, 'athleteData', user.uid);
   let snap = null;
   try{ snap = await getDoc(ref); }catch(e){ snap = null; }
   if(snap && snap.exists() && snap.data() && snap.data().keys){
-    if(already !== user.uid){
+    if(already !== user.uid || switchedAccount){
       hydrateLocalFrom(snap.data().keys);
       sessionStorage.setItem('pulso-hydrated-uid', user.uid);
       return true; // pede reload para refletir os dados descarregados
     }
   }else{
-    // Primeira vez desta conta: semeia a cloud com o que já existe localmente.
+    // Primeira vez desta conta: semeia a cloud com o que existe localmente
+    // (que, se trocámos de conta, já está vazio — a conta nova começa limpa).
     sessionStorage.setItem('pulso-hydrated-uid', user.uid);
     try{
       await setDoc(ref, {
@@ -18644,6 +18780,7 @@ async function hydrateFromCloudOnce(user){
         updatedAt: new Date().toISOString()
       }, { merge: true });
     }catch(e){ console.warn('Falha ao semear cloud', e); }
+    if(switchedAccount) return true; // limpámos dados de outra conta → recarrega para refletir
   }
   return false;
 }
