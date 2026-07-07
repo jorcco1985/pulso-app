@@ -6733,6 +6733,14 @@ nav.tabbar button.active svg{
       </span>
     </div>
 
+    <div class="card lang-switch-card">
+      <span data-i18n="Session">Sessão</span>
+      <button type="button" id="btn-logout" class="ghost" style="color:#F2555A; border-color:rgba(242,85,90,.4); display:inline-flex; align-items:center; gap:8px; padding:9px 15px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span data-i18n="Sign out">Terminar sessão</span>
+      </button>
+    </div>
+
     <div class="subtabs profile-subtabs" id="profile-subtabs">
       <button class="ghost active" data-profile-tab="atleta" type="button" data-i18n="Athlete">Atleta</button>
       <button class="ghost" data-profile-tab="strava" type="button">Strava</button>
@@ -6969,6 +6977,9 @@ nav.tabbar button.active svg{
           <div class="row" style="margin-top:8px;">
             <button class="ghost" id="btn-restore-backup" type="button" data-i18n="Restore backup">Restaurar cópia de segurança</button>
           </div>
+          <div class="row" style="margin-top:8px;">
+            <button class="ghost" id="btn-replay-tutorial" type="button" data-i18n="View tutorial">Ver tutorial</button>
+          </div>
           <p class="help" style="margin:8px 0 0; font-size:11.5px;" data-i18n="Automatic local backups are kept before each cloud sync, in case anything is overwritten.">São guardadas cópias locais automáticas antes de cada sincronização com a cloud, caso algo seja sobreposto.</p>
         </div>
       </div>
@@ -7126,6 +7137,18 @@ nav.tabbar button.active svg{
     // face ao local. É debounced (1,4 s) do lado do módulo cloud, por isso gravações
     // seguidas são agrupadas. Falha em silêncio se não houver sessão/rede.
     try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
+    // Mantém o resumo de HOJE sempre atualizado no histórico sempre que muda um dado
+    // diário — para nunca ficar preso num valor parcial (ex.: água a meio do dia).
+    try{
+      const DAILY_ARCHIVE_KEYS = ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','weight-entries','sleep-entries','bp-entries'];
+      if(DAILY_ARCHIVE_KEYS.indexOf(key) !== -1 && window.PulsoArchiveToday){
+        clearTimeout(sSet._archiveTimer);
+        sSet._archiveTimer = setTimeout(function(){
+          try{ window.PulsoArchiveToday(); }catch(e){}
+          try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
+        }, 1200);
+      }
+    }catch(e){}
   }
 
   function pulsoToast(msg){
@@ -7149,8 +7172,8 @@ nav.tabbar button.active svg{
       const no = document.getElementById('pulso-confirm-no');
       if(!box || !msgEl){ resolve(window.confirm ? window.confirm(msg) : true); return; }
       msgEl.textContent = msg;
-      if(yes) yes.textContent = opts.yesLabel || (opts.okOnly ? 'OK' : 'Sim');
-      if(no) no.style.display = opts.okOnly ? 'none' : '';
+      if(yes) yes.textContent = opts.yesLabel || (opts.okOnly ? 'OK' : (window.PL ? PL('Sim','Yes') : 'Sim'));
+      if(no){ no.style.display = opts.okOnly ? 'none' : ''; no.textContent = opts.noLabel || (window.PL ? PL('Não','No') : 'Não'); }
       box.hidden = false; box.setAttribute('aria-hidden','false');
       _pulsoConfirmResolve = resolve;
     });
@@ -9671,9 +9694,9 @@ nav.tabbar button.active svg{
     if(!body) return;
     if(!todayPlan || todayPlan.date !== todayStr()){
       body.innerHTML = `
-        <button class="today-menu-dot" id="btn-today-menu" type="button" aria-label="Opções do treino">⋮</button>
-        <p class="today-workout-title">Sem treino escolhido</p>
-        <p class="today-workout-desc">Toca nos três pontos para escolher o treino de hoje.</p>`;
+        <button class="today-menu-dot" id="btn-today-menu" type="button" aria-label="${PL('Opções do treino','Workout options')}">⋮</button>
+        <p class="today-workout-title">${PL('Sem treino escolhido','No workout chosen')}</p>
+        <p class="today-workout-desc">${PL('Toca nos três pontos para escolher o treino de hoje.','Tap the three dots to choose today\'s workout.')}</p>`;
       const menuBtn = document.getElementById('btn-today-menu');
       if(menuBtn) menuBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); openTodayMenu(menuBtn); });
       return;
@@ -11712,6 +11735,36 @@ nav.tabbar button.active svg{
 
   // #4: restaurar a cópia de segurança local mais recente (com confirmação).
   (function(){
+    const rt = document.getElementById('btn-replay-tutorial');
+    if(rt) rt.addEventListener('click', ()=>{ try{ if(window.PulsoOnboarding) window.PulsoOnboarding.replay(); }catch(e){} });
+    // Terminar sessão: volta ao ecrã de entrada e faz o tutorial reaparecer no próximo login.
+    const lo = document.getElementById('btn-logout');
+    if(lo){
+      const doLogout = ()=>{
+        try{ localStorage.removeItem('pulso_onboarded'); }catch(e){}
+        try{ if(window.PulsoOnboarding) window.PulsoOnboarding.reset(); }catch(e){}
+        try{ localStorage.removeItem('pulso:selected-role'); }catch(e){}
+        try{
+          if(window.PulsoCloud && typeof window.PulsoCloud.signOut === 'function'){ window.PulsoCloud.signOut(); return; }
+        }catch(e){}
+        try{ location.reload(); }catch(e){}
+      };
+      let _logoutBusy = false;
+      const askLogout = ()=>{
+        if(_logoutBusy) return;
+        _logoutBusy = true;
+        setTimeout(function(){ _logoutBusy = false; }, 900);
+        const msg = PL('Terminar sessão e voltar ao ecrã de entrada?','Sign out and return to the login screen?');
+        try{
+          if(window.pulsoConfirm){
+            window.pulsoConfirm(msg, { yesLabel: PL('Terminar sessão','Sign out'), noLabel: PL('Cancelar','Cancel') }).then(function(ok){ if(ok) doLogout(); });
+          } else if(window.confirm(msg)){ doLogout(); }
+        }catch(e){ doLogout(); }
+      };
+      lo.addEventListener('click', askLogout);
+      // Reforço para iOS/PWA: alguns webviews engolem o click; o touchend garante a resposta.
+      lo.addEventListener('touchend', function(ev){ ev.preventDefault(); askLogout(); }, { passive:false });
+    }
     const rb = document.getElementById('btn-restore-backup');
     if(!rb) return;
     rb.addEventListener('click', ()=>{
@@ -11795,6 +11848,11 @@ nav.tabbar button.active svg{
     if(stravaAuth && stravaAuth.accessToken){ syncStrava({silent:true, recent:true}).catch(err=>console.error('Falha no sync Strava', err)); }
     // Atualiza a saudação com o nome do utilizador atual (senão fica preso no nome anterior).
     try{ if(window.PulsoV3Apply) window.PulsoV3Apply(); }catch(e){}
+    // Recalcula o resumo dos últimos dias a partir das entradas datadas — corrige
+    // registos antigos que tenham ficado com valores parciais (ex.: água gravada a meio do dia).
+    try{ if(window.PulsoReArchiveRecent) window.PulsoReArchiveRecent(3); }catch(e){}
+    // Tutorial de primeira utilização (só atleta, só uma vez).
+    try{ setTimeout(function(){ if(window.PulsoOnboarding) window.PulsoOnboarding.maybeStart(); }, 800); }catch(e){}
   }
 
   // Re-renderiza conteúdo gerado por JS quando o idioma muda (textos via PL()).
@@ -12216,6 +12274,22 @@ nav.tabbar button.active svg{
     check: checkDailyReset,
     force: resetDailyData,
     today: todayKey
+  };
+  // Auto-arquivo: mantém o resumo de um dia (por omissão hoje) sempre atualizado no
+  // histórico, calculado a partir das entradas datadas (fonte da verdade). Assim o
+  // histórico nunca fica preso num valor parcial gravado a meio do dia.
+  window.PulsoArchiveDay = function(day){ try{ archiveDay(day || todayKey()); }catch(e){} };
+  window.PulsoArchiveToday = function(){ try{ archiveDay(todayKey()); }catch(e){} };
+  // Recalcula os últimos N dias (corrige registos antigos gravados com valores parciais).
+  window.PulsoReArchiveRecent = function(days){
+    try{
+      const n = days || 3;
+      const base = new Date();
+      for(let i=0;i<n;i++){
+        const d = new Date(base); d.setDate(d.getDate()-i);
+        archiveDay(d.toISOString().slice(0,10));
+      }
+    }catch(e){}
   };
 
   checkDailyReset();
@@ -16365,11 +16439,11 @@ nav.tabbar button.active svg{
         }
       }catch(e){}
       const badge = a.local
-        ? '<span class="coach-athlete-badge local">Este telemóvel</span>'
-        : (a.cloud ? '<span class="coach-athlete-badge local">Cloud</span>' : '<span class="coach-athlete-badge">Cloud (em breve)</span>');
+        ? '<span class="coach-athlete-badge local">'+PL('Este telemóvel','This phone')+'</span>'
+        : (a.cloud ? '<span class="coach-athlete-badge local">Cloud</span>' : '<span class="coach-athlete-badge">'+PL('Cloud (em breve)','Cloud (soon)')+'</span>');
       const sub = a.local
-        ? 'Dados locais deste dispositivo'
-        : (a.cloud ? (a.email || 'Atleta ligado na cloud') : 'Sincroniza quando ligarmos a cloud');
+        ? PL('Dados locais deste dispositivo','Local data on this device')
+        : (a.cloud ? (a.email || PL('Atleta ligado na cloud','Athlete connected via cloud')) : PL('Sincroniza quando ligarmos a cloud','Syncs once the cloud is connected'));
       const delBtn = (a.local || a.cloud) ? '' : `<button class="coach-athlete-del" type="button" data-athlete-del="${esc(a.id)}" aria-label="Eliminar atleta ${esc(a.name)}" title="Eliminar atleta">×</button>`;
       const editBtn = a.cloud ? `<button class="coach-athlete-del" type="button" data-athlete-alias="${esc(a.id)}" aria-label="Editar nome de ${esc(a.name)}" title="Editar nome" style="color:var(--teal); border-color:rgba(53,217,166,.4);">✎</button>` : '';
       return `<div class="coach-athlete-row${a.id===selectedAthleteId?' selected':''}" data-athlete="${esc(a.id)}" style="margin-bottom:9px;">
@@ -16417,7 +16491,7 @@ nav.tabbar button.active svg{
     const calSel = document.getElementById('coach-calendar-athlete');
     if(calSel){
       const cur = coachCalendarFilter || calSel.value || 'all';
-      calSel.innerHTML = '<option value="all">Todos os atletas</option>' + list.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+      calSel.innerHTML = '<option value="all">'+PL('Todos os atletas','All athletes')+'</option>' + list.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
       coachCalendarFilter = (cur === 'all' || list.some(a=>a.id===cur)) ? cur : 'all';
       calSel.value = coachCalendarFilter;
     }
@@ -16608,7 +16682,7 @@ nav.tabbar button.active svg{
     const body = document.getElementById('coach-cal-day-body');
     if(!body) return;
     if(!coachSelectedDay){
-      if(title) title.textContent = 'Dia selecionado';
+      if(title) title.textContent = PL('Dia selecionado','Selected day');
       body.innerHTML = '';
       return;
     }
@@ -16622,7 +16696,7 @@ nav.tabbar button.active svg{
       const hasRace = races.length > 0;
       if(!items.length && !hasRace && !completed.length) return;
       html += '<div class="coach-day-athlete-block">'+
-        '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong><span>'+(a.local?'Este telemóvel':'Cloud em breve')+'</span></div>';
+        '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong><span>'+(a.local?PL('Este telemóvel','This phone'):PL('Cloud em breve','Cloud soon'))+'</span></div>';
       if(hasRace){
         html += races.map(race=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left; border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08); margin-bottom:8px;"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(a.name)} — ${esc(race.name)}</div><div class="di-desc">Prova${race.distanceKm?' · '+race.distanceKm+' km':''}${race.elevationM?' · '+race.elevationM+' D+':''}. Toca para abrir os dados do atleta nesse dia.</div></button>`).join('');
       }
@@ -16957,7 +17031,7 @@ nav.tabbar button.active svg{
         </div>
       </div>`).join('');
     }else{
-      body.innerHTML = '<p class="help" style="margin:0;">Sem treino do treinador para hoje.</p>';
+      body.innerHTML = '<p class="help" style="margin:0;">'+PL('Sem treino do treinador para hoje.','No coach workout for today.')+'</p>';
     }
     // Próximos dias
     if(up){
@@ -17264,14 +17338,14 @@ nav.tabbar button.active svg{
     const n = Math.max(1, rangeN); // no "Dia" mostra só o próprio dia
     const rows = coachRangeDays(day, n).reverse().map(d=>coachDayRecord(d));
     const slides = [
-      coachMiniChart('Tempo de treino', 'min', rows, r=>r.totals.workoutMin, 'green', 'sum'),
-      coachMiniChart('Distância', 'km', rows, r=>r.totals.workoutKm, 'blue', 'sum'),
-      coachMiniChart('Kcal treino', 'kcal', rows, r=>r.totals.workoutKcal, 'amber', 'sum'),
-      coachMiniChart('Água', 'L', rows, r=>r.totals.waterMl, 'green', 'sum'),
-      coachMiniChart('Sono', 'h', rows, r=>r.totals.sleepHours, 'purple', 'avg'),
-      coachMiniChart('Peso', 'kg', rows, r=>r.totals.weightKg, 'blue', 'avg')
+      coachMiniChart(PL('Tempo de treino','Training time'), 'min', rows, r=>r.totals.workoutMin, 'green', 'sum'),
+      coachMiniChart(PL('Distância','Distance'), 'km', rows, r=>r.totals.workoutKm, 'blue', 'sum'),
+      coachMiniChart(PL('Kcal treino','Workout kcal'), 'kcal', rows, r=>r.totals.workoutKcal, 'amber', 'sum'),
+      coachMiniChart(PL('Água','Water'), 'L', rows, r=>r.totals.waterMl, 'green', 'sum'),
+      coachMiniChart(PL('Sono','Sleep'), 'h', rows, r=>r.totals.sleepHours, 'purple', 'avg'),
+      coachMiniChart(PL('Peso','Weight'), 'kg', rows, r=>r.totals.weightKg, 'blue', 'avg')
     ];
-    return '<div class="swipe-nav"><button type="button" class="swipe-arrow prev" aria-label="Anterior">‹</button><div class="coach-chart-swiper">'+slides.join('')+'</div><button type="button" class="swipe-arrow next" aria-label="Seguinte">›</button></div><div class="coach-chart-hint">Desliza ou usa as setas para ver os gráficos.</div>';
+    return '<div class="swipe-nav"><button type="button" class="swipe-arrow prev" aria-label="Anterior">‹</button><div class="coach-chart-swiper">'+slides.join('')+'</div><button type="button" class="swipe-arrow next" aria-label="Seguinte">›</button></div><div class="coach-chart-hint">'+PL('Desliza ou usa as setas para ver os gráficos.','Swipe or use the arrows to see the charts.')+'</div>';
   }
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
@@ -17499,6 +17573,8 @@ nav.tabbar button.active svg{
         bindCoachCardCollapse(document.getElementById('coach-content'));
       }catch(e){ console.warn('Render inicial treinador falhou', e); }
     }, 80);
+    // Tutorial de primeira utilização do TREINADOR (só uma vez).
+    try{ setTimeout(function(){ if(window.PulsoOnboarding && window.PulsoOnboarding.maybeStartCoach) window.PulsoOnboarding.maybeStartCoach(); }, 900); }catch(e){}
   }
 
   function bindRoleMode(){
@@ -19025,5 +19101,241 @@ document.addEventListener("click", function(e){
 })();
 </script>
 
+<!-- =================== PULSO — TUTORIAL DE PRIMEIRA UTILIZAÇÃO (ATLETA) =================== -->
+<style id="pulso-onb-css">
+  #pulso-onb{position:fixed; inset:0; z-index:99990; display:none;}
+  #pulso-onb.on{display:block;}
+  #pulso-onb .onb-backdrop{position:absolute; inset:0; background:rgba(7,11,20,.62); backdrop-filter:blur(1px);}
+  #pulso-onb .onb-card{
+    position:absolute; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px));
+    background:#0C1322; border:1px solid rgba(255,255,255,.12); border-radius:20px;
+    padding:20px 20px 16px; box-shadow:0 18px 50px rgba(0,0,0,.5); max-width:520px; margin:0 auto;
+    animation:onbUp .28s ease-out;
+  }
+  @keyframes onbUp{from{transform:translateY(16px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  #pulso-onb .onb-emoji{font-size:30px; line-height:1; margin-bottom:8px;}
+  #pulso-onb .onb-title{font-family:var(--font-display,inherit); font-size:20px; font-weight:800; color:#e6ecf7; margin:0 0 8px;}
+  #pulso-onb .onb-body{color:#aeb8c8; font-size:15px; line-height:1.5; margin:0 0 16px;}
+  #pulso-onb .onb-dots{display:flex; gap:6px; justify-content:center; margin:0 0 14px;}
+  #pulso-onb .onb-dot{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.18); transition:all .2s;}
+  #pulso-onb .onb-dot.active{background:var(--teal,#35D9A6); width:20px; border-radius:4px;}
+  #pulso-onb .onb-row{display:flex; align-items:center; gap:10px;}
+  #pulso-onb .onb-skip{background:transparent; border:0; color:#6b7688; font-size:13px; font-weight:600; cursor:pointer; padding:8px; margin-right:auto;}
+  #pulso-onb .onb-back{background:transparent; border:1px solid rgba(255,255,255,.14); color:#aeb8c8; font-size:14px; font-weight:700; cursor:pointer; padding:11px 16px; border-radius:12px;}
+  #pulso-onb .onb-next{background:var(--teal,#35D9A6); border:0; color:#04110b; font-size:15px; font-weight:800; cursor:pointer; padding:12px 20px; border-radius:12px;}
+  #pulso-onb .onb-next:active,#pulso-onb .onb-back:active{transform:scale(.97);}
+</style>
+<div id="pulso-onb" role="dialog" aria-modal="true" aria-label="Tutorial">
+  <div class="onb-backdrop"></div>
+  <div class="onb-card">
+    <div class="onb-dots" id="onb-dots"></div>
+    <div class="onb-emoji" id="onb-emoji">👋</div>
+    <h2 class="onb-title" id="onb-title"></h2>
+    <p class="onb-body" id="onb-body"></p>
+    <div class="onb-row">
+      <button type="button" class="onb-skip" id="onb-skip"></button>
+      <button type="button" class="onb-back" id="onb-back"></button>
+      <button type="button" class="onb-next" id="onb-next"></button>
+    </div>
+  </div>
+</div>
+<script id="pulso-onb-js">
+(function(){
+  var PL = window.PL || function(pt,en){ return pt; };
+
+  // Passos do guia da ÁREA DE ATLETA. Cada passo abre o separador certo, foca uma zona
+  // e explica. 'focusSel' = elemento a centrar; 'demo' = pequena demonstração ao vivo.
+  var ATHLETE_STEPS = [
+    { tab:'dashboard', focusSel:'#estado-card', emoji:'👋',
+      t:['Bem-vindo ao Pulso','Welcome to Pulso'],
+      b:['Em meio minuto mostro-te como funciona. Este é o teu Painel. O anel grande é o teu Estado geral — resume os teus hábitos recentes (sono, treino, peso, álcool). Toca no anel para veres a avaliação detalhada.',
+         'In half a minute I\'ll show you how it works. This is your Dashboard. The big ring is your Overall status — it sums up your recent habits (sleep, training, weight, alcohol). Tap the ring to see the detailed assessment.'] },
+    { tab:'dashboard', focusSel:'#estado-swipe', demo:'estado', emoji:'🎯',
+      t:['As tuas bolas de estado','Your status rings'],
+      b:['Por baixo tens bolas que deslizam. A "Estado geral" (bem-estar) e a "Prontidão para treino" (estás recuperado ou em risco de sobrecarga, cruzando carga e recuperação). Desliza para passar de uma para a outra e toca em qualquer uma para saber o porquê. Se fores do sexo feminino, aparece também a do ciclo.',
+         'Below you have rings you can swipe. "Overall status" (wellbeing) and "Training readiness" (whether you\'re recovered or at overload risk, combining load and recovery). Swipe to move between them and tap either one to see why. If you\'re female, a cycle ring also appears.'] },
+    { tab:'hidratacao', focusSel:'#tab-hidratacao .subtabs', emoji:'🥤',
+      t:['Nutrição e hidratação','Nutrition & hydration'],
+      b:['Aqui registas o que bebes e comes. Em "Bebida", escolhe (Água, Café…) e toca para somar. Em "Comida", escreves o alimento e a quantidade — e podes usar a IA para ir buscar as calorias e os macros de qualquer alimento. O que pesquisas fica guardado para as próximas vezes aparecer nas sugestões.',
+         'Here you log what you drink and eat. Under "Drink", pick one (Water, Coffee…) and tap to add. Under "Food", type the food and amount — and you can use the AI to fetch calories and macros for any food. What you search is saved so it shows up in suggestions next time.'] },
+    { tab:'treinos', focusSel:'#tab-treinos .subtabs', emoji:'🏁',
+      t:['Treinos e provas','Training & races'],
+      b:['Aqui defines a tua "Prova" (o teu objetivo) e vês/executas os teus treinos. Os treinos em si não se criam aqui — são feitos na área de Treinador, por ti (no papel de treinador) ou pelo teu treinador, que os escolhe para ti. Liga o Strava (no Perfil) para importar as atividades automaticamente.',
+         'Here you set your "Race" (your goal) and view/do your workouts. The workouts themselves aren\'t created here — they\'re made in the Coach area, either by you (acting as coach) or by your coach, who picks them for you. Connect Strava (in Profile) to import activities automatically.'] },
+    { tab:'saude', focusSel:'#tab-saude .subtabs', emoji:'❤️',
+      t:['Saúde','Health'],
+      b:['Regista o sono, o peso e a tensão arterial — escolhe o separador, mete o valor e guarda. Se fores do sexo feminino, tens também campos de saúde feminina (ciclo menstrual), que ajustam as leituras de prontidão. Com alguns dias, aparecem os gráficos de tendência.',
+         'Log your sleep, weight and blood pressure — pick the tab, enter the value and save. If you\'re female, you also get female-health fields (menstrual cycle) that adjust the readiness reads. After a few days, the trend charts appear.'] },
+    { tab:'perfil', focusSel:'#tab-perfil', emoji:'⚙️',
+      t:['O teu perfil','Your profile'],
+      b:['Preenche os teus dados (idade, altura, sexo…) para os cálculos serem certos. Aqui também ligas o Strava, defines as zonas de treino e mudas o idioma.',
+         'Fill in your data (age, height, sex…) so the calculations are accurate. Here you also connect Strava, set training zones and change the language.'] },
+    { tab:'dashboard', focusSel:'#estado-card', emoji:'🎉',
+      t:['Tudo pronto!','All set!'],
+      b:['Já sabes o essencial. Começa por preencher o teu perfil e registar a primeira água ou refeição. Podes rever este guia quando quiseres em Perfil → "Ver tutorial". Bons treinos!',
+         'You know the essentials now. Start by filling in your profile and logging your first water or meal. You can replay this guide anytime in Profile → "View tutorial". Enjoy!'] }
+  ];
+
+  // Passos do guia da ÁREA DE TREINADOR. 'coachTab' abre "treinos"/"atleta".
+  var COACH_STEPS = [
+    { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🧑‍🏫',
+      t:['Bem-vindo ao Modo Treinador','Welcome to Coach Mode'],
+      b:['Tens duas áreas, em cima: "Treinos" (criar treinos e planear) e "Atleta" (ver os dados de quem treinas). Vou mostrar-te o fluxo essencial.',
+         'You have two areas at the top: "Workouts" (create workouts and plan) and "Athlete" (see the data of who you train). Let me show you the essential flow.'] },
+    { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🏗️',
+      t:['1. Cria um treino','1. Create a workout'],
+      b:['Toca em "+ Novo treino" para montar um treino (aquecimento, blocos, séries…). Ao guardar, marca a estrela ★ para o pores nos Favoritos e o reutilizares sempre que quiseres.',
+         'Tap "+ New workout" to build a workout (warm-up, blocks, sets…). When saving, tick the star ★ to add it to Favorites and reuse it whenever you want.'] },
+    { coachTab:'treinos', focusSel:'#coach-workouts-list', emoji:'⭐',
+      t:['2. A tua biblioteca','2. Your library'],
+      b:['Os treinos favoritos aparecem aqui. Abre um pelo nome para o editar ou para o prescrever a um atleta.',
+         'Your favorite workouts appear here. Open one by name to edit it or to prescribe it to an athlete.'] },
+    { coachTab:'treinos', focusSel:'#coach-athletes-list', emoji:'👥',
+      t:['3. Escolhe o atleta','3. Choose the athlete'],
+      b:['Escolhe o atleta para quem estás a planear. Os atletas ligam-se pela Cloud (☁) — no telemóvel deles, ficam associados a ti.',
+         'Choose the athlete you are planning for. Athletes connect via Cloud (☁) — on their phone, they get linked to you.'] },
+    { coachTab:'treinos', focusSel:'#coach-calendar', emoji:'📅',
+      t:['4. Prescreve no calendário','4. Prescribe on the calendar'],
+      b:['Para prescrever: abre um treino, toca em prescrever e depois no dia do calendário do atleta escolhido. O treino fica ligado a esse atleta automaticamente e aparece no "hoje" dele.',
+         'To prescribe: open a workout, tap prescribe, then tap the day on the chosen athlete calendar. The workout links to that athlete automatically and shows up in their "today".'] },
+    { coachTab:'treinos', focusSel:'#pulso-cloud-btn', emoji:'☁️',
+      t:['5. Liga-te pela Cloud','5. Connect via Cloud'],
+      b:['Para os treinos chegarem mesmo ao atleta, liguem-se pela Cloud. No botão ☁ (topo) obténs um QR code ou um código para partilhar. O atleta lê o QR / cola o código (ou tu o dele) e ficam associados — a partir daí os treinos sincronizam e ele vê-os.',
+         'For workouts to actually reach the athlete, connect via Cloud. On the ☁ button (top) you get a QR code or a code to share. The athlete scans the QR / pastes the code (or you paste theirs) and you get linked — from then on workouts sync and they see them.'] },
+    { coachTab:'atleta', focusSel:'#coach-tab-atleta', emoji:'📊',
+      t:['6. Vê os dados do atleta','6. See the athlete data'],
+      b:['No separador "Atleta" vês tudo do atleta escolhido: tempo e distância de treino, saúde (sono, peso, tensão), prontidão/risco de sobrecarga e o resumo dos últimos dias.',
+         'In the "Athlete" tab you see everything about the chosen athlete: training time and distance, health (sleep, weight, BP), readiness/overload risk and the summary of recent days.'] },
+    { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🎉',
+      t:['Tudo pronto!','All set!'],
+      b:['O fluxo é: cria o treino → escolhe o atleta → prescreve no dia → liguem-se pela Cloud. A partir daí é acompanhar os dados. Bons treinos!',
+         'The flow is: create the workout → choose the athlete → prescribe on the day → connect via Cloud. From there, just follow the data. Enjoy!'] }
+  ];
+
+  var STEPS = ATHLETE_STEPS;               // conjunto ativo
+  var DONE_KEY_ATHLETE = 'pulso_onboarded';
+  var DONE_KEY_COACH = 'pulso_onboarded_coach';
+  var mode = 'athlete';
+
+  var idx = 0;
+  var root = document.getElementById('pulso-onb');
+  function el(id){ return document.getElementById(id); }
+
+  function goTab(tab){
+    try{
+      var btn = document.querySelector('nav.tabbar button[data-tab="'+tab+'"]');
+      if(btn) btn.click();
+    }catch(e){}
+  }
+  function goCoachTab(tab){
+    try{
+      var btn = document.querySelector('[data-coach-tab="'+tab+'"]');
+      if(btn) btn.click();
+    }catch(e){}
+  }
+
+  function renderDots(){
+    var wrap = el('onb-dots'); if(!wrap) return;
+    wrap.innerHTML = '';
+    for(var i=0;i<STEPS.length;i++){
+      var d = document.createElement('div');
+      d.className = 'onb-dot' + (i===idx ? ' active' : '');
+      wrap.appendChild(d);
+    }
+  }
+
+  function estadoDemo(){
+    // Passa ao vivo pelas bolas: mostra a "Prontidão" e volta à "Estado geral".
+    try{
+      var sw = document.getElementById('estado-swipe');
+      if(!sw) return;
+      setTimeout(function(){ try{ sw.scrollTo({ left: sw.clientWidth, behavior:'smooth' }); }catch(e){} }, 900);
+      setTimeout(function(){ try{ sw.scrollTo({ left: 0, behavior:'smooth' }); }catch(e){} }, 2200);
+    }catch(e){}
+  }
+
+  function show(i){
+    idx = Math.max(0, Math.min(STEPS.length-1, i));
+    var s = STEPS[idx];
+    if(s.coachTab) goCoachTab(s.coachTab);
+    else if(s.tab) goTab(s.tab);
+    // foca/centra a zona relevante (com um pequeno atraso para o separador trocar primeiro)
+    if(s.focusSel){
+      setTimeout(function(){
+        try{ var f = document.querySelector(s.focusSel); if(f && f.scrollIntoView) f.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
+      }, 180);
+    }
+    if(s.demo === 'estado') estadoDemo();
+    el('onb-emoji').textContent = s.emoji;
+    el('onb-title').textContent = PL(s.t[0], s.t[1]);
+    el('onb-body').textContent = PL(s.b[0], s.b[1]);
+    el('onb-skip').textContent = PL('Saltar','Skip');
+    el('onb-back').textContent = PL('Anterior','Back');
+    el('onb-back').style.visibility = idx === 0 ? 'hidden' : 'visible';
+    el('onb-next').textContent = idx === STEPS.length-1 ? PL('Concluir','Finish') : PL('Seguinte','Next');
+    el('onb-skip').style.visibility = idx === STEPS.length-1 ? 'hidden' : 'visible';
+    renderDots();
+  }
+
+  function open(which){
+    if(!root) return;
+    mode = (which === 'coach') ? 'coach' : 'athlete';
+    STEPS = (mode === 'coach') ? COACH_STEPS : ATHLETE_STEPS;
+    idx = 0;
+    root.classList.add('on');
+    show(0);
+    try{ window.scrollTo(0,0); }catch(e){}
+  }
+  function curDoneKey(){ return mode === 'coach' ? DONE_KEY_COACH : DONE_KEY_ATHLETE; }
+  function close(markDone){
+    if(!root) return;
+    root.classList.remove('on');
+    if(markDone){ try{ localStorage.setItem(curDoneKey(), '1'); }catch(e){} }
+    // volta ao início da área
+    if(mode === 'coach') goCoachTab('treinos'); else goTab('dashboard');
+  }
+
+  // Ligações dos botões
+  if(root){
+    el('onb-next').addEventListener('click', function(){
+      if(idx >= STEPS.length-1) close(true);
+      else show(idx+1);
+    });
+    el('onb-back').addEventListener('click', function(){ show(idx-1); });
+    el('onb-skip').addEventListener('click', function(){ close(true); });
+    // fechar tocando fora do cartão (conta como visto)
+    root.querySelector('.onb-backdrop').addEventListener('click', function(){ close(true); });
+  }
+
+  // API pública
+  window.PulsoOnboarding = {
+    start: function(){ open('athlete'); },
+    replay: function(){ open('athlete'); },        // rever atleta
+    replayCoach: function(){ open('coach'); },     // rever treinador
+    isDone: function(){ try{ return localStorage.getItem(DONE_KEY_ATHLETE) === '1'; }catch(e){ return false; } },
+    reset: function(){ try{ localStorage.removeItem(DONE_KEY_ATHLETE); localStorage.removeItem(DONE_KEY_COACH); }catch(e){} },
+    // Atleta: mostra só na 1.ª vez, na área de atleta
+    maybeStart: function(){
+      try{
+        if(localStorage.getItem(DONE_KEY_ATHLETE) === '1') return;
+        if(localStorage.getItem('pulso:selected-role') === 'coach') return; // só atleta
+        var app = document.getElementById('app-content');
+        if(app && getComputedStyle(app).display === 'none') return;          // app atleta não visível
+        open('athlete');
+      }catch(e){}
+    },
+    // Treinador: mostra só na 1.ª vez, na área de treinador
+    maybeStartCoach: function(){
+      try{
+        if(localStorage.getItem(DONE_KEY_COACH) === '1') return;
+        var coach = document.getElementById('coach-content');
+        if(!coach || getComputedStyle(coach).display === 'none') return;      // área de treinador não visível
+        open('coach');
+      }catch(e){}
+    }
+  };
+})();
+</script>
+<!-- =================== FIM TUTORIAL =================== -->
 </body>
 </html>
