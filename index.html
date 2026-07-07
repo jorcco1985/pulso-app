@@ -6324,7 +6324,7 @@ nav.tabbar button.active svg{
       <div class="card">
         <div class="row space-between">
           <div class="strava-status"><span class="dot off" id="strava-dot"></span><span id="strava-status-text">Strava não ligado</span></div>
-          <button class="ghost" id="btn-strava-sync" type="button" disabled data-i18n="Sync">Sincronizar</button>
+          <button class="ghost" id="btn-strava-sync" type="button" disabled data-i18n="↻ Refresh Strava">↻ Atualizar Strava</button>
         </div>
       </div>
       <div class="card">
@@ -6364,6 +6364,13 @@ nav.tabbar button.active svg{
         <div class="card metric-card"><div class="metric-icon red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 5.6a5 5 0 0 0-8.8-1.9A5 5 0 0 0 3.2 5.6c-1.6 3 .4 6.3 3 8.5 1.5 1.3 3.4 2.7 5.8 4.4 2.4-1.7 4.3-3.1 5.8-4.4 2.6-2.2 4.6-5.5 3-8.5z"></path></svg></div><h3 data-i18n="AVG HR">CARDIO MÉDIO</h3><div class="stat" id="s7-hr-avg">—</div></div>
         <div class="card metric-card"><div class="metric-icon red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 13h3l2-6 3 12 3-9 2 3h5"></path></svg></div><h3 data-i18n="MAX HR">CARDIO MÁX</h3><div class="stat" id="s7-hr-max">—</div></div>
         <div class="card metric-card"><div class="metric-icon blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20h18L14 7l-4 6-2-3-5 10z"></path><path d="M13 5l2-2 2 2"></path></svg></div><h3 data-i18n="AVG ELEVATION">ALTIMETRIA MÉDIA</h3><div class="stat" id="s7-elev-avg">—</div></div>
+      </div>
+      <div class="card records-card">
+        <div class="row space-between" style="align-items:center;">
+          <h3 style="margin:0;" data-i18n="Personal records">Recordes pessoais</h3>
+          <span class="help" style="margin:0;" data-i18n="Best efforts &amp; bests">Melhores esforços</span>
+        </div>
+        <div id="records-list"><p class="help" style="margin:8px 0 0;" data-i18n="Import or sync workouts to see your records.">Importa ou sincroniza treinos para veres os teus recordes.</p></div>
       </div>
       <div class="card athlete-last30-card">
         <div class="row space-between" style="align-items:center;">
@@ -6835,7 +6842,7 @@ nav.tabbar button.active svg{
             <div class="profile-group-icon">📥</div>
             <div>
               <h3 data-i18n="Manual — file">Manual — ficheiro</h3>
-              <p class="help" style="margin:0;" data-i18n="From Garmin, TrainingPeaks, Polar… export the activity as .TCX or .GPX and load it here. You can pick several at once.">Do Garmin, TrainingPeaks, Polar… exporta a atividade em .TCX ou .GPX e carrega-a aqui. Podes escolher vários de uma vez.</p>
+              <p class="help" style="margin:0;" data-i18n="Load the file from your watch: .FIT, .TCX, .GPX — or the .ZIP as it comes.">Carrega o ficheiro do teu relógio: .FIT, .TCX, .GPX — ou o .ZIP tal como vem.</p>
             </div>
           </div>
           <div class="row" style="margin-top:10px;">
@@ -6843,13 +6850,24 @@ nav.tabbar button.active svg{
             <button class="ghost" id="btn-import-workouts" type="button" data-i18n="Choose file">Escolher ficheiro</button>
           </div>
           <p class="help" id="import-workouts-status" style="margin:8px 0 0; min-height:1em;"></p>
-          <p class="help" style="margin:6px 0 0; font-size:11px;" data-i18n="Tip: if the picker doesn't show the file, it now lists all files — pick your .TCX/.GPX from Files/Downloads.">Dica: se o seletor não mostrar o ficheiro, agora ele lista todos — escolhe o teu .TCX/.GPX em Ficheiros/Transferências.</p>
+          <details style="margin-top:10px;">
+            <summary class="help" style="cursor:pointer;" data-i18n="How to export from Garmin">Como exportar do Garmin</summary>
+            <ol class="help" style="margin:8px 0 0; padding-left:18px; font-size:11px; line-height:1.6;">
+              <li data-i18n="Open connect.garmin.com in the browser (on the phone, request the desktop site).">Abre connect.garmin.com no browser (no telemóvel, pede "site para computador").</li>
+              <li data-i18n="Open the activity → gear icon → Export (TCX, GPX or Original .FIT).">Abre a atividade → engrenagem → Exportar (TCX, GPX ou Original .FIT).</li>
+              <li data-i18n="Load the downloaded file here — the .ZIP works too.">Carrega aqui o ficheiro que baixaste — o .ZIP também serve.</li>
+            </ol>
+          </details>
           <details style="margin-top:10px;">
             <summary class="help" style="cursor:pointer;" data-i18n="…or paste the workout text">…ou colar o texto do treino</summary>
             <p class="help" style="margin:8px 0 6px; font-size:11px;" data-i18n="Open the .TCX/.GPX file, copy everything and paste it here. Useful when the file is hard to find.">Abre o ficheiro .TCX/.GPX, copia tudo e cola aqui. Útil quando o ficheiro é difícil de encontrar.</p>
             <textarea id="import-workouts-paste" rows="4" style="width:100%; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#fff; font-size:12px; padding:8px;" placeholder="Cola aqui todo o conteúdo do ficheiro .TCX ou .GPX"></textarea>
             <button class="ghost" id="btn-import-paste" type="button" style="margin-top:8px;" data-i18n="Import from pasted text">Importar do texto colado</button>
           </details>
+          <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);">
+            <button class="ghost" id="btn-clear-imports" type="button" style="color:#F2555A; border-color:rgba(242,85,90,.35);" data-i18n="Remove imported workouts">Apagar treinos importados</button>
+            <p class="help" style="margin:6px 2px 0; font-size:11px;" data-i18n="Removes only workouts imported from files (and their charts). Does not touch Strava or anything else.">Apaga só os treinos importados de ficheiro (e os gráficos deles). Não mexe no Strava nem no resto.</p>
+          </div>
         </div>
 
       </div>
@@ -7021,11 +7039,11 @@ nav.tabbar button.active svg{
 </main>
 
 <nav class="tabbar" id="tabbar">
-  <button data-tab="dashboard" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg><span data-i18n="Dashboard">Painel</span></button>
-  <button data-tab="hidratacao" type="button"><svg viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12z"/></svg><span data-i18n="Nutrition">Nutrição</span></button>
-  <button data-tab="treinos" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span data-i18n="Training">Treinos</span></button>
-  <button data-tab="saude" type="button"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.65-7 10-7 10c-1 0-3-1-4-1"/></svg><span data-i18n="Health">Saúde</span></button>
-  <button data-tab="perfil" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span data-i18n="Profile">Perfil</span></button>
+  <button data-tab="dashboard" class="active" type="button"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span data-i18n="Dashboard">Painel</span></button>
+  <button data-tab="hidratacao" type="button"><svg viewBox="0 0 24 24"><path d="M4 2v4.5a3 3 0 0 0 6 0V2M7 6.5V22"/><path d="M16.5 2C15 3.5 14 6 14 9.5h3V2M17 9.5V22"/></svg><span data-i18n="Nutrition">Nutrição</span></button>
+  <button data-tab="treinos" type="button"><svg viewBox="0 0 24 24"><path d="M6.5 8.5v7M17.5 8.5v7M3.5 10.5v3M20.5 10.5v3M6.5 12h11"/></svg><span data-i18n="Training">Treinos</span></button>
+  <button data-tab="saude" type="button"><svg viewBox="0 0 24 24"><path d="M12 20.5C12 20.5 4 14 4 8.8A4.3 4.3 0 0 1 12 6.2 4.3 4.3 0 0 1 20 8.8C20 14 12 20.5 12 20.5Z"/></svg><span data-i18n="Health">Saúde</span></button>
+  <button data-tab="perfil" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg><span data-i18n="Profile">Perfil</span></button>
 </nav>
 
 </div><!-- /app-content -->
@@ -7061,6 +7079,8 @@ nav.tabbar button.active svg{
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="record-celebrate" aria-hidden="true"><div class="rc-card" id="record-celebrate-body"></div></div>
+<div id="pulso-center-toast" aria-hidden="true"><div class="pct-card"><span class="pct-icon">✓</span><span id="pulso-center-toast-msg"></span></div></div>
 
 <style id="pulso-confirm-css">
   #pulso-confirm{position:fixed; inset:0; z-index:100050; background:rgba(4,7,13,.72); display:flex; align-items:center; justify-content:center; padding:24px;}
@@ -7394,6 +7414,7 @@ nav.tabbar button.active svg{
   // ================= APP STATE ================= //
   let weightEntries = [], sleepEntries = [], plannedWorkouts = [], bpEntries = [];
   let planFeedback = {}; // cumprimento do plano: { 'YYYY-MM-DD|workoutId': {status, note, feel, at} }
+  let deletedActivityIds = []; // ids de treinos apagados à mão (para o Strava não os voltar a trazer)
   let stravaAuth = null, stravaActivities = [], stravaZones = null, stravaVo2 = {run:null, bike:null};
   let trainingChartVisible = { Bike:true, Corrida:true, Força:true };
   let hydrationEntries = [], hydrationGoal = 2000;
@@ -10525,6 +10546,175 @@ nav.tabbar button.active svg{
     if(/<gpx[\s>]/i.test(t)) return parseGpxText(t);
     return [];
   }
+  // ---------- Descodificador .FIT (formato binário nativo do Garmin) ----------
+  // Lê um ficheiro .FIT e devolve [atividade] no mesmo formato dos TCX/GPX, com curvas.
+  function _fitReadField(dv, pos, base, le){
+    const t = base & 0x1F; // número do tipo-base (5 bits baixos); o bit 0x80 é só endianness
+    try{
+      switch(t){
+        case 0x00: { const v = dv.getUint8(pos); return v===0xFF ? null : v; }              // enum
+        case 0x01: { const v = dv.getInt8(pos); return v===0x7F ? null : v; }                // sint8
+        case 0x02: { const v = dv.getUint8(pos); return v===0xFF ? null : v; }               // uint8
+        case 0x03: { const v = dv.getInt16(pos, le); return v===0x7FFF ? null : v; }         // sint16
+        case 0x04: { const v = dv.getUint16(pos, le); return v===0xFFFF ? null : v; }        // uint16
+        case 0x05: { const v = dv.getInt32(pos, le); return v===0x7FFFFFFF ? null : v; }     // sint32
+        case 0x06: { const v = dv.getUint32(pos, le); return v===0xFFFFFFFF ? null : v; }    // uint32
+        case 0x08: { const v = dv.getFloat32(pos, le); return isNaN(v) ? null : v; }         // float32
+        case 0x09: { const v = dv.getFloat64(pos, le); return isNaN(v) ? null : v; }         // float64
+        case 0x0A: { const v = dv.getUint8(pos); return v===0 ? null : v; }                  // uint8z
+        case 0x0B: { const v = dv.getUint16(pos, le); return v===0 ? null : v; }             // uint16z
+        case 0x0C: { const v = dv.getUint32(pos, le); return v===0 ? null : v; }             // uint32z
+        case 0x0D: { const v = dv.getUint8(pos); return v===0xFF ? null : v; }               // byte
+        default: return null;  // string / 64-bit — não usados aqui
+      }
+    }catch(e){ return null; }
+  }
+  function parseFitBuffer(buf){
+    try{
+      const dv = new DataView(buf);
+      if(dv.byteLength < 14) return [];
+      const headerSize = dv.getUint8(0);
+      const sig = String.fromCharCode(dv.getUint8(8), dv.getUint8(9), dv.getUint8(10), dv.getUint8(11));
+      if(sig !== '.FIT') return [];
+      const dataSize = dv.getUint32(4, true);
+      let pos = headerSize;
+      const dataEnd = Math.min(dv.byteLength, headerSize + dataSize);
+      const defs = {};
+      const records = []; let session = null;
+      let guard = 0;
+      while(pos < dataEnd && guard++ < 2000000){
+        const h = dv.getUint8(pos); pos++;
+        if(h & 0x80){ // cabeçalho com timestamp comprimido — salta (raro em ficheiros de atividade)
+          const localType = (h >> 5) & 0x03; const def = defs[localType];
+          if(!def){ break; }
+          for(const f of def.fields){ pos += f.size; }
+          for(const df of def.devFields){ pos += df.size; }
+          continue;
+        }
+        if(h & 0x40){ // mensagem de DEFINIÇÃO
+          const localType = h & 0x0F;
+          const arch = dv.getUint8(pos + 1);
+          const le = arch === 0;
+          const globalMsgNum = dv.getUint16(pos + 2, le);
+          const numFields = dv.getUint8(pos + 4);
+          pos += 5;
+          const fields = [];
+          for(let i=0;i<numFields;i++){ fields.push({num:dv.getUint8(pos), size:dv.getUint8(pos+1), base:dv.getUint8(pos+2)}); pos += 3; }
+          const devFields = [];
+          if(h & 0x20){ const nd = dv.getUint8(pos); pos++; for(let i=0;i<nd;i++){ devFields.push({size:dv.getUint8(pos+1)}); pos += 3; } }
+          defs[localType] = {globalMsgNum, fields, le, devFields};
+        } else { // mensagem de DADOS
+          const localType = h & 0x0F;
+          const def = defs[localType];
+          if(!def){ break; }
+          const rec = {};
+          for(const f of def.fields){ rec[f.num] = _fitReadField(dv, pos, f.base, def.le); pos += f.size; }
+          for(const df of def.devFields){ pos += df.size; }
+          if(def.globalMsgNum === 20){ records.push(rec); }        // record (pontos)
+          else if(def.globalMsgNum === 18 && !session){ session = rec; } // session (resumo)
+        }
+      }
+      if(!records.length && !session) return [];
+
+      const FIT_EPOCH = 631065600; // segundos entre 1970 e 1989-12-31 (época do FIT)
+      const startTs = (session && session[2] != null) ? session[2] : (records.length && records[0][253] != null ? records[0][253] : null);
+      const startISO = startTs != null ? new Date((startTs + FIT_EPOCH) * 1000).toISOString() : null;
+
+      // Curvas a partir dos records
+      const time=[], distance=[], heartrate=[], altitude=[], velocity=[], watts=[];
+      let t0 = null;
+      for(const r of records){
+        const ts = r[253];
+        const tsec = (ts != null && t0 != null) ? (ts - t0) : (t0 = ts, 0);
+        const d = r[5] != null ? r[5]/100 : (distance.length ? distance[distance.length-1] : 0);       // m
+        const hr = r[3] != null ? r[3] : 0;                                                             // bpm
+        const altRaw = (r[78] != null ? r[78] : r[2]);                                                  // enhanced_altitude ou altitude
+        const alt = altRaw != null ? (altRaw/5 - 500) : 0;                                              // m
+        const spRaw = (r[73] != null ? r[73] : r[6]);                                                   // enhanced_speed ou speed
+        const sp = spRaw != null ? spRaw/1000 : 0;                                                      // m/s
+        const w = r[7] != null ? r[7] : 0;                                                              // W
+        time.push(tsec); distance.push(d); heartrate.push(hr); altitude.push(alt); velocity.push(sp>0?sp:0); watts.push(w);
+      }
+      const has = a => a.some(v=>v>0);
+      const s = _impDownsample({time, distance, heartrate, altitude, velocity, watts}, 300);
+      const streams = { time:s.time, distance:s.distance,
+        heartrate: has(s.heartrate)?s.heartrate:[], altitude: has(s.altitude)?s.altitude:[],
+        velocity: has(s.velocity)?s.velocity:[], watts: has(s.watts)?s.watts:[], savedAt:new Date().toISOString() };
+
+      // Resumo: usa a session quando existe, senão calcula pelos records
+      const sportMap = {0:'Workout',1:'Run',2:'Ride',5:'Swim',11:'Walk',12:'Run',17:'Hike'};
+      const sport = session && session[5] != null ? (sportMap[session[5]] || 'Workout') : 'Workout';
+      const distM = session && session[9] != null ? session[9]/100 : (distance.length ? distance[distance.length-1] : 0);
+      const totalSec = session && (session[7] != null || session[8] != null) ? Math.round((session[7] != null ? session[7] : session[8])/1000)
+                       : (time.length ? time[time.length-1] : 0);
+      const cal = session && session[11] != null ? session[11] : 0;
+      const avgHr = session && session[16] != null ? session[16] : (has(heartrate) ? Math.round(heartrate.filter(v=>v>0).reduce((a,b)=>a+b,0)/heartrate.filter(v=>v>0).length) : null);
+      const maxHr = session && session[17] != null ? session[17] : (has(heartrate) ? Math.max(...heartrate) : null);
+      const elevM = session && session[22] != null ? session[22] : (function(){ let g=0; for(let i=1;i<altitude.length;i++){ if(altitude[i]>altitude[i-1]) g+=altitude[i]-altitude[i-1]; } return Math.round(g); })();
+      const avgW = session && session[20] != null ? session[20] : (has(watts) ? Math.round(watts.filter(v=>v>0).reduce((a,b)=>a+b,0)/watts.filter(v=>v>0).length) : null);
+
+      const a = _impMake({ startISO, sport, totalSec, distM, cal, avgHr, maxHr, elevM });
+      if(!a) return [];
+      if(avgW) a.avgWatts = avgW;
+      a._streams = streams;
+      return [a];
+    }catch(e){ console.warn('Falha a ler .FIT', e); return []; }
+  }
+  // ---------- Abrir .ZIP (ex.: export do Garmin) e tirar o .FIT/.TCX/.GPX de dentro ----------
+  function _u8ToBuffer(u8){ return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength); }
+  async function _inflateRaw(bytes){
+    if(typeof DecompressionStream === 'undefined') throw new Error('DecompressionStream indisponível');
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    const ab = await new Response(stream).arrayBuffer();
+    return new Uint8Array(ab);
+  }
+  // Lê a estrutura ZIP (central directory) e devolve [{name, bytes}] descomprimidos.
+  async function parseZipBuffer(buf){
+    const dv = new DataView(buf); const bytes = new Uint8Array(buf);
+    // Encontra o End Of Central Directory (assinatura 0x06054b50), a partir do fim.
+    let eocd = -1; const min = Math.max(0, dv.byteLength - 22 - 65536);
+    for(let i = dv.byteLength - 22; i >= min; i--){ if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; } }
+    if(eocd < 0) return [];
+    const cdCount = dv.getUint16(eocd + 10, true);
+    const cdOffset = dv.getUint32(eocd + 16, true);
+    const entries = []; let p = cdOffset;
+    for(let i=0;i<cdCount;i++){
+      if(dv.getUint32(p, true) !== 0x02014b50) break;
+      const method = dv.getUint16(p + 10, true);
+      const compSize = dv.getUint32(p + 20, true);
+      const nameLen = dv.getUint16(p + 28, true);
+      const extraLen = dv.getUint16(p + 30, true);
+      const commentLen = dv.getUint16(p + 32, true);
+      const localOffset = dv.getUint32(p + 42, true);
+      const name = new TextDecoder().decode(bytes.subarray(p + 46, p + 46 + nameLen));
+      const lhNameLen = dv.getUint16(localOffset + 26, true);
+      const lhExtraLen = dv.getUint16(localOffset + 28, true);
+      const dataStart = localOffset + 30 + lhNameLen + lhExtraLen;
+      entries.push({ name, method, comp: bytes.subarray(dataStart, dataStart + compSize) });
+      p += 46 + nameLen + extraLen + commentLen;
+    }
+    const out = [];
+    for(const e of entries){
+      try{
+        let content;
+        if(e.method === 0) content = e.comp;                 // guardado (sem compressão)
+        else if(e.method === 8) content = await _inflateRaw(e.comp); // deflate
+        else continue;
+        out.push({ name: e.name, bytes: content });
+      }catch(err){ console.warn('Falha a descomprimir', e.name, err); }
+    }
+    return out;
+  }
+  // Importa o conteúdo de um ficheiro descomprimido, escolhendo o parser pela extensão/conteúdo.
+  function _importEntry(name, u8){
+    const en = String(name||'').toLowerCase();
+    if(en.endsWith('.fit')) return parseFitBuffer(_u8ToBuffer(u8));
+    if(en.endsWith('.tcx') || en.endsWith('.gpx')) return parseWorkoutText(new TextDecoder().decode(u8));
+    // Sem extensão clara: tenta pelo conteúdo (texto TCX/GPX) e senão como FIT.
+    try{ const txt = new TextDecoder().decode(u8.subarray(0, 200)); if(/<TrainingCenterDatabase|<gpx/i.test(txt)) return parseWorkoutText(new TextDecoder().decode(u8)); }catch(e){}
+    if(u8.length > 12 && String.fromCharCode(u8[8],u8[9],u8[10],u8[11]) === '.FIT') return parseFitBuffer(_u8ToBuffer(u8));
+    return [];
+  }
   async function commitImportedActivities(collected){
     if(!collected || !collected.length) return;
     // Guarda as curvas reais (streams) de cada treino importado na cache local, e retira
@@ -10552,6 +10742,7 @@ nav.tabbar button.active svg{
     const status = document.getElementById('import-workouts-status');
     const pasteBtn = document.getElementById('btn-import-paste');
     const pasteEl = document.getElementById('import-workouts-paste');
+    const clearBtn = document.getElementById('btn-clear-imports');
     if(btn && input){
       btn.addEventListener('click', ()=> input.click());
       input.addEventListener('change', async ()=>{
@@ -10562,16 +10753,23 @@ nav.tabbar button.active svg{
         for(const f of files){
           const name = (f.name || '').toLowerCase();
           try{
-            if(name.endsWith('.fit') || name.endsWith('.zip')){ unsupported++; continue; } // binário — não suportado
-            collected.push(...parseWorkoutText(await f.text()));
+            if(name.endsWith('.zip')){
+              const entries = await parseZipBuffer(await f.arrayBuffer());
+              const usable = entries.filter(e=>/\.(fit|tcx|gpx)$/i.test(e.name));
+              if(!usable.length){ unsupported++; continue; }
+              for(const e of usable){ collected.push(..._importEntry(e.name, e.bytes)); }
+              continue;
+            }
+            if(name.endsWith('.fit')){ collected.push(...parseFitBuffer(await f.arrayBuffer())); continue; } // binário Garmin
+            collected.push(...parseWorkoutText(await f.text())); // TCX / GPX (texto)
           }catch(e){ console.warn('Falha a ler', f.name, e); }
         }
         await commitImportedActivities(collected);
         input.value = '';
         let msg = collected.length
           ? PL(collected.length+' treino(s) importado(s).', collected.length+' workout(s) imported.')
-          : PL('Nenhum treino lido (o ficheiro tem de ser .TCX ou .GPX).','No workouts read (the file must be .TCX or .GPX).');
-        if(unsupported) msg += ' ' + PL('('+unsupported+' ficheiro(s) .FIT/.ZIP ainda não suportados — exporta em .TCX/.GPX.)','('+unsupported+' .FIT/.ZIP file(s) not supported yet — export as .TCX/.GPX.)');
+          : PL('Nenhum treino lido (aceita .FIT, .TCX, .GPX ou .ZIP com um desses dentro).','No workouts read (accepts .FIT, .TCX, .GPX, or a .ZIP with one of those inside).');
+        if(unsupported) msg += ' ' + PL('('+unsupported+' ficheiro(s) sem um treino reconhecível lá dentro.)','('+unsupported+' file(s) with no recognisable workout inside.)');
         if(status) status.textContent = msg;
         toast(msg);
       });
@@ -10589,6 +10787,32 @@ nav.tabbar button.active svg{
         if(status) status.textContent = msg;
         toast(msg);
         if(collected.length) pasteEl.value = '';
+      });
+    }
+    if(clearBtn){
+      clearBtn.addEventListener('click', async ()=>{
+        const imports = (stravaActivities || []).filter(a=> a && a.source === 'import');
+        if(!imports.length){ toast(PL('Não há treinos importados para apagar.','No imported workouts to remove.')); return; }
+        const msg = PL('Apagar os '+imports.length+' treino(s) importado(s) de ficheiro? Não mexe no Strava nem no resto.','Remove the '+imports.length+' file-imported workout(s)? Won\'t touch Strava or anything else.');
+        let ok = false;
+        try{ ok = (typeof window.pulsoConfirm === 'function') ? await window.pulsoConfirm(msg, { yesLabel: PL('Apagar','Remove'), noLabel: PL('Cancelar','Cancel') }) : window.confirm(msg); }catch(e){ ok = false; }
+        if(!ok) return;
+        // Apaga as curvas (streams) de cada importado e o próprio treino.
+        const days = {};
+        for(const a of imports){
+          days[String(a.date||'').slice(0,10)] = 1;
+          try{ await sSet('strava-streams-' + a.id, null); }catch(e){}
+          try{ localStorage.removeItem('pulso:strava-streams-' + a.id); }catch(e){}
+        }
+        stravaActivities = (stravaActivities || []).filter(a=> !(a && a.source === 'import'));
+        await sSet('strava-activities', stravaActivities);
+        try{ updateStravaUI(); }catch(e){}
+        try{ renderDashboard(); }catch(e){}
+        try{ if(window.PulsoArchiveDay) Object.keys(days).forEach(d=> d && window.PulsoArchiveDay(d)); }catch(e){}
+        try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
+        const done = PL(imports.length+' treino(s) importado(s) apagado(s).', imports.length+' imported workout(s) removed.');
+        if(status) status.textContent = done;
+        toast(done);
       });
     }
   })();
@@ -10715,9 +10939,10 @@ nav.tabbar button.active svg{
     return out.sort((a,b)=> String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
   }
   function mergeStravaActivities(existing, incoming){
+    const del = new Set((deletedActivityIds||[]).map(String));
     const map = new Map();
-    (existing || []).forEach(a=>{ if(a && a.id) map.set(String(a.id), a); });
-    (incoming || []).forEach(a=>{ if(a && a.id) map.set(String(a.id), {...(map.get(String(a.id)) || {}), ...a}); });
+    (existing || []).forEach(a=>{ if(a && a.id && !del.has(String(a.id))) map.set(String(a.id), a); });
+    (incoming || []).forEach(a=>{ if(a && a.id && !del.has(String(a.id))) map.set(String(a.id), {...(map.get(String(a.id)) || {}), ...a}); });
     // Dedup entre fontes com prioridade ao Strava; já devolve ordenado por data desc.
     return dedupActivities(Array.from(map.values()));
   }
@@ -10780,10 +11005,12 @@ nav.tabbar button.active svg{
   const btnStravaSync = document.getElementById('btn-strava-sync');
   if(btnStravaSync){
     btnStravaSync.addEventListener('click', async ()=>{
-      btnStravaSync.disabled = true;
-      try{ await syncStrava({force:true, full:true}); }
-      catch(err){ console.error(err); toast(PL('Não foi possível sincronizar o Strava','Couldn\'t sync Strava')); }
-      finally{ updateStravaUI(); }
+      const original = btnStravaSync.textContent;
+      btnStravaSync.disabled = true; btnStravaSync.textContent = PL('A atualizar…','Refreshing…');
+      toast(PL('A atualizar treinos do Strava…','Refreshing Strava workouts…'));
+      try{ await syncStrava({force:true, full:true, recent:true}); toast(PL('Strava atualizado.','Strava refreshed.')); }
+      catch(err){ console.error(err); toast(PL('Não foi possível atualizar o Strava (ligação/proxy).','Couldn\'t refresh Strava (connection/proxy).')); }
+      finally{ btnStravaSync.textContent = original; updateStravaUI(); }
     });
   }
 
@@ -12153,6 +12380,7 @@ nav.tabbar button.active svg{
     bpEntries = await sGet('bp-entries', []);
     plannedWorkouts = await sGet('planned-workouts', []);
     planFeedback = await sGet('plan-feedback', {}) || {};
+    deletedActivityIds = await sGet('deleted-activity-ids', []) || [];
     stravaAuth = await sGet('strava-auth', null);
     stravaActivities = await sGet('strava-activities', []);
     stravaZones = await sGet('strava-zones', null);
@@ -15421,6 +15649,12 @@ nav.tabbar button.active svg{
   .pcal-cell.empty{background:transparent; border-color:transparent; cursor:default;}
   .pcal-cell.today{border-color:rgba(53,217,166,.5);}
   .pcal-cell.selected{background:rgba(53,217,166,.16); border-color:rgba(53,217,166,.7);}
+  .pcal-cell.armed{background:rgba(155,140,255,.28); border-color:#9B8CFF; box-shadow:0 0 0 2px rgba(155,140,255,.35) inset;}
+  .pcal-cell.armed-del{background:rgba(242,85,90,.28); border-color:#F2555A; box-shadow:0 0 0 2px rgba(242,85,90,.35) inset;}
+  .coach-confirm-bar.danger{background:linear-gradient(180deg, rgba(60,26,30,.98), rgba(40,16,20,.98)); border-color:rgba(242,85,90,.55);}
+  .coach-confirm-bar{position:sticky; bottom:8px; margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:12px 14px; border-radius:16px; background:linear-gradient(180deg, rgba(31,26,60,.98), rgba(20,16,40,.98)); border:1px solid rgba(155,140,255,.5); box-shadow:0 12px 34px rgba(0,0,0,.5); z-index:5;}
+  .coach-confirm-bar .ccb-text{font-size:13px; color:#fff;}
+  .coach-confirm-bar .ccb-actions{display:flex; gap:8px;}
   .pcal-cell .pcal-num{font-size:12px; font-weight:800; color:var(--text);}
   .pcal-cell.dim .pcal-num{color:var(--text-muted); opacity:.45;}
   .pcal-dots{display:flex; gap:3px; margin-top:auto; flex-wrap:wrap; justify-content:center; padding-bottom:2px;}
@@ -15555,6 +15789,30 @@ nav.tabbar button.active svg{
 
   /* Métricas de atleta exportadas */
   .coach-metrics-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
+  .coach-swipe{display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:2px 2px 6px; scrollbar-width:none;}
+  .coach-swipe::-webkit-scrollbar{display:none;}
+  .coach-swipe-slide{flex:0 0 90%; scroll-snap-align:center;}
+  @media(min-width:560px){ .coach-swipe-slide{flex:0 0 46%;} }
+  .coach-swipe-slide > .coach-card{height:196px; overflow-y:auto; margin:0; padding:12px;}
+  #coach-athlete-data .coach-swipe-slide .coach-metrics-3{grid-template-columns:repeat(3,1fr) !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-hero{grid-template-columns:repeat(3,1fr) !important;}
+  .coach-swipe-slide > .coach-card h3{font-size:14px; margin:0 0 7px;}
+  .coach-swipe-slide .coach-metrics-grid{gap:5px;}
+  .coach-swipe-slide .coach-metric{padding:6px 5px !important; min-height:0 !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-metric{min-height:0 !important; padding:6px 5px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-metric strong{font-size:14px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-metric span{font-size:9px !important; margin-top:1px !important;}
+  .coach-swipe-slide .coach-metric strong{font-size:15px !important; line-height:1.15;}
+  .coach-swipe-slide .coach-metric span{font-size:9.5px !important;}
+  .coach-swipe-slide .coach-profile-hero{gap:5px !important;}
+  .coach-swipe-slide .coach-profile-main strong{font-size:16px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-main strong{font-size:16px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-main span{font-size:10.5px !important; margin-top:1px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-main{padding:8px 11px !important; min-height:0 !important;}
+  .coach-swipe-slide .coach-profile-tile{padding:6px 5px !important; min-height:0 !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-tile{min-height:0 !important; padding:7px 6px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-tile strong{font-size:13px !important;}
+  #coach-athlete-data .coach-swipe-slide .coach-profile-tile span{font-size:9px !important; margin-top:1px !important;}
   @media(min-width:560px){ .coach-metrics-grid{grid-template-columns:repeat(3,1fr);} }
   @media(min-width:860px){ .coach-metrics-grid{grid-template-columns:repeat(4,1fr);} }
   .coach-metric{background:rgba(9,14,25,.55); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:11px 12px;}
@@ -15581,13 +15839,68 @@ nav.tabbar button.active svg{
 
   /* Treinos efetuados do atleta — últimos 30 dias */
   .athlete-last30-card{display:flex; flex-direction:column; gap:12px;}
+  .records-card{display:flex; flex-direction:column; gap:12px;}
+  .cwg-grid{display:flex; flex-direction:column; gap:6px;}
+  .cwg-row{display:grid; grid-template-columns:76px repeat(7,1fr); align-items:center; gap:4px;}
+  .cwg-head .cwg-cell{font-size:10px; color:var(--text-muted); font-weight:800;}
+  .cwg-name{font-size:12px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cwg-cell{display:flex; align-items:center; justify-content:center; min-height:24px;}
+  .cwg-cell.cwg-today{color:var(--teal);}
+  .cwg-dot{width:14px; height:14px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);}
+  .cwg-dot.cwg-done{background:var(--teal); border-color:var(--teal);}
+  .cwg-dot.cwg-planned{background:#F2B84B; border-color:#F2B84B;}
+  .cwg-dot.cwg-missed{background:#F2555A; border-color:#F2555A;}
+  .cwg-dot.cwg-none{background:rgba(255,255,255,.06);}
+  .cwg-legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:11px; color:var(--text-muted);}
+  .cwg-legend span{display:inline-flex; align-items:center; gap:5px;}
+  .cwg-legend i{width:10px; height:10px; border-radius:50%; display:inline-block;}
+  .rec-be-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid rgba(255,255,255,.08); border-radius:14px; background:rgba(9,14,25,.48);}
+  .rec-be-dist{font-weight:900; color:#fff; font-size:14px;}
+  .rec-be-time{font-weight:900; color:var(--teal); font-size:16px;}
+  .rec-be-sub{font-size:11px; color:var(--text-muted);}
+  .rec-tiles{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  .rec-tile{border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; background:rgba(9,14,25,.48);}
+  .rec-tile strong{display:block; font-size:18px; color:#fff; font-weight:900;}
+  .rec-tile span{font-size:11px; color:var(--text-muted);}
+  .rec-section-label{font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin:2px 0 -2px;}
+  .rec-be-block{border:1px solid rgba(255,255,255,.08); border-radius:14px; background:rgba(9,14,25,.48); padding:10px 12px;}
+  .rec-be-blockhead{font-weight:900; color:#fff; font-size:14px; margin-bottom:6px;}
+  .rec-be-row{display:flex; align-items:center; gap:8px; padding:3px 0;}
+  .rec-be-medal{font-size:16px; width:22px; text-align:center;}
+  .rec-be-time{font-weight:900; color:var(--teal); font-size:15px; min-width:64px;}
+  .rec-medal-2 .rec-be-time{color:#C9D2DA;} .rec-medal-3 .rec-be-time{color:#D8A26A;}
+  .rec-be-sub{font-size:11px; color:var(--text-muted);}
+  /* Página de celebração de recorde */
+  #record-celebrate{position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(3,7,14,.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);}
+  #record-celebrate.active{display:flex; animation:rcFade .25s ease;}
+  @keyframes rcFade{from{opacity:0;} to{opacity:1;}}
+  .rc-card{max-width:340px; width:100%; text-align:center; background:linear-gradient(180deg, rgba(20,28,44,.98), rgba(9,14,25,.98)); border:1px solid rgba(255,255,255,.12); border-radius:26px; padding:28px 22px; box-shadow:0 24px 70px rgba(0,0,0,.6);}
+  .rc-trophy{font-size:72px; line-height:1; animation:rcPop .5s cubic-bezier(.2,1.4,.5,1);}
+  .rc-trophy.gold{filter:drop-shadow(0 0 18px rgba(255,196,0,.6));}
+  .rc-trophy.silver{filter:drop-shadow(0 0 16px rgba(200,210,220,.55)); font-size:60px;}
+  .rc-trophy.bronze{filter:drop-shadow(0 0 16px rgba(205,127,50,.55)); font-size:60px;}
+  @keyframes rcPop{0%{transform:scale(.3) rotate(-12deg); opacity:0;} 100%{transform:scale(1) rotate(0); opacity:1;}}
+  .rc-title{font-size:22px; font-weight:900; color:#fff; margin-top:8px;}
+  .rc-main{font-size:17px; color:#fff; margin-top:6px;}
+  .rc-sub{font-size:13px; color:var(--teal); font-weight:800; margin-top:2px; text-transform:uppercase; letter-spacing:.04em;}
+  .rc-more{margin-top:12px; font-size:13px; color:var(--text-muted); display:flex; flex-direction:column; gap:3px;}
+  .rc-close{margin-top:20px; width:100%; min-height:48px; border-radius:14px; border:0; background:var(--teal); color:#05240f; font-weight:900; font-size:16px; cursor:pointer;}
+  #pulso-center-toast{position:fixed; inset:0; z-index:100003; display:none; align-items:center; justify-content:center; pointer-events:none; padding:24px;}
+  #pulso-center-toast.active{display:flex;}
+  #pulso-center-toast .pct-card{display:flex; align-items:center; gap:12px; background:rgba(12,20,34,.98); border:1px solid rgba(53,217,166,.55); border-radius:18px; padding:16px 22px; box-shadow:0 18px 50px rgba(0,0,0,.55); animation:pctPop .22s ease;}
+  #pulso-center-toast .pct-icon{width:32px; height:32px; border-radius:50%; background:var(--teal); color:#05240f; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:19px; flex:0 0 auto;}
+  #pulso-center-toast-msg{color:#fff; font-weight:800; font-size:16px;}
+  @keyframes pctPop{from{transform:scale(.82); opacity:0;} to{transform:scale(1); opacity:1;}}
   .athlete-last30-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
   .athlete-last30-mini{background:rgba(9,14,25,.55); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:10px 11px; text-align:center;}
   .athlete-last30-mini strong{display:block; color:#fff; font-size:18px; line-height:1.1; font-weight:900;}
   .athlete-last30-mini span{display:block; margin-top:4px; color:var(--text-muted); font-size:10px; text-transform:uppercase; letter-spacing:.35px;}
   .athlete-last30-list{display:flex; flex-direction:column; gap:9px;}
   .athlete-last30-item{border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:13px; background:rgba(9,14,25,.48);}
-  .athlete-last30-item .a30-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .a30-del{position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:50%; border:1px solid rgba(242,85,90,.4); background:rgba(242,85,90,.15); color:#F2555A; font-size:17px; line-height:1; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; z-index:5;}
+  .a30-del:active{background:rgba(242,85,90,.32);}
+  .athlete-last30-item .a30-stats{padding-right:4px;}
+  .athlete-last30-item .a30-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start; padding-right:36px;}
   .athlete-last30-item .a30-name{font-size:15px; font-weight:900; color:#fff; line-height:1.25;}
   .athlete-last30-item .a30-date{font-size:11px; color:var(--text-muted); white-space:nowrap;}
   .athlete-last30-item .a30-stats{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
@@ -15957,21 +16270,18 @@ nav.tabbar button.active svg{
                 <p class="mins" id="cwb-preview-min"></p>
               </div>
 
-              <label class="cwb-check" style="margin-top:2px;"><input type="checkbox" id="cwb-fav"> <strong data-i18n="★ Also save to favorites">★ Guardar também nos favoritos</strong></label>
-
-              <div class="cwb-row" style="gap:8px;">
-                <button class="coach-btn primary" type="submit" style="flex:1;" data-i18n="Save workout">Guardar treino</button>
-                <button class="coach-btn ghost" type="button" id="cwb-cancel" data-i18n="Cancel">Cancelar</button>
+              <div class="cwb-row" style="gap:8px; margin-top:2px;">
+                <button class="coach-btn primary" type="button" id="cwb-save-lib" style="flex:1;" data-i18n="Save">Guardar</button>
+                <button class="coach-btn ghost" type="button" id="cwb-cancel" style="flex:1;" data-i18n="Cancel">Cancelar</button>
               </div>
             </form>
           </div>
 
           <div class="coach-card">
             <div class="coach-section-head">
-              <h2 data-i18n="Workout library">Biblioteca de treinos</h2>
-              <button class="coach-btn tiny ghost" type="button" id="coach-fav-filter" data-i18n="★ Favorites">★ Favoritos</button>
+              <h2 data-i18n="Created workouts">Treinos criados</h2>
             </div>
-            <div class="coach-note" style="margin-bottom:10px;" data-i18n="Only favorite workouts show here. Open by name to edit or prescribe in the athlete's calendar.">Aqui aparecem só os treinos favoritos. Abre pelo nome para editar ou prescrever no calendário do atleta.</div>
+            <div class="coach-note" style="margin-bottom:10px;" data-i18n="Every workout you build is saved here. Select one and tap Prescribe to place it on the calendar.">Todos os treinos que crias ficam aqui. Seleciona um e toca em Prescrever para o colocar no calendário.</div>
             <div id="coach-workouts-list"></div>
           </div>
         </div>
@@ -15988,6 +16298,15 @@ nav.tabbar button.active svg{
 
           <div class="coach-card">
             <div class="coach-section-head">
+              <h2 data-i18n="Week at a glance">Semana de relance</h2>
+            </div>
+            <div class="coach-note" style="margin-bottom:10px;" data-i18n="Planned vs done around today.">Planeado vs feito à volta de hoje.</div>
+            <div id="coach-week-glance"></div>
+            <div class="cwg-legend"><span><i style="background:var(--teal);"></i><span data-i18n="Done">Feito</span></span><span><i style="background:#F2B84B;"></i><span data-i18n="Planned">Planeado</span></span><span><i style="background:#F2555A;"></i><span data-i18n="Missed">Em falta</span></span></div>
+          </div>
+
+          <div class="coach-card">
+            <div class="coach-section-head">
               <h2 data-i18n="Calendar">Calendário</h2>
             </div>
             <div class="coach-select-row">
@@ -15996,6 +16315,7 @@ nav.tabbar button.active svg{
             </div>
             <div class="pcal-arm" id="coach-cal-arm"></div>
             <div id="coach-calendar"></div>
+            <div id="coach-cal-confirm"></div>
             <div class="pcal-legend"><span><i style="background:var(--teal);"></i><span data-i18n="Workout done">Treino feito</span></span><span><i style="background:#F2B84B;"></i><span data-i18n="Race">Prova</span></span><span><i style="background:#9B8CFF;"></i><span data-i18n="Prescribed workout">Treino prescrito</span></span></div>
           </div>
 
@@ -16109,6 +16429,20 @@ nav.tabbar button.active svg{
       coachToastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 2200);
     }catch(e){}
   }
+  // Mensagem central "Guardado com sucesso" (✓) que aparece e desaparece.
+  let _pctTimer = null;
+  function pulsoSaved(msg){
+    try{
+      const ov = document.getElementById('pulso-center-toast');
+      const m = document.getElementById('pulso-center-toast-msg');
+      if(!ov || !m) return;
+      m.textContent = msg || PL('Guardado com sucesso','Saved successfully');
+      ov.classList.add('active');
+      clearTimeout(_pctTimer);
+      _pctTimer = setTimeout(()=> ov.classList.remove('active'), 1500);
+    }catch(e){}
+  }
+  window.pulsoSaved = pulsoSaved;
 
 
   function safeStravaActivities(){
@@ -16264,12 +16598,11 @@ nav.tabbar button.active svg{
   function renderCoachWorkouts(){
     const el = document.getElementById('coach-workouts-list');
     if(!el) return;
-    // Só favoritos: não mistura aqui treinos prescritos/agendados.
-    // Se um treino prescrito tiver de ser anulado, faz-se no dia do calendário do atleta.
-    let coachW = getCoachWorkouts().filter(w=>w.favorite);
+    // Todos os treinos criados pelo treinador (sem filtro de favorito).
+    let coachW = getCoachWorkouts();
     const athleteW = collectManualWorkouts();
     if(!coachW.length && !athleteW.length){
-      el.innerHTML = '<div class="coach-empty">'+PL('Ainda não tens treinos favoritos. Marca treinos do treinador como ★ Favorito ou guarda favoritos na área do atleta.','No favorite workouts yet. Mark coach workouts as ★ Favorite or save favorites in the athlete area.')+'</div>';
+      el.innerHTML = '<div class="coach-empty">'+PL('Ainda não tens treinos criados. Cria um em "+ Novo treino".','No created workouts yet. Create one with "+ New workout".')+'</div>';
       return;
     }
     const meta = (type, min, source)=>{
@@ -16286,7 +16619,7 @@ nav.tabbar button.active svg{
           <summary>
             <div class="coach-lib-titleline">
               <div class="lib-title">${esc(w.name||'Treino')}</div>
-              <div class="coach-mini-meta">${esc(meta(w.type, w.baseMinutes, w.favorite ? '★ Favorito' : 'Treino do treinador'))}</div>
+              <div class="coach-mini-meta">${esc(meta(w.type, w.baseMinutes, PL('Treino criado','Created workout')))}</div>
             </div>
             <span class="coach-collapse-icon">›</span>
           </summary>
@@ -16297,10 +16630,9 @@ nav.tabbar button.active svg{
               ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
             </div>
             <div class="lib-actions">
-              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}">Prescrever / Agendar</button>
-              <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}">Editar</button>
-              <button class="coach-fav-star${w.favorite?' on':''}" type="button" data-lib-fav="${esc(w.id)}" title="Favorito" aria-label="Favorito">${w.favorite?'★':'☆'}</button>
-              <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}">Apagar</button>
+              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}" data-i18n="Prescribe">Prescrever</button>
+              <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}" data-i18n="Edit">Editar</button>
+              <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}" data-i18n="Delete">Apagar</button>
             </div>
           </div>
         </details>
@@ -16583,6 +16915,17 @@ nav.tabbar button.active svg{
     }
     form.style.display = 'flex';
     if(hint) hint.style.display = 'none';
+    // Preenche o seletor de atleta e a data (por defeito hoje ou o dia selecionado no calendário).
+    try{
+      const aSel = cwbEl('cwb-athlete');
+      if(aSel){
+        const cur = aSel.value;
+        aSel.innerHTML = getAthletes().map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+        const want = (coachCalendarFilter && coachCalendarFilter!=='all') ? coachCalendarFilter : (selectedAthleteId || 'local');
+        aSel.value = [...aSel.options].some(o=>o.value===cur) ? cur : want;
+      }
+      const dEl = cwbEl('cwb-date'); if(dEl && !dEl.value) dEl.value = coachSelectedDay || todayStr();
+    }catch(e){}
     cwbRefresh();
     try{ form.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
   }
@@ -16603,8 +16946,7 @@ nav.tabbar button.active svg{
     const desc = lines.join('\n');
     const builder = cwbCollectState();
     const editId = cwbEl('cwb-edit-id').value;
-    const favEl = cwbEl('cwb-fav');
-    const fav = !!(favEl && favEl.checked);
+    const fav = true; // guardar aqui = guardar nos favoritos (aparece na lista)
     const list = getCoachWorkouts();
     if(editId){
       const w = list.find(x=>x.id===editId);
@@ -16615,7 +16957,34 @@ nav.tabbar button.active svg{
     setPulso('coach-workouts', list);
     closeCoachEditor();
     renderCoachWorkouts();
-    toast(editId ? 'Treino atualizado' : 'Treino guardado');
+    pulsoSaved(editId ? PL('Treino atualizado','Workout updated') : PL('Guardado com sucesso','Saved successfully'));
+  }
+  // Constrói o objeto do treino a partir do editor (nome, tipo, minutos, descrição, builder).
+  function cwbBuildWorkoutObject(){
+    const name = (cwbEl('cwb-name').value || '').trim();
+    if(!name){ toast(PL('Dá um nome ao treino','Give the workout a name')); const n = cwbEl('cwb-name'); if(n) n.focus(); return null; }
+    const mod = cwbVal('cwb-mod');
+    if(mod==='forca' && cwbForcaSelected.length===0){ toast(PL('Escolhe pelo menos um exercício','Choose at least one exercise')); return null; }
+    const { lines, minutes } = cwbBuild();
+    return { name, type:mod, baseMinutes:minutes, desc:lines.join('\n'), builder:cwbCollectState() };
+  }
+  // Prescreve o treino do editor logo para o atleta + data escolhidos (guardar é opcional).
+  function prescribeCoachWorkout(){
+    const w = cwbBuildWorkoutObject(); if(!w) return;
+    const athleteId = cwbVal('cwb-athlete') || prescribeTargetId();
+    const date = (cwbEl('cwb-date') && cwbEl('cwb-date').value) || todayStr();
+    scheduleWorkout(athleteId, date, w);
+    const aName = (getAthletes().find(a=>a.id===athleteId)||{}).name || PL('atleta','athlete');
+    if(!isCloudAthlete(athleteId)) toast(w.name + ' → ' + aName + ' · ' + fmtDayLabel(date));
+    closeCoachEditor();
+    // Mostra o atleta prescrito no calendário e atualiza a barra de cores logo.
+    coachSelectedDay = date;
+    if(coachCalendarFilter !== 'all' && coachCalendarFilter !== athleteId){
+      coachCalendarFilter = athleteId;
+      const cs = document.getElementById('coach-calendar-athlete'); if(cs) cs.value = athleteId;
+    }
+    try{ renderCoachCalendar(); }catch(e){}
+    try{ renderCoachWeekGlance(); }catch(e){}
   }
   function deleteCoachWorkout(id){
     const list = getCoachWorkouts().filter(w=>w.id!==id);
@@ -16659,6 +17028,9 @@ nav.tabbar button.active svg{
   let coachCalRef = new Date();              // mês visível no calendário do treinador
   let coachSelectedDay = null;               // dia selecionado no calendário do treinador
   let armedWorkout = null;                   // treino "à espera" de ser colocado num dia
+  let armedDays = [];                        // dias selecionados durante a prescrição
+  let coachDeleteMode = false;               // modo de apagar treinos por dia
+  let deleteDays = [];                       // dias selecionados para apagar
 
   const DOW = ['S','T','Q','Q','S','S','D']; // seg..dom (curto)
 
@@ -16821,6 +17193,47 @@ nav.tabbar button.active svg{
         ${delBtn}
       </div>`;
     }).join('');
+    try{ renderCoachWeekGlance(); }catch(e){}
+  }
+
+  // Semana de relance: grelha atletas × 7 dias (feito / planeado / em falta).
+  function renderCoachWeekGlance(){
+    const el = document.getElementById('coach-week-glance');
+    if(!el) return;
+    const athletes = getAthletes();
+    const today = todayStr();
+    const days = [];
+    const base = new Date(today + 'T00:00:00');
+    for(let i=-3;i<=3;i++){ const d = new Date(base); d.setDate(d.getDate()+i); days.push(d.toISOString().slice(0,10)); }
+    const dow = ['D','S','T','Q','Q','S','S'];
+    const localDone = completedByDay(10) || {};
+
+    let head = '<div class="cwg-row cwg-head"><div class="cwg-name"></div>' + days.map(d=>{
+      const wd = new Date(d+'T00:00:00').getDay();
+      const isToday = d === today;
+      return '<div class="cwg-cell'+(isToday?' cwg-today':'')+'">'+dow[wd]+'</div>';
+    }).join('') + '</div>';
+
+    const rows = athletes.map(a=>{
+      const plan = getCalendarFor(a.id) || {};
+      const cells = days.map(day=>{
+        const planned = (plan[day] || []).length;
+        const done = (a.id === 'local') ? ((localDone[day] || []).length > 0) : false;
+        let cls = 'cwg-none';
+        if(done){ cls = 'cwg-done'; }
+        else if(planned){
+          // No passado e sabemos que não foi feito (só garantido no atleta local) → em falta.
+          if(day < today && a.id === 'local') cls = 'cwg-missed';
+          else cls = 'cwg-planned';
+        }
+        const label = (a.name||'') + ' · ' + day + (planned?(' · '+planned+' '+PL('planeado(s)','planned')):'') + (done?(' · '+PL('feito','done')):'');
+        return '<div class="cwg-cell"><span class="cwg-dot '+cls+'" title="'+esc(label)+'"></span></div>';
+      }).join('');
+      return '<div class="cwg-row"><div class="cwg-name" title="'+esc(a.name||'')+'">'+esc((a.name||'A').length>10 ? (a.name.slice(0,9)+'…') : a.name)+'</div>'+cells+'</div>';
+    }).join('');
+
+    el.innerHTML = '<div class="cwg-grid">' + head + rows + '</div>' +
+      (athletes.some(a=>a.id!=='local') ? '<p class="coach-note" style="margin:8px 0 0; font-size:11px;">'+PL('Para atletas na cloud, o "feito" aparece quando abres o atleta (carrega os dados dele).','For cloud athletes, "done" shows once you open the athlete (loads their data).')+'</p>' : '');
   }
 
   function deleteAthlete(id){
@@ -16981,18 +17394,70 @@ nav.tabbar button.active svg{
   function armWorkout(workoutId){
     const w = getCoachWorkouts().find(x=>x.id===workoutId);
     if(!w){ toast(PL('Treino não encontrado','Workout not found')); return; }
+    coachDeleteMode = false; deleteDays = [];
     armedWorkout = { name:w.name, type:w.type, desc:w.desc, baseMinutes:w.baseMinutes };
-    const targetId = prescribeTargetId();
-    const targetName = (getAthletes().find(a=>a.id===targetId)||{}).name || 'atleta';
+    armedDays = [];
+    const targetName = (getAthletes().find(a=>a.id===prescribeTargetId())||{}).name || PL('atleta','athlete');
     const arm = document.getElementById('coach-cal-arm');
-    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> → <strong>' + esc(targetName) + '</strong> ' + PL('— toca no dia do calendário onde o queres colocar.','— tap the calendar day where you want to place it.') + ' <button class="coach-btn tiny ghost" type="button" id="coach-cal-cancel" style="margin-left:6px;">' + PL('Cancelar','Cancel') + '</button>'; }
+    if(arm){ arm.classList.add('on'); arm.innerHTML = '📌 <strong>' + esc(w.name) + '</strong> → <strong>' + esc(targetName) + '</strong> — ' + PL('toca nos dias que queres e confirma em baixo.','tap the days you want and confirm below.'); }
+    renderCoachCalendar();
     const cal = document.getElementById('coach-calendar');
     if(cal){ try{ cal.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} }
   }
   function disarmWorkout(){
-    armedWorkout = null;
+    armedWorkout = null; armedDays = [];
     const arm = document.getElementById('coach-cal-arm');
     if(arm){ arm.classList.remove('on'); arm.innerHTML = ''; }
+    const conf = document.getElementById('coach-cal-confirm'); if(conf) conf.innerHTML = '';
+  }
+  // Barra temporária na base do calendário durante a prescrição (multi-dia + confirmar).
+  function renderCoachConfirmBar(){
+    const conf = document.getElementById('coach-cal-confirm');
+    if(!conf) return;
+    if(coachDeleteMode){
+      const n = deleteDays.length;
+      conf.innerHTML = '<div class="coach-confirm-bar danger">'+
+        '<div class="ccb-text">🗑 '+PL('Apagar treinos de','Delete workouts on')+' <strong>'+n+' '+PL('dia(s)','day(s)')+'</strong></div>'+
+        '<div class="ccb-actions">'+
+          '<button class="coach-btn tiny ghost" type="button" id="ccb-cancel-del">'+PL('Cancelar','Cancel')+'</button>'+
+          '<button class="coach-btn tiny danger" type="button" id="ccb-confirm-del"'+(n?'':' disabled')+'>'+PL('Apagar','Delete')+(n?(' ('+n+')'):'')+'</button>'+
+        '</div></div>';
+      const cc = document.getElementById('ccb-cancel-del'); if(cc) cc.onclick = ()=>{ exitCoachDeleteMode(); renderCoachCalendar(); };
+      const ok = document.getElementById('ccb-confirm-del'); if(ok) ok.onclick = confirmDeleteDays;
+      return;
+    }
+    if(!armedWorkout){ _coachIdleDeleteButton(conf); return; }
+    const targetName = (getAthletes().find(a=>a.id===prescribeTargetId())||{}).name || PL('atleta','athlete');
+    const n = armedDays.length;
+    conf.innerHTML = '<div class="coach-confirm-bar">'+
+      '<div class="ccb-text">📌 '+esc(armedWorkout.name)+' → '+esc(targetName)+' · <strong>'+n+' '+PL('dia(s)','day(s)')+'</strong></div>'+
+      '<div class="ccb-actions">'+
+        '<button class="coach-btn tiny ghost" type="button" id="ccb-cancel">'+PL('Cancelar','Cancel')+'</button>'+
+        '<button class="coach-btn tiny primary" type="button" id="ccb-confirm"'+(n?'':' disabled')+'>'+PL('Confirmar','Confirm')+(n?(' ('+n+')'):'')+'</button>'+
+      '</div></div>';
+    const cc = document.getElementById('ccb-cancel'); if(cc) cc.onclick = ()=>{ disarmWorkout(); renderCoachCalendar(); };
+    const ok = document.getElementById('ccb-confirm'); if(ok) ok.onclick = confirmPrescribe;
+  }
+  function _coachIdleDeleteButton(conf){
+    conf.innerHTML = '<button class="coach-btn tiny ghost" type="button" id="ccb-enter-del" style="margin-top:10px; color:#F2555A; border-color:rgba(242,85,90,.4);">🗑 '+PL('Apagar treinos de vários dias','Delete workouts across days')+'</button>';
+    const b = document.getElementById('ccb-enter-del'); if(b) b.onclick = ()=> enterCoachDeleteMode();
+  }
+  function confirmPrescribe(){
+    if(!armedWorkout || !armedDays.length) return;
+    const targetId = prescribeTargetId();
+    const targetName = (getAthletes().find(a=>a.id===targetId)||{}).name || PL('atleta','athlete');
+    const days = armedDays.slice(); const w = armedWorkout;
+    days.forEach(day=> scheduleWorkout(targetId, day, w));
+    pulsoSaved(PL('Prescrito com sucesso','Prescribed successfully'));
+    if(!isCloudAthlete(targetId)) toast(w.name + ' → ' + targetName + ' · ' + days.length + ' ' + PL('dia(s)','day(s)'));
+    coachSelectedDay = days.sort()[days.length-1];
+    if(coachCalendarFilter !== 'all' && coachCalendarFilter !== targetId){
+      coachCalendarFilter = targetId;
+      const cs = document.getElementById('coach-calendar-athlete'); if(cs) cs.value = targetId;
+    }
+    disarmWorkout();
+    renderCoachCalendar();
+    try{ renderCoachWeekGlance(); }catch(e){}
   }
 
   /* ---- Construção de um grid mensal (reutilizado pelo treinador e pelo atleta) ---- */
@@ -17020,6 +17485,8 @@ nav.tabbar button.active svg{
       const cls = ['pcal-cell'];
       if(key === today) cls.push('today');
       if(key === selectedDay) cls.push('selected');
+      try{ if(armedWorkout && armedDays.indexOf(key) >= 0) cls.push('armed'); }catch(_){}
+      try{ if(coachDeleteMode && deleteDays.indexOf(key) >= 0) cls.push('armed-del'); }catch(_){}
       cells += `<div class="${cls.join(' ')}" data-day="${key}"><span class="pcal-num">${d}</span><span class="pcal-dots">${dots}</span></div>`;
     }
     return `<div class="pcal">
@@ -17042,6 +17509,7 @@ nav.tabbar button.active svg{
     const data = coachCalendarData();
     const races = coachCalendarRaces();
     el.innerHTML = buildCalendarHTML(coachCalRef, data, races, coachSelectedDay);
+    renderCoachConfirmBar();
     renderCoachDay();
   }
   function renderCoachDay(){
@@ -17063,7 +17531,7 @@ nav.tabbar button.active svg{
       const hasRace = races.length > 0;
       if(!items.length && !hasRace && !completed.length) return;
       html += '<div class="coach-day-athlete-block">'+
-        '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong><span>'+(a.local?PL('Este telemóvel','This phone'):PL('Cloud em breve','Cloud soon'))+'</span></div>';
+        '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong></div>';
       if(hasRace){
         html += races.map(race=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left; border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08); margin-bottom:8px;"><div class="di-title" style="color:#F2B84B;">🏁 ${esc(a.name)} — ${esc(race.name)}</div><div class="di-desc">Prova${race.distanceKm?' · '+race.distanceKm+' km':''}${race.elevationM?' · '+race.elevationM+' D+':''}. Toca para abrir os dados do atleta nesse dia.</div></button>`).join('');
       }
@@ -17095,25 +17563,57 @@ nav.tabbar button.active svg{
     if(selectedAthleteId) return selectedAthleteId;
     return 'local';
   }
+  let _lastTapDay = null, _lastTapTime = 0;
   function onCoachDayTap(day){
-    if(armedWorkout){
-      const targetId = prescribeTargetId();
-      const targetName = (getAthletes().find(a=>a.id===targetId)||{}).name || 'atleta';
-      scheduleWorkout(targetId, day, armedWorkout);
-      toast(armedWorkout.name + ' → ' + targetName + ' · ' + fmtDayLabel(day));
-      disarmWorkout();
-      coachSelectedDay = day;
-      // Garante que o calendário mostra o atleta a quem prescreveste (senão o treino "não aparece").
-      if(coachCalendarFilter !== 'all' && coachCalendarFilter !== targetId){
-        coachCalendarFilter = targetId;
-        const calSel = document.getElementById('coach-calendar-athlete');
-        if(calSel) calSel.value = targetId;
-      }
+    const now = Date.now();
+    // Duplo toque no mesmo dia (em modo normal) → entra em apagar e seleciona-o.
+    if(!coachDeleteMode && !armedWorkout && _lastTapDay === day && (now - _lastTapTime) < 450){
+      _lastTapDay = null; _lastTapTime = 0;
+      enterCoachDeleteMode();
+      deleteDays = [day];
       renderCoachCalendar();
+      return;
+    }
+    _lastTapDay = day; _lastTapTime = now;
+    if(coachDeleteMode){
+      const i = deleteDays.indexOf(day);
+      if(i >= 0) deleteDays.splice(i, 1); else deleteDays.push(day);
+      renderCoachCalendar();
+      return;
+    }
+    if(armedWorkout){
+      const i = armedDays.indexOf(day);
+      if(i >= 0) armedDays.splice(i, 1); else armedDays.push(day);
+      renderCoachCalendar();   // re-desenha com os dias marcados + a barra de confirmar
       return;
     }
     coachSelectedDay = day;
     renderCoachCalendar();
+  }
+  function enterCoachDeleteMode(){
+    disarmWorkout();
+    coachDeleteMode = true; deleteDays = [];
+    const arm = document.getElementById('coach-cal-arm');
+    if(arm){ arm.classList.add('on'); arm.innerHTML = '🗑 ' + PL('Toca nos dias cujos treinos queres apagar e confirma em baixo.','Tap the days whose workouts you want to delete, then confirm below.'); }
+    renderCoachCalendar();
+    const cal = document.getElementById('coach-calendar'); if(cal){ try{ cal.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} }
+  }
+  function exitCoachDeleteMode(){
+    coachDeleteMode = false; deleteDays = [];
+    const arm = document.getElementById('coach-cal-arm');
+    if(arm){ arm.classList.remove('on'); arm.innerHTML = ''; }
+    const conf = document.getElementById('coach-cal-confirm'); if(conf) conf.innerHTML = '';
+  }
+  async function confirmDeleteDays(){
+    if(!coachDeleteMode || !deleteDays.length) return;
+    const targetId = prescribeTargetId();
+    const cal = getCalendarFor(targetId) || {};
+    let count = 0;
+    deleteDays.forEach(day=>{ (cal[day]||[]).slice().forEach(w=>{ unscheduleWorkout(targetId, day, w.id); count++; }); });
+    toast(count ? (count + ' ' + PL('treino(s) removido(s)','workout(s) removed')) : PL('Nada para apagar nesses dias.','Nothing to delete on those days.'));
+    exitCoachDeleteMode();
+    renderCoachCalendar();
+    try{ renderCoachWeekGlance(); }catch(e){}
   }
 
   /* =====================================================================
@@ -17182,8 +17682,163 @@ nav.tabbar button.active svg{
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     const kcalPill = coachActivityKcal(a);
     if(kcalPill) pills.push('<span class="coach-pill">'+Math.round(kcalPill)+' kcal</span>');
-    return '<div class="athlete-last30-item" '+((a.source === 'strava' || a.source === 'import') && a.id ? 'data-strava-id="'+esc(String(a.id))+'"' : '')+'><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
+    return '<div class="athlete-last30-item" style="position:relative;" '+((a.source === 'strava' || a.source === 'import') && a.id ? 'data-strava-id="'+esc(String(a.id))+'"' : '')+'>'+
+      (a.id ? '<button class="a30-del" type="button" data-del-activity="'+esc(String(a.id))+'" aria-label="Apagar treino">×</button>' : '')+
+      '<div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
   }
+  // Apaga um treino (Strava ou importado) e guarda o id para não voltar na sincronização.
+  async function deleteActivityById(id){
+    id = String(id||''); if(!id) return;
+    const a = (stravaActivities||[]).find(x=>String(x.id)===id);
+    const nm = a ? ('"'+(a.name||'treino')+'"') : 'este treino';
+    const msg = PL('Apagar '+nm+'? Não volta a aparecer, nem numa sincronização do Strava.','Remove '+nm+'? It won\'t come back, even on a Strava sync.');
+    let ok=false;
+    try{ ok = (typeof window.pulsoConfirm==='function') ? await window.pulsoConfirm(msg, {yesLabel:PL('Apagar','Remove'), noLabel:PL('Cancelar','Cancel')}) : window.confirm(msg); }catch(e){ ok=false; }
+    if(!ok) return;
+    const day = a ? String(a.date||'').slice(0,10) : null;
+    if(!deletedActivityIds.includes(id)) deletedActivityIds.push(id);
+    if(deletedActivityIds.length>500) deletedActivityIds = deletedActivityIds.slice(-500);
+    await sSet('deleted-activity-ids', deletedActivityIds);
+    try{ await sSet('strava-streams-'+id, null); localStorage.removeItem('pulso:strava-streams-'+id); }catch(e){}
+    stravaActivities = (stravaActivities||[]).filter(x=> String(x.id)!==id);
+    await sSet('strava-activities', stravaActivities);
+    try{ updateStravaUI(); }catch(e){}
+    try{ renderDashboard(); }catch(e){}
+    try{ if(day && window.PulsoArchiveDay) window.PulsoArchiveDay(day); }catch(e){}
+    try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData==='function') window.PulsoCloud.uploadData(); }catch(e){}
+    toast(PL('Treino apagado.','Workout removed.'));
+  }
+  window.PulsoDeleteActivity = deleteActivityById;
+
+  // ---------- Recordes pessoais (melhores esforços + máximos) ----------
+  function _fmtDur(sec){
+    sec = Math.round(Number(sec)||0);
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+    return h>0 ? (h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')) : (m+':'+String(s).padStart(2,'0'));
+  }
+  function _paceFromSecKm(secPerKm){
+    if(!isFinite(secPerKm) || secPerKm<=0) return '—';
+    const m = Math.floor(secPerKm/60), s = Math.round(secPerKm%60);
+    return m+':'+String(s).padStart(2,'0')+'/km';
+  }
+  // Menor tempo para cobrir 'need' metros dentro de uma curva (janela deslizante O(n)).
+  function _bestEffortSec(D, T, need){
+    let i=0, best=Infinity;
+    for(let j=0;j<D.length;j++){
+      while(i<j && (D[j]-D[i]) >= need){ const dt = T[j]-T[i]; if(dt<best) best=dt; i++; }
+    }
+    return best;
+  }
+  async function renderRecords(){
+    const box = document.getElementById('records-list');
+    if(!box) return;
+    const acts = (safeStravaActivities() || []).filter(a=>a && (a.distanceKm||a.movingSec));
+    if(!acts.length){ box.innerHTML = '<p class="help" style="margin:8px 0 0;">'+PL('Importa ou sincroniza treinos para veres os teus recordes.','Import or sync workouts to see your records.')+'</p>'; return; }
+    const runs = acts.filter(a=> sportCategory(a.type||a.sportType)==='run');
+    const rides = acts.filter(a=> sportCategory(a.type||a.sportType)==='bike');
+
+    // Melhores esforços de corrida — top-3 por distância (a partir das curvas guardadas).
+    const targets = [{km:1,label:'1 km'},{km:5,label:'5 km'},{km:10,label:'10 km'},{km:21.0975,label:PL('Meia maratona','Half marathon')}];
+    const efforts = {};
+    for(const a of runs){
+      let st = null; try{ st = await sGet('strava-streams-'+a.id, null); }catch(e){}
+      if(!st || !st.distance || !st.distance.length || !st.time || !st.time.length) continue;
+      for(const tg of targets){
+        const need = tg.km*1000;
+        if((st.distance[st.distance.length-1]-st.distance[0]) < need) continue;
+        const sec = _bestEffortSec(st.distance, st.time, need);
+        if(!isFinite(sec)) continue;
+        (efforts[tg.km] = efforts[tg.km] || []).push({sec, id:String(a.id), date:a.date});
+      }
+    }
+    // Um esforço por atividade; ordena e fica com os 3 melhores.
+    Object.keys(efforts).forEach(k=>{
+      const byId = {}; efforts[k].forEach(e=>{ if(!byId[e.id] || e.sec<byId[e.id].sec) byId[e.id]=e; });
+      efforts[k] = Object.values(byId).sort((a,b)=>a.sec-b.sec).slice(0,3);
+    });
+
+    // Deteta recordes novos vs guardado (para celebrar).
+    const prev = (await sGet('records-best', {})) || {};
+    const everComputed = prev && Object.keys(prev).length > 0;
+    const newPRs = [];
+    targets.forEach(tg=>{
+      const cur = efforts[tg.km] || [];
+      const old = (prev[tg.km] || []);
+      const oldIds = new Set(old.map(e=>String(e.id)));
+      cur.forEach((e, idx)=>{
+        const isNewEntry = !oldIds.has(String(e.id));                 // atividade nova no pódio
+        const beatsOldAtRank = !old[idx] || e.sec < old[idx].sec;      // melhorou este lugar
+        if(isNewEntry && beatsOldAtRank){ newPRs.push({label:tg.label, sec:e.sec, rank:idx+1, km:tg.km}); }
+      });
+    });
+    const toStore = {}; targets.forEach(tg=>{ if(efforts[tg.km]) toStore[tg.km] = efforts[tg.km]; });
+    await sSet('records-best', toStore);
+    // Só celebra depois de já ter havido um cálculo antes (não no primeiro preenchimento).
+    if(newPRs.length && everComputed){ try{ showRecordCelebration(newPRs); }catch(e){} }
+
+    // Render do pódio
+    const medals = ['🥇','🥈','🥉'];
+    let html = '';
+    const withData = targets.filter(tg=>(efforts[tg.km]||[]).length);
+    if(withData.length){
+      html += '<div class="rec-section-label">'+PL('Melhores esforços (corrida)','Best efforts (run)')+'</div>';
+      withData.forEach(tg=>{
+        html += '<div class="rec-be-block"><div class="rec-be-blockhead">'+esc(tg.label)+'</div>';
+        efforts[tg.km].forEach((e,i)=>{
+          const pace = _paceFromSecKm(e.sec / tg.km);
+          html += '<div class="rec-be-row rec-medal-'+(i+1)+'"><span class="rec-be-medal">'+medals[i]+'</span><span class="rec-be-time">'+_fmtDur(e.sec)+'</span><span class="rec-be-sub">'+pace+' · '+esc(fmtDateShort(e.date))+'</span></div>';
+        });
+        html += '</div>';
+      });
+    }
+
+    // Máximos (resumos)
+    const maxBy = (arr, f)=> arr.reduce((m,a)=>{ const v=f(a)||0; return v>m.v ? {v, a} : m; }, {v:0, a:null});
+    const longRun = maxBy(runs, a=>a.distanceKm);
+    const longRide = maxBy(rides, a=>a.distanceKm);
+    const mostElev = maxBy(acts, a=>a.elevationM);
+    const longTime = maxBy(acts, a=>a.movingSec);
+    const bestPow = maxBy(rides, a=>a.avgWatts);
+    const tiles = [];
+    if(longRun.a) tiles.push('<div class="rec-tile"><strong>'+fmtKm(longRun.v)+'</strong><span>'+PL('Corrida mais longa','Longest run')+'</span></div>');
+    if(longRide.a) tiles.push('<div class="rec-tile"><strong>'+fmtKm(longRide.v)+'</strong><span>'+PL('Bike mais longa','Longest ride')+'</span></div>');
+    if(mostElev.a && mostElev.v) tiles.push('<div class="rec-tile"><strong>'+Math.round(mostElev.v)+' m</strong><span>'+PL('Maior subida','Most elevation')+'</span></div>');
+    if(longTime.a && longTime.v) tiles.push('<div class="rec-tile"><strong>'+_fmtDur(longTime.v)+'</strong><span>'+PL('Mais tempo','Longest time')+'</span></div>');
+    if(bestPow.a && bestPow.v) tiles.push('<div class="rec-tile"><strong>'+Math.round(bestPow.v)+' W</strong><span>'+PL('Melhor potência média','Best avg power')+'</span></div>');
+    if(tiles.length){ html += '<div class="rec-section-label">'+PL('Máximos','Bests')+'</div><div class="rec-tiles">'+tiles.join('')+'</div>'; }
+
+    if(!html){ html = '<p class="help" style="margin:8px 0 0;">'+PL('Ainda sem recordes. Para os melhores esforços de corrida, importa/reimporta treinos com curvas (FIT/TCX/GPX).','No records yet. For run best efforts, import/reimport workouts with curves (FIT/TCX/GPX).')+'</p>'; }
+    box.innerHTML = html;
+  }
+  // Página de celebração de recorde (taça ouro/prata/bronze conforme o lugar batido).
+  function showRecordCelebration(prs){
+    if(!prs || !prs.length) return;
+    prs.sort((a,b)=> a.rank - b.rank); // o melhor lugar primeiro
+    const ov = document.getElementById('record-celebrate');
+    const body = document.getElementById('record-celebrate-body');
+    if(!ov || !body) return;
+    const rankName = r => r===1 ? PL('recorde pessoal','personal record') : (r===2 ? PL('2.º melhor de sempre','2nd best ever') : PL('3.º melhor de sempre','3rd best ever'));
+    const trophyClass = r => r===1 ? 'gold' : (r===2 ? 'silver' : 'bronze');
+    const top = prs[0];
+    let inner = '<div class="rc-trophy '+trophyClass(top.rank)+'">🏆</div>'+
+      '<div class="rc-title">'+(top.rank===1 ? PL('Novo recorde!','New record!') : PL('Grande esforço!','Great effort!'))+'</div>'+
+      '<div class="rc-main">'+esc(top.label)+' · <strong>'+_fmtDur(top.sec)+'</strong></div>'+
+      '<div class="rc-sub">'+rankName(top.rank)+'</div>';
+    if(prs.length>1){
+      inner += '<div class="rc-more">';
+      prs.slice(1).forEach(p=>{ inner += '<div>'+ (p.rank===1?'🥇':p.rank===2?'🥈':'🥉') +' '+esc(p.label)+' · '+_fmtDur(p.sec)+'</div>'; });
+      inner += '</div>';
+    }
+    inner += '<button type="button" class="rc-close" id="record-celebrate-close">'+PL('Boa!','Nice!')+'</button>';
+    body.innerHTML = inner;
+    ov.classList.add('active'); ov.setAttribute('aria-hidden','false');
+    const close = ()=>{ ov.classList.remove('active'); ov.setAttribute('aria-hidden','true'); };
+    const btn = document.getElementById('record-celebrate-close'); if(btn) btn.onclick = close;
+    ov.onclick = (e)=>{ if(e.target === ov) close(); };
+    try{ if(navigator.vibrate) navigator.vibrate([40,60,40]); }catch(e){}
+  }
+  window.PulsoRenderRecords = renderRecords;
+
   function renderLast30Workouts(days){
     const list = document.getElementById('athlete-last30-list');
     const sumBox = document.getElementById('athlete-last30-summary');
@@ -17204,6 +17859,11 @@ nav.tabbar button.active svg{
     const title = document.getElementById('athlete-last30-title');
     if(title) title.textContent = PL('Treinos efetuados — últimos ' + period + ' dias','Completed workouts — last ' + period + ' days');
     list.innerHTML = acts.length ? acts.slice(0,12).map(renderActivityCompact).join('') : '<p class="help" style="margin:0;">'+PL('Ainda não há treinos registados neste período.','No workouts logged in this period yet.')+'</p>';
+    // Liga o clique de cada X diretamente (além da delegação global), para o apagar ser fiável no telemóvel.
+    list.querySelectorAll('.a30-del').forEach(function(btn){
+      btn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); const id = btn.getAttribute('data-del-activity'); if(id && window.PulsoDeleteActivity) window.PulsoDeleteActivity(id); });
+    });
+    try{ if(window.PulsoRenderRecords) window.PulsoRenderRecords(); }catch(e){}
   }
 
   // ---- Perfil visual do treino (barras por intensidade/zona) a partir do texto ----
@@ -17364,16 +18024,20 @@ nav.tabbar button.active svg{
       html += races.map(race=>`<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="cp-title" style="color:#F2B84B;">🏁 ${esc(race.name)}</div><div class="cp-desc">Dia de prova${race.distanceKm?' · '+race.distanceKm+' km':''}${race.elevationM?' · '+race.elevationM+' D+':''}.</div></div>`).join('');
     }
     if(items.length){
-      html += items.map(w=>`<div class="coach-plan-item">
+      html += items.map(w=>{
+        let prof=''; try{ prof = workoutProfileHTML(w.desc); }catch(e){ prof=''; }
+        let fb=''; try{ fb = planFeedbackHTML(athleteSelectedDay, w); }catch(e){ fb=''; }
+        return `<div class="coach-plan-item">
         <div class="cp-title">${esc(w.name||'Treino')}</div>
-        ${workoutProfileHTML(w.desc)}
-        ${w.desc ? `<div class="cp-desc">${esc(w.desc)}</div>` : ''}
+        ${prof}
+        ${w.desc ? `<div class="cp-desc">${esc(localizeDesc(w.desc))}</div>` : ''}
         <div class="coach-pill-row" style="margin-top:6px;">
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
           ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
         </div>
-        ${planFeedbackHTML(athleteSelectedDay, w)}
-      </div>`).join('');
+        ${fb}
+      </div>`;
+      }).join('');
     }
     if(completed.length){
       html += '<div class="help" style="margin:8px 0 6px;">Treinos efetuados neste dia</div>' + completed.map(renderActivityCompact).join('');
@@ -17452,16 +18116,20 @@ nav.tabbar button.active svg{
     const today = todayStr();
     const todays = data[today] || [];
     if(todays.length){
-      body.innerHTML = todays.map(w=>`<div class="coach-plan-item">
+      body.innerHTML = todays.map(w=>{
+        let prof=''; try{ prof = workoutProfileHTML(w.desc); }catch(e){ prof=''; }
+        let fb=''; try{ fb = planFeedbackHTML(today, w); }catch(e){ fb=''; }
+        return `<div class="coach-plan-item">
         <div class="cp-title">${esc(w.name||'Treino')}</div>
-        ${workoutProfileHTML(w.desc)}
-        ${w.desc ? `<div class="cp-desc">${esc(w.desc)}</div>` : ''}
+        ${prof}
+        ${w.desc ? `<div class="cp-desc">${esc(localizeDesc(w.desc))}</div>` : ''}
         <div class="coach-pill-row" style="margin-top:6px;">
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
           ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
         </div>
-        ${planFeedbackHTML(today, w)}
-      </div>`).join('');
+        ${fb}
+      </div>`;
+      }).join('');
     }else{
       body.innerHTML = '<p class="help" style="margin:0;">'+PL('Sem treino do treinador para hoje.','No coach workout for today.')+'</p>';
     }
@@ -17955,7 +18623,7 @@ nav.tabbar button.active svg{
       }
     }catch(err){ console.warn('Prontidão falhou', err); }
 
-    const drinks = '<div class="coach-card"><h3>'+PL('Bebidas','Drinks')+'</h3><div class="coach-metrics-grid">'+
+    const drinks = '<div class="coach-card"><h3>'+PL('Bebidas','Drinks')+'</h3><div class="coach-metrics-grid coach-metrics-3">'+
       metricCard(PL('Água','Water'), fmtL(t.waterMl))+
       metricCard(PL('Sumo','Juice'), fmtL(t.colaMl))+
       metricCard(PL('Sumo Zero','Zero juice'), fmtL(t.outraMl))+
@@ -17964,7 +18632,7 @@ nav.tabbar button.active svg{
       metricCard(PL('Unid. álcool','Alcohol units'), (Number(t.alcoholUnits)||0).toFixed(1).replace('.', ','))+
       '</div></div>';
 
-    const nutri = '<div class="coach-card"><h3>'+PL('Calorias &amp; nutrição','Calories &amp; nutrition')+'</h3><div class="coach-metrics-grid">'+
+    const nutri = '<div class="coach-card"><h3>'+PL('Calorias &amp; nutrição','Calories &amp; nutrition')+'</h3><div class="coach-metrics-grid coach-metrics-3">'+
       metricCard(PL('Kcal totais','Total kcal'), fmtNum(t.totalKcal))+
       metricCard(PL('Kcal comida','Food kcal'), fmtNum(t.foodKcal))+
       metricCard(PL('Proteína','Protein'), fmtNum(t.protein)+' g')+
@@ -17981,7 +18649,12 @@ nav.tabbar button.active svg{
     const recentBox = '<div class="coach-card"><h3>'+PL('Últimas atividades Strava','Latest Strava activities')+'</h3>'+
       (recent.length ? recent.map(activityCard).join('') : '<div class="coach-empty">'+PL('Strava ainda sem atividades sincronizadas.','No synced Strava activities yet.')+'</div>')+'</div>';
 
-    box.innerHTML = profileCard + readyCard + overview + health + nutri + plannedCard + raceCard + completedBox + recentBox;
+    // Perfil, Saúde, Nutrição e Bebidas num swipe uniforme e compacto.
+    const slide = (c)=> '<div class="coach-swipe-slide">'+c+'</div>';
+    const infoSwipe = '<div class="coach-swipe">'+slide(profileCard)+slide(health)+slide(nutri)+slide(drinks)+'</div>'+
+      '<p class="help" style="margin:2px 2px 10px; text-align:center; font-size:11px;">'+PL('Desliza: Perfil · Saúde · Nutrição · Bebidas','Swipe: Profile · Health · Nutrition · Drinks')+'</p>';
+    // Ordem pedida: cartões (swipe) → gráficos → prontidão → restantes.
+    box.innerHTML = infoSwipe + overview + readyCard + plannedCard + raceCard + completedBox + recentBox;
     bindCoachCardCollapse(box);
   }
 
@@ -18073,6 +18746,7 @@ nav.tabbar button.active svg{
     // Editor
     document.getElementById('cwb-new')?.addEventListener('click', ()=> openCoachEditor(null));
     document.getElementById('cwb-cancel')?.addEventListener('click', closeCoachEditor);
+    document.getElementById('cwb-save-lib')?.addEventListener('click', saveCoachWorkout);
     const cform = document.getElementById('cwb-form');
     if(cform){
       cform.addEventListener('submit', (e)=>{ e.preventDefault(); saveCoachWorkout(); });
@@ -18099,8 +18773,16 @@ nav.tabbar button.active svg{
       if(sched) armWorkout(sched.getAttribute('data-lib-schedule'));
       else if(fav) toggleFavorite(fav.getAttribute('data-lib-fav'));
       else if(edit) openCoachEditor(edit.getAttribute('data-lib-edit'));
-      else if(del){ if(window.confirm('Apagar este treino?')) deleteCoachWorkout(del.getAttribute('data-lib-del')); }
-      else if(delAthlete){ if(window.confirm('Apagar este treino dos favoritos do atleta?')) deleteAthleteFavoriteWorkout(delAthlete.getAttribute('data-lib-del-athlete')); }
+      else if(del){
+        const id = del.getAttribute('data-lib-del');
+        const ask = window.pulsoConfirm ? window.pulsoConfirm(PL('Apagar este treino?','Delete this workout?'), {yesLabel:PL('Apagar','Delete'), noLabel:PL('Cancelar','Cancel')}) : Promise.resolve(window.confirm('Apagar este treino?'));
+        ask.then(ok=>{ if(ok) deleteCoachWorkout(id); });
+      }
+      else if(delAthlete){
+        const id = delAthlete.getAttribute('data-lib-del-athlete');
+        const ask = window.pulsoConfirm ? window.pulsoConfirm(PL('Apagar este treino?','Delete this workout?'), {yesLabel:PL('Apagar','Delete'), noLabel:PL('Cancelar','Cancel')}) : Promise.resolve(window.confirm('Apagar?'));
+        ask.then(ok=>{ if(ok) deleteAthleteFavoriteWorkout(id); });
+      }
       else if(imp) importAthleteWorkout(imp.getAttribute('data-lib-import'));
     });
     document.getElementById('coach-fav-filter')?.addEventListener('click', function(){
@@ -18191,6 +18873,7 @@ nav.tabbar button.active svg{
         const a = currentAthlete();
         unscheduleWorkout(a.id, coachSelectedDay, del.getAttribute('data-cal-del'));
         renderCoachCalendar();
+        try{ renderCoachWeekGlance(); }catch(e){}
         return;
       }
       const open = e.target.closest('[data-coach-day-open]');
@@ -18316,6 +18999,9 @@ nav.tabbar button.active svg{
   document.addEventListener('click', function(e){
     if(e.target && e.target.id === 'strava-detail-close') closeStravaDetail();
     if(e.target && e.target.id === 'strava-detail-modal') closeStravaDetail();
+    // X para apagar um treino (Strava ou importado) — não abre o detalhe.
+    const del = e.target.closest && e.target.closest('[data-del-activity]');
+    if(del){ e.preventDefault(); e.stopPropagation(); if(window.PulsoDeleteActivity) window.PulsoDeleteActivity(del.getAttribute('data-del-activity')); return; }
     const item=e.target.closest && e.target.closest('.athlete-last30-item[data-strava-id], .coach-activity-clickable[data-strava-id]');
     if(item && item.getAttribute('data-strava-id') && window.PulsoOpenStravaActivityDetail){ window.PulsoOpenStravaActivityDetail(item.getAttribute('data-strava-id')); }
   });
@@ -18568,19 +19254,21 @@ nav.tabbar button.active svg{
   .pc-btn.block{width:100%; margin-top:4px;}
   .pc-btn.primary{background:var(--teal); border-color:var(--teal); color:#052018;}
   .pc-btn.danger{background:rgba(242,85,90,.14); border-color:rgba(242,85,90,.4); color:var(--red);}
+  .pc-btn.warn{background:rgba(242,184,75,.12); border-color:rgba(242,184,75,.38); color:#F2B84B;}
+  .pc-btn.danger-strong{background:rgba(242,85,90,.24); border-color:rgba(242,85,90,.75); color:#fff;}
   .pc-btn.tiny{min-height:36px; padding:7px 11px; font-size:13px;}
   .pc-btn:active{transform:scale(.98);}
   .pc-error{color:var(--red); font-size:13px; min-height:18px; margin:10px 0 4px;}
   .pc-auth-links{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
   .pc-link{background:none; border:0; color:var(--teal); font-size:13px; font-weight:700; cursor:pointer; padding:6px;}
-  #pulso-cloud-btn{position:fixed; bottom:calc(94px + env(safe-area-inset-bottom)); right:16px; z-index:99990; width:46px; height:46px; border-radius:999px; background:rgba(15,22,38,.92); border:1px solid rgba(53,217,166,.45); color:var(--teal); font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.4);}
+  #pulso-cloud-btn{position:fixed; top:calc(12px + env(safe-area-inset-top)); right:70px; z-index:99990; width:44px; height:44px; border-radius:999px; background:rgba(15,22,38,.92); border:1px solid rgba(53,217,166,.45); color:var(--teal); font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center;}
   #pulso-cloud-btn[hidden]{display:none;}
   .pc-sheet{position:fixed; inset:0; z-index:100001; background:rgba(4,7,13,.72); display:flex; align-items:flex-end; justify-content:center;}
   .pc-sheet[hidden]{display:none;}
-  .pc-sheet-inner{width:100%; max-width:560px; max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#0C1322; border:1px solid rgba(255,255,255,.08); border-radius:26px 26px 0 0; padding:18px 16px calc(24px + env(safe-area-inset-bottom));}
-  .pc-sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .pc-sheet-inner{width:100%; max-width:560px; max-height:90vh; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#0C1322; border:1px solid rgba(255,255,255,.08); border-radius:26px 26px 0 0; padding:calc(20px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));}
+  .pc-sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; padding-top:4px;}
   .pc-sheet-head h3{margin:0; font-size:18px;}
-  .pc-close{background:rgba(255,255,255,.08); border:0; color:#fff; width:36px; height:36px; border-radius:999px; font-size:20px; cursor:pointer;}
+  .pc-close{background:rgba(255,255,255,.1); border:0; color:#fff; width:46px; height:46px; border-radius:999px; font-size:26px; line-height:1; cursor:pointer; flex:0 0 auto; display:flex; align-items:center; justify-content:center;}
   .pc-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 0; border-top:1px solid rgba(255,255,255,.07);}
   .pc-row:first-of-type{border-top:0;}
   .pc-k{font-weight:800; color:#fff; font-size:15px;}
@@ -19151,8 +19839,8 @@ async function renderSheet(){
 
   html += '<div class="pc-actions">';
   if(currentRole === 'owner'){ html += '<button type="button" class="pc-btn" id="pc-open-central">Central principal</button>'; }
-  html += '<button type="button" class="pc-btn danger" id="pc-signout">Terminar sessão</button>';
-  html += '<button type="button" class="pc-btn danger" id="pc-delete-data" style="opacity:.85;">'+PL('Apagar os meus dados','Delete my data')+'</button>';
+  html += '<button type="button" class="pc-btn warn" id="pc-signout">Terminar sessão</button>';
+  html += '<button type="button" class="pc-btn danger-strong" id="pc-delete-data">'+PL('Apagar os meus dados','Delete my data')+'</button>';
   html += '<p class="pc-muted" style="margin:6px 2px 0; font-size:11px;">'+PL('Apaga a cópia desta conta na cloud e os dados neste telemóvel. Permanente.','Deletes this account\'s cloud copy and the data on this phone. Permanent.')+'</p></div>';
   body.innerHTML = html;
 
@@ -19331,7 +20019,7 @@ onAuthStateChanged(auth, async (user)=>{
   if(!user){
     setSyncStatus('off', 'Offline');
     showAuth(true);
-    if(btn) btn.hidden = true;
+    if(btn) btn.hidden = false;
     const card = $('pc-auth');
     setAuthMode(card && card.dataset.mode ? card.dataset.mode : 'signin');
     return;
@@ -19368,7 +20056,7 @@ function wireStaticUI(){
   const toggle = $('pc-toggle'); if(toggle) toggle.onclick = ()=> setAuthMode(($('pc-auth').dataset.mode==='signup')?'signin':'signup');
   const forgot = $('pc-forgot'); if(forgot) forgot.onclick = doReset;
   const pass = $('pc-pass'); if(pass) pass.addEventListener('keydown', e=>{ if(e.key==='Enter') doAuthSubmit(); });
-  const cloudBtn = $('pulso-cloud-btn'); if(cloudBtn) cloudBtn.onclick = openSheet;
+  const cloudBtn = $('pulso-cloud-btn'); if(cloudBtn) cloudBtn.onclick = ()=>{ if(currentUser) openSheet(); else showAuth(true); };
   const sheetClose = $('pc-sheet-close'); if(sheetClose) sheetClose.onclick = closeSheet;
   const centralClose = $('pc-central-close'); if(centralClose) centralClose.onclick = closeCentral;
   const avClose = $('pc-athlete-view-close'); if(avClose) avClose.onclick = ()=>{ const b=$('pc-athlete-view'); if(b){ b.hidden=true; b.setAttribute('aria-hidden','true'); } };
@@ -19736,8 +20424,8 @@ document.addEventListener("click", function(e){
          'Fill in your data (age, height, sex…) so the calculations are accurate. Here you also import your workouts, set training zones and change the language.'] },
     { tab:'perfil', profileTab:'strava', focusSel:'#btn-import-workouts', emoji:'📥',
       t:['Importar treinos','Import workouts'],
-      b:['Em Perfil → "Importar treinos" tens duas formas de trazer os teus treinos. AUTOMÁTICO: liga o Strava uma vez e as atividades entram sozinhas (também apanha Garmin, Coros, Wahoo… se sincronizarem para o Strava). MANUAL: exporta um treino do Garmin/TrainingPeaks/Polar em .TCX ou .GPX e carrega o ficheiro — podes escolher vários de uma vez. Em qualquer dos casos, os treinos entram no teu histórico e alimentam os cálculos (carga, prontidão).',
-         'In Profile → "Import workouts" there are two ways to bring your workouts in. AUTOMATIC: connect Strava once and activities come in on their own (also covers Garmin, Coros, Wahoo… if they sync to Strava). MANUAL: export a workout from Garmin/TrainingPeaks/Polar as .TCX or .GPX and upload the file — you can pick several at once. Either way, the workouts feed your history and the calculations (load, readiness).'] },
+      b:['Em Perfil → "Importar treinos" há duas formas. AUTOMÁTICO: liga o Strava uma vez e as atividades entram sozinhas. MANUAL: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem — a app abre-o). No Garmin, exporta em connect.garmin.com (abre a atividade → engrenagem → Exportar). Os treinos entram no histórico e alimentam os cálculos.',
+         'In Profile → "Import workouts" there are two ways. AUTOMATIC: connect Strava once and activities come in on their own. MANUAL: load the file from your watch (.FIT, .TCX, .GPX, or the .ZIP as it comes — the app opens it). For Garmin, export at connect.garmin.com (open the activity → gear → Export). Workouts feed your history and the calculations.'] },
     { tab:'dashboard', focusSel:'#estado-card', emoji:'🎉',
       t:['Tudo pronto!','All set!'],
       b:['Já sabes o essencial. Começa por preencher o teu perfil e registar a primeira água ou refeição. Podes rever este guia quando quiseres em Perfil → "Ver tutorial". Bons treinos!',
