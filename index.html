@@ -19027,7 +19027,9 @@ async function renderSheet(){
 
   html += '<div class="pc-actions">';
   if(currentRole === 'owner'){ html += '<button type="button" class="pc-btn" id="pc-open-central">Central principal</button>'; }
-  html += '<button type="button" class="pc-btn danger" id="pc-signout">Terminar sessão</button></div>';
+  html += '<button type="button" class="pc-btn danger" id="pc-signout">Terminar sessão</button>';
+  html += '<button type="button" class="pc-btn danger" id="pc-delete-data" style="opacity:.85;">'+PL('Apagar os meus dados','Delete my data')+'</button>';
+  html += '<p class="pc-muted" style="margin:6px 2px 0; font-size:11px;">'+PL('Apaga a cópia desta conta na cloud e os dados neste telemóvel. Permanente.','Deletes this account\'s cloud copy and the data on this phone. Permanent.')+'</p></div>';
   body.innerHTML = html;
 
   const copyBtn = $('pc-copy-code'); if(copyBtn) copyBtn.onclick = ()=>{ try{ navigator.clipboard.writeText(currentUser.uid); cloudToast(PL('Código copiado.','Code copied.')); }catch(e){ cloudToast(PL('Copia manualmente.','Copy manually.')); } };
@@ -19040,6 +19042,29 @@ async function renderSheet(){
   body.querySelectorAll('[data-view]').forEach(b=> b.onclick = ()=> viewAthlete(b.getAttribute('data-view')));
   const oc = $('pc-open-central'); if(oc) oc.onclick = openCentral;
   const so = $('pc-signout'); if(so) so.onclick = doSignOut;
+  const dd = $('pc-delete-data'); if(dd) dd.onclick = deleteMyData;
+}
+
+// Apaga os dados desta conta: a cópia na cloud (athleteData) + tudo o que está neste
+// telemóvel. Permanente. Termina a sessão a seguir para a conta ficar limpa.
+async function deleteMyData(){
+  if(!currentUser) return;
+  let msg = PL('Apagar TODOS os dados desta conta — a cópia na cloud e os dados neste telemóvel? Isto é permanente e não se pode desfazer.',
+               'Delete ALL data for this account — the cloud copy and the data on this phone? This is permanent and cannot be undone.');
+  let ok = false;
+  try{
+    if(typeof window !== 'undefined' && typeof window.pulsoConfirm === 'function'){
+      ok = await window.pulsoConfirm(msg, { yesLabel: PL('Apagar tudo','Delete all'), noLabel: PL('Cancelar','Cancel') });
+    }else{ ok = window.confirm(msg); }
+  }catch(e){ ok = false; }
+  if(!ok) return;
+  try{ await deleteDoc(doc(db, 'athleteData', currentUser.uid)); }
+  catch(e){ console.warn('Falha ao apagar dados na cloud', e); cloudToast(PL('Não foi possível apagar na cloud (verifica a ligação).','Couldn\'t delete in the cloud (check your connection).')); }
+  try{ clearLocalPulsoData(); }catch(e){}
+  try{ sessionStorage.removeItem('pulso-hydrated-uid'); }catch(e){}
+  cloudToast(PL('Dados apagados.','Data deleted.'));
+  try{ await fbSignOut(auth); }catch(e){}
+  setTimeout(function(){ location.reload(); }, 400);
 }
 
 function roleLabel(r){ return r==='owner' ? 'Dono' : (r==='trainer' ? 'Treinador' : 'Atleta'); }
