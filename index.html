@@ -7518,12 +7518,29 @@ nav.tabbar button.active svg{
 
   // Gráfico combinado — barras positivas por dia + linha a ligar os pontos.
   // series: [{name,color,data:[...]}]. Se houver mais do que uma série, empilha as barras e a linha usa o total diário.
+  function _appendChartLegend(containerEl, series, onLegendToggle){
+    const legend = document.createElement('div');
+    legend.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; font-size:10px; color:'+SVG_COLORS.muted+';';
+    legend.innerHTML = series.map(s=>`<button type="button" data-chart-legend="${s.name}" style="display:inline-flex; align-items:center; gap:5px; background:transparent; border:0; color:${SVG_COLORS.muted}; font-size:10px; padding:4px 6px; border-radius:999px; opacity:${s.active===false ? .35 : 1}; cursor:pointer;"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block;"></span>${s.name}</button>`).join('');
+    containerEl.appendChild(legend);
+    if(onLegendToggle){
+      legend.querySelectorAll('[data-chart-legend]').forEach(btn=>btn.addEventListener('click', ()=> onLegendToggle(btn.dataset.chartLegend)));
+    }
+  }
   function renderBarChart(containerEl, labels, series, showLegend, onLegendToggle){
     if(!containerEl) return;
     containerEl.innerHTML = '';
     const activeSeries = series.filter(s=>s.active !== false);
-    if(!labels.length || !activeSeries.length || !activeSeries.some(s=>s.data.some(v=>v>0))){
-      containerEl.innerHTML = '<div class="empty">'+PL('Ainda sem dados suficientes para o gráfico.','Not enough data for the chart yet.')+'</div>';
+    const anyDataAnywhere = series.some(s=>s.data.some(v=>v>0));
+    const activeHasData = activeSeries.length && activeSeries.some(s=>s.data.some(v=>v>0));
+    if(!labels.length || !activeHasData){
+      // Distingue "não há dados nenhuns" de "estão todas escondidas".
+      const msg = (anyDataAnywhere && labels.length)
+        ? PL('Modalidades escondidas — toca na legenda para as mostrar.','Sports hidden — tap the legend to show them.')
+        : PL('Ainda sem dados suficientes para o gráfico.','Not enough data for the chart yet.');
+      containerEl.innerHTML = '<div class="empty">'+msg+'</div>';
+      // Mesmo sem gráfico, mostra a legenda para se poderem voltar a ligar as modalidades.
+      if(showLegend && series.length>1 && anyDataAnywhere) _appendChartLegend(containerEl, series, onLegendToggle);
       return;
     }
     const W = containerEl.clientWidth || 320, H = containerEl.clientHeight || 150;
@@ -7587,13 +7604,7 @@ nav.tabbar button.active svg{
 
     containerEl.appendChild(svg);
     if(showLegend && series.length>1){
-      const legend = document.createElement('div');
-      legend.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; font-size:10px; color:'+SVG_COLORS.muted+';';
-      legend.innerHTML = series.map(s=>`<button type="button" data-chart-legend="${s.name}" style="display:inline-flex; align-items:center; gap:5px; background:transparent; border:0; color:${SVG_COLORS.muted}; font-size:10px; padding:4px 6px; border-radius:999px; opacity:${s.active===false ? .35 : 1}; cursor:pointer;"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block;"></span>${s.name}</button>`).join('');
-      containerEl.appendChild(legend);
-      if(onLegendToggle){
-        legend.querySelectorAll('[data-chart-legend]').forEach(btn=>btn.addEventListener('click', ()=> onLegendToggle(btn.dataset.chartLegend)));
-      }
+      _appendChartLegend(containerEl, series, onLegendToggle);
     }
   }
 
@@ -17488,7 +17499,8 @@ nav.tabbar button.active svg{
         workoutMin: Math.round(sum(workouts, e=>(e.movingSec||e.elapsed_time||0))/60),
         workoutKm: Math.round(sum(workouts, e=>e.distanceKm||((e.distance||0)/1000))*10)/10,
         workoutKcal: Math.round(sum(workouts, e=>coachActivityKcal(e))),
-        elevationM: Math.round(sum(workouts, e=>e.elevationM||e.total_elevation_gain||0))
+        elevationM: Math.round(sum(workouts, e=>e.elevationM||e.total_elevation_gain||0)),
+        avgWatts: (function(){ const p = workouts.map(e=>Number(e.avgWatts||e.average_watts||0)).filter(v=>v>0); return p.length ? Math.round(p.reduce((s,v)=>s+v,0)/p.length) : 0; })()
       }
     };
   }
@@ -17708,6 +17720,8 @@ nav.tabbar button.active svg{
     const slides = [
       coachMiniChart(PL('Tempo de treino','Training time'), 'min', rows, r=>r.totals.workoutMin, 'green', 'sum'),
       coachMiniChart(PL('Distância','Distance'), 'km', rows, r=>r.totals.workoutKm, 'blue', 'sum'),
+      coachMiniChart(PL('Potência média','Avg power'), 'W', rows, r=>r.totals.avgWatts, 'amber', 'avg'),
+      coachMiniChart(PL('Altimetria','Elevation'), 'm', rows, r=>r.totals.elevationM, 'green', 'sum'),
       coachMiniChart(PL('Kcal treino','Workout kcal'), 'kcal', rows, r=>r.totals.workoutKcal, 'amber', 'sum'),
       coachMiniChart(PL('Água','Water'), 'L', rows, r=>r.totals.waterMl, 'green', 'sum'),
       coachMiniChart(PL('Sono','Sleep'), 'h', rows, r=>r.totals.sleepHours, 'purple', 'avg'),
@@ -17764,7 +17778,8 @@ nav.tabbar button.active svg{
       '<div class="coach-profile-tile"><strong>'+(bmi?bmi.toFixed(1).replace('.', ','):'—')+'</strong><span>'+PL('IMC','BMI')+'</span></div>'+
       '</div></div>';
 
-    const overview = '<div class="coach-card coach-overview-charts-card"><h3>'+PL('Vista geral do atleta','Athlete overview')+'</h3>'+coachOverviewCharts(day, rangeN)+'</div>';
+    const rangeTag = rangeN === 1 ? PL(' (dia)',' (day)') : (' (' + rangeN + PL(' dias',' days') + ')');
+    const overview = '<div class="coach-card coach-overview-charts-card"><h3>'+PL('Vista geral do atleta','Athlete overview')+rangeTag+'</h3>'+coachOverviewCharts(day, rangeN)+'</div>';
 
     // Treinos previstos para os próximos 7 dias (a partir de hoje).
     const todayK = todayStr();
