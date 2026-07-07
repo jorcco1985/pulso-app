@@ -10471,7 +10471,17 @@ nav.tabbar button.active svg{
         if(av !== ''){ const alt = _impNum(av); if(prevAlt!=null && alt>prevAlt) elevM += (alt-prevAlt); prevAlt = alt; }
       }
       const a = _impMake({ startISO, sport, totalSec, distM, cal, avgHr: hrT?Math.round(hrW/hrT):null, maxHr: maxHr||null, elevM: Math.round(elevM) });
-      if(a){ try{ a._streams = _impTcxStreams(act); }catch(e){ a._streams = null; } out.push(a); }
+      if(a){
+        try{
+          a._streams = _impTcxStreams(act);
+          // Potência média a partir da curva (o TCX guarda a potência ponto-a-ponto, não no resumo).
+          if(a._streams && a._streams.watts && a._streams.watts.length){
+            const pw = a._streams.watts.filter(v=>v>0);
+            if(pw.length){ a.avgWatts = Math.round(pw.reduce((s,v)=>s+v,0)/pw.length); }
+          }
+        }catch(e){ a._streams = null; }
+        out.push(a);
+      }
     }
     return out;
   }
@@ -11064,11 +11074,11 @@ nav.tabbar button.active svg{
     const gradId = 'grad-' + Math.random().toString(36).slice(2);
     const defs = svgEl('defs', {});
     const grad = svgEl('linearGradient', {id:gradId, x1:'0', y1:'0', x2:'0', y2:'1'});
-    // Quando o eixo está invertido (ritmo: mais rápido em cima), a área fica por cima da
-    // linha. Nesse caso trocamos a direção do gradiente para o preenchimento ficar mais forte
-    // junto à linha e a esbater-se em direção à base — evita a "cor invertida" (forte no topo).
-    const topOpacity = options.invertY ? '.18' : '.72';
-    const bottomOpacity = options.invertY ? '.72' : '.18';
+    // O preenchimento é sempre da linha para a BASE (como o cardio), com o gradiente
+    // mais forte junto à linha a esbater-se para baixo — igual em todos os gráficos,
+    // mesmo no ritmo (eixo invertido).
+    const topOpacity = '.72';
+    const bottomOpacity = '.18';
     grad.appendChild(svgEl('stop', {offset:'0%', 'stop-color':color || 'var(--teal)', 'stop-opacity':topOpacity}));
     grad.appendChild(svgEl('stop', {offset:'100%', 'stop-color':color || 'var(--teal)', 'stop-opacity':bottomOpacity}));
     defs.appendChild(grad); svg.appendChild(defs);
@@ -11084,7 +11094,7 @@ nav.tabbar button.active svg{
 
     const pts = rows.map(r=>[x(r), y(r.v)]);
     const lineD = pts.map((p,i)=>(i?'L':'M') + p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
-    const baseY = options.invertY ? padT : padT + plotH;
+    const baseY = padT + plotH;
     const areaD = lineD + ' L ' + pts[pts.length-1][0].toFixed(1) + ' ' + baseY + ' L ' + pts[0][0].toFixed(1) + ' ' + baseY + ' Z';
     svg.appendChild(svgEl('path', {d:areaD, fill:'url(#'+gradId+')'}));
     svg.appendChild(svgEl('path', {d:lineD, fill:'none', stroke:color || 'var(--teal)', 'stroke-width':3, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
@@ -11304,7 +11314,7 @@ nav.tabbar button.active svg{
       if(altRows.length){
         if(altCard) altCard.style.display = 'block';
         const altEmpty = streamErr ? failMsg : 'Esta atividade não tem altimetria registada no Strava.';
-        renderStreamChart(document.getElementById('strava-alt-chart'), altRows, 'var(--blue)', v=>Math.round(v)+' m', altEmpty, null, {roundY:10});
+        renderStreamChart(document.getElementById('strava-alt-chart'), altRows, '#A78BFA', v=>Math.round(v)+' m', altEmpty, null, {roundY:10});
       }else if(altCard){
         altCard.style.display = 'none';
       }
