@@ -8522,16 +8522,39 @@ nav.tabbar button.active svg{
       const cycleRaw = get('cycle-data');
 
       const dayOffset = (ds)=> Math.round((today - new Date(readinessDayKey(ds)+'T12:00:00'))/86400000);
-      // Carga diária dos últimos 28 dias (duração × fator de intensidade por FC).
+      // --- Carga diária mais precisa ---
+      // Usa a FC de RESERVA do próprio atleta (não um valor fixo) e a curva TRIMP de
+      // Banister (específica por sexo), que valoriza a intensidade alta. A altimetria
+      // dos treinos importados também conta como esforço extra. Sem FC, estima por desporto.
+      const age = Number(profile.age) || 0;
+      const maxHR = Number(profile.maxHr || profile.hrMax || profile.hrmax) || (age ? (220 - age) : 190);
+      const female = profile.gender === 'F';
+      const rhrRef = (function(){
+        const arr = bp.filter(e=>e.hr!=null && e.hr!=='').map(e=>Number(e.hr)).filter(v=>v>0);
+        return arr.length ? (arr.reduce((s,v)=>s+v,0)/arr.length) : 55;
+      })();
+      function actLoad(a){
+        const min = (Number(a.movingSec || a.moving_time || a.elapsed_time || 0)) / 60;
+        if(min <= 0) return 0;
+        const elev = Number(a.elevationM || a.total_elevation_gain || 0);
+        const effMin = min + (elev > 0 ? elev/100 : 0); // 100 m de subida ≈ +1 min de esforço
+        const hr = Number(a.avgHr) || 0;
+        if(hr > 0 && maxHR > rhrRef){
+          let hrr = (hr - rhrRef) / (maxHR - rhrRef);
+          hrr = Math.max(0.1, Math.min(1, hrr));
+          const y = female ? (0.86 * Math.exp(1.67 * hrr)) : (0.64 * Math.exp(1.92 * hrr));
+          return effMin * hrr * y;
+        }
+        // Sem FC: fator por tipo de desporto (mais grosseiro, mas melhor que tratar tudo igual).
+        const t = String(a.type || a.sportType || '').toLowerCase();
+        const f = (t.includes('walk') || t.includes('camin')) ? 0.35
+                : ((t.includes('ride') || t.includes('bike') || t.includes('cicl')) ? 0.55 : 0.7);
+        return effMin * f;
+      }
       const daily = new Array(28).fill(0);
       acts.forEach(a=>{
         const off = dayOffset(a.date || a.start_date || a.time);
-        if(off>=0 && off<28){
-          const min = (Number(a.movingSec || a.moving_time || a.elapsed_time || 0))/60;
-          const hr = Number(a.avgHr)||0;
-          const intensity = hr>0 ? Math.max(0.6, Math.min(1.6, hr/150)) : 1;
-          daily[off] += min * intensity;
-        }
+        if(off>=0 && off<28){ daily[off] += actLoad(a); }
       });
       const acute = daily.slice(0,7).reduce((s,v)=>s+v,0);
       const chronicWeekly = daily.slice(0,28).reduce((s,v)=>s+v,0)/4;
@@ -8604,7 +8627,24 @@ nav.tabbar button.active svg{
       score = Math.max(5, Math.min(100, Math.round(score)));
       const level = score>=70 ? 'green' : (score>=45 ? 'yellow' : 'red');
       if(!reasons.length) reasons.push(PL('Sem sinais de sobrecarga — carga, recuperação e combustível equilibrados.','No overload signs — load, recovery and fuel are balanced.'));
-      return { hasData:true, score, level, reasons, confidence:signals, acwr };
+      // --- Forma do dia (4 estados, sem números) ---
+      // Cruza recuperação (score) com o equilíbrio de carga (ACWR).
+      let formKey;
+      if(score < 55) formKey = 'tired';
+      else if(acwr != null && acwr > 1.4) formKey = 'highload';
+      else if(acwr != null && acwr < 0.8 && score >= 70) formKey = 'fresh';
+      else formKey = 'inform';
+      const FORM = {
+        fresh:    { pt:['Fresco','Descansado e pronto para carregar.'], en:['Fresh','Rested and ready to push.'], col:'#4DA3FF' },
+        inform:   { pt:['Em forma','Carga e recuperação equilibradas.'], en:['In form','Load and recovery are balanced.'], col:'#35D9A6' },
+        highload: { pt:['Carga alta','Vai com cuidado com a intensidade nos próximos dias.'], en:['High load','Ease off the intensity over the next days.'], col:'#F2B84B' },
+        tired:    { pt:['Cansado','O corpo pede recuperação.'], en:['Tired','Your body is asking for recovery.'], col:'#F2555A' }
+      };
+      const ff = FORM[formKey];
+      const form = { key:formKey, col:ff.col,
+        label: PL(ff.pt[0], ff.en[0]),
+        phrase: PL(ff.pt[0]+' — '+ff.pt[1], ff.en[0]+' — '+ff.en[1]) };
+      return { hasData:true, score, level, reasons, confidence:signals, acwr, form };
     }catch(err){ console.warn('computeReadiness falhou', err); return { hasData:false, reason:PL('Não foi possível calcular a prontidão.','Couldn\'t calculate readiness.') }; }
   }
   window.PulsoReadiness = { compute: computeReadiness };
@@ -8681,9 +8721,17 @@ nav.tabbar button.active svg{
       if(rd && rd.hasData){
         const col = rd.level==='green'?'#35D9A6':(rd.level==='yellow'?'#F2B84B':'#F2555A');
         const rlbl = rd.level==='green' ? PL('Recuperado','Recovered') : (rd.level==='yellow' ? PL('Fadiga a acumular','Fatigue building up') : PL('Risco de overtraining','Overtraining risk'));
-        estadoSetBall('estado-treino-ball','estado-treino-n', rd.score, col);
-        const sub = document.getElementById('estado-treino-sub'); if(sub) sub.textContent = rlbl + PL(' · toca para saber porquê.',' · tap to find out why.');
-        const explain = PL('Estado geral para treino: ','Training readiness: ') + rd.score + '/100 — ' + rlbl + '.\n\n'+
+        // A cor da bola e da frase segue a FORMA (4 estados: azul/verde/amarelo/vermelho),
+        // para "Fresco" e "Em forma" não ficarem com a mesma cor.
+        const ballCol = rd.form ? rd.form.col : col;
+        estadoSetBall('estado-treino-ball','estado-treino-n', rd.score, ballCol);
+        const sub = document.getElementById('estado-treino-sub');
+        if(sub){
+          sub.textContent = (rd.form ? rd.form.phrase : rlbl) + PL(' · toca para saber porquê.',' · tap to find out why.');
+          try{ sub.style.color = ballCol; }catch(e){}
+        }
+        const explain = (rd.form ? PL('Forma de hoje: ','Today\'s form: ')+rd.form.phrase+'\n\n' : '') +
+          PL('Estado geral para treino: ','Training readiness: ') + rd.score + '/100 — ' + rlbl + '.\n\n'+
           PL('Cruza a carga de treino (7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (alimentação).','Combines training load (7 days vs 4 weeks), recovery (sleep and resting HR) and fuel (nutrition).')+'\n\n'+
           PL('• 70–100 (verde): fresco, podes treinar forte.\n','• 70–100 (green): fresh, you can train hard.\n')+
           PL('• 45–69 (amarelo): fadiga a acumular — vigia e ajusta.\n','• 45–69 (yellow): fatigue building — watch and adjust.\n')+
@@ -10321,14 +10369,19 @@ nav.tabbar button.active svg{
   function _impMake(o){
     if(!o || (!o.startISO && !o.totalSec && !o.distM)) return null;
     let date; try{ date = o.startISO ? new Date(o.startISO).toISOString() : new Date().toISOString(); }catch(e){ date = new Date().toISOString(); }
+    const distanceKm = o.distM ? o.distM/1000 : 0;
+    const movingSec = o.totalSec || 0;
+    const avgSpeedKmh = (distanceKm > 0 && movingSec > 0) ? (distanceKm / (movingSec/3600)) : 0;
     const act = normaliseStravaActivity({
       id: 'imp-' + (o.startISO || date),
       name: (o.sport ? _impMapSport(o.sport) : 'Workout') + ' · ' + PL('importado','imported'),
       type: _impMapSport(o.sport), sport_type: _impMapSport(o.sport),
       start_date: date,
-      distanceKm: o.distM ? o.distM/1000 : 0,
-      movingSec: o.totalSec || 0, elapsed_time: o.totalSec || 0,
+      distanceKm: distanceKm,
+      movingSec: movingSec, elapsed_time: movingSec,
       average_heartrate: o.avgHr || null, max_heartrate: o.maxHr || null,
+      total_elevation_gain: o.elevM || 0,
+      avgSpeedKmh: avgSpeedKmh,
       calories: o.cal || null
     });
     act.source = 'import';
@@ -10353,7 +10406,14 @@ nav.tabbar button.active svg{
         const ah = _impInnerValue(lap,'AverageHeartRateBpm'); if(ah){ hrW += ah*(t||1); hrT += (t||1); }
         const mh = _impInnerValue(lap,'MaximumHeartRateBpm'); if(mh>maxHr) maxHr = mh;
       }
-      const a = _impMake({ startISO, sport, totalSec, distM, cal, avgHr: hrT?Math.round(hrW/hrT):null, maxHr: maxHr||null });
+      // Altimetria: soma dos ganhos positivos ao longo dos pontos.
+      let elevM=0, prevAlt=null;
+      const tps = _impEls(act, 'Trackpoint');
+      for(let k=0;k<tps.length;k++){
+        const av = _impText(tps[k], 'AltitudeMeters');
+        if(av !== ''){ const alt = _impNum(av); if(prevAlt!=null && alt>prevAlt) elevM += (alt-prevAlt); prevAlt = alt; }
+      }
+      const a = _impMake({ startISO, sport, totalSec, distM, cal, avgHr: hrT?Math.round(hrW/hrT):null, maxHr: maxHr||null, elevM: Math.round(elevM) });
       if(a) out.push(a);
     }
     return out;
@@ -10362,17 +10422,18 @@ nav.tabbar button.active svg{
     let doc; try{ doc = new DOMParser().parseFromString(text, 'application/xml'); }catch(e){ return []; }
     if(!doc || doc.getElementsByTagName('parsererror').length) return [];
     const pts = _impEls(doc, 'trkpt'); if(!pts.length) return [];
-    let distM=0, pLa=null, pLo=null, hrSum=0, hrCount=0, maxHr=0, first=null, last=null;
+    let distM=0, pLa=null, pLo=null, hrSum=0, hrCount=0, maxHr=0, first=null, last=null, elevM=0, prevAlt=null;
     for(let i=0;i<pts.length;i++){
       const p = pts[i];
       const la = parseFloat(p.getAttribute('lat')), lo = parseFloat(p.getAttribute('lon'));
       if(!isNaN(la) && !isNaN(lo)){ if(pLa!=null) distM += _impHaversine(pLa,pLo,la,lo); pLa=la; pLo=lo; }
       const tv = _impText(p,'time'); if(tv){ if(!first) first = tv; last = tv; }
       const hv = _impText(p,'hr'); if(hv){ const hr = _impNum(hv); if(hr){ hrSum+=hr; hrCount++; if(hr>maxHr)maxHr=hr; } }
+      const ev = _impText(p,'ele'); if(ev !== ''){ const alt = _impNum(ev); if(prevAlt!=null && alt>prevAlt) elevM += (alt-prevAlt); prevAlt = alt; }
     }
     let totalSec=0; if(first && last){ const d=(Date.parse(last)-Date.parse(first))/1000; if(d>0) totalSec=Math.round(d); }
     const sport = _impText(doc,'type') || (_impEls(doc,'trk')[0] ? _impText(_impEls(doc,'trk')[0],'type') : '');
-    const a = _impMake({ startISO:first, sport, totalSec, distM, cal:0, avgHr: hrCount?Math.round(hrSum/hrCount):null, maxHr: maxHr||null });
+    const a = _impMake({ startISO:first, sport, totalSec, distM, cal:0, avgHr: hrCount?Math.round(hrSum/hrCount):null, maxHr: maxHr||null, elevM: Math.round(elevM) });
     return a ? [a] : [];
   }
   (function bindImportWorkouts(){
@@ -10519,11 +10580,31 @@ nav.tabbar button.active svg{
     return all;
   }
 
+  // Chave temporal do treino (minuto de início) — para detetar o mesmo treino vindo
+  // de fontes diferentes (Strava vs ficheiro importado).
+  function _actTimeKey(a){ const t = Date.parse((a && (a.date || a.start_date)) || ''); return isNaN(t) ? null : Math.round(t/60000); }
+  // Remove duplicados entre fontes: se o MESMO treino vier do Strava e de importação,
+  // fica o do STRAVA (prioridade). Só quando não há Strava é que vale o importado.
+  // Nunca remove dois treinos da mesma fonte.
+  function dedupActivities(list){
+    const prio = s => (s === 'strava' ? 0 : (s === 'import' ? 1 : 2));
+    const sorted = (list || []).slice().sort((a,b)=> prio(a && a.source) - prio(b && b.source));
+    const keys = []; const out = [];
+    for(const a of sorted){
+      const k = _actTimeKey(a);
+      if(k == null){ out.push(a); continue; }
+      const clash = keys.find(x => Math.abs(x.k - k) <= 3 && x.source !== (a && a.source));
+      if(clash) continue; // já existe um treino de OUTRA fonte com maior prioridade no mesmo tempo
+      keys.push({ k: k, source: a && a.source }); out.push(a);
+    }
+    return out.sort((a,b)=> String((b && b.date) || '').localeCompare(String((a && a.date) || '')));
+  }
   function mergeStravaActivities(existing, incoming){
     const map = new Map();
     (existing || []).forEach(a=>{ if(a && a.id) map.set(String(a.id), a); });
     (incoming || []).forEach(a=>{ if(a && a.id) map.set(String(a.id), {...(map.get(String(a.id)) || {}), ...a}); });
-    return Array.from(map.values()).sort((a,b)=>String(b.date || '').localeCompare(String(a.date || '')));
+    // Dedup entre fontes com prioridade ao Strava; já devolve ordenado por data desc.
+    return dedupActivities(Array.from(map.values()));
   }
 
   async function pushPulsoData(reason){
@@ -10563,7 +10644,10 @@ nav.tabbar button.active svg{
     }
     if(!silent) toast(PL('A sincronizar com Strava...','Syncing with Strava...'));
     const incoming = await fetchStravaActivities({full: options && options.full, recent: true});
-    stravaActivities = mergeStravaActivities((options && options.force) ? [] : stravaActivities, incoming);
+    // Numa sincronização forçada limpamos os treinos ANTIGOS do Strava, mas mantemos
+    // sempre os importados por ficheiro (só desaparecem se o Strava tiver o mesmo treino).
+    const base = (options && options.force) ? (stravaActivities || []).filter(a=> a && a.source === 'import') : stravaActivities;
+    stravaActivities = mergeStravaActivities(base, incoming);
     await sSet('strava-activities', stravaActivities);
     await sSet('strava-last-sync', {at:new Date().toISOString(), count:incoming.length});
     checkTodayPlanAgainstStrava();
@@ -18876,8 +18960,8 @@ async function showQr(text){
 }
 
 // ---------- UI: Central principal (dono) ----------
-function openCentral(){ const c=$('pulso-central'); if(c){ c.hidden=false; c.setAttribute('aria-hidden','false'); renderCentral(); } }
-function closeCentral(){ const c=$('pulso-central'); if(c){ c.hidden=true; c.setAttribute('aria-hidden','true'); } }
+function openCentral(){ try{ closeSheet(); }catch(e){} const c=$('pulso-central'); if(c){ c.hidden=false; c.setAttribute('aria-hidden','false'); renderCentral(); } }
+function closeCentral(){ const c=$('pulso-central'); if(c){ c.hidden=true; c.setAttribute('aria-hidden','true'); } try{ openSheet(); }catch(e){} }
 
 async function renderCentral(){
   const body = $('pc-central-body'); if(!body) return;
@@ -18917,7 +19001,7 @@ async function renderCentral(){
       const isMe = currentUser && u.uid === currentUser.uid;
       // O próprio dono NÃO se pode alterar aqui (evita trancar-se fora sem querer).
       const control = isMe
-        ? '<span style="min-width:120px; text-align:right; font-weight:700; color:#35D9A6; white-space:nowrap;">'+roleLabel(u.role)+' · '+PL('tu','you')+'</span>'
+        ? '<span style="min-width:120px; text-align:right; font-weight:700; color:#35D9A6; white-space:nowrap;">'+roleLabel(u.role)+'</span>'
         : '<select class="pc-input" style="width:auto; min-width:120px;" data-role-for="'+esc(u.uid)+'">'
             + ['athlete','trainer','owner'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+roleLabel(r)+'</option>').join('')
           + '</select>';
@@ -19354,8 +19438,12 @@ document.addEventListener("click", function(e){
          'Log your sleep, weight and blood pressure — pick the tab, enter the value and save. If you\'re female, you also get female-health fields (menstrual cycle) that adjust the readiness reads. After a few days, the trend charts appear.'] },
     { tab:'perfil', focusSel:'#tab-perfil', emoji:'⚙️',
       t:['O teu perfil','Your profile'],
-      b:['Preenche os teus dados (idade, altura, sexo…) para os cálculos serem certos. Aqui também ligas o Strava, defines as zonas de treino e mudas o idioma.',
-         'Fill in your data (age, height, sex…) so the calculations are accurate. Here you also connect Strava, set training zones and change the language.'] },
+      b:['Preenche os teus dados (idade, altura, sexo…) para os cálculos serem certos. Aqui também importas os teus treinos, defines as zonas de treino e mudas o idioma.',
+         'Fill in your data (age, height, sex…) so the calculations are accurate. Here you also import your workouts, set training zones and change the language.'] },
+    { tab:'perfil', profileTab:'strava', focusSel:'#btn-import-workouts', emoji:'📥',
+      t:['Importar treinos','Import workouts'],
+      b:['Em Perfil → "Importar treinos" tens duas formas de trazer os teus treinos. AUTOMÁTICO: liga o Strava uma vez e as atividades entram sozinhas (também apanha Garmin, Coros, Wahoo… se sincronizarem para o Strava). MANUAL: exporta um treino do Garmin/TrainingPeaks/Polar em .TCX ou .GPX e carrega o ficheiro — podes escolher vários de uma vez. Em qualquer dos casos, os treinos entram no teu histórico e alimentam os cálculos (carga, prontidão).',
+         'In Profile → "Import workouts" there are two ways to bring your workouts in. AUTOMATIC: connect Strava once and activities come in on their own (also covers Garmin, Coros, Wahoo… if they sync to Strava). MANUAL: export a workout from Garmin/TrainingPeaks/Polar as .TCX or .GPX and upload the file — you can pick several at once. Either way, the workouts feed your history and the calculations (load, readiness).'] },
     { tab:'dashboard', focusSel:'#estado-card', emoji:'🎉',
       t:['Tudo pronto!','All set!'],
       b:['Já sabes o essencial. Começa por preencher o teu perfil e registar a primeira água ou refeição. Podes rever este guia quando quiseres em Perfil → "Ver tutorial". Bons treinos!',
@@ -19445,6 +19533,12 @@ document.addEventListener("click", function(e){
     var s = STEPS[idx];
     if(s.coachTab) goCoachTab(s.coachTab);
     else if(s.tab) goTab(s.tab);
+    // Se o passo precisar de um sub-separador do Perfil (ex.: Importar treinos), abre-o.
+    if(s.profileTab){
+      setTimeout(function(){
+        try{ var pb = document.querySelector('[data-profile-tab="'+s.profileTab+'"]'); if(pb) pb.click(); }catch(e){}
+      }, 120);
+    }
     // foca/centra a zona relevante (com um pequeno atraso para o separador trocar primeiro)
     if(s.focusSel){
       setTimeout(function(){
