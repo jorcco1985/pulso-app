@@ -18148,7 +18148,7 @@ nav.tabbar button.active svg{
   function coachMsgsOf(w){ return (w && Array.isArray(w.coachMsgs)) ? w.coachMsgs : []; }
   function athleteMsgsFor(date, w, athleteId){
     const key = fbKey(date, w);
-    if(!athleteId || athleteId === 'local'){ return (planMessages[key] || []); }
+    if(!athleteId || athleteId === 'local'){ const store = getPulso('plan-messages', {}) || {}; return store[key] || []; }
     // Treinador a ver atleta na cloud: lê as mensagens dele se os dados estiverem carregados.
     if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
       const store = safeParse(coachCloudOverride['plan-messages'], {}) || {};
@@ -18173,9 +18173,10 @@ nav.tabbar button.active svg{
   }
   async function addAthleteMessage(date, wid, text){
     const key = date + '|' + wid;
-    if(!Array.isArray(planMessages[key])) planMessages[key] = [];
-    planMessages[key].push({ text:text, at:new Date().toISOString() });
-    try{ await sSet('plan-messages', planMessages); }catch(e){}
+    const store = getPulso('plan-messages', {}) || {};
+    if(!Array.isArray(store[key])) store[key] = [];
+    store[key].push({ text:text, at:new Date().toISOString() });
+    setPulso('plan-messages', store);
     try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
   }
   function addCoachMessage(athleteId, date, wid, text){
