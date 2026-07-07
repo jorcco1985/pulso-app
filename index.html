@@ -17172,7 +17172,7 @@ nav.tabbar button.active svg{
     if(a.avgHr) pills.push('<span class="coach-pill">'+Math.round(a.avgHr)+' bpm méd.</span>');
     const kcalPill = coachActivityKcal(a);
     if(kcalPill) pills.push('<span class="coach-pill">'+Math.round(kcalPill)+' kcal</span>');
-    return '<div class="athlete-last30-item" '+(a.source === 'strava' && a.id ? 'data-strava-id="'+esc(String(a.id))+'"' : '')+'><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
+    return '<div class="athlete-last30-item" '+((a.source === 'strava' || a.source === 'import') && a.id ? 'data-strava-id="'+esc(String(a.id))+'"' : '')+'><div class="a30-head"><div class="a30-name">'+esc(a.name||'Treino efetuado')+'</div><div class="a30-date">'+esc(shortDate(activityDay(a)))+'</div></div><div class="a30-stats">'+pills.join('')+'</div></div>';
   }
   function renderLast30Workouts(days){
     const list = document.getElementById('athlete-last30-list');
