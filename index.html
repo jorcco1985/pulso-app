@@ -263,6 +263,7 @@ header.top::after{
 .brand .tagline{font-size:11px; letter-spacing:.2px; color:#A5B4CC;}
 .pulso-mark{width:64px; height:64px; margin:0 auto 14px; filter:drop-shadow(0 0 22px rgba(53,217,166,.22));}
 .pulso-mark svg{width:100%; height:100%; display:block;}
+.brand-img{width:100%; height:100%; display:block; object-fit:cover; border-radius:24%;}
 .brand-mark{width:38px; height:38px; margin:0; flex:0 0 auto;}
 .pm-bg{fill:rgba(53,217,166,.10); stroke:rgba(53,217,166,.28); stroke-width:1.4;}
 .pm-p{fill:none; stroke:#35D9A6; stroke-width:5.2; stroke-linecap:round; stroke-linejoin:round;}
@@ -6036,7 +6037,8 @@ nav.tabbar button.active svg{
 <div id="app-locked">
   <div class="login-card">
     <div class="pulso-mark" aria-label="Pulso logo">
-      <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+      <img src="apple-touch-icon.png" alt="Pulso" class="brand-img" onerror="if(this.src.indexOf('apple-touch')>-1){this.src='pulso-logo.png';return;} this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='block';">
+      <svg viewBox="0 0 64 64" role="img" aria-hidden="true" style="display:none;">
         <rect x="6" y="6" width="52" height="52" rx="18" class="pm-bg"/>
         <path class="pm-p" d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30"/>
         <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"/>
@@ -6065,7 +6067,8 @@ nav.tabbar button.active svg{
 
 <header class="top">
   <div class="brand"><div class="pulso-mark brand-mark" aria-label="Pulso logo">
-      <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+      <img src="apple-touch-icon.png" alt="Pulso" class="brand-img" onerror="if(this.src.indexOf('apple-touch')>-1){this.src='pulso-logo.png';return;} this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='block';">
+      <svg viewBox="0 0 64 64" role="img" aria-hidden="true" style="display:none;">
         <rect x="6" y="6" width="52" height="52" rx="18" class="pm-bg"/>
         <path class="pm-p" d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30"/>
         <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"/>
@@ -15878,6 +15881,10 @@ nav.tabbar button.active svg{
   /* Métricas de atleta exportadas */
   .coach-metrics-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
   .coach-swipe{display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:2px 2px 6px; scrollbar-width:none;}
+  .coach-swipe-wrap{position:relative;}
+  .coach-swipe-arrow{position:absolute; top:calc(50% - 6px); transform:translateY(-50%); z-index:4; width:40px; height:40px; border-radius:999px; border:1px solid rgba(255,255,255,.2); background:rgba(9,14,25,.92); color:#fff; font-size:24px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.4);}
+  .coach-swipe-arrow.prev{left:-6px;}
+  .coach-swipe-arrow.next{right:-6px;}
   .coach-swipe::-webkit-scrollbar{display:none;}
   .coach-swipe-slide{flex:0 0 90%; scroll-snap-align:center;}
   @media(min-width:560px){ .coach-swipe-slide{flex:0 0 46%;} }
@@ -15991,9 +15998,10 @@ nav.tabbar button.active svg{
   .psh-fmt{flex:1; min-height:42px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:var(--text-muted); font-weight:800; font-size:13px; cursor:pointer;}
   .psh-fmt.active{background:rgba(53,217,166,.16); border-color:var(--teal); color:var(--teal);}
   .psh-toggles{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
-  .psh-toggle{display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer;}
-  .psh-toggle.off{opacity:.45;}
-  .psh-toggle input{pointer-events:none;}
+  .psh-toggle{display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:#fff; font-size:13px; font-weight:700; cursor:pointer;}
+  .psh-toggle.off{opacity:.5;}
+  .psh-toggle .psh-tick{width:18px; height:18px; flex:0 0 auto; border-radius:6px; background:var(--teal); color:#05240f; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; line-height:1;}
+  .psh-toggle.off .psh-tick{background:rgba(255,255,255,.14); color:transparent;}
   .psh-actions{display:flex; gap:8px; margin-top:14px;}
   .psh-btn{flex:1; min-height:50px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:#fff; font-weight:800; font-size:15px; cursor:pointer;}
   .psh-btn.primary{background:var(--teal); color:#05240f; border:0;}
@@ -16194,7 +16202,8 @@ nav.tabbar button.active svg{
     <div class="coach-brand">
       <div class="coach-brand-left">
         <div class="pulso-mark brand-mark" aria-label="Pulso logo">
-          <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+          <img src="apple-touch-icon.png" alt="Pulso" class="brand-img" onerror="if(this.src.indexOf('apple-touch')>-1){this.src='pulso-logo.png';return;} this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='block';">
+          <svg viewBox="0 0 64 64" role="img" aria-hidden="true" style="display:none;">
             <rect x="6" y="6" width="52" height="52" rx="18" class="pm-bg"></rect>
             <path class="pm-p" d="M22 47V17h16c7 0 12 4.6 12 11.2S45 39.4 38 39.4H30"></path>
             <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"></path>
@@ -17970,6 +17979,16 @@ nav.tabbar button.active svg{
     try{ if(navigator.vibrate) navigator.vibrate([40,60,40]); }catch(e){}
   }
   window.PulsoRenderRecords = renderRecords;
+  document.addEventListener('click', function(e){
+    const arr = e.target.closest && e.target.closest('.coach-swipe-arrow');
+    if(!arr) return;
+    const wrap = arr.closest('.coach-swipe-wrap'); const sw = wrap && wrap.querySelector('.coach-swipe');
+    if(!sw) return;
+    const dir = Number(arr.getAttribute('data-swipe-dir')) || 1;
+    const slide = sw.querySelector('.coach-swipe-slide');
+    const step = slide ? (slide.offsetWidth + 12) : Math.round(sw.clientWidth * 0.9);
+    try{ sw.scrollBy({ left: dir*step, behavior:'smooth' }); }catch(_){ sw.scrollLeft += dir*step; }
+  });
   document.addEventListener('click', async function(e){
     const t = e.target;
     if(t && t.id === 'records-share-btn'){
@@ -18927,7 +18946,7 @@ nav.tabbar button.active svg{
 
     // Perfil, Saúde, Nutrição e Bebidas num swipe uniforme e compacto.
     const slide = (c)=> '<div class="coach-swipe-slide">'+c+'</div>';
-    const infoSwipe = '<div class="coach-swipe">'+slide(profileCard)+slide(health)+slide(nutri)+slide(drinks)+'</div>'+
+    const infoSwipe = '<div class="coach-swipe-wrap"><button class="coach-swipe-arrow prev" type="button" data-swipe-dir="-1" aria-label="Anterior">‹</button><div class="coach-swipe" id="coach-info-swipe">'+slide(profileCard)+slide(health)+slide(nutri)+slide(drinks)+'</div><button class="coach-swipe-arrow next" type="button" data-swipe-dir="1" aria-label="Seguinte">›</button></div>'+
       '<p class="help" style="margin:2px 2px 10px; text-align:center; font-size:11px;">'+PL('Desliza: Perfil · Saúde · Nutrição · Bebidas','Swipe: Profile · Health · Nutrition · Drinks')+'</p>';
     // Ordem pedida: cartões (swipe) → gráficos → prontidão → restantes.
     box.innerHTML = infoSwipe + overview + readyCard + plannedCard + raceCard + completedBox + recentBox;
@@ -20881,6 +20900,20 @@ document.addEventListener("click", function(e){
   'use strict';
   var TEAL='#35D9A6', INK='#0C1322';
   var curSpec=null, curFmt='story';
+  var logoImg=null, logoReady=false;
+  // Tenta os logos já no repositório por ordem (o escuro do ecrã inicial primeiro), depois
+  // o pulso-logo.png (se o tiveres carregado) e por fim o ícone. Cai no desenho se nenhum existir.
+  (function(){
+    try{
+      logoImg = new Image();
+      var srcs = ['apple-touch-icon.png','pulso-logo.png','icon-512.png','icon-192.png'];
+      var i = 0;
+      function tryNext(){ if(i>=srcs.length){ logoReady=false; return; } logoImg.src = srcs[i++]; }
+      logoImg.onload = function(){ logoReady=true; try{ if(curSpec) draw(); }catch(e){} };
+      logoImg.onerror = function(){ tryNext(); };
+      tryNext();
+    }catch(e){}
+  })();
 
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s==null?'':s); }
@@ -20940,16 +20973,25 @@ document.addEventListener("click", function(e){
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
     var pad=76, x=pad, w=W-pad*2, y=pad+ (curFmt==='square'?10:60);
 
-    // header
-    drawLogo(ctx,x,y,92);
-    ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 46px Inter, Arial'; ctx.fillText('PULSO', x+112, y+40);
-    ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='600 26px Inter, Arial'; ctx.fillText('Health & Training', x+112, y+76);
-    y+=140;
+    // header — o teu logo completo, centrado. (Se não carregar, cai no desenho + texto.)
+    if(logoReady && logoImg && logoImg.width){
+      var targetH = (curFmt==='square'?150:196);
+      var targetW = logoImg.width * (targetH / logoImg.height);
+      ctx.drawImage(logoImg, W/2 - targetW/2, y, targetW, targetH);
+      y += targetH + 22;
+    } else {
+      drawLogo(ctx,x,y,96);
+      ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 46px Inter, Arial'; ctx.fillText('PULSO', x+116, y+42);
+      ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='600 26px Inter, Arial'; ctx.fillText('Health & Training', x+116, y+78);
+      y+=132;
+    }
+    // barra de destaque
+    ctx.textAlign='left'; ctx.fillStyle=(curSpec.accent||TEAL); rr(ctx,x,y,88,10,5); ctx.fill(); y+=34;
 
     // título
-    ctx.fillStyle='#fff'; ctx.font='900 '+(curFmt==='square'?52:64)+'px Inter, Arial';
-    wrapText(ctx, curSpec.title||'', x, y, w, curFmt==='square'?58:72, 2); y+= (curFmt==='square'?70:86);
-    if(curSpec.subtitle){ ctx.fillStyle=TEAL; ctx.font='800 30px Inter, Arial'; ctx.fillText(curSpec.subtitle, x, y); y+=54; }
+    ctx.fillStyle='#fff'; ctx.font='900 '+(curFmt==='square'?54:70)+'px Inter, Arial';
+    wrapText(ctx, curSpec.title||'', x, y, w, curFmt==='square'?60:78, 2); y+= (curFmt==='square'?74:92);
+    if(curSpec.subtitle){ ctx.fillStyle=(curSpec.accent||TEAL); ctx.font='800 32px Inter, Arial'; ctx.fillText(curSpec.subtitle, x, y); y+=56; }
 
     // chart
     if(curSpec.chart){
@@ -20996,7 +21038,7 @@ document.addEventListener("click", function(e){
     var box=$('psh-toggles'); if(!box) return;
     var togglable=(curSpec.stats||[]).filter(function(s){ return s.toggle; });
     box.innerHTML = togglable.map(function(s,i){
-      return '<button type="button" class="psh-toggle'+(s.on===false?' off':'')+'" data-toggle="'+s.key+'"><input type="checkbox" '+(s.on!==false?'checked':'')+'>'+esc(s.label)+'</button>';
+      return '<button type="button" class="psh-toggle'+(s.on===false?' off':'')+'" data-toggle="'+s.key+'"><span class="psh-tick">'+(s.on!==false?'✓':'')+'</span>'+esc(s.label)+'</button>';
     }).join('');
     box.querySelectorAll('[data-toggle]').forEach(function(btn){
       btn.addEventListener('click', function(){
