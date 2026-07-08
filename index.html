@@ -51,9 +51,9 @@
   body::before{
     content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
     background-image:url('apple-touch-icon.png');
-    background-repeat:no-repeat; background-position:center 16%;
-    background-size:min(74vw, 360px);
-    filter:blur(48px); opacity:.07;
+    background-repeat:no-repeat; background-position:center 15%;
+    background-size:min(86vw, 460px);
+    filter:blur(42px); opacity:.20;
   }
   ::selection{background:var(--teal); color:#04140f;}
   a{color:var(--teal);}
@@ -20994,10 +20994,20 @@ document.addEventListener("click", function(e){
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
     var pad=76, x=pad, w=W-pad*2, y=pad+ (curFmt==='square'?12:64);
 
-    // header — marca de texto compacta (o logo já está no fundo)
-    ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 42px Inter, Arial'; ctx.fillText('PULSO', x, y+34);
-    ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 25px Inter, Arial'; ctx.fillText('Health & Training', x, y+72);
-    y+=116;
+    // header — símbolo no topo + marca de texto (o logo grande está desfocado no fundo)
+    if(logoReady && logoImg && logoImg.width){
+      var ls=90; ctx.save(); rr(ctx,x,y,ls,ls,ls*0.24); ctx.clip(); ctx.drawImage(logoImg,x,y,ls,ls); ctx.restore();
+      rr(ctx,x,y,ls,ls,ls*0.24); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.stroke();
+      var tx=x+ls+22;
+      ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 44px Inter, Arial'; ctx.fillText('PULSO', tx, y+40);
+      ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 25px Inter, Arial'; ctx.fillText('Health & Training', tx, y+74);
+      y+=ls+24;
+    } else {
+      drawLogo(ctx,x,y,90);
+      ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 44px Inter, Arial'; ctx.fillText('PULSO', x+112, y+40);
+      ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 25px Inter, Arial'; ctx.fillText('Health & Training', x+112, y+74);
+      y+=114;
+    }
     // barra de destaque
     ctx.fillStyle=(curSpec.accent||TEAL); rr(ctx,x,y,88,10,5); ctx.fill(); y+=34;
 
