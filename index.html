@@ -15699,6 +15699,9 @@ nav.tabbar button.active svg{
   .cp-msg.coach{align-self:flex-start; background:rgba(53,217,166,.16); border:1px solid rgba(53,217,166,.32);}
   .cp-msg.athlete{align-self:flex-end; background:rgba(91,141,239,.16); border:1px solid rgba(91,141,239,.32);}
   .cp-msg-empty{font-size:12px; color:var(--text-muted); text-align:center; padding:4px 0;}
+  .cp-msg-link{color:#7fd7ff; text-decoration:underline; word-break:break-all;}
+  .cp-yt-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
+  .cp-yt-chip{display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; background:rgba(255,0,0,.16); border:1px solid rgba(255,60,60,.45); color:#ff9b9b; font-size:12px; font-weight:800; text-decoration:none;}
   .cp-msg-input{display:flex; gap:6px;}
   .cp-msg-text{flex:1; min-width:0; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:8px 11px; color:#fff; font-size:13px;}
   .cp-msg-send{flex:0 0 auto; border:0; border-radius:12px; padding:8px 14px; background:var(--teal); color:#05240f; font-weight:800; font-size:13px; cursor:pointer;}
@@ -17768,10 +17771,13 @@ nav.tabbar button.active svg{
   async function renderRecords(){
     const box = document.getElementById('records-list');
     if(!box) return;
+    const _recKm = (v)=> (v==null||isNaN(v)) ? '—' : Number(v).toFixed(1).replace('.', ',') + ' km';
+    const _recDateShort = (d)=>{ const dt=new Date(d); return isNaN(dt) ? String(d||'') : dt.toLocaleDateString(PL('pt-PT','en-GB'), {day:'2-digit', month:'2-digit'}); };
+    const _recCat = (t)=>{ t=String(t||'').toLowerCase(); if(/run|corr|trail/.test(t)) return 'run'; if(/ride|bike|cyc/.test(t)) return 'bike'; if(/weight|forc|strength|gym|muscul/.test(t)) return 'forca'; return 'other'; };
     const acts = (safeStravaActivities() || []).filter(a=>a && (a.distanceKm||a.movingSec));
     if(!acts.length){ box.innerHTML = '<p class="help" style="margin:8px 0 0;">'+PL('Importa ou sincroniza treinos para veres os teus recordes.','Import or sync workouts to see your records.')+'</p>'; return; }
-    const runs = acts.filter(a=> sportCategory(a.type||a.sportType)==='run');
-    const rides = acts.filter(a=> sportCategory(a.type||a.sportType)==='bike');
+    const runs = acts.filter(a=> _recCat(a.type||a.sportType)==='run');
+    const rides = acts.filter(a=> _recCat(a.type||a.sportType)==='bike');
 
     // Melhores esforços de corrida — top-3 por distância (a partir das curvas guardadas).
     const targets = [{km:1,label:'1 km'},{km:5,label:'5 km'},{km:10,label:'10 km'},{km:21.0975,label:PL('Meia maratona','Half marathon')}];
@@ -17829,7 +17835,7 @@ nav.tabbar button.active svg{
         html += '<div class="rec-be-block"><div class="rec-be-blockhead">'+esc(tg.label)+'</div>';
         efforts[tg.km].forEach((e,i)=>{
           const pace = _paceFromSecKm(e.sec / tg.km);
-          html += '<div class="rec-be-row rec-medal-'+(i+1)+'"><span class="rec-be-medal">'+medals[i]+'</span><span class="rec-be-time">'+_fmtDur(e.sec)+'</span><span class="rec-be-sub">'+pace+' · '+esc(fmtDateShort(e.date))+'</span></div>';
+          html += '<div class="rec-be-row rec-medal-'+(i+1)+'"><span class="rec-be-medal">'+medals[i]+'</span><span class="rec-be-time">'+_fmtDur(e.sec)+'</span><span class="rec-be-sub">'+pace+' · '+esc(_recDateShort(e.date))+'</span></div>';
         });
         html += '</div>';
       });
@@ -17843,8 +17849,8 @@ nav.tabbar button.active svg{
     const longTime = maxBy(acts, a=>a.movingSec);
     const bestPow = maxBy(rides, a=>a.avgWatts);
     const tiles = [];
-    if(longRun.a) tiles.push('<div class="rec-tile"><strong>'+fmtKm(longRun.v)+'</strong><span>'+PL('Corrida mais longa','Longest run')+'</span></div>');
-    if(longRide.a) tiles.push('<div class="rec-tile"><strong>'+fmtKm(longRide.v)+'</strong><span>'+PL('Bike mais longa','Longest ride')+'</span></div>');
+    if(longRun.a) tiles.push('<div class="rec-tile"><strong>'+_recKm(longRun.v)+'</strong><span>'+PL('Corrida mais longa','Longest run')+'</span></div>');
+    if(longRide.a) tiles.push('<div class="rec-tile"><strong>'+_recKm(longRide.v)+'</strong><span>'+PL('Bike mais longa','Longest ride')+'</span></div>');
     if(mostElev.a && mostElev.v) tiles.push('<div class="rec-tile"><strong>'+Math.round(mostElev.v)+' m</strong><span>'+PL('Maior subida','Most elevation')+'</span></div>');
     if(longTime.a && longTime.v) tiles.push('<div class="rec-tile"><strong>'+_fmtDur(longTime.v)+'</strong><span>'+PL('Mais tempo','Longest time')+'</span></div>');
     if(bestPow.a && bestPow.v) tiles.push('<div class="rec-tile"><strong>'+Math.round(bestPow.v)+' W</strong><span>'+PL('Melhor potência média','Best avg power')+'</span></div>');
@@ -18175,6 +18181,30 @@ nav.tabbar button.active svg{
   }
   function _msgSeenTs(key, side){ const s = getPulso('plan-msg-seen', {}) || {}; return s[key+'|'+side] || ''; }
   function _markMsgSeen(key, side){ const s = getPulso('plan-msg-seen', {}) || {}; s[key+'|'+side] = new Date().toISOString(); setPulso('plan-msg-seen', s); }
+  function _ytId(url){
+    const m = String(url||'').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : null;
+  }
+  // Torna URLs clicáveis (e YouTube ganha um botão "Ver vídeo"). O texto é sempre escapado.
+  function _msgLinkify(text){
+    const raw = String(text||'');
+    const urlRe = /(https?:\/\/[^\s]+)/g;
+    let out = '', last = 0, m, ytChips = ''; const seenYt = {};
+    while((m = urlRe.exec(raw))){
+      out += esc(raw.slice(last, m.index));
+      let url = m[1], trail = '';
+      const tm = url.match(/[),.;!?]+$/); if(tm){ trail = tm[0]; url = url.slice(0, -trail.length); }
+      const label = url.replace(/^https?:\/\/(www\.)?/,'');
+      const shown = label.length > 46 ? (label.slice(0,44) + '…') : label;
+      out += '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" class="cp-msg-link">'+esc(shown)+'</a>' + esc(trail);
+      const yt = _ytId(url);
+      if(yt && !seenYt[yt]){ seenYt[yt]=1; ytChips += '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" class="cp-yt-chip">▶ '+PL('Ver vídeo','Watch video')+'</a>'; }
+      last = urlRe.lastIndex;
+    }
+    out += esc(raw.slice(last));
+    if(ytChips) out += '<div class="cp-yt-row">'+ytChips+'</div>';
+    return out;
+  }
   function threadHTML(date, w, side, athleteId){
     const key = fbKey(date, w);
     const all = coachMsgsOf(w).concat(planMsgsFor(date, w, athleteId));
@@ -18186,13 +18216,13 @@ nav.tabbar button.active svg{
     const badge = unread ? '<span class="cp-unread">'+unread+'</span>' : '';
     const bubbles = uniq.length ? uniq.map(m=>{
       const who = m.from==='coach' ? PL('Treinador','Coach') : PL('Atleta','Athlete');
-      return '<div class="cp-msg '+m.from+'"><span class="cp-msg-who">'+who+'</span>'+esc(m.text||'')+'</div>';
+      return '<div class="cp-msg '+m.from+'"><span class="cp-msg-who">'+who+'</span>'+_msgLinkify(m.text||'')+'</div>';
     }).join('') : '<div class="cp-msg-empty">'+PL('Ainda sem mensagens.','No messages yet.')+'</div>';
-    const placeholder = side==='coach' ? PL('Escrever ao atleta…','Message the athlete…') : PL('Escrever ao treinador…','Message the coach…');
+    const placeholder = side==='coach' ? PL('Escrever ao atleta… (podes colar links/vídeos)','Message the athlete… (you can paste links/videos)') : PL('Escrever ao treinador…','Message the coach…');
     return '<div class="cp-thread" data-msg-date="'+esc(date)+'" data-msg-wid="'+esc((w&&(w.id||w.name))||'x')+'" data-msg-athlete="'+esc(athleteId||'local')+'" data-msg-side="'+side+'">'
       + '<div class="cp-thread-title">💬 '+PL('Mensagens','Messages')+badge+'</div>'
       + '<div class="cp-msgs">'+bubbles+'</div>'
-      + '<div class="cp-msg-input"><input type="text" class="cp-msg-text" maxlength="240" placeholder="'+placeholder+'"><button type="button" class="cp-msg-send" data-msg-side="'+side+'">'+PL('Enviar','Send')+'</button></div>'
+      + '<div class="cp-msg-input"><input type="text" class="cp-msg-text" maxlength="600" placeholder="'+placeholder+'"><button type="button" class="cp-msg-send" data-msg-side="'+side+'">'+PL('Enviar','Send')+'</button></div>'
       + '</div>';
   }
   function _pushPlanMsg(key, entry){
