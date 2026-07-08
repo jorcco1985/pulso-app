@@ -10314,10 +10314,18 @@ nav.tabbar button.active svg{
   const CORS_PROXY = 'https://corsproxy.io/?url=';
 
   async function fetchStrava(url, options){
+    // 1) Direto (normalmente bloqueado por CORS no browser).
     try{
       return await fetch(url, options);
     }catch(directErr){
-      console.warn('Pedido direto à Strava falhou (provável bloqueio CORS), a tentar via proxy...', directErr);
+      // 2) Função Netlify (fiável, server-side, sem CORS). Faz fallback se não estiver publicada.
+      try{
+        const auth = (options && options.headers && String(options.headers.Authorization||'').replace('Bearer ','')) || '';
+        const token = auth || ((typeof stravaAuth !== 'undefined' && stravaAuth && stravaAuth.accessToken) || '');
+        const r = await fetch('/.netlify/functions/strava-proxy', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ url: url, token: token }) });
+        if(r) return r;
+      }catch(fnErr){ console.warn('strava-proxy indisponível, a tentar proxy público…', fnErr); }
+      // 3) Proxy público (último recurso).
       try{
         return await fetch(CORS_PROXY + encodeURIComponent(url), options);
       }catch(proxyErr){
@@ -15684,6 +15692,7 @@ nav.tabbar button.active svg{
   .cp-fb{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);}
   .cp-thread{margin-top:10px; padding:10px 11px; border-radius:14px; background:rgba(9,14,25,.5); border:1px solid rgba(255,255,255,.08);}
   .cp-thread-title{font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:8px;}
+  .cp-unread{display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; margin-left:7px; border-radius:999px; background:#F2555A; color:#fff; font-size:11px; font-weight:900; vertical-align:middle;}
   .cp-msgs{display:flex; flex-direction:column; gap:6px; margin-bottom:8px; max-height:220px; overflow-y:auto;}
   .cp-msg{max-width:85%; padding:7px 10px; border-radius:12px; font-size:13px; line-height:1.35; color:#fff; word-break:break-word;}
   .cp-msg .cp-msg-who{display:block; font-size:10px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; opacity:.7; margin-bottom:2px;}
@@ -17767,8 +17776,15 @@ nav.tabbar button.active svg{
     // Melhores esforços de corrida — top-3 por distância (a partir das curvas guardadas).
     const targets = [{km:1,label:'1 km'},{km:5,label:'5 km'},{km:10,label:'10 km'},{km:21.0975,label:PL('Meia maratona','Half marathon')}];
     const efforts = {};
-    for(const a of runs){
+    // Corridas mais recentes primeiro (para ir buscar as curvas em falta às recentes).
+    const runsByDate = runs.slice().sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')));
+    let fetched = 0;
+    for(const a of runsByDate){
       let st = null; try{ st = await sGet('strava-streams-'+a.id, null); }catch(e){}
+      // Sem curvas em cache e é do Strava → tenta buscar (via função Netlify fiável), até um limite.
+      if((!st || !st.distance || !st.distance.length) && a.source !== 'import' && fetched < 12 && typeof getStravaStreams === 'function'){
+        try{ st = await getStravaStreams(a.id); fetched++; }catch(e){ st = null; }
+      }
       if(!st || !st.distance || !st.distance.length || !st.time || !st.time.length) continue;
       for(const tg of targets){
         const need = tg.km*1000;
@@ -18145,55 +18161,61 @@ nav.tabbar button.active svg{
   }
 
   // ---------- Fio de mensagens treinador ↔ atleta (por treino) ----------
-  function coachMsgsOf(w){ return (w && Array.isArray(w.coachMsgs)) ? w.coachMsgs : []; }
-  function athleteMsgsFor(date, w, athleteId){
+  // Todas as mensagens ficam em 'plan-messages' (com etiqueta 'from'); para atletas
+  // cloud, as do treinador vão também no treino (coachMsgs) para viajarem até ele.
+  function coachMsgsOf(w){ return (w && Array.isArray(w.coachMsgs)) ? w.coachMsgs.map(m=>({from:'coach', text:m.text, at:m.at})) : []; }
+  function planMsgsFor(date, w, athleteId){
     const key = fbKey(date, w);
-    if(!athleteId || athleteId === 'local'){ const store = getPulso('plan-messages', {}) || {}; return store[key] || []; }
-    // Treinador a ver atleta na cloud: lê as mensagens dele se os dados estiverem carregados.
-    if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
-      const store = safeParse(coachCloudOverride['plan-messages'], {}) || {};
-      return store[key] || [];
+    let store = {};
+    if(!athleteId || athleteId === 'local'){ store = getPulso('plan-messages', {}) || {}; }
+    else if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
+      store = safeParse(coachCloudOverride['plan-messages'], {}) || {};
     }
-    return [];
+    return (store[key] || []).map(m=>({from: m.from || 'athlete', text:m.text, at:m.at}));
   }
+  function _msgSeenTs(key, side){ const s = getPulso('plan-msg-seen', {}) || {}; return s[key+'|'+side] || ''; }
+  function _markMsgSeen(key, side){ const s = getPulso('plan-msg-seen', {}) || {}; s[key+'|'+side] = new Date().toISOString(); setPulso('plan-msg-seen', s); }
   function threadHTML(date, w, side, athleteId){
-    const cm = coachMsgsOf(w).map(m=>({from:'coach', text:m.text, at:m.at}));
-    const am = athleteMsgsFor(date, w, athleteId).map(m=>({from:'athlete', text:m.text, at:m.at}));
-    const all = cm.concat(am).sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
-    const bubbles = all.length ? all.map(m=>{
+    const key = fbKey(date, w);
+    const all = coachMsgsOf(w).concat(planMsgsFor(date, w, athleteId));
+    const seen = {}; const uniq = [];
+    all.forEach(m=>{ const k = (m.at||'')+'|'+(m.text||''); if(!seen[k]){ seen[k]=1; uniq.push(m); } });
+    uniq.sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+    const seenTs = _msgSeenTs(key, side);
+    const unread = uniq.filter(m=> m.from !== side && String(m.at||'') > String(seenTs)).length;
+    const badge = unread ? '<span class="cp-unread">'+unread+'</span>' : '';
+    const bubbles = uniq.length ? uniq.map(m=>{
       const who = m.from==='coach' ? PL('Treinador','Coach') : PL('Atleta','Athlete');
       return '<div class="cp-msg '+m.from+'"><span class="cp-msg-who">'+who+'</span>'+esc(m.text||'')+'</div>';
     }).join('') : '<div class="cp-msg-empty">'+PL('Ainda sem mensagens.','No messages yet.')+'</div>';
     const placeholder = side==='coach' ? PL('Escrever ao atleta…','Message the athlete…') : PL('Escrever ao treinador…','Message the coach…');
-    return '<div class="cp-thread" data-msg-date="'+esc(date)+'" data-msg-wid="'+esc((w&&(w.id||w.name))||'x')+'" data-msg-athlete="'+esc(athleteId||'local')+'">'
-      + '<div class="cp-thread-title">💬 '+PL('Mensagens','Messages')+'</div>'
+    return '<div class="cp-thread" data-msg-date="'+esc(date)+'" data-msg-wid="'+esc((w&&(w.id||w.name))||'x')+'" data-msg-athlete="'+esc(athleteId||'local')+'" data-msg-side="'+side+'">'
+      + '<div class="cp-thread-title">💬 '+PL('Mensagens','Messages')+badge+'</div>'
       + '<div class="cp-msgs">'+bubbles+'</div>'
       + '<div class="cp-msg-input"><input type="text" class="cp-msg-text" maxlength="240" placeholder="'+placeholder+'"><button type="button" class="cp-msg-send" data-msg-side="'+side+'">'+PL('Enviar','Send')+'</button></div>'
       + '</div>';
   }
-  async function addAthleteMessage(date, wid, text){
-    const key = date + '|' + wid;
+  function _pushPlanMsg(key, entry){
     const store = getPulso('plan-messages', {}) || {};
     if(!Array.isArray(store[key])) store[key] = [];
-    store[key].push({ text:text, at:new Date().toISOString() });
+    store[key].push(entry);
     setPulso('plan-messages', store);
     try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
   }
+  async function addAthleteMessage(date, wid, text){
+    _pushPlanMsg(date + '|' + wid, { from:'athlete', text:text, at:new Date().toISOString() });
+  }
   function addCoachMessage(athleteId, date, wid, text){
-    const msg = { text:text, at:new Date().toISOString() };
-    const apply = (w)=>{ if(!Array.isArray(w.coachMsgs)) w.coachMsgs = []; w.coachMsgs.push(msg); };
-    let done = false;
+    const at = new Date().toISOString();
+    // Guarda sempre no plan-messages (o atleta local lê daqui; e o treinador vê a sua mensagem).
+    _pushPlanMsg(date + '|' + wid, { from:'coach', text:text, at:at });
+    // Atleta cloud: mete também no treino, para a mensagem viajar até ele pela cloud.
     if(isCloudAthlete(athleteId)){
       const cal = cloudPlanCache[athleteId] || {};
-      (cal[date]||[]).forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ apply(x); done=true; } });
-      if(done){ cloudPlanCache[athleteId] = cal; if(window.PulsoCloud && window.PulsoCloud.saveCoachPlan){ window.PulsoCloud.saveCoachPlan(athleteId, cal).catch(err=>console.warn(err)); } }
-    }else{
-      const all = getCalendarAll();
-      const arr = (all[athleteId] && all[athleteId][date]) || [];
-      arr.forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ apply(x); done=true; } });
-      if(done) setPulso('coach-calendar', all);
+      (cal[date]||[]).forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ if(!Array.isArray(x.coachMsgs)) x.coachMsgs = []; x.coachMsgs.push({ text:text, at:at }); } });
+      cloudPlanCache[athleteId] = cal;
+      if(window.PulsoCloud && window.PulsoCloud.saveCoachPlan){ window.PulsoCloud.saveCoachPlan(athleteId, cal).catch(err=>console.warn(err)); }
     }
-    return done;
   }
   // Envio (delegado): funciona no atleta e no treinador.
   document.addEventListener('click', async function(e){
@@ -18209,11 +18231,20 @@ nav.tabbar button.active svg{
     send.disabled = true;
     if(side === 'athlete'){ await addAthleteMessage(date, wid, text); }
     else { addCoachMessage(athleteId, date, wid, text); }
+    try{ _markMsgSeen(date+'|'+wid, side); }catch(_){}
     if(input) input.value = '';
     try{ renderAthletePlanCard(); }catch(_){}
     try{ if(typeof renderAthleteCalDay === 'function') renderAthleteCalDay(); }catch(_){}
     try{ if(typeof renderCoachDay === 'function') renderCoachDay(); }catch(_){}
     send.disabled = false;
+  });
+  // Marca as mensagens como lidas quando tocas na caixa de escrever.
+  document.addEventListener('focusin', function(e){
+    const input = e.target.closest && e.target.closest('.cp-msg-text'); if(!input) return;
+    const thread = input.closest('.cp-thread'); if(!thread) return;
+    const date = thread.getAttribute('data-msg-date'), wid = thread.getAttribute('data-msg-wid'), side = thread.getAttribute('data-msg-side');
+    try{ _markMsgSeen(date+'|'+wid, side); }catch(_){}
+    const b = thread.querySelector('.cp-unread'); if(b) b.remove();
   });
 
   function renderAthletePlanCard(){
