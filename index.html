@@ -7181,16 +7181,20 @@ nav.tabbar button.active svg{
 
   // ---------- Storage helpers ----------
   async function sGet(key, fallback){
+    const isEmpty = (v)=> v==null || (Array.isArray(v) && v.length===0) || (v && typeof v==='object' && !Array.isArray(v) && Object.keys(v).length===0);
+    // 1) localStorage é a fonte principal (persiste e é onde o sSet grava sempre).
+    let localVal, hasLocal = false;
+    try{ const raw = localStorage.getItem('pulso:'+key); if(raw !== null){ localVal = JSON.parse(raw); hasLocal = true; } }catch(e){}
+    if(hasLocal && !isEmpty(localVal)) return localVal;
+    // 2) Se o localStorage está vazio/ausente, tenta o armazenamento do preview (pode ter
+    //    dados por migrar). Se lá houver algo, migra-o para o localStorage e usa-o.
     try{
       if(window.storage && window.storage.get){
         const r = await window.storage.get(key, false);
-        if(r) return JSON.parse(r.value);
+        if(r){ const v = JSON.parse(r.value); if(!isEmpty(v)){ try{ localStorage.setItem('pulso:'+key, r.value); }catch(_e){} return v; } }
       }
-    }catch(e){ /* window.storage not available here — fall through to localStorage */ }
-    try{
-      const raw = localStorage.getItem('pulso:'+key);
-      return raw !== null ? JSON.parse(raw) : fallback;
-    }catch(e){ return fallback; }
+    }catch(e){}
+    return hasLocal ? localVal : fallback;
   }
   async function sSet(key, value){
     let savedRemote = false;
@@ -11427,6 +11431,7 @@ nav.tabbar button.active svg{
     await sSet(cacheKey, pack);
     return pack;
   }
+  try{ window.PulsoGetStravaStreams = getStravaStreams; }catch(e){}
   function fallbackActivityRows(a){
     // Gera um traçado estimado com aspeto orgânico/irregular (parecido com o original do
     // Strava) em vez de ondas sinusoidais perfeitas. É determinístico por treino: a mesma
@@ -12861,9 +12866,11 @@ nav.tabbar button.active svg{
       ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries'].forEach(k=>{
         try{
           const raw = localStorage.getItem('pulso:'+k);
-          const arr = raw ? JSON.parse(raw) : [];
-          const kept = (Array.isArray(arr)?arr:[]).filter(e=> e && e.date && String(e.date).slice(0,10) >= cutoffP);
-          localStorage.setItem('pulso:'+k, JSON.stringify(kept));
+          if(raw == null) return; // nada em localStorage — NÃO escrever [] por cima (evita perder dados que estejam noutro armazenamento).
+          const arr = JSON.parse(raw);
+          if(!Array.isArray(arr) || !arr.length) return; // vazio — não mexer.
+          const kept = arr.filter(e=> e && e.date && String(e.date).slice(0,10) >= cutoffP);
+          if(kept.length !== arr.length) localStorage.setItem('pulso:'+k, JSON.stringify(kept));
         }catch(e){}
       });
     })();
@@ -12887,7 +12894,12 @@ nav.tabbar button.active svg{
   }
 
   let booted = false;
-  window.addEventListener('load', function(){ setTimeout(function(){ booted = true; }, 2500); });
+  window.addEventListener('load', function(){
+    setTimeout(function(){ booted = true; }, 2500);
+    // Depois do arranque (dados já migrados/recuperados do armazenamento), recalcula os
+    // resumos dos últimos dias a partir das entradas — corrige dias que ficaram a 0.
+    setTimeout(function(){ try{ if(window.PulsoReArchiveRecent) window.PulsoReArchiveRecent(14); if(typeof renderDashboard==='function') renderDashboard(); }catch(e){} }, 4000);
+  });
 
   function checkDailyReset(){
     const today = todayKey();
@@ -17853,10 +17865,10 @@ nav.tabbar button.active svg{
     const runsByDate = runs.slice().sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')));
     let fetched = 0;
     for(const a of runsByDate){
-      let st = null; try{ st = await sGet('strava-streams-'+a.id, null); }catch(e){}
+      let st = null; try{ st = getPulso('strava-streams-'+a.id, null); }catch(e){}
       // Sem curvas em cache e é do Strava → tenta buscar (via função Netlify fiável), até um limite.
-      if((!st || !st.distance || !st.distance.length) && a.source !== 'import' && fetched < 12 && typeof getStravaStreams === 'function'){
-        try{ st = await getStravaStreams(a.id); fetched++; }catch(e){ st = null; }
+      if((!st || !st.distance || !st.distance.length) && a.source !== 'import' && fetched < 12 && typeof window.PulsoGetStravaStreams === 'function'){
+        try{ st = await window.PulsoGetStravaStreams(a.id); fetched++; }catch(e){ st = null; }
       }
       if(!st || !st.distance || !st.distance.length || !st.time || !st.time.length) continue;
       for(const tg of targets){
@@ -17874,7 +17886,7 @@ nav.tabbar button.active svg{
     });
 
     // Deteta recordes novos vs guardado (para celebrar).
-    const prev = (await sGet('records-best', {})) || {};
+    const prev = getPulso('records-best', {}) || {};
     const everComputed = prev && Object.keys(prev).length > 0;
     const newPRs = [];
     targets.forEach(tg=>{
@@ -17888,7 +17900,7 @@ nav.tabbar button.active svg{
       });
     });
     const toStore = {}; targets.forEach(tg=>{ if(efforts[tg.km]) toStore[tg.km] = efforts[tg.km]; });
-    await sSet('records-best', toStore);
+    setPulso('records-best', toStore);
     // Só celebra depois de já ter havido um cálculo antes (não no primeiro preenchimento).
     if(newPRs.length && everComputed){ try{ showRecordCelebration(newPRs); }catch(e){} }
 
