@@ -19858,6 +19858,20 @@ function mergePulsoArrays(localArr, cloudArr){
   });
   return out;
 }
+// Funde dois objetos (ex.: profile, dicionário ai-foods) campo a campo.
+// Começa pela cloud e deixa o LOCAL sobrepor SÓ quando o valor local não está vazio.
+// Assim um campo local vazio (ex.: heightCm:null no arranque) nunca apaga um valor
+// válido que veio da cloud — resolve a perda de altura/sexo/idade na sincronização.
+// (0 e false contam como valores válidos; só null/undefined/'' são "vazios".)
+function mergePulsoObjects(localVal, cloudVal){
+  const isEmptyField = (v)=> v === null || v === undefined || v === '';
+  const out = Object.assign({}, cloudVal);
+  Object.keys(localVal || {}).forEach(function(f){
+    const lv = localVal[f];
+    if(!isEmptyField(lv) || isEmptyField(out[f])) out[f] = lv;
+  });
+  return out;
+}
 // Aplica os dados da cloud ao localStorage FUNDINDO com o que já existe localmente.
 // Antes sobrepunha tudo — o que apagava registos locais ainda não sincronizados
 // (ex.: kcal acabadas de escrever, alimentos aprendidos pela IA). Agora nunca se perde
@@ -19877,8 +19891,9 @@ function hydrateLocalFrom(keys){
       if(Array.isArray(cloudVal) && Array.isArray(localVal)){
         localStorage.setItem('pulso:'+k, JSON.stringify(mergePulsoArrays(localVal, cloudVal)));
       }else if(cloudVal && localVal && typeof cloudVal === 'object' && typeof localVal === 'object'){
-        // Dicionários (ex.: ai-foods): une os dois, dando prioridade ao local em conflito.
-        localStorage.setItem('pulso:'+k, JSON.stringify(Object.assign({}, cloudVal, localVal)));
+        // Objetos (ex.: profile, dicionário ai-foods): une campo a campo, dando prioridade
+        // ao local SÓ quando o valor local não está vazio (evita que null/'' apaguem a cloud).
+        localStorage.setItem('pulso:'+k, JSON.stringify(mergePulsoObjects(localVal, cloudVal)));
       }else{
         // Valores simples: mantém a cloud (comportamento anterior).
         localStorage.setItem('pulso:'+k, cloudRaw);
@@ -21036,6 +21051,52 @@ document.addEventListener("click", function(e){
     }
   }
 
+  // Linhas horizontais para o interior das partilhas.
+  // rows: [{label,value,frac,color}]. Se 'frac' existir, desenha barra de progresso
+  // proporcional (ex.: ritmo dos recordes); se não, desenha uma "pill" com o valor
+  // grande à direita (métricas de unidades diferentes: tempo, km, kcal...).
+  function drawBars(ctx,x,y,w,maxH,rows,fmt){
+    var n=rows.length; if(!n) return y;
+    var gap=16;
+    var rowH=Math.min((fmt==='square')?92:122, (maxH-gap*(n-1))/n);
+    rowH=Math.max(72,rowH);
+    for(var i=0;i<n;i++){
+      var b=rows[i], by=y+i*(rowH+gap), col=b.color||TEAL, rad=Math.min(26,rowH*0.26), hasBar=(b.frac!=null);
+      rr(ctx,x,by,w,rowH,rad); ctx.fillStyle='rgba(255,255,255,.045)'; ctx.fill();
+      rr(ctx,x,by,w,rowH,rad); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.stroke();
+      var padX=rowH*0.32;
+      if(hasBar){
+        var innerW=w-padX*2, barH=Math.max(9,rowH*0.11), barY=by+rowH-padX*0.78-barH;
+        var frac=Math.max(0.06,Math.min(1,b.frac));
+        rr(ctx,x+padX,barY,innerW,barH,barH/2); ctx.fillStyle='rgba(255,255,255,.09)'; ctx.fill();
+        var grad=ctx.createLinearGradient(x+padX,0,x+padX+innerW,0); grad.addColorStop(0,col+'88'); grad.addColorStop(1,col);
+        rr(ctx,x+padX,barY,Math.max(barH,innerW*frac),barH,barH/2); ctx.fillStyle=grad; ctx.fill();
+        ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.72)'; ctx.font='800 '+((fmt==='square')?22:26)+'px Inter, Arial';
+        ctx.fillText(String(b.label||'').toUpperCase(), x+padX, by+rowH*0.38);
+        ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.font='900 '+((fmt==='square')?40:52)+'px Inter, Arial';
+        ctx.fillText(b.value, x+w-padX, by+rowH*0.42);
+      } else {
+        ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.58)'; ctx.font='800 '+((fmt==='square')?24:29)+'px Inter, Arial';
+        ctx.fillText(String(b.label||'').toUpperCase(), x+padX, by+rowH*0.60);
+        ctx.textAlign='right'; ctx.fillStyle=(b.color||'#fff'); ctx.font='900 '+((fmt==='square')?46:60)+'px Inter, Arial';
+        ctx.fillText(b.value, x+w-padX, by+rowH*0.62);
+      }
+    }
+    return y+n*rowH+(n-1)*gap;
+  }
+
+  // Medidor em anel (ex.: prontidão/forma do dia), aberto em baixo (270°).
+  function drawGauge(ctx,cx,cy,R,frac,color,big,small){
+    var a0=Math.PI*0.75, span=Math.PI*1.5, lw=Math.max(20,R*0.16);
+    frac=Math.max(0,Math.min(1,frac||0));
+    ctx.save(); ctx.lineCap='round';
+    ctx.beginPath(); ctx.lineWidth=lw; ctx.strokeStyle='rgba(255,255,255,.1)'; ctx.arc(cx,cy,R,a0,a0+span); ctx.stroke();
+    ctx.beginPath(); ctx.lineWidth=lw; ctx.strokeStyle=color||TEAL; ctx.arc(cx,cy,R,a0,a0+span*frac); ctx.stroke();
+    ctx.textAlign='center'; ctx.fillStyle='#fff'; ctx.font='900 '+Math.round(R*0.62)+'px Inter, Arial'; ctx.fillText(String(big),cx,cy+R*0.16);
+    if(small){ ctx.fillStyle=color||TEAL; ctx.font='800 '+Math.round(R*0.17)+'px Inter, Arial'; ctx.fillText(String(small).toUpperCase(),cx,cy+R*0.5); }
+    ctx.restore();
+  }
+
   function activeStats(){ return (curSpec.stats||[]).filter(function(s){ return s.on!==false; }); }
 
   function draw(){
@@ -21093,26 +21154,46 @@ document.addEventListener("click", function(e){
       else if(curSpec.chart.type==='podium'){ drawPodium(ctx,x+20,y+20,w-40,ch-70,curSpec.chart.items||[]); y+=ch+30; }
     }
 
-    // stats grid
-    var stats=activeStats();
-    if(stats.length){
-      var cols=(stats.length<=4)?2:3;
-      var gap=20, tw=(w-gap*(cols-1))/cols;
-      var rows=Math.ceil(stats.length/cols);
-      var availH = H - y - pad - 70;
-      var th=Math.min(curFmt==='square'?150:210, Math.max(140,(availH-gap*(rows-1))/rows));
-      for(var i=0;i<stats.length;i++){
-        var c=i%cols, r=Math.floor(i/cols); var tx=x+c*(tw+gap), ty=y+r*(th+gap);
-        rr(ctx,tx,ty,tw,th,22); ctx.fillStyle='rgba(255,255,255,.045)'; ctx.fill();
-        rr(ctx,tx,ty,tw,th,22); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.09)'; ctx.stroke();
-        ctx.textAlign='center';
-        ctx.fillStyle=stats[i].color||'#fff'; ctx.font='900 '+(curFmt==='square'?44:56)+'px Inter, Arial';
-        ctx.fillText(stats[i].value, tx+tw/2, ty+th*0.5);
-        ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='800 22px Inter, Arial';
-        ctx.fillText(String(stats[i].label||'').toUpperCase(), tx+tw/2, ty+th*0.5+42);
-      }
-      y+= rows*(th+gap);
+    var bottomLimit=H-pad-70;
+
+    // medidor (forma do dia): anel grande com a pontuação ao centro
+    if(curSpec.gauge){
+      var R=(curFmt==='square')?150:200, cxc=W/2, cyc=y+R*0.92;
+      drawGauge(ctx,cxc,cyc,R,curSpec.gauge.frac,curSpec.gauge.color||TEAL,curSpec.gauge.big,curSpec.gauge.small);
+      y=cyc+R*0.72+34;
     }
+
+    // INTERIOR GRÁFICO (comum a todas as partilhas): linhas horizontais.
+    // Recordes trazem 'bars' com preenchimento proporcional ao ritmo; os restantes
+    // valores (activeStats, com toggles) entram como "pills" grandes de valor.
+    var rows=[];
+    if(curSpec.bars && curSpec.bars.length) rows=rows.concat(curSpec.bars);
+    if(curSpec.layout==='bars') rows=rows.concat(activeStats());
+    if(rows.length){
+      y=drawBars(ctx,x,y+6,w,(bottomLimit-y)-8,rows,curFmt)+12;
+    } else {
+      // fallback antigo (grelha de cartões) — mantido por compatibilidade
+      var stats=activeStats();
+      if(stats.length){
+        var cols=(stats.length<=4)?2:3;
+        var gap=20, tw=(w-gap*(cols-1))/cols;
+        var grows=Math.ceil(stats.length/cols);
+        var availH = H - y - pad - 70;
+        var th=Math.min(curFmt==='square'?150:210, Math.max(140,(availH-gap*(grows-1))/grows));
+        for(var i=0;i<stats.length;i++){
+          var c=i%cols, r=Math.floor(i/cols); var tx=x+c*(tw+gap), ty=y+r*(th+gap);
+          rr(ctx,tx,ty,tw,th,22); ctx.fillStyle='rgba(255,255,255,.045)'; ctx.fill();
+          rr(ctx,tx,ty,tw,th,22); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.09)'; ctx.stroke();
+          ctx.textAlign='center';
+          ctx.fillStyle=stats[i].color||'#fff'; ctx.font='900 '+(curFmt==='square'?44:56)+'px Inter, Arial';
+          ctx.fillText(stats[i].value, tx+tw/2, ty+th*0.5);
+          ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='800 22px Inter, Arial';
+          ctx.fillText(String(stats[i].label||'').toUpperCase(), tx+tw/2, ty+th*0.5+42);
+        }
+        y+= grows*(th+gap);
+      }
+    }
+
 
     // footer
     ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='700 26px Inter, Arial';
@@ -21194,24 +21275,40 @@ document.addEventListener("click", function(e){
       if(a.calories) stats.push({value:Math.round(a.calories)+' kcal',label:'Calorias',key:'kcal',on:true});
       if(a.avgHr) stats.push({value:Math.round(a.avgHr)+' bpm',label:'Cardio médio',key:'hr',on:true,toggle:true});
       if(a.maxHr) stats.push({value:Math.round(a.maxHr)+' bpm',label:'Cardio máx',key:'hrmax',on:true,toggle:true});
-      open({ kind:'workout', shareTitle:'Partilhar treino', title:a.name||'Treino', subtitle:fmtDate(a.date), footer:'Pulso · Health & Training',
+      open({ kind:'workout', shareTitle:'Partilhar treino', title:a.name||'Treino', subtitle:fmtDate(a.date), footer:'Pulso · Health & Training', layout:'bars',
         chart: (streamPts&&streamPts.length>2)?{type:'curve',points:streamPts,color:cat==='bike'?'#5B8DEF':TEAL}:null, stats:stats });
     },
     shareRecords: function(best, maxes){
-      var items=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'}].forEach(function(t){ var arr=best&&best[t.k]; if(arr&&arr[0]) items.push({label:t.l,value:fmtDur(arr[0].sec)}); });
-      var stats=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'},{k:21.0975,l:'Meia'}].forEach(function(t){ var arr=best&&best[t.k]; if(arr&&arr[0]) stats.push({value:fmtDur(arr[0].sec),label:t.l,key:'r'+t.k,on:true}); });
+      // Recolhe os melhores tempos por distância e transforma em barras cujo
+      // preenchimento é proporcional ao RITMO (mais rápido = barra mais cheia),
+      // dando uma leitura visual honesta da velocidade em cada distância.
+      var recs=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'},{k:21.0975,l:'Meia'}].forEach(function(t){
+        var arr=best&&best[t.k]; if(arr&&arr[0]) recs.push({label:t.l, sec:arr[0].sec, km:t.k});
+      });
+      var bars=[];
+      if(recs.length){
+        var paces=recs.map(function(r){ return r.sec/r.km; });
+        var mn=Math.min.apply(null,paces), mx=Math.max.apply(null,paces);
+        bars=recs.map(function(r){
+          var p=r.sec/r.km, frac=(mx-mn<1e-6)?1:(0.42+0.58*(mx-p)/(mx-mn));
+          return { label:r.label, value:fmtDur(r.sec), frac:frac, color:TEAL };
+        });
+      }
+      var stats=[];
       if(maxes){
         if(maxes.longRunKm) stats.push({value:fmtKm(maxes.longRunKm),label:'Corrida + longa',key:'lr',on:true});
         if(maxes.longRideKm) stats.push({value:fmtKm(maxes.longRideKm),label:'Bike + longa',key:'lb',on:true});
         if(maxes.elevM) stats.push({value:Math.round(maxes.elevM)+' m',label:'+ subida',key:'el',on:true});
       }
-      open({ kind:'records', shareTitle:'Partilhar recordes', title:'Recordes pessoais', subtitle:'Melhores esforços', footer:'Pulso · Health & Training',
-        chart: items.length?{type:'podium',items:items}:null, stats:stats });
+      open({ kind:'records', shareTitle:'Partilhar recordes', title:'Recordes pessoais', subtitle:'Melhores esforços', footer:'Pulso · Health & Training', layout:'bars',
+        bars:bars, stats:stats });
     },
     shareForm: function(d){
-      var stats=[]; if(d.score!=null) stats.push({value:Math.round(d.score)+'/100',label:d.label||'Prontidão',key:'ready',on:true,color:d.color||TEAL});
+      var stats=[];
       (d.extra||[]).forEach(function(e){ stats.push({value:e.value,label:e.label,key:e.key,on:true,toggle:!!e.toggle}); });
-      open({ kind:'form', shareTitle:'Partilhar forma do dia', title:'Forma do dia', subtitle:d.label||'', footer:'Pulso · Health & Training', stats:stats });
+      var gauge=null;
+      if(d.score!=null){ gauge={ frac:Math.max(0,Math.min(1,d.score/100)), big:Math.round(d.score), small:(d.label||'Prontidão'), color:d.color||TEAL }; }
+      open({ kind:'form', shareTitle:'Partilhar forma do dia', title:'Forma do dia', subtitle:d.label||'', footer:'Pulso · Health & Training', layout:'bars', gauge:gauge, stats:stats });
     },
     shareWeek: function(d){
       var stats=[];
@@ -21219,7 +21316,7 @@ document.addEventListener("click", function(e){
       if(d.timeH!=null) stats.push({value:d.timeH,label:'Tempo',key:'t',on:true});
       if(d.km!=null) stats.push({value:fmtKm(d.km),label:'Distância',key:'km',on:true});
       if(d.kcal!=null) stats.push({value:Math.round(d.kcal)+' kcal',label:'Calorias',key:'kcal',on:true});
-      open({ kind:'week', shareTitle:'Partilhar semana', title:'Resumo da semana', subtitle:d.subtitle||'Últimos 7 dias', footer:'Pulso · Health & Training', stats:stats });
+      open({ kind:'week', shareTitle:'Partilhar semana', title:'Resumo da semana', subtitle:d.subtitle||'Últimos 7 dias', footer:'Pulso · Health & Training', layout:'bars', stats:stats });
     }
   };
 })();
