@@ -1,68 +1,56 @@
-// Pulso — Service Worker
-// IMPORTANTE: sobe este número sempre que fizeres um deploy que deva limpar a cache
-// (ex.: v3, v4...). Só assim o browser reinstala o service worker e apaga a cache antiga.
-const CACHE_NAME = "pulso-v2";
+/* Pulso Service Worker — v42
+   Estratégia:
+   - HTML / navegação: REDE PRIMEIRO (mostra sempre a versão publicada mais recente quando há
+     internet). Só usa a cache como reserva quando estás offline.
+   - Restantes ficheiros (imagens, ícones): cache primeiro, com atualização em segundo plano.
+   Isto resolve o problema de a app mostrar uma versão antiga depois de um deploy. */
+const CACHE = 'pulso-v42';
+const CORE = ['/', '/index.html'];
 
-const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png",
-  "/apple-touch-icon.png"
-];
-
-// Instala e pré-carrega os ficheiros base. skipWaiting => ativa já a nova versão.
-self.addEventListener("install", (event) => {
+self.addEventListener('install', function (e) {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) { return c.addAll(CORE).catch(function () {}); })
   );
 });
 
-// Ao ativar, apaga as caches de versões antigas e assume o controlo das páginas abertas.
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      ))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('activate', function (e) {
+  e.waitUntil((async function () {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    await self.clients.claim();
+  })());
 });
 
-self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  let url;
-  try { url = new URL(req.url); } catch (e) { return; }
+self.addEventListener('fetch', function (e) {
+  const req = e.request;
+  if (req.method !== 'GET') return;
 
-  // Só tratamos pedidos GET do PRÓPRIO site. Tudo o resto — Firebase, Google APIs,
-  // pedidos POST, streaming do Firestore — passa direto para a rede sem o service
-  // worker interferir. Isto mantém a autenticação e a sincronização a funcionar.
-  if (req.method !== "GET" || url.origin !== self.location.origin) {
-    return;
-  }
-
-  // HTML / navegação: REDE PRIMEIRO. Mostra sempre a app mais recente; se estiver
-  // offline, cai para a versão em cache.
-  const accept = req.headers.get("accept") || "";
-  const isHTML = req.mode === "navigate" || accept.includes("text/html");
+  const accept = req.headers.get('accept') || '';
+  const isHTML = req.mode === 'navigate' || accept.indexOf('text/html') !== -1;
 
   if (isHTML) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => r || caches.match("/index.html")))
-    );
+    // Rede primeiro: mostra sempre a versão nova quando há net.
+    e.respondWith((async function () {
+      try {
+        const net = await fetch(req, { cache: 'no-store' });
+        const c = await caches.open(CACHE);
+        c.put('/index.html', net.clone());
+        return net;
+      } catch (_) {
+        return (await caches.match('/index.html')) || (await caches.match('/')) || Response.error();
+      }
+    })());
     return;
   }
 
-  // Restantes ficheiros do site (ícones, manifest): cache primeiro, rede a seguir.
-  event.respondWith(
-    caches.match(req).then((cached) => cached || fetch(req))
-  );
+  // Resto: cache primeiro + atualização em segundo plano.
+  e.respondWith((async function () {
+    const cached = await caches.match(req);
+    const network = fetch(req).then(function (net) {
+      caches.open(CACHE).then(function (c) { c.put(req, net.clone()); });
+      return net;
+    }).catch(function () { return cached; });
+    return cached || network;
+  })());
 });
