@@ -6315,6 +6315,10 @@ nav.tabbar button.active svg{
           </div>
           <div class="field" style="min-width:80px;"><label for="kcal-grams" data-i18n="Qty (g)">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150" min="0" step="any" inputmode="decimal"></div>
         </div>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button type="button" id="kcal-photo-btn" class="chip">📷 <span data-i18n="Photo of label or meal">Foto do rótulo ou prato</span></button>
+          <input type="file" id="kcal-photo-input" accept="image/*" capture="environment" style="display:none;">
+        </div>
         <p class="help" id="kcal-food-note" style="margin-top:4px;" data-i18n="Type the food and amount — we fill in calories and macros automatically (estimate). You can always adjust by hand.">Escreve o alimento e a quantidade — preenchemos calorias e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
         <div id="kcal-food-actions" style="margin-top:8px; display:none; gap:8px; flex-wrap:wrap;"></div>
         <form class="entry" id="form-kcal-values" style="margin-top:8px;">
@@ -9370,6 +9374,71 @@ nav.tabbar button.active svg{
   document.getElementById('kcal-food').addEventListener('change', applyFoodEstimate);
   document.getElementById('kcal-grams').addEventListener('input', applyFoodEstimate);
 
+  // ---------- Foto do alimento/rótulo (análise por IA de imagem) ----------
+  // A foto é enviada SÓ para análise e nunca é guardada: não vai para o localStorage
+  // nem para a cloud, e a variável com a imagem é descartada assim que é enviada.
+  (function(){
+    const photoBtn = document.getElementById('kcal-photo-btn');
+    const photoInput = document.getElementById('kcal-photo-input');
+    if(!photoBtn || !photoInput) return;
+    photoBtn.addEventListener('click', ()=> photoInput.click());
+    photoInput.addEventListener('change', async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      photoInput.value = ''; // permite escolher a mesma foto outra vez
+      if(file) await analyzeFoodPhoto(file);
+    });
+  })();
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject)=>{
+      const r = new FileReader();
+      r.onload = ()=>{ const s = String(r.result||''); const i = s.indexOf(','); resolve(i>=0 ? s.slice(i+1) : s); };
+      r.onerror = ()=> reject(new Error('read'));
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function analyzeFoodPhoto(file){
+    const noteEl = document.getElementById('kcal-food-note');
+    clearFoodActions();
+    noteEl.textContent = PL('A analisar a foto…','Analysing the photo…');
+    let imageBase64;
+    try{ imageBase64 = await fileToBase64(file); }
+    catch(_){ noteEl.textContent = PL('Não consegui ler a foto. Tenta outra vez.','Couldn\'t read the photo. Try again.'); return; }
+    try{
+      const res = await fetch('/.netlify/functions/nutrition-photo', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ imageBase64: imageBase64, mimeType: file.type || 'image/jpeg' })
+      });
+      imageBase64 = null; // descarta a imagem da memória logo após o envio
+      if(!res.ok){
+        const errBody = await res.json().catch(()=>({error:'Erro ('+res.status+').'}));
+        noteEl.textContent = PL('Não foi possível analisar: ','Couldn\'t analyse: ') + (errBody.error || res.status) + '. ' + PL('Preenche à mão, ou configura a função em Perfil > Nutrição IA.','Fill in by hand, or set up the function in Profile > Nutrition AI.');
+        return;
+      }
+      const data = await res.json();
+      const gramsInput = document.getElementById('kcal-grams');
+      const baseGrams = (data.gramas && Number(data.gramas) > 0) ? Math.round(Number(data.gramas))
+        : (parseFloat(gramsInput.value) > 0 ? parseFloat(gramsInput.value) : 100);
+      const suggestedName = (data.nome || (data.itens && data.itens[0] && data.itens[0].nome) || PL('Refeição da foto','Meal from photo'));
+      kcalAiBase = { desc: suggestedName, grams: baseGrams, kcal: Number(data.kcal)||0, carbs: Number(data.carbs)||0, protein: Number(data.protein)||0, fat: Number(data.fat)||0 };
+      gramsInput.value = baseGrams;
+      document.getElementById('kcal-value').value = Math.round(kcalAiBase.kcal);
+      document.getElementById('kcal-carbs').value = Math.round(kcalAiBase.carbs*10)/10;
+      document.getElementById('kcal-protein').value = Math.round(kcalAiBase.protein*10)/10;
+      document.getElementById('kcal-fat').value = Math.round(kcalAiBase.fat*10)/10;
+      document.getElementById('kcal-food').value = suggestedName;
+      const itensTxt = (data.itens||[]).map(i=>i.nome+' ('+Math.round(i.kcal)+'kcal)').join(', ');
+      noteEl.textContent = PL('A foto mostra (~','Photo shows (~') + baseGrams + PL('g): ','g): ')
+        + (itensTxt || (Math.round(kcalAiBase.kcal)+' kcal'))
+        + PL('. Ajusta o nome e os valores se precisares, e guarda para reutilizar.','. Adjust the name and values if needed, then save to reuse.');
+      showAddToListPrompt(suggestedName, baseGrams);
+    }catch(err){
+      imageBase64 = null;
+      noteEl.textContent = PL('Não foi possível ligar à IA de imagem (função não encontrada ou sem internet).','Couldn\'t reach the image AI (function not found or offline).');
+    }
+  }
+
   document.getElementById('form-kcal-values').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const kcal = parseInt(document.getElementById('kcal-value').value,10);
@@ -9472,9 +9541,10 @@ nav.tabbar button.active svg{
       '<button type="button" class="chip" id="kcal-ai-add-no">Não, só desta vez</button>';
     foodActionsEl.style.display = 'flex';
     document.getElementById('kcal-ai-add-yes').addEventListener('click', async ()=>{
-      await saveAiFood(name, baseGrams);
+      const currentName = (document.getElementById('kcal-food').value || '').trim() || name;
+      await saveAiFood(currentName, baseGrams);
       clearFoodActions();
-      document.getElementById('kcal-food-note').textContent = PL('✓ "' + name + '" guardado na memória. Da próxima vez aparece nas sugestões.','✓ "' + name + '" saved to memory. Next time it appears in suggestions.');
+      document.getElementById('kcal-food-note').textContent = PL('✓ "' + currentName + '" guardado na memória. Da próxima vez aparece nas sugestões.','✓ "' + currentName + '" saved to memory. Next time it appears in suggestions.');
     });
     document.getElementById('kcal-ai-add-no').addEventListener('click', ()=>{
       clearFoodActions();
