@@ -53,7 +53,7 @@
     background-image:url('apple-touch-icon.png');
     background-repeat:no-repeat; background-position:center 15%;
     background-size:min(86vw, 460px);
-    filter:blur(42px); opacity:.20;
+    filter:blur(42px); opacity:.30;
   }
   ::selection{background:var(--teal); color:#04140f;}
   a{color:var(--teal);}
@@ -6294,6 +6294,10 @@ nav.tabbar button.active svg{
           </div>
         </div>
       </div>
+      <div class="card nutri-insight-card" id="nutri-insight-card" style="display:none;">
+        <div class="nutri-insight-head">💡 <span>Nota de nutrição</span></div>
+        <p id="nutri-insight-text" class="nutri-insight-text"></p>
+      </div>
       <div class="card fixed-form">
         <div class="entry" id="kcal-food-fields">
           <div class="field" style="min-width:140px;">
@@ -9599,6 +9603,50 @@ nav.tabbar button.active svg{
     if(fatDdr) fatDdr.innerHTML = `${macroPct(safeFat)}% <small>(${ddrPct(safeFat, fatGoal)}% da DDR)</small>`;
   }
 
+  function renderNutritionInsight(data){
+    const card = document.getElementById('nutri-insight-card');
+    const el = document.getElementById('nutri-insight-text');
+    if(!card || !el) return;
+    const t = todayStr();
+    const h = new Date().getHours();
+    const period = h<11 ? 'manha' : (h<15 ? 'meiodia' : (h<19 ? 'tarde' : 'noite'));
+    // metas de macros (mesma base do anel: 50% HC / 25% Prot / 25% Gord)
+    const carbsGoal = data.goal ? (data.goal * 0.50 / 4) : 0;
+    const proteinGoal = data.goal ? (data.goal * 0.25 / 4) : 0;
+    const fatGoal = data.goal ? (data.goal * 0.25 / 9) : 0;
+    const pctP = proteinGoal>0 ? Math.round(data.protein/proteinGoal*100) : null;
+    const pctC = carbsGoal>0 ? Math.round(data.carbs/carbsGoal*100) : null;
+    const pctK = data.goal>0 ? Math.round(data.intakeKcal/data.goal*100) : null;
+    let trainToday=false, trainDone=false;
+    try{ const cal=JSON.parse(localStorage.getItem('pulso:coach-calendar')||'{}'); trainToday=!!(cal.local && cal.local[t] && cal.local[t].length); }catch(e){}
+    try{ trainDone=(stravaActivities||[]).some(a=>a.date && String(a.date).slice(0,10)===t); }catch(e){}
+    const notes = [];
+    if(!data.hasAny){
+      el.textContent = trainToday
+        ? PL('Ainda não registaste comida hoje e tens treino planeado — começa bem o dia com hidratos e proteína.','No food logged yet and you have training planned — start the day well with carbs and protein.')
+        : PL('Ainda não registaste comida hoje. Regista as refeições para veres o balanço e receberes dicas.','No food logged today yet. Log your meals to see the balance and get tips.');
+      card.style.display=''; return;
+    }
+    const parte = period==='manha' ? 'de manhã' : (period==='meiodia' ? 'a meio do dia' : (period==='tarde' ? 'a meio da tarde' : 'à noite'));
+    if(pctP!=null){
+      if(pctP < 45 && (period==='meiodia'||period==='tarde')) notes.push('Estás '+parte+' e só atingiste '+pctP+'% da proteína — reforça a próxima refeição com proteína.');
+      else if(pctP >= 90) notes.push('Já bateste '+pctP+'% da proteína hoje. 👌');
+      else notes.push('Proteína em '+pctP+'% da meta.');
+    }
+    if(trainToday){
+      if(pctC!=null && pctC < 70) notes.push('Tens treino planeado hoje — foca a próxima refeição em hidratos para teres energia.');
+      else notes.push('Tens treino planeado hoje — mantém os hidratos em cima.');
+    } else if(trainDone){
+      notes.push('Já treinaste hoje — repõe hidratos e proteína para recuperar.');
+    }
+    if(pctK!=null){
+      if(pctK > 105) notes.push('Já passaste as kcal do dia ('+pctK+'%)'+(trainToday||trainDone?', mas com treino pode fazer sentido.':' — se puderes, abranda no resto do dia.'));
+      else if(pctK < 40 && period==='noite') notes.push('Estás bem abaixo das kcal do dia ('+pctK+'%) e já é noite — não saltes o jantar.');
+    }
+    el.textContent = notes.join(' ');
+    card.style.display = notes.length ? '' : 'none';
+  }
+
   function renderKcal(){
     const today = todayStr();
     const todays = kcalEntries.filter(e=>e.date===today);
@@ -9617,6 +9665,7 @@ nav.tabbar button.active svg{
 
     const goal = estimateMaintenanceKcal();
     updateKcalModernRing(totalKcal, goal, totalCarbs, totalProtein, totalFat);
+    try{ renderNutritionInsight({ intakeKcal:intakeKcal, goal:goal, carbs:totalCarbs, protein:totalProtein, fat:totalFat, hasAny:(todays.length>0) }); }catch(e){}
 
     const listEl = document.getElementById('kcal-today-list');
     const coffeeRows = coffeeTotal > 0
@@ -15756,6 +15805,9 @@ nav.tabbar button.active svg{
   .coach-day-item .di-desc{font-size:12.5px; color:var(--text-muted); white-space:pre-wrap; line-height:1.45;}
   .coach-plan-item{border:1px solid rgba(53,217,166,.22); border-radius:14px; padding:11px 12px; background:rgba(53,217,166,.06); margin-bottom:8px;}
   .cp-fb{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);}
+  .nutri-insight-card{background:linear-gradient(135deg, rgba(53,217,166,.1), rgba(91,141,239,.08)); border:1px solid rgba(53,217,166,.28);}
+  .nutri-insight-head{font-size:13px; font-weight:800; color:var(--teal); margin-bottom:6px;}
+  .nutri-insight-text{margin:0; font-size:14px; line-height:1.5; color:var(--text);}
   .cp-thread{margin-top:10px; padding:10px 11px; border-radius:14px; background:rgba(9,14,25,.5); border:1px solid rgba(255,255,255,.08);}
   .cp-thread-title{font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:8px;}
   .cp-unread{display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; margin-left:7px; border-radius:999px; background:#F2555A; color:#fff; font-size:11px; font-weight:900; vertical-align:middle;}
@@ -18000,8 +18052,17 @@ nav.tabbar button.active svg{
   document.addEventListener('click', async function(e){
     const t = e.target;
     if(t && t.id === 'records-share-btn'){
-      let best = {}; try{ best = await sGet('records-best', {}) || {}; }catch(_){}
-      if(window.PulsoShare) window.PulsoShare.shareRecords(best);
+      let best = {}; try{ best = getPulso('records-best', {}) || {}; }catch(_){}
+      let maxes = null;
+      try{
+        const acts = (safeStravaActivities()||[]).filter(a=>a && (a.distanceKm||a.movingSec));
+        const runs = acts.filter(a=>/run|corr|trail/i.test(a.type||a.sportType||''));
+        const rides = acts.filter(a=>/ride|bike|cyc/i.test(a.type||a.sportType||''));
+        const maxBy=(arr,f)=>arr.reduce((m,a)=>{const v=f(a); return (v!=null&&(!m||v>m.v))?{v:v,a:a}:m;},null);
+        const lr=maxBy(runs,a=>Number(a.distanceKm)||0), lb=maxBy(rides,a=>Number(a.distanceKm)||0), me=maxBy(acts,a=>Number(a.elevationM)||0);
+        maxes={ longRunKm: lr&&lr.v, longRideKm: lb&&lb.v, elevM: me&&me.v };
+      }catch(_){}
+      if(window.PulsoShare) window.PulsoShare.shareRecords(best, maxes);
     }
     if(t && t.id === 'week-share-btn'){
       try{
@@ -21128,10 +21189,14 @@ document.addEventListener("click", function(e){
       open({ kind:'workout', shareTitle:'Partilhar treino', title:a.name||'Treino', subtitle:fmtDate(a.date), footer:'Pulso · Health & Training',
         chart: (streamPts&&streamPts.length>2)?{type:'curve',points:streamPts,color:cat==='bike'?'#5B8DEF':TEAL}:null, stats:stats });
     },
-    shareRecords: function(best){
-      // best: { km: [{sec}] } — usa o #1 de cada distância
+    shareRecords: function(best, maxes){
       var items=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'}].forEach(function(t){ var arr=best&&best[t.k]; if(arr&&arr[0]) items.push({label:t.l,value:fmtDur(arr[0].sec)}); });
       var stats=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'},{k:21.0975,l:'Meia'}].forEach(function(t){ var arr=best&&best[t.k]; if(arr&&arr[0]) stats.push({value:fmtDur(arr[0].sec),label:t.l,key:'r'+t.k,on:true}); });
+      if(maxes){
+        if(maxes.longRunKm) stats.push({value:fmtKm(maxes.longRunKm),label:'Corrida + longa',key:'lr',on:true});
+        if(maxes.longRideKm) stats.push({value:fmtKm(maxes.longRideKm),label:'Bike + longa',key:'lb',on:true});
+        if(maxes.elevM) stats.push({value:Math.round(maxes.elevM)+' m',label:'+ subida',key:'el',on:true});
+      }
       open({ kind:'records', shareTitle:'Partilhar recordes', title:'Recordes pessoais', subtitle:'Melhores esforços', footer:'Pulso · Health & Training',
         chart: items.length?{type:'podium',items:items}:null, stats:stats });
     },
