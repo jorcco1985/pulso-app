@@ -8005,7 +8005,10 @@ nav.tabbar button.active svg{
 
   function getDailyWaterGoalMl(){
     const lastWeight = weightEntries.length ? Number(weightEntries[weightEntries.length-1].kg) : 0;
-    const adjusted = lastWeight ? Math.round(lastWeight * 35) : 0;
+    // 30 ml/kg: recomendação padrão. A meta é da água a beber; parte da hidratação
+    // diária vem dos alimentos, por isso não usamos o topo da faixa (35 ml/kg).
+    // A reposição durante o treino é adicional e não entra nesta meta base.
+    const adjusted = lastWeight ? Math.round(lastWeight * 30) : 0;
     return Math.max(2000, adjusted || Number(hydrationGoal) || 2000);
   }
   let currentDrinkIdx = 0;
@@ -9072,7 +9075,11 @@ nav.tabbar button.active svg{
     let bmr = 10*lastWeight + 6.25*profile.heightCm - 5*profile.age;
     bmr += profile.gender === 'M' ? 5 : -161;
     const activity = profile.activityLevel!=null ? profile.activityLevel : 5;
-    const factor = 1.2 + (activity/10)*0.8; // 1.2 (sedentário) a 2.0 (muito ativo)
+    // Multiplicador do dia-a-dia (NEAT), de 1.2 (sedentário) a ~1.6.
+    // NÃO inclui o treino estruturado de propósito: as calorias do treino são
+    // descontadas à parte ("kcal líquidos"), por isso incluí-las aqui seria dupla
+    // contagem e inflacionaria a meta.
+    const factor = 1.2 + (activity/10)*0.4;
     return Math.round(bmr * factor);
   }
 
@@ -20432,6 +20439,18 @@ onAuthStateChanged(auth, async (user)=>{
   // descarrega os treinos que o treinador prescreveu a este atleta
   pullMyCoachPlan();
 });
+
+// Rede de segurança do arranque: se ao fim de alguns segundos o ecrã "A ligar ao
+// Pulso Cloud…" ainda estiver à frente (Firebase Auth sem resposta OU descarregamento
+// preso numa rede lenta), não deixamos a app bloqueada. Mostramos o ecrã de entrada,
+// que também tem o botão "Usar sem cloud (offline)". Baseia-se no estado visível do
+// ecrã, por isso não interfere quando o arranque corre bem.
+setTimeout(function(){
+  try{
+    var ov = $('pulso-cloud-auth'), conn = $('pc-connecting');
+    if(ov && !ov.hidden && conn && !conn.hidden){ showAuth(true); }
+  }catch(e){}
+}, 6000);
 
 // ---------- ligações de UI estáticas ----------
 document.addEventListener('DOMContentLoaded', wireStaticUI);
