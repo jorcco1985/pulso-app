@@ -47,6 +47,14 @@
   html{font-size:17px;}
   body{background:var(--bg); color:var(--text); font-family:var(--font-body); font-size:1rem;
     height:100vh; height:calc(var(--app-vh) * 100); width:100vw;}
+  /* Marca de água: o logo desfocado e ténue no fundo de toda a app (experimental). */
+  body::before{
+    content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background-image:url('apple-touch-icon.png');
+    background-repeat:no-repeat; background-position:center 16%;
+    background-size:min(74vw, 360px);
+    filter:blur(48px); opacity:.07;
+  }
   ::selection{background:var(--teal); color:#04140f;}
   a{color:var(--teal);}
   button{font-family:var(--font-body);}
@@ -20966,27 +20974,32 @@ document.addEventListener("click", function(e){
     var W=1080, H=(curFmt==='square')?1080:1920;
     canvas.width=W; canvas.height=H;
     var ctx=canvas.getContext('2d');
-    // fundo
+    // fundo base
     var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0e1a24'); g.addColorStop(1,'#070b14');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    var rg=ctx.createRadialGradient(W*0.5,H*0.12,50,W*0.5,H*0.12,W*0.9); rg.addColorStop(0,'rgba(53,217,166,.18)'); rg.addColorStop(1,'rgba(53,217,166,0)');
-    ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
-    var pad=76, x=pad, w=W-pad*2, y=pad+ (curFmt==='square'?10:60);
-
-    // header — o teu logo completo, centrado. (Se não carregar, cai no desenho + texto.)
+    // LOGO grande, desfocado, no fundo (marca de água)
     if(logoReady && logoImg && logoImg.width){
-      var targetH = (curFmt==='square'?150:196);
-      var targetW = logoImg.width * (targetH / logoImg.height);
-      ctx.drawImage(logoImg, W/2 - targetW/2, y, targetW, targetH);
-      y += targetH + 22;
-    } else {
-      drawLogo(ctx,x,y,96);
-      ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 46px Inter, Arial'; ctx.fillText('PULSO', x+116, y+42);
-      ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='600 26px Inter, Arial'; ctx.fillText('Health & Training', x+116, y+78);
-      y+=132;
+      ctx.save();
+      try{ ctx.filter='blur(30px)'; }catch(e){}
+      ctx.globalAlpha=0.18;
+      var bw=W*1.3, bh=bw*(logoImg.height/logoImg.width);
+      ctx.drawImage(logoImg, W/2-bw/2, H*0.5-bh/2, bw, bh);
+      ctx.restore();
     }
+    // véu escuro para o texto ficar legível por cima do logo
+    var veil=ctx.createLinearGradient(0,0,0,H); veil.addColorStop(0,'rgba(7,11,20,.5)'); veil.addColorStop(0.45,'rgba(7,11,20,.3)'); veil.addColorStop(1,'rgba(7,11,20,.78)');
+    ctx.fillStyle=veil; ctx.fillRect(0,0,W,H);
+    // brilho teal no topo
+    var rg=ctx.createRadialGradient(W*0.5,H*0.1,50,W*0.5,H*0.1,W*0.9); rg.addColorStop(0,'rgba(53,217,166,.16)'); rg.addColorStop(1,'rgba(53,217,166,0)');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+    var pad=76, x=pad, w=W-pad*2, y=pad+ (curFmt==='square'?12:64);
+
+    // header — marca de texto compacta (o logo já está no fundo)
+    ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 42px Inter, Arial'; ctx.fillText('PULSO', x, y+34);
+    ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 25px Inter, Arial'; ctx.fillText('Health & Training', x, y+72);
+    y+=116;
     // barra de destaque
-    ctx.textAlign='left'; ctx.fillStyle=(curSpec.accent||TEAL); rr(ctx,x,y,88,10,5); ctx.fill(); y+=34;
+    ctx.fillStyle=(curSpec.accent||TEAL); rr(ctx,x,y,88,10,5); ctx.fill(); y+=34;
 
     // título
     ctx.fillStyle='#fff'; ctx.font='900 '+(curFmt==='square'?54:70)+'px Inter, Arial';
