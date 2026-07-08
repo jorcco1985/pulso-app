@@ -15979,10 +15979,10 @@ nav.tabbar button.active svg{
   #pulso-center-toast .pct-icon{width:32px; height:32px; border-radius:50%; background:var(--teal); color:#05240f; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:19px; flex:0 0 auto;}
   #pulso-center-toast-msg{color:#fff; font-weight:800; font-size:16px;}
   @keyframes pctPop{from{transform:scale(.82); opacity:0;} to{transform:scale(1); opacity:1;}}
-  #pulso-share{position:fixed; inset:0; z-index:100004; display:none; align-items:center; justify-content:center; padding:16px; background:rgba(3,7,14,.9); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);}
+  #pulso-share{position:fixed; inset:0; z-index:100004; display:none; align-items:center; justify-content:center; padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); background:rgba(3,7,14,.9); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);}
   #pulso-share.active{display:flex;}
-  .psh-panel{width:100%; max-width:440px; max-height:94vh; overflow-y:auto; background:#0C1322; border:1px solid rgba(255,255,255,.1); border-radius:22px; padding:16px calc(16px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}
-  .psh-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .psh-panel{width:100%; max-width:440px; max-height:88vh; overflow-y:auto; background:#0C1322; border:1px solid rgba(255,255,255,.1); border-radius:22px; padding:16px 16px calc(18px + env(safe-area-inset-bottom));}
+  .psh-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; position:sticky; top:0; background:#0C1322; padding:4px 0 8px; z-index:2;}
   .psh-head strong{font-size:18px; color:#fff;}
   .psh-x{background:rgba(255,255,255,.1); border:0; color:#fff; width:40px; height:40px; border-radius:999px; font-size:24px; line-height:1; cursor:pointer;}
   .psh-preview{border-radius:16px; overflow:hidden; background:#05070c; display:flex; justify-content:center;}
@@ -18227,20 +18227,26 @@ nav.tabbar button.active svg{
     return h;
   }
   function planFeedbackHTML(date, w){
-    const fb = getFb(date, w) || {};
-    const btn = (s, label)=> '<button type="button" class="cp-fb-status-btn'+(fb.status===s?' on '+s:'')+'" data-fb-status="'+s+'">'+label+'</button>';
-    const chips = FB_QUICK.map(c=>{
-      const txt = PL(c[0], c[1]);
-      const on = fb.note && String(fb.note).indexOf(txt) !== -1;
-      return '<button type="button" class="cp-fb-chip'+(on?' on':'')+'" data-fb-chip="'+esc(txt)+'">'+esc(txt)+'</button>';
-    }).join('');
-    return '<div class="cp-fb" data-fb-date="'+esc(date)+'" data-fb-id="'+esc((w&&(w.id||w.name))||'x')+'">'
-      + '<div class="cp-fb-row">'+btn('done','✓ '+PL('Feito','Done'))+btn('diff','✎ '+PL('Diferente','Different'))+btn('skip','✗ '+PL('Não fiz','Skipped'))+'</div>'
-      + '<div class="cp-fb-feel"><span class="cp-fb-h">'+PL('Como te sentiste?','How did it feel?')+'</span><div class="cp-fb-bars">'+fbBarsHTML(fb.feel||0)+'</div></div>'
-      + '<div class="cp-fb-chips">'+chips+'</div>'
-      + '<input type="text" class="cp-fb-note" data-fb-note maxlength="140" placeholder="'+PL('Nota (opcional)','Note (optional)')+'" value="'+esc(fb.note||'')+'">'
-      + threadHTML(date, w, 'athlete', 'local')
-      + '</div>';
+    let feedbackPart = '';
+    try{
+      const fb = getFb(date, w) || {};
+      const btn = (s, label)=> '<button type="button" class="cp-fb-status-btn'+(fb.status===s?' on '+s:'')+'" data-fb-status="'+s+'">'+label+'</button>';
+      const chips = FB_QUICK.map(c=>{
+        const txt = PL(c[0], c[1]);
+        const on = fb.note && String(fb.note).indexOf(txt) !== -1;
+        return '<button type="button" class="cp-fb-chip'+(on?' on':'')+'" data-fb-chip="'+esc(txt)+'">'+esc(txt)+'</button>';
+      }).join('');
+      feedbackPart = '<div class="cp-fb" data-fb-date="'+esc(date)+'" data-fb-id="'+esc((w&&(w.id||w.name))||'x')+'">'
+        + '<div class="cp-fb-row">'+btn('done','✓ '+PL('Feito','Done'))+btn('diff','✎ '+PL('Diferente','Different'))+btn('skip','✗ '+PL('Não fiz','Skipped'))+'</div>'
+        + '<div class="cp-fb-feel"><span class="cp-fb-h">'+PL('Como te sentiste?','How did it feel?')+'</span><div class="cp-fb-bars">'+fbBarsHTML(fb.feel||0)+'</div></div>'
+        + '<div class="cp-fb-chips">'+chips+'</div>'
+        + '<input type="text" class="cp-fb-note" data-fb-note maxlength="140" placeholder="'+PL('Nota (opcional)','Note (optional)')+'" value="'+esc(fb.note||'')+'">'
+        + '</div>';
+    }catch(e){ console.warn('planFeedbackHTML feedback', e); feedbackPart = ''; }
+    // O fio de mensagens é sempre renderizado (mesmo que a marcação falhe).
+    let threadPart = '';
+    try{ threadPart = threadHTML(date, w, 'athlete', 'local'); }catch(e){ console.warn('planFeedbackHTML thread', e); threadPart = ''; }
+    return feedbackPart + threadPart;
   }
   // Resumo só de leitura para o treinador ver a marcação do atleta.
   function fbStoreFor(athleteId){
