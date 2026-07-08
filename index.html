@@ -7051,7 +7051,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.08 · build 42</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.08 · build 43</p>
 
 
 </section>
@@ -20484,7 +20484,8 @@ document.addEventListener("click", function(e){
   }
   window.addEventListener("load", function () {
     var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register("/sw.js").then(function(){
+    navigator.serviceWorker.register("/sw.js").then(function(reg){
+      try{ reg.update(); }catch(e){}
       console.info("Pulso: service worker registado (offline/PWA ativo).");
     }).catch(function (e) {
       var msg = (e && e.message ? e.message : String(e || ""));
