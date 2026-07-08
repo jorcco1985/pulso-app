@@ -6111,6 +6111,7 @@ nav.tabbar button.active svg{
       <button type="button" class="swipe-arrow next" id="estado-arrow-next" aria-label="Seguinte" hidden>›</button>
       </div>
       <div class="estado-dots" id="estado-dots"></div>
+      <button type="button" id="form-share-btn" class="coach-btn" style="width:100%; margin-top:12px; background:rgba(53,217,166,.14); border:1px solid rgba(53,217,166,.4); color:var(--teal); border-radius:14px; min-height:46px; font-weight:800;">📷 Partilhar forma do dia</button>
     </div>
 
     <div class="grid3">
@@ -6371,6 +6372,7 @@ nav.tabbar button.active svg{
           <span class="help" style="margin:0;" data-i18n="Best efforts &amp; bests">Melhores esforços</span>
         </div>
         <div id="records-list"><p class="help" style="margin:8px 0 0;" data-i18n="Import or sync workouts to see your records.">Importa ou sincroniza treinos para veres os teus recordes.</p></div>
+        <button type="button" id="records-share-btn" class="coach-btn" style="width:100%; margin-top:12px; background:rgba(53,217,166,.14); border:1px solid rgba(53,217,166,.4); color:var(--teal); border-radius:14px; min-height:46px; font-weight:800;">📷 Partilhar recordes</button>
       </div>
       <div class="card athlete-last30-card">
         <div class="row space-between" style="align-items:center;">
@@ -6379,6 +6381,7 @@ nav.tabbar button.active svg{
         </div>
         <div id="athlete-last30-summary" class="athlete-last30-summary"></div>
         <div id="athlete-last30-list" class="athlete-last30-list"><p class="help" style="margin:0;" data-i18n="No workouts logged in this period yet.">Ainda não há treinos registados neste período.</p></div>
+        <button type="button" id="week-share-btn" class="coach-btn" style="width:100%; margin-top:12px; background:rgba(53,217,166,.14); border:1px solid rgba(53,217,166,.4); color:var(--teal); border-radius:14px; min-height:46px; font-weight:800;">📷 Partilhar semana</button>
       </div>
     </div>
 
@@ -7059,6 +7062,7 @@ nav.tabbar button.active svg{
       </div>
       <button class="strava-detail-close" id="strava-detail-close" type="button" aria-label="Fechar">×</button>
     </div>
+    <button class="coach-btn" type="button" id="strava-detail-share" style="width:100%; margin:4px 0 8px; background:rgba(53,217,166,.14); border:1px solid rgba(53,217,166,.4); color:var(--teal); border-radius:14px; min-height:46px; font-weight:800;">📷 Partilhar treino</button>
     <div class="strava-detail-grid" id="strava-detail-kpis"></div>
     <div class="card" style="margin-top:12px;">
       <h3 data-i18n="Cardio">Cardio</h3>
@@ -7082,6 +7086,21 @@ nav.tabbar button.active svg{
 <div class="toast" id="toast"></div>
 <div id="record-celebrate" aria-hidden="true"><div class="rc-card" id="record-celebrate-body"></div></div>
 <div id="pulso-center-toast" aria-hidden="true"><div class="pct-card"><span class="pct-icon">✓</span><span id="pulso-center-toast-msg"></span></div></div>
+<div id="pulso-share" aria-hidden="true">
+  <div class="psh-panel">
+    <div class="psh-head"><strong id="psh-title">Partilhar</strong><button id="psh-close" class="psh-x" type="button" aria-label="Fechar">×</button></div>
+    <div class="psh-preview"><canvas id="psh-canvas" width="1080" height="1920"></canvas></div>
+    <div class="psh-formats">
+      <button class="psh-fmt active" type="button" data-fmt="story">Story 9:16</button>
+      <button class="psh-fmt" type="button" data-fmt="square">Quadrado 1:1</button>
+    </div>
+    <div id="psh-toggles" class="psh-toggles"></div>
+    <div class="psh-actions">
+      <button id="psh-share" class="psh-btn primary" type="button">Partilhar</button>
+      <button id="psh-save" class="psh-btn" type="button">Guardar imagem</button>
+    </div>
+  </div>
+</div>
 
 <style id="pulso-confirm-css">
   #pulso-confirm{position:fixed; inset:0; z-index:100050; background:rgba(4,7,13,.72); display:flex; align-items:center; justify-content:center; padding:24px;}
@@ -8725,6 +8744,21 @@ nav.tabbar button.active svg{
       '\n\nNota: é um apoio à decisão, não um diagnóstico.';
     if(ring){ ring.onclick = ()=>{ if(window.pulsoInfo) window.pulsoInfo(explain); }; }
   }
+  document.addEventListener('click', function(e){
+    if(!e.target || e.target.id !== 'form-share-btn') return;
+    let rd = null; try{ rd = window.PulsoReadiness ? window.PulsoReadiness.compute(readinessLocalGet) : null; }catch(_){}
+    if(!rd || !rd.hasData || rd.score==null){ if(window.pulsoInfo) window.pulsoInfo(PL('Ainda sem dados suficientes para a forma do dia. Regista sono, FC e treinos para afinar.','Not enough data yet for daily form.')); return; }
+    const lvl = rd.level==='green' ? PL('Pronto para treinar','Ready to train') : (rd.level==='yellow' ? PL('Fadiga a acumular','Fatigue building') : PL('Risco de overtraining','Overtraining risk'));
+    const col = rd.level==='green'?'#35D9A6':(rd.level==='yellow'?'#F2B84B':'#F2555A');
+    const extra = [];
+    try{
+      const w = (weightEntries&&weightEntries.length)?weightEntries[weightEntries.length-1]:null;
+      const sl = (sleepEntries&&sleepEntries.length)?sleepEntries[sleepEntries.length-1]:null;
+      if(sl && sl.hours) extra.push({value:(String(sl.hours).replace('.',',')+' h'), label:PL('Sono','Sleep'), key:'sleep', toggle:true});
+      if(w && w.kg) extra.push({value:(Number(w.kg).toFixed(1).replace('.',',')+' kg'), label:PL('Peso','Weight'), key:'weight', toggle:true});
+    }catch(_){}
+    if(window.PulsoShare) window.PulsoShare.shareForm({ score:rd.score, label:lvl, color:col, date:lvl, extra:extra });
+  });
 
   /* ===== Bolas de estado consolidadas (Geral / Treino / Ciclo) com swipe ===== */
   function estadoSetBall(ballId, nId, val, color){
@@ -11499,6 +11533,14 @@ nav.tabbar button.active svg{
     }
     if(!a){ toast(PL('Treino não encontrado','Workout not found')); return; }
     showStravaDetailShell(a);
+    window._pulsoShareCurrent = a; window._pulsoShareStreamData = null;
+    var _shBtn = document.getElementById('strava-detail-share');
+    if(_shBtn) _shBtn.onclick = function(){
+      var act = window._pulsoShareCurrent; if(!act || !window.PulsoShare) return;
+      var pts = null;
+      try{ var st = window._pulsoShareStreamData; if(st){ var src = (st.heartrate&&st.heartrate.length)?st.heartrate:((st.velocity&&st.velocity.length)?st.velocity:((st.altitude&&st.altitude.length)?st.altitude:null)); if(src&&src.length>2){ var step=Math.max(1,Math.floor(src.length/64)); pts=[]; for(var i=0;i<src.length;i+=step) pts.push(Number(src[i])||0); } } }catch(e){}
+      window.PulsoShare.shareWorkout(act, pts);
+    };
     const isRun = sportCategory(a.type || a.sportType)==='run';
     const st = document.getElementById('strava-speed-title');
     if(st) st.textContent = isRun ? 'Ritmo' : 'Velocidade';
@@ -11514,6 +11556,7 @@ nav.tabbar button.active svg{
       }
 
       const times = streams && streams.time && streams.time.length ? streams.time : [];
+      window._pulsoShareStreamData = streams || null;
       const hasHrStream = !!(streams && streams.heartrate && streams.heartrate.length);
       const hasSpeedStream = !!(streams && streams.velocity && streams.velocity.length);
       const fb = fallbackActivityRows(a);
@@ -15924,6 +15967,24 @@ nav.tabbar button.active svg{
   #pulso-center-toast .pct-icon{width:32px; height:32px; border-radius:50%; background:var(--teal); color:#05240f; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:19px; flex:0 0 auto;}
   #pulso-center-toast-msg{color:#fff; font-weight:800; font-size:16px;}
   @keyframes pctPop{from{transform:scale(.82); opacity:0;} to{transform:scale(1); opacity:1;}}
+  #pulso-share{position:fixed; inset:0; z-index:100004; display:none; align-items:center; justify-content:center; padding:16px; background:rgba(3,7,14,.9); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);}
+  #pulso-share.active{display:flex;}
+  .psh-panel{width:100%; max-width:440px; max-height:94vh; overflow-y:auto; background:#0C1322; border:1px solid rgba(255,255,255,.1); border-radius:22px; padding:16px calc(16px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));}
+  .psh-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .psh-head strong{font-size:18px; color:#fff;}
+  .psh-x{background:rgba(255,255,255,.1); border:0; color:#fff; width:40px; height:40px; border-radius:999px; font-size:24px; line-height:1; cursor:pointer;}
+  .psh-preview{border-radius:16px; overflow:hidden; background:#05070c; display:flex; justify-content:center;}
+  .psh-preview canvas{max-width:100%; height:auto; display:block;}
+  .psh-formats{display:flex; gap:8px; margin-top:12px;}
+  .psh-fmt{flex:1; min-height:42px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:var(--text-muted); font-weight:800; font-size:13px; cursor:pointer;}
+  .psh-fmt.active{background:rgba(53,217,166,.16); border-color:var(--teal); color:var(--teal);}
+  .psh-toggles{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+  .psh-toggle{display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:#fff; font-size:12px; font-weight:700; cursor:pointer;}
+  .psh-toggle.off{opacity:.45;}
+  .psh-toggle input{pointer-events:none;}
+  .psh-actions{display:flex; gap:8px; margin-top:14px;}
+  .psh-btn{flex:1; min-height:50px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:#fff; font-weight:800; font-size:15px; cursor:pointer;}
+  .psh-btn.primary{background:var(--teal); color:#05240f; border:0;}
   .athlete-last30-summary{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
   .athlete-last30-mini{background:rgba(9,14,25,.55); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:10px 11px; text-align:center;}
   .athlete-last30-mini strong{display:block; color:#fff; font-size:18px; line-height:1.1; font-weight:900;}
@@ -16483,13 +16544,18 @@ nav.tabbar button.active svg{
   function safeStravaActivities(){
     // Atleta cloud selecionado: usa os treinos DELE (não os locais deste telemóvel).
     if(coachCloudOverride){ try{ return aGet('strava-activities', []) || []; }catch(e){ return []; } }
+    let live = [];
     try{
       if(typeof window.PulsoGetStravaActivities === 'function'){
-        const live = window.PulsoGetStravaActivities();
-        if(Array.isArray(live)) return live;
+        const l = window.PulsoGetStravaActivities();
+        if(Array.isArray(l)) live = l;
       }
     }catch(e){}
-    try{ return getPulso('strava-activities', []) || []; }catch(e){ return []; }
+    // Rede de segurança: se a lista em memória estiver vazia (ou mais curta) mas o cache
+    // local tiver treinos, usa o cache — para os recordes/dados não ficarem vazios offline.
+    let local = [];
+    try{ local = getPulso('strava-activities', []) || []; }catch(e){ local = []; }
+    return (local.length > live.length) ? local : live;
   }
 
   function setCoachTab(tab){
@@ -17774,6 +17840,7 @@ nav.tabbar button.active svg{
     const _recKm = (v)=> (v==null||isNaN(v)) ? '—' : Number(v).toFixed(1).replace('.', ',') + ' km';
     const _recDateShort = (d)=>{ const dt=new Date(d); return isNaN(dt) ? String(d||'') : dt.toLocaleDateString(PL('pt-PT','en-GB'), {day:'2-digit', month:'2-digit'}); };
     const _recCat = (t)=>{ t=String(t||'').toLowerCase(); if(/run|corr|trail/.test(t)) return 'run'; if(/ride|bike|cyc/.test(t)) return 'bike'; if(/weight|forc|strength|gym|muscul/.test(t)) return 'forca'; return 'other'; };
+    try{
     const acts = (safeStravaActivities() || []).filter(a=>a && (a.distanceKm||a.movingSec));
     if(!acts.length){ box.innerHTML = '<p class="help" style="margin:8px 0 0;">'+PL('Importa ou sincroniza treinos para veres os teus recordes.','Import or sync workouts to see your records.')+'</p>'; return; }
     const runs = acts.filter(a=> _recCat(a.type||a.sportType)==='run');
@@ -17858,6 +17925,10 @@ nav.tabbar button.active svg{
 
     if(!html){ html = '<p class="help" style="margin:8px 0 0;">'+PL('Ainda sem recordes. Para os melhores esforços de corrida, importa/reimporta treinos com curvas (FIT/TCX/GPX).','No records yet. For run best efforts, import/reimport workouts with curves (FIT/TCX/GPX).')+'</p>'; }
     box.innerHTML = html;
+    }catch(err){
+      console.error('renderRecords', err);
+      box.innerHTML = '<p class="help" style="margin:8px 0 0; color:#F2555A;">Recordes — erro: '+esc(String(err && err.message || err))+'</p>';
+    }
   }
   // Página de celebração de recorde (taça ouro/prata/bronze conforme o lugar batido).
   function showRecordCelebration(prs){
@@ -17887,6 +17958,21 @@ nav.tabbar button.active svg{
     try{ if(navigator.vibrate) navigator.vibrate([40,60,40]); }catch(e){}
   }
   window.PulsoRenderRecords = renderRecords;
+  document.addEventListener('click', async function(e){
+    const t = e.target;
+    if(t && t.id === 'records-share-btn'){
+      let best = {}; try{ best = await sGet('records-best', {}) || {}; }catch(_){}
+      if(window.PulsoShare) window.PulsoShare.shareRecords(best);
+    }
+    if(t && t.id === 'week-share-btn'){
+      try{
+        const acts = recentCompletedWorkouts(7) || [];
+        let sec=0, km=0, kcal=0;
+        acts.forEach(a=>{ sec += (Number(a.movingSec)||0); km += (Number(a.distanceKm)|| ((Number(a.distance)||0)/1000)); try{ kcal += (window.activityBurnedKcal? window.activityBurnedKcal(a): (Number(a.calories)||0)); }catch(_){ kcal += (Number(a.calories)||0); } });
+        if(window.PulsoShare) window.PulsoShare.shareWeek({ count:acts.length, timeH:(sec/3600).toFixed(1).replace('.',',')+' h', km:km, kcal:kcal, subtitle:'Últimos 7 dias' });
+      }catch(err){ console.warn(err); }
+    }
+  });
 
   function renderLast30Workouts(days){
     const list = document.getElementById('athlete-last30-list');
@@ -18206,14 +18292,16 @@ nav.tabbar button.active svg{
     return out;
   }
   function threadHTML(date, w, side, athleteId){
-    const key = fbKey(date, w);
-    const all = coachMsgsOf(w).concat(planMsgsFor(date, w, athleteId));
-    const seen = {}; const uniq = [];
-    all.forEach(m=>{ const k = (m.at||'')+'|'+(m.text||''); if(!seen[k]){ seen[k]=1; uniq.push(m); } });
-    uniq.sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
-    const seenTs = _msgSeenTs(key, side);
-    const unread = uniq.filter(m=> m.from !== side && String(m.at||'') > String(seenTs)).length;
-    const badge = unread ? '<span class="cp-unread">'+unread+'</span>' : '';
+    let uniq = [], key = date+'|x';
+    try{
+      key = fbKey(date, w);
+      const all = coachMsgsOf(w).concat(planMsgsFor(date, w, athleteId));
+      const seen = {};
+      all.forEach(m=>{ const k = (m.at||'')+'|'+(m.text||''); if(!seen[k]){ seen[k]=1; uniq.push(m); } });
+      uniq.sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+    }catch(e){ console.warn('threadHTML', e); uniq = []; }
+    let badge = '';
+    try{ const seenTs=_msgSeenTs(key, side); const unread = uniq.filter(m=> m.from !== side && String(m.at||'') > String(seenTs)).length; badge = unread ? '<span class="cp-unread">'+unread+'</span>' : ''; }catch(e){}
     const bubbles = uniq.length ? uniq.map(m=>{
       const who = m.from==='coach' ? PL('Treinador','Coach') : PL('Atleta','Athlete');
       return '<div class="cp-msg '+m.from+'"><span class="cp-msg-who">'+who+'</span>'+_msgLinkify(m.text||'')+'</div>';
@@ -18261,6 +18349,7 @@ nav.tabbar button.active svg{
     send.disabled = true;
     if(side === 'athlete'){ await addAthleteMessage(date, wid, text); }
     else { addCoachMessage(athleteId, date, wid, text); }
+    try{ if(window.pulsoToast) window.pulsoToast(side==='coach'?'Mensagem enviada ao atleta':'Mensagem enviada ao treinador'); }catch(_){}
     try{ _markMsgSeen(date+'|'+wid, side); }catch(_){}
     if(input) input.value = '';
     try{ renderAthletePlanCard(); }catch(_){}
@@ -20768,5 +20857,216 @@ document.addEventListener("click", function(e){
 })();
 </script>
 <!-- =================== FIM TUTORIAL =================== -->
+<script>
+/* ===================== PARTILHA — cartões de imagem (estilo Strava) ===================== */
+(function(){
+  'use strict';
+  var TEAL='#35D9A6', INK='#0C1322';
+  var curSpec=null, curFmt='story';
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s); }
+  function rr(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function drawLogo(ctx,x,y,s){
+    // marca arredondada tipo ícone Pulso
+    ctx.save();
+    rr(ctx,x,y,s,s,s*0.28); ctx.fillStyle='rgba(53,217,166,.16)'; ctx.fill();
+    rr(ctx,x,y,s,s,s*0.28); ctx.lineWidth=Math.max(2,s*0.05); ctx.strokeStyle=TEAL; ctx.stroke();
+    // "P"
+    ctx.strokeStyle='#fff'; ctx.lineWidth=s*0.09; ctx.lineCap='round'; ctx.lineJoin='round';
+    var px=x+s*0.34, py0=y+s*0.26, py1=y+s*0.74;
+    ctx.beginPath(); ctx.moveTo(px,py1); ctx.lineTo(px,py0); ctx.lineTo(x+s*0.6,py0);
+    ctx.arc(x+s*0.6, y+s*0.4, s*0.14, -Math.PI/2, Math.PI/2); ctx.lineTo(px, y+s*0.54); ctx.stroke();
+    // pulso
+    ctx.strokeStyle=TEAL; ctx.lineWidth=s*0.06;
+    ctx.beginPath(); var yb=y+s*0.58; ctx.moveTo(x+s*0.16,yb); ctx.lineTo(x+s*0.3,yb); ctx.lineTo(x+s*0.38,yb-s*0.13); ctx.lineTo(x+s*0.5,yb+s*0.2); ctx.lineTo(x+s*0.58,yb-s*0.06); ctx.lineTo(x+s*0.84,yb-s*0.06); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCurve(ctx,x,y,w,h,pts,color){
+    if(!pts||pts.length<2) return;
+    var mn=Math.min.apply(null,pts), mx=Math.max.apply(null,pts); if(mx-mn<1e-6) mx=mn+1;
+    var grad=ctx.createLinearGradient(0,y,0,y+h); grad.addColorStop(0,color+'55'); grad.addColorStop(1,color+'08');
+    ctx.beginPath();
+    for(var i=0;i<pts.length;i++){ var px=x+(i/(pts.length-1))*w, py=y+h-((pts[i]-mn)/(mx-mn))*h; if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.lineWidth=6; ctx.strokeStyle=color; ctx.lineJoin='round'; ctx.stroke();
+    ctx.lineTo(x+w,y+h); ctx.lineTo(x,y+h); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+  }
+
+  function drawPodium(ctx,x,y,w,h,items){
+    // items: [{label, value}] até 3 (barras de altura decrescente)
+    var n=Math.min(3,items.length); if(!n) return;
+    var gap=w*0.08, bw=(w-gap*(n-1))/n; var heights=[h, h*0.78, h*0.6];
+    var cols=['#F2C94C','#C9D2DA','#D8A26A'];
+    for(var i=0;i<n;i++){ var bx=x+i*(bw+gap), bh=heights[i]||h*0.6, by=y+h-bh;
+      rr(ctx,bx,by,bw,bh,18); ctx.fillStyle=cols[i]+'22'; ctx.fill();
+      rr(ctx,bx,by,bw,bh,18); ctx.lineWidth=3; ctx.strokeStyle=cols[i]; ctx.stroke();
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='800 34px Inter, Arial'; ctx.fillText(items[i].value, bx+bw/2, by+bh*0.5);
+      ctx.fillStyle=cols[i]; ctx.font='800 26px Inter, Arial'; ctx.fillText(['🥇','🥈','🥉'][i], bx+bw/2, by-14);
+      ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 22px Inter, Arial'; ctx.fillText(items[i].label, bx+bw/2, y+h+34);
+    }
+  }
+
+  function activeStats(){ return (curSpec.stats||[]).filter(function(s){ return s.on!==false; }); }
+
+  function draw(){
+    var canvas=$('psh-canvas'); if(!canvas||!curSpec) return;
+    var W=1080, H=(curFmt==='square')?1080:1920;
+    canvas.width=W; canvas.height=H;
+    var ctx=canvas.getContext('2d');
+    // fundo
+    var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0e1a24'); g.addColorStop(1,'#070b14');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    var rg=ctx.createRadialGradient(W*0.5,H*0.12,50,W*0.5,H*0.12,W*0.9); rg.addColorStop(0,'rgba(53,217,166,.18)'); rg.addColorStop(1,'rgba(53,217,166,0)');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+    var pad=76, x=pad, w=W-pad*2, y=pad+ (curFmt==='square'?10:60);
+
+    // header
+    drawLogo(ctx,x,y,92);
+    ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 46px Inter, Arial'; ctx.fillText('PULSO', x+112, y+40);
+    ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='600 26px Inter, Arial'; ctx.fillText('Health & Training', x+112, y+76);
+    y+=140;
+
+    // título
+    ctx.fillStyle='#fff'; ctx.font='900 '+(curFmt==='square'?52:64)+'px Inter, Arial';
+    wrapText(ctx, curSpec.title||'', x, y, w, curFmt==='square'?58:72, 2); y+= (curFmt==='square'?70:86);
+    if(curSpec.subtitle){ ctx.fillStyle=TEAL; ctx.font='800 30px Inter, Arial'; ctx.fillText(curSpec.subtitle, x, y); y+=54; }
+
+    // chart
+    if(curSpec.chart){
+      y+=10;
+      var ch=(curFmt==='square')?240:340;
+      if(curSpec.chart.type==='curve'){ rr(ctx,x,y,w,ch,26); ctx.fillStyle='rgba(7,11,20,.5)'; ctx.fill(); drawCurve(ctx,x+30,y+30,w-60,ch-60,curSpec.chart.points,curSpec.chart.color||TEAL); y+=ch+30; }
+      else if(curSpec.chart.type==='podium'){ drawPodium(ctx,x+20,y+20,w-40,ch-70,curSpec.chart.items||[]); y+=ch+30; }
+    }
+
+    // stats grid
+    var stats=activeStats();
+    if(stats.length){
+      var cols=(stats.length<=4)?2:3;
+      var gap=20, tw=(w-gap*(cols-1))/cols;
+      var rows=Math.ceil(stats.length/cols);
+      var availH = H - y - pad - 70;
+      var th=Math.min(curFmt==='square'?150:210, Math.max(140,(availH-gap*(rows-1))/rows));
+      for(var i=0;i<stats.length;i++){
+        var c=i%cols, r=Math.floor(i/cols); var tx=x+c*(tw+gap), ty=y+r*(th+gap);
+        rr(ctx,tx,ty,tw,th,22); ctx.fillStyle='rgba(255,255,255,.045)'; ctx.fill();
+        rr(ctx,tx,ty,tw,th,22); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.09)'; ctx.stroke();
+        ctx.textAlign='center';
+        ctx.fillStyle=stats[i].color||'#fff'; ctx.font='900 '+(curFmt==='square'?44:56)+'px Inter, Arial';
+        ctx.fillText(stats[i].value, tx+tw/2, ty+th*0.5);
+        ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='800 22px Inter, Arial';
+        ctx.fillText(String(stats[i].label||'').toUpperCase(), tx+tw/2, ty+th*0.5+42);
+      }
+      y+= rows*(th+gap);
+    }
+
+    // footer
+    ctx.textAlign='left'; ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='700 26px Inter, Arial';
+    ctx.fillText(curSpec.footer||'Pulso · Health & Training', x, H-pad-6);
+  }
+
+  function wrapText(ctx,text,x,y,maxW,lh,maxLines){
+    var words=String(text).split(' '), line='', lines=[];
+    for(var i=0;i<words.length;i++){ var t=line?line+' '+words[i]:words[i]; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=words[i]; } else line=t; }
+    if(line) lines.push(line); if(maxLines) lines=lines.slice(0,maxLines);
+    for(var j=0;j<lines.length;j++) ctx.fillText(lines[j], x, y+j*lh);
+  }
+
+  function renderToggles(){
+    var box=$('psh-toggles'); if(!box) return;
+    var togglable=(curSpec.stats||[]).filter(function(s){ return s.toggle; });
+    box.innerHTML = togglable.map(function(s,i){
+      return '<button type="button" class="psh-toggle'+(s.on===false?' off':'')+'" data-toggle="'+s.key+'"><input type="checkbox" '+(s.on!==false?'checked':'')+'>'+esc(s.label)+'</button>';
+    }).join('');
+    box.querySelectorAll('[data-toggle]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var key=btn.getAttribute('data-toggle');
+        (curSpec.stats||[]).forEach(function(s){ if(s.key===key) s.on=(s.on===false); });
+        renderToggles(); draw();
+      });
+    });
+  }
+
+  function open(spec){
+    curSpec=spec; curFmt='story';
+    var ov=$('pulso-share'); if(!ov) return;
+    $('psh-title').textContent = spec.shareTitle || 'Partilhar';
+    ov.querySelectorAll('.psh-fmt').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-fmt')==='story'); });
+    renderToggles(); draw();
+    ov.classList.add('active'); ov.setAttribute('aria-hidden','false');
+  }
+  function close(){ var ov=$('pulso-share'); if(ov){ ov.classList.remove('active'); ov.setAttribute('aria-hidden','true'); } }
+
+  function doShare(save){
+    var canvas=$('psh-canvas'); if(!canvas) return;
+    canvas.toBlob(function(blob){
+      if(!blob) return;
+      var fname='pulso-'+(curSpec&&curSpec.kind||'card')+'.png';
+      var file=null; try{ file=new File([blob],fname,{type:'image/png'}); }catch(e){}
+      if(!save && file && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({ files:[file], title:'Pulso' }).catch(function(){});
+      }else{
+        var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+      }
+    }, 'image/png');
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var ov=$('pulso-share'); if(!ov) return;
+    $('psh-close').addEventListener('click', close);
+    ov.addEventListener('click', function(e){ if(e.target===ov) close(); });
+    ov.querySelectorAll('.psh-fmt').forEach(function(b){ b.addEventListener('click', function(){ curFmt=b.getAttribute('data-fmt'); ov.querySelectorAll('.psh-fmt').forEach(function(z){ z.classList.remove('active'); }); b.classList.add('active'); draw(); }); });
+    $('psh-share').addEventListener('click', function(){ doShare(false); });
+    $('psh-save').addEventListener('click', function(){ doShare(true); });
+  });
+
+  // ---------- Construtores de cartão (a partir dos dados) ----------
+  function fmtDur(sec){ sec=Math.round(Number(sec)||0); var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; return h>0?(h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')):(m+':'+String(s).padStart(2,'0')); }
+  function fmtKm(v){ return (v==null||isNaN(v))?'—':(Number(v).toFixed(1).replace('.',',')+' km'); }
+  function fmtDate(d){ try{ var dt=new Date(d); return isNaN(dt)?'':dt.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'}); }catch(e){ return ''; } }
+
+  window.PulsoShare = {
+    open: open,
+    shareWorkout: function(a, streamPts){
+      if(!a) return;
+      var cat=/ride|bike|cyc/i.test(a.type||a.sportType||'')?'bike':(/run|corr|trail/i.test(a.type||a.sportType||'')?'run':'other');
+      var stats=[];
+      if(a.distanceKm) stats.push({value:fmtKm(a.distanceKm),label:'Distância',key:'dist',on:true});
+      if(a.movingSec) stats.push({value:fmtDur(a.movingSec),label:'Tempo',key:'time',on:true});
+      if(cat==='run' && a.distanceKm && a.movingSec){ var s=a.movingSec/a.distanceKm; stats.push({value:(Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0')+'/km'),label:'Ritmo',key:'pace',on:true}); }
+      if(cat!=='run' && a.avgSpeedKmh) stats.push({value:(Number(a.avgSpeedKmh).toFixed(1).replace('.',',')+' km/h'),label:'Velocidade',key:'spd',on:true});
+      if(a.elevationM) stats.push({value:Math.round(a.elevationM)+' m',label:'Subida',key:'elev',on:true});
+      if(a.avgWatts) stats.push({value:Math.round(a.avgWatts)+' W',label:'Potência',key:'pw',on:true});
+      if(a.calories) stats.push({value:Math.round(a.calories)+' kcal',label:'Calorias',key:'kcal',on:true});
+      if(a.avgHr) stats.push({value:Math.round(a.avgHr)+' bpm',label:'Cardio médio',key:'hr',on:true,toggle:true});
+      if(a.maxHr) stats.push({value:Math.round(a.maxHr)+' bpm',label:'Cardio máx',key:'hrmax',on:true,toggle:true});
+      open({ kind:'workout', shareTitle:'Partilhar treino', title:a.name||'Treino', subtitle:fmtDate(a.date), footer:'Pulso · Health & Training',
+        chart: (streamPts&&streamPts.length>2)?{type:'curve',points:streamPts,color:cat==='bike'?'#5B8DEF':TEAL}:null, stats:stats });
+    },
+    shareRecords: function(best){
+      // best: { km: [{sec}] } — usa o #1 de cada distância
+      var items=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'}].forEach(function(t){ var arr=best&&best[t.k]; if(arr&&arr[0]) items.push({label:t.l,value:fmtDur(arr[0].sec)}); });
+      var stats=[]; [{k:1,l:'1 km'},{k:5,l:'5 km'},{k:10,l:'10 km'},{k:21.0975,l:'Meia'}].forEach(function(t){ var arr=best&&best[t.k]; if(arr&&arr[0]) stats.push({value:fmtDur(arr[0].sec),label:t.l,key:'r'+t.k,on:true}); });
+      open({ kind:'records', shareTitle:'Partilhar recordes', title:'Recordes pessoais', subtitle:'Melhores esforços', footer:'Pulso · Health & Training',
+        chart: items.length?{type:'podium',items:items}:null, stats:stats });
+    },
+    shareForm: function(d){
+      var stats=[]; if(d.score!=null) stats.push({value:Math.round(d.score)+'/100',label:d.label||'Prontidão',key:'ready',on:true,color:d.color||TEAL});
+      (d.extra||[]).forEach(function(e){ stats.push({value:e.value,label:e.label,key:e.key,on:true,toggle:!!e.toggle}); });
+      open({ kind:'form', shareTitle:'Partilhar forma do dia', title:'Forma do dia', subtitle:d.label||'', footer:'Pulso · Health & Training', stats:stats });
+    },
+    shareWeek: function(d){
+      var stats=[];
+      if(d.count!=null) stats.push({value:d.count+'',label:'Treinos',key:'n',on:true});
+      if(d.timeH!=null) stats.push({value:d.timeH,label:'Tempo',key:'t',on:true});
+      if(d.km!=null) stats.push({value:fmtKm(d.km),label:'Distância',key:'km',on:true});
+      if(d.kcal!=null) stats.push({value:Math.round(d.kcal)+' kcal',label:'Calorias',key:'kcal',on:true});
+      open({ kind:'week', shareTitle:'Partilhar semana', title:'Resumo da semana', subtitle:d.subtitle||'Últimos 7 dias', footer:'Pulso · Health & Training', stats:stats });
+    }
+  };
+})();
+</script>
 </body>
 </html>
