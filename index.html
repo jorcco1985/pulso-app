@@ -6444,6 +6444,13 @@ nav.tabbar button.active svg{
             <label for="race-peak-hours" data-i18n="Peak (h/wk)">Pico máx. (h/sem)</label>
             <input type="number" step="0.5" min="1" id="race-peak-hours" placeholder="ex: 10" data-i18n-ph="e.g. 10">
           </div>
+          <div class="field" style="min-width:130px;">
+            <label for="race-priority" data-i18n="Priority">Prioridade</label>
+            <select id="race-priority">
+              <option value="primary" data-i18n="Main race">Prova principal</option>
+              <option value="secondary" data-i18n="Secondary">Secundária</option>
+            </select>
+          </div>
           <button class="primary" type="submit" data-i18n="Save">Guardar</button>
         </form>
       </div>
@@ -11951,21 +11958,45 @@ nav.tabbar button.active svg{
     const elevationM = parseFloat(document.getElementById('race-elev').value) || null;
     const peakHoursManual = parseFloat(document.getElementById('race-peak-hours')?.value) || null;
     if(!name || !date){ toast(PL('Preenche pelo menos o nome e a data da prova','Fill in at least the race name and date')); return; }
-    const newRace = { id:'race-'+Date.now().toString(36), name, sport, date, distanceKm, elevationM, peakHoursManual, photoDataUrl: null, createdAt:new Date().toISOString() };
+    const isPrimary = ((document.getElementById('race-priority')||{}).value) !== 'secondary';
+    const newRace = { id:'race-'+Date.now().toString(36), name, sport, date, distanceKm, elevationM, peakHoursManual, primary:isPrimary, photoDataUrl: null, createdAt:new Date().toISOString() };
     let raceGoals = await sGet('race-goals', []);
     if(!Array.isArray(raceGoals)) raceGoals = [];
+    // A editar uma prova existente: remove a versão antiga (pode ter mudado nome/data).
+    if(window._pulsoEditRaceKey){
+      const _p = String(window._pulsoEditRaceKey).split('|'); const _od=_p[0], _on=_p.slice(1).join('|');
+      raceGoals = raceGoals.filter(r=>!(String(r.date||'').slice(0,10)===_od && String(r.name||'')===_on));
+      window._pulsoEditRaceKey = null;
+    }
+    if(isPrimary) raceGoals.forEach(r=>{ if(r) r.primary = false; }); // só uma principal
     // Mantém as provas acumuladas: se existir a mesma prova no mesmo dia, atualiza; senão adiciona.
     const same = raceGoals.findIndex(r=>String(r.date).slice(0,10)===date && String(r.name||'').trim().toLowerCase()===name.toLowerCase());
     if(same >= 0) raceGoals[same] = Object.assign({}, raceGoals[same], newRace, {id:raceGoals[same].id || newRace.id});
     else raceGoals.push(newRace);
     raceGoals.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')) || String(a.name||'').localeCompare(String(b.name||'')));
-    raceGoal = raceGoals.find(r=>String(r.date||'') >= todayStr()) || raceGoals[raceGoals.length-1] || newRace;
+    raceGoal = raceGoals.find(r=>r&&r.primary) || raceGoals.find(r=>String(r.date||'') >= todayStr()) || raceGoals[raceGoals.length-1] || newRace;
     await sSet('race-goals', raceGoals);
     await sSet('race-goal', raceGoal); // mantém compatibilidade com o resto da app
     renderRaceAndPlan(); renderDashboard();
     try{ if(window.PulsoRoleMode && window.PulsoRoleMode.renderCoachWorkouts) setTimeout(()=>document.dispatchEvent(new Event('pulso:races-updated')),0); }catch(err){}
     toast(PL('Prova guardada','Race saved'));
   });
+
+  function editRace(key){
+    let list = [];
+    try{ list = JSON.parse(localStorage.getItem('pulso:race-goals')||'[]'); }catch(e){ list = []; }
+    const p = String(key||'').split('|'); const d=p[0], n=p.slice(1).join('|');
+    const r = list.find(x=>x && String(x.date||'').slice(0,10)===d && String(x.name||'')===n);
+    if(!r){ return; }
+    const setv=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=(v==null?'':v); };
+    setv('race-name', r.name); setv('race-sport', r.sport||'run-road'); setv('race-date', String(r.date||'').slice(0,10));
+    setv('race-dist', r.distanceKm); setv('race-elev', r.elevationM); setv('race-peak-hours', r.peakHoursManual);
+    const pr=document.getElementById('race-priority'); if(pr) pr.value = (r.primary===false ? 'secondary' : 'primary');
+    window._pulsoEditRaceKey = key;
+    const form=document.getElementById('form-race'); if(form) form.scrollIntoView({behavior:'smooth', block:'center'});
+    try{ toast(PL('A editar. Altera os dados e Guarda.','Editing. Change the data and Save.')); }catch(e){}
+  }
+  document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('[data-race-edit]') : null; if(b){ e.preventDefault(); editRace(b.getAttribute('data-race-edit')); } });
 
   async function withdrawRace(key){
     const [date, ...rest] = String(key || '').split('|');
@@ -11977,7 +12008,7 @@ nav.tabbar button.active svg{
     // Se a prova removida era a "prova ativa" (race-goal único), recalcula a próxima.
     if(raceGoal && String(raceGoal.date||'').slice(0,10)===date && String(raceGoal.name||'')===name){
       const todayKey = todayStr();
-      raceGoal = raceGoals.find(r=>String(r.date||'') >= todayKey) || raceGoals[raceGoals.length-1] || null;
+      raceGoal = raceGoals.find(r=>r&&r.primary) || raceGoals.find(r=>String(r.date||'') >= todayKey) || raceGoals[raceGoals.length-1] || null;
       await sSet('race-goal', raceGoal || null);
     }
     renderRaceAndPlan(); renderDashboard();
@@ -12017,7 +12048,7 @@ nav.tabbar button.active svg{
     const races = allRaceGoals();
     if(!races.length){ summaryEl.style.display='none'; planSection.style.display='none'; return; }
     const todayKey = todayStr();
-    raceGoal = races.find(r=>String(r.date||'') >= todayKey) || races[races.length-1];
+    raceGoal = races.find(r=>r&&r.primary) || races.find(r=>String(r.date||'') >= todayKey) || races[races.length-1];
     const today = new Date(); const raceDate = new Date(raceGoal.date);
     const daysLeft = Math.ceil((raceDate-today)/(24*3600*1000));
 
@@ -12040,10 +12071,10 @@ nav.tabbar button.active svg{
           (r.elevationM ? ' · ' + r.elevationM + ' D+' : '') + '.';
         return `<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08); display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px;">
           <div style="min-width:0;">
-            <div class="cp-title" style="color:#F2B84B;">🏁 ${escHtml(r.name||'Prova')}</div>
+            <div class="cp-title" style="color:${r.primary?'#F2B84B':'#9B8CFF'};">🏁 ${escHtml(r.name||'Prova')} <span style="font-size:10px; font-weight:800; opacity:.85;">(${r.primary?PL('principal','main'):PL('secundária','secondary')})</span></div>
             <div class="cp-desc">${escHtml(localizeDesc(desc))}</div>
           </div>
-          <button type="button" class="race-withdraw-btn" data-race-key="${escHtml(key)}" aria-label="Cancelar prova" title="Cancelar prova" style="flex:0 0 auto; width:34px; height:34px; border-radius:999px; border:1px solid rgba(242,85,90,.45); background:rgba(242,85,90,.14); color:var(--red); font-size:19px; line-height:1; cursor:pointer;">×</button>
+          <div style="display:flex; gap:6px; flex:0 0 auto;"><button type="button" class="race-edit-btn" data-race-edit="${escHtml(key)}" aria-label="Editar prova" title="Editar prova" style="width:34px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font-size:15px; line-height:1; cursor:pointer;">✎</button><button type="button" class="race-withdraw-btn" data-race-key="${escHtml(key)}" aria-label="Cancelar prova" title="Cancelar prova" style="width:34px; height:34px; border-radius:999px; border:1px solid rgba(242,85,90,.45); background:rgba(242,85,90,.14); color:var(--red); font-size:19px; line-height:1; cursor:pointer;">×</button></div>
         </div>`;
       }).join('');
     }
@@ -12068,20 +12099,32 @@ nav.tabbar button.active svg{
 
   // Volume semanal de pico e de arranque, por modalidade e distância da prova — valores de referência
   // típicos de treino recreativo/sub-elite (ex: maratona ~9-10h/semana no pico, ~5-6h no arranque).
-  function targetPeakHours(cat, distanceKm){
+  function targetPeakHours(cat, distanceKm, elevationM){
+    let base;
     if(cat==='run'){
-      if(!distanceKm) return 6;
-      if(distanceKm >= 38) return 10;   // Maratona
-      if(distanceKm >= 18) return 7;    // Meia maratona
-      if(distanceKm >= 8) return 5;     // 10K
-      return 3.5;                        // 5K ou menos
+      if(!distanceKm) base = 6;
+      else if(distanceKm >= 150) base = 16;   // Ultra longa (100 milhas+)
+      else if(distanceKm >= 80) base = 13;     // Ultra
+      else if(distanceKm >= 42) base = 11;     // Maratona / 50k
+      else if(distanceKm >= 18) base = 7;      // Meia maratona
+      else if(distanceKm >= 8) base = 5;       // 10K
+      else base = 3.5;                          // 5K ou menos
     }else{
-      if(!distanceKm) return 8;
-      if(distanceKm >= 140) return 11;  // Gran fondo / longa distância
-      if(distanceKm >= 80) return 8.5;
-      if(distanceKm >= 40) return 6;
-      return 4;
+      if(!distanceKm) base = 8;
+      else if(distanceKm >= 200) base = 14;    // Ultra-fundo
+      else if(distanceKm >= 140) base = 11;    // Gran fondo
+      else if(distanceKm >= 80) base = 8.5;
+      else if(distanceKm >= 40) base = 6;
+      else base = 4;
     }
+    // Ajuste por altimetria (D+ por km): terreno de montanha exige mais volume.
+    // Referência ~10 m/km (estrada plana). Acima disso, aumenta o pico até +40%.
+    if(distanceKm && elevationM){
+      const dPerKm = elevationM / distanceKm;
+      const factor = 1 + Math.min(0.4, Math.max(0, (dPerKm - 10) / 100));
+      base = base * factor;
+    }
+    return Math.round(base*10)/10;
   }
   function minStartHours(cat, distanceKm){
     return Math.round(targetPeakHours(cat, distanceKm) * 0.55 * 10)/10;
@@ -12186,23 +12229,25 @@ nav.tabbar button.active svg{
     return [...sportSessions, ...forcaSessions, recovery];
   }
 
-  function generateTrainingPlan(){
-    if(!raceGoal) return null;
+  function generateTrainingPlan(goalArg, actsArg){
+    const goal = goalArg || raceGoal;
+    const acts = actsArg || stravaActivities;
+    if(!goal) return null;
     const today = new Date(); today.setHours(0,0,0,0);
-    const raceDate = new Date(raceGoal.date);
+    const raceDate = new Date(goal.date);
     const weeksLeft = Math.max(1, Math.ceil((raceDate-today)/(7*24*3600*1000)));
-    const cat = raceCategory(raceGoal.sport);
+    const cat = raceCategory(goal.sport || 'run');
 
-    const suggestedPeakHours = targetPeakHours(cat, raceGoal.distanceKm);
-    const manualPeakHours = parseFloat(raceGoal.peakHoursManual) || null;
+    const suggestedPeakHours = targetPeakHours(cat, goal.distanceKm, goal.elevationM);
+    const manualPeakHours = parseFloat(goal.peakHoursManual) || null;
     const peakHours = manualPeakHours ? Math.max(1, manualPeakHours) : suggestedPeakHours;
-    const recentAvg = weeklyHoursAvg(stravaActivities, cat, 8);
-    const startHoursRaw = Math.max(recentAvg || 0, minStartHours(cat, raceGoal.distanceKm));
+    const recentAvg = weeklyHoursAvg(acts, cat, 8);
+    const startHoursRaw = Math.max(recentAvg || 0, minStartHours(cat, goal.distanceKm));
     const startHours = Math.min(startHoursRaw, peakHours * 0.65);
 
     const taperWeeks = weeksLeft >= 10 ? 2 : (weeksLeft >= 4 ? 1 : 0);
     const buildWeeks = weeksLeft - taperWeeks;
-    const climbFocus = raceGoal.distanceKm && raceGoal.elevationM && (raceGoal.elevationM / raceGoal.distanceKm) > 15;
+    const climbFocus = goal.distanceKm && goal.elevationM && (goal.elevationM / goal.distanceKm) > 15;
 
     const weeksArr = [];
     for(let w=1; w<=weeksLeft; w++){
@@ -12221,9 +12266,9 @@ nav.tabbar button.active svg{
       hours = Math.round(hours*10)/10;
       const wStart = new Date(today); wStart.setDate(wStart.getDate() + (w-1)*7);
       const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate()+6);
-      weeksArr.push({ week:w, phase, hours, start:wStart, end:wEnd, sport:cat, climbFocus, sessions: buildWeekSessions(cat, phase, climbFocus, hours, raceGoal.sport) });
+      weeksArr.push({ week:w, phase, hours, start:wStart, end:wEnd, sport:cat, climbFocus, sessions: buildWeekSessions(cat, phase, climbFocus, hours, goal.sport) });
     }
-    return { weeksLeft, baseline: Math.round(startHours*10)/10, peakHours: Math.round(peakHours*10)/10, taperWeeks, cat, weeks: weeksArr };
+    return { weeksLeft, baseline: Math.round(startHours*10)/10, peakHours: Math.round(peakHours*10)/10, taperWeeks, cat, goal, weeks: weeksArr };
   }
 
   document.getElementById('btn-generate-plan').addEventListener('click', async ()=>{
@@ -12239,6 +12284,73 @@ nav.tabbar button.active svg{
   function planPhaseLabel(ph){
     return PL(ph, ({'Base':'Base','Construção':'Build','Pico':'Peak','Taper':'Taper','Prova':'Race'})[ph] || ph);
   }
+  // Horas reais de treino em cada uma das últimas nWeeks (blocos de 7 dias até hoje),
+  // para o treinador ver a carga recente ANTES do plano — o "de onde vem" o atleta.
+  function realWeeklyHours(cat, nWeeks, actsArg){
+    const acts = actsArg || stravaActivities;
+    const out = [];
+    const now = new Date(); now.setHours(0,0,0,0);
+    for(let i=nWeeks; i>=1; i--){
+      const start = new Date(now); start.setDate(start.getDate() - i*7);
+      const end = new Date(start); end.setDate(end.getDate()+7);
+      let h = 0;
+      (acts||[]).forEach(a=>{
+        if(sportCategory(a.type)!==cat) return;
+        const d = new Date(a.date);
+        if(d>=start && d<end) h += (a.movingSec||0)/3600;
+      });
+      out.push(Math.round(h*10)/10);
+    }
+    return out; // do mais antigo para o mais recente
+  }
+
+  // Desenha a linha do tempo até à prova: carga real recente + fases planeadas + prova.
+  function planTimelineSVG(plan, goalArg, actsArg){
+    const goal = goalArg || (plan && plan.goal) || raceGoal;
+    if(!plan || !plan.weeks || !plan.weeks.length || !goal) return '';
+    const hist = realWeeklyHours(plan.cat, 6, actsArg);
+    const future = plan.weeks.map(w=>({hours:w.hours, phase:w.phase}));
+    const bars = hist.map(h=>({hours:h, kind:'real'})).concat(future.map(f=>({hours:f.hours, phase:f.phase, kind:'plan'})));
+    const allH = hist.concat(future.map(f=>f.hours)); allH.push(plan.peakHours||0);
+    const maxH = Math.max(1, Math.max.apply(null, allH)) * 1.15;
+    const W = 360, H = 156, padB = 24, padT = 26, padL = 30, padR = 8;
+    const n = bars.length, bw = (W - padL - padR) / n, barW = Math.max(3, bw*0.72);
+    const plotH = H - padB - padT;
+    const phaseColor = { 'Base':'#5B8DEF', 'Construção':'#35D9A6', 'Pico':'#F2B84B', 'Taper':'#8BE3C6' };
+    const dataMax = Math.max(1, Math.max.apply(null, allH));
+    const yFor = (v)=> padT + plotH - (v/maxH)*plotH;
+    // escala em horas/semana + linhas de grelha
+    let grid = '';
+    [dataMax, dataMax/2].forEach(v=>{
+      const gy = yFor(v), lbl = (v>=3?Math.round(v):Math.round(v*10)/10);
+      grid += '<line x1="'+padL+'" y1="'+gy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+gy.toFixed(1)+'" stroke="rgba(255,255,255,.07)" stroke-width="1"></line>'
+        + '<text x="'+(padL-4)+'" y="'+(gy+3).toFixed(1)+'" fill="rgba(255,255,255,.4)" font-size="8.5" text-anchor="end">'+lbl+'</text>';
+    });
+    grid += '<text x="'+(padL-4)+'" y="'+(padT-6)+'" fill="rgba(255,255,255,.5)" font-size="8.5" text-anchor="end" font-weight="700">h/sem</text>';
+    let rects = '';
+    bars.forEach((b,i)=>{
+      const x = padL + i*bw + (bw-barW)/2;
+      const bh = Math.max(2, (b.hours/maxH)*plotH);
+      const y = padT + (plotH - bh);
+      const col = b.kind==='real' ? 'rgba(120,140,170,.5)' : (phaseColor[b.phase]||'#35D9A6');
+      rects += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="'+col+'"></rect>';
+    });
+    const baseY = padT + plotH;
+    const axis = '<line x1="'+padL+'" y1="'+baseY+'" x2="'+(W-padR)+'" y2="'+baseY+'" stroke="rgba(255,255,255,.12)" stroke-width="1"></line>';
+    const todayX = padL + hist.length*bw;
+    const todayLine = '<line x1="'+todayX.toFixed(1)+'" y1="'+(padT-6)+'" x2="'+todayX.toFixed(1)+'" y2="'+baseY+'" stroke="rgba(255,255,255,.45)" stroke-width="1.5" stroke-dasharray="3 3"></line>'
+      + '<text x="'+todayX.toFixed(1)+'" y="'+(padT-10)+'" fill="rgba(255,255,255,.7)" font-size="9" text-anchor="middle" font-weight="800">HOJE</text>';
+    const daysLeft = Math.ceil((new Date(goal.date)-new Date())/86400000);
+    const raceLbl = '<text x="'+(W-padR)+'" y="'+(baseY+17)+'" fill="#35D9A6" font-size="10" text-anchor="end" font-weight="800">'+(daysLeft>0?('prova em '+daysLeft+'d'):'prova')+'</text>';
+    return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;">'+grid+axis+rects+todayLine+raceLbl+'</svg>';
+  }
+
+  // Exposto para o painel do treinador (bloco/escopo diferente) poder gerar a
+  // periodização e a timeline com os dados do atleta selecionado.
+  window.PulsoGenPlan = generateTrainingPlan;
+  window.PulsoPlanTimeline = planTimelineSVG;
+  window.PulsoSportCat = sportCategory;
+
   function renderPlanOutput(plan){
     currentPlan = plan;
     const out = document.getElementById('plan-output');
@@ -12247,6 +12359,17 @@ nav.tabbar button.active svg{
     out.innerHTML = `<p class="help">${PL(`${plan.weeksLeft} semanas · começa perto de ${plan.baseline}h/semana e nunca passa de ${plan.peakHours}h/semana no pico.`,`${plan.weeksLeft} weeks · starts near ${plan.baseline}h/week and never exceeds ${plan.peakHours}h/week at peak.`)}${hrNote ? ' '+hrNote : ''}</p>
       <p class="help">${PL('Recuperação incluída todas as semanas, e uma semana mais leve a cada 4 semanas.','Recovery included every week, and a lighter week every 4 weeks.')}</p>
       <p class="help">${PL('Toca numa semana para veres os treinos detalhados.','Tap a week to see the detailed workouts.')}</p>
+      <div class="card" style="padding:10px; margin:8px 0;">
+        <div class="help" style="margin:0 0 4px; font-weight:800; color:#fff;">${PL('Linha do tempo até à prova','Timeline to race day')}</div>
+        ${planTimelineSVG(plan)}
+        <div style="margin-top:6px; display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--text-muted);">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(120,140,170,.6);vertical-align:middle;"></span> ${PL('Feito','Done')}</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#5B8DEF;vertical-align:middle;"></span> Base</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#35D9A6;vertical-align:middle;"></span> ${PL('Construção','Build')}</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#F2B84B;vertical-align:middle;"></span> ${PL('Pico','Peak')}</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#8BE3C6;vertical-align:middle;"></span> Taper</span>
+        </div>
+      </div>
       <div id="plan-weeks-list"></div>`;
     const listEl = document.getElementById('plan-weeks-list');
     plan.weeks.forEach((w, idx)=>{
@@ -15878,6 +16001,7 @@ nav.tabbar button.active svg{
   .pcal-dot.planned{background:#9B8CFF;}
   .pcal-dot.done{background:var(--teal);}
   .pcal-dot.race{background:#F2B84B;}
+  .pcal-dot.race-sec{background:#9B8CFF;}
   .pcal-legend{display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--text-muted); flex-wrap:wrap;}
   .pcal-legend span{display:inline-flex; align-items:center; gap:5px;}
   .pcal-legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
@@ -16576,7 +16700,7 @@ nav.tabbar button.active svg{
             <div class="pcal-arm" id="coach-cal-arm"></div>
             <div id="coach-calendar"></div>
             <div id="coach-cal-confirm"></div>
-            <div class="pcal-legend"><span><i style="background:var(--teal);"></i><span data-i18n="Workout done">Treino feito</span></span><span><i style="background:#F2B84B;"></i><span data-i18n="Race">Prova</span></span><span><i style="background:#9B8CFF;"></i><span data-i18n="Prescribed workout">Treino prescrito</span></span></div>
+            <div class="pcal-legend"><span><i style="background:var(--teal);"></i><span data-i18n="Workout done">Treino feito</span></span><span><i style="background:#F2B84B;"></i><span data-i18n="Main race">Prova principal</span></span><span><i style="background:#9B8CFF;"></i><span data-i18n="Secondary race">Prova secundária</span></span><span><i style="background:#9B8CFF; opacity:.6;"></i><span data-i18n="Prescribed workout">Treino prescrito</span></span></div>
           </div>
 
           <div class="coach-card">
@@ -16584,6 +16708,12 @@ nav.tabbar button.active svg{
               <h2 id="coach-cal-day-title" data-i18n="Selected day">Dia selecionado</h2>
             </div>
             <div id="coach-cal-day-body"><div class="coach-empty" data-i18n="Tap a day in the calendar to view or remove workouts.">Toca num dia do calendário para ver ou remover treinos.</div></div>
+          </div>
+          <div class="coach-card">
+            <div class="coach-section-head">
+              <h2 data-i18n="Periodization">Periodização</h2>
+            </div>
+            <div id="coach-period-body"><div class="coach-empty">Escolhe um atleta com prova marcada para veres a periodização.</div></div>
           </div>
         </div>
 
@@ -17466,6 +17596,52 @@ nav.tabbar button.active svg{
   }
 
   // Semana de relance: grelha atletas × 7 dias (feito / planeado / em falta).
+  // Cartões da aba Treinos (secções fixas) — reordenados/ocultados por DOM com o mesmo sistema.
+  const COACH_TREINOS_CARDS = [
+    {id:'athletes', label:'Atletas', sel:'#coach-athletes-list'},
+    {id:'glance', label:'Semana de relance', sel:'#coach-week-glance'},
+    {id:'calendar', label:'Calendário', sel:'#coach-calendar'},
+    {id:'day', label:'Dia selecionado', sel:'#coach-cal-day-body'},
+    {id:'period', label:'Periodização', sel:'#coach-period-body'}
+  ];
+  function renderCoachPeriodCard(){
+    const body = document.getElementById('coach-period-body'); if(!body) return;
+    let aid = (typeof prescribeTargetId==='function') ? prescribeTargetId() : (typeof selectedAthleteId!=='undefined' ? (selectedAthleteId || 'local') : 'local');
+    try{
+      const race = (typeof primaryRace==='function') ? primaryRace(aid) : null;
+      if(!race || typeof window.PulsoGenPlan!=='function'){ body.innerHTML='<div class="coach-empty">'+PL('Sem prova marcada para este atleta.','No race scheduled for this athlete.')+'</div>'; return; }
+      const acts = aGet('strava-activities', []) || [];
+      const plan = window.PulsoGenPlan(race, acts);
+      const svg = plan ? window.PulsoPlanTimeline(plan, race, acts) : '';
+      if(!svg){ body.innerHTML='<div class="coach-empty">'+PL('Sem dados para a periodização.','No data for periodization.')+'</div>'; return; }
+      body.innerHTML = '<div data-open-period="'+esc(aid)+'" style="cursor:pointer;">'+svg
+        +'<div class="help" style="margin:2px 0 0; text-align:center; color:#35D9A6; font-size:11px;">'+PL('Toca para analisar semana a semana →','Tap to analyse week by week →')+'</div></div>'
+        +'<div style="margin-top:6px; display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--text-muted);">'
+          +'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(120,140,170,.6);vertical-align:middle;"></span> '+PL('Feito','Done')+'</span>'
+          +'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#5B8DEF;vertical-align:middle;"></span> Base</span>'
+          +'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#35D9A6;vertical-align:middle;"></span> '+PL('Construção','Build')+'</span>'
+          +'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#F2B84B;vertical-align:middle;"></span> '+PL('Pico','Peak')+'</span>'
+          +'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#C77DFF;vertical-align:middle;"></span> Taper</span>'
+        +'</div>';
+    }catch(e){ body.innerHTML='<div class="coach-empty">'+PL('Sem dados.','No data.')+'</div>'; }
+  }
+
+  function applyCoachTreinosCards(){
+    const cards = COACH_TREINOS_CARDS.map(c=>{ const inner=document.querySelector(c.sel); return { id:c.id, label:c.label, el: inner ? inner.closest('.coach-card') : null }; }).filter(c=>c.el);
+    if(!cards.length) return;
+    const container = cards[0].el.parentNode; if(!container) return;
+    _cardMeta['coach-treinos'] = cards.map(c=>({id:c.id,label:c.label}));
+    _cardRerender['coach-treinos'] = applyCoachTreinosCards;
+    const cfg=getCardCfg('coach-treinos'), order=cfg.order||[], hidden=cfg.hidden||[];
+    const byId={}; cards.forEach(c=>byId[c.id]=c);
+    const seq=order.filter(id=>byId[id]).concat(cards.filter(c=>order.indexOf(c.id)<0).map(c=>c.id));
+    seq.forEach(id=>{ const c=byId[id]; if(!c) return; c.el.style.display = (hidden.indexOf(id)<0) ? '' : 'none'; container.appendChild(c.el); });
+    let btn=document.getElementById('coach-treinos-cards-btn');
+    if(!btn){ btn=document.createElement('button'); btn.id='coach-treinos-cards-btn'; btn.type='button'; btn.className='coach-pill'; btn.setAttribute('data-cards-edit','coach-treinos'); btn.style.cssText='margin:12px auto; display:block; cursor:pointer;'; }
+    btn.textContent='⚙ '+PL('Personalizar cartões','Customize cards');
+    container.appendChild(btn);
+  }
+
   function renderCoachWeekGlance(){
     const el = document.getElementById('coach-week-glance');
     if(!el) return;
@@ -17487,7 +17663,7 @@ nav.tabbar button.active svg{
       const plan = getCalendarFor(a.id) || {};
       const cells = days.map(day=>{
         const planned = (plan[day] || []).length;
-        const done = (a.id === 'local') ? ((localDone[day] || []).length > 0) : false;
+        const done = (((a.id === 'local') ? ((localDone[day] || []).length > 0) : false) || (manualDoneItems(a.id, day).length > 0));
         let cls = 'cwg-none';
         if(done){ cls = 'cwg-done'; }
         else if(planned){
@@ -17503,6 +17679,8 @@ nav.tabbar button.active svg{
 
     el.innerHTML = '<div class="cwg-grid">' + head + rows + '</div>' +
       (athletes.some(a=>a.id!=='local') ? '<p class="coach-note" style="margin:8px 0 0; font-size:11px;">'+PL('Para atletas na cloud, o "feito" aparece quando abres o atleta (carrega os dados dele).','For cloud athletes, "done" shows once you open the athlete (loads their data).')+'</p>' : '');
+    try{ renderCoachPeriodCard(); }catch(e){}
+    try{ applyCoachTreinosCards(); }catch(e){}
   }
 
   function deleteAthlete(id){
@@ -17569,6 +17747,7 @@ nav.tabbar button.active svg{
         if(!out[day]) out[day] = [];
         (plannedData[day]||[]).forEach(w=>out[day].push(Object.assign({}, w, {athleteId:a.id, athleteName:a.name, planned:true})));
         (completedData[day]||[]).forEach(w=>out[day].push(Object.assign({}, w, {athleteId:a.id, athleteName:a.name, completed:true, type:'done'})));
+        manualDoneItems(a.id, day).forEach(m=>out[day].push({athleteId:a.id, athleteName:a.name, name:m.name, completed:true, type:'done'}));
       });
     });
     return out;
@@ -17594,6 +17773,14 @@ nav.tabbar button.active svg{
     }
     const c = getCalendarAll()[athleteId]; return (c && typeof c==='object') ? c : {};
   }
+  // Prova que comanda a periodização: a marcada como principal; se nenhuma, a próxima futura.
+  function primaryRace(athleteId){
+    const list = (racesFor(athleteId)||[]).slice();
+    const prim = list.find(r=>r && r.primary);
+    if(prim) return prim;
+    const future = list.filter(r=>r && new Date(r.date)>=new Date()).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    return future[0] || null;
+  }
   function racesFor(athleteId){
     // Provas do atleta selecionado: local (guardadas na app) ou cloud (dados do atleta ligado).
     const cloudSel = coachCloudOverride && athleteId === cloudOverrideUid;
@@ -17604,7 +17791,7 @@ nav.tabbar button.active svg{
     if(single && single.date && !arr.some(r=>String(r.date).slice(0,10)===String(single.date).slice(0,10) && String(r.name||'')===String(single.name||''))){
       arr.push(single);
     }
-    return arr.filter(r=>r && r.date).map(r=>({ id:r.id||('race-'+String(r.date).slice(0,10)), name:r.name||'Prova', date:String(r.date).slice(0,10), sport:r.sport||'', distanceKm:r.distanceKm||null, elevationM:r.elevationM||null }))
+    return arr.filter(r=>r && r.date).map(r=>({ id:r.id||('race-'+String(r.date).slice(0,10)), name:r.name||'Prova', date:String(r.date).slice(0,10), sport:r.sport||'', distanceKm:r.distanceKm||null, elevationM:r.elevationM||null, primary:r.primary===true, peakHoursManual:r.peakHoursManual||null }))
       .sort((a,b)=>String(a.date).localeCompare(String(b.date)) || String(a.name).localeCompare(String(b.name)));
   }
   function aGetFor(useCloud, key, fallback){
@@ -17744,12 +17931,16 @@ nav.tabbar button.active svg{
     for(let d=1; d<=daysInMonth; d++){
       const key = ymd(y,m,d);
       const items = dataByDay[key] || [];
-      const isRace = races.some(r=>r && r.date === key);
+      const dayRaces = races.filter(r=>r && r.date === key);
+      const isRace = dayRaces.length>0;
+      const hasMainRace = dayRaces.some(r=>r.primary);
+      const hasSecRace = dayRaces.some(r=>!r.primary);
       const hasDone = items.some(x=>x && (x.completed || x.type === 'done'));
       const hasPlanned = items.some(x=>x && !(x.completed || x.type === 'done'));
       let dots = '';
       if(hasDone) dots += '<span class="pcal-dot done" title="Treino feito"></span>';
-      if(isRace) dots += '<span class="pcal-dot race" title="Prova"></span>';
+      if(hasMainRace) dots += '<span class="pcal-dot race" title="Prova principal"></span>';
+      if(hasSecRace) dots += '<span class="pcal-dot race-sec" title="Prova secundária"></span>';
       if(hasPlanned) dots += '<span class="pcal-dot planned" title="Treino prescrito"></span>';
       const cls = ['pcal-cell'];
       if(key === today) cls.push('today');
@@ -17796,9 +17987,10 @@ nav.tabbar button.active svg{
     athletes.forEach(a=>{
       const items = (getCalendarFor(a.id)[coachSelectedDay] || []);
       const completed = a.id === 'local' ? recentCompletedWorkouts(30).filter(act=>activityDay(act) === coachSelectedDay) : [];
+      const manualDone = manualDoneItems(a.id, coachSelectedDay);
       const races = racesFor(a.id).filter(r=>String(r.date).slice(0,10) === coachSelectedDay);
       const hasRace = races.length > 0;
-      if(!items.length && !hasRace && !completed.length) return;
+      if(!items.length && !hasRace && !completed.length && !manualDone.length) return;
       html += '<div class="coach-day-athlete-block">'+
         '<div class="coach-day-athlete-name"><strong>'+esc(a.name||'Atleta')+'</strong></div>';
       if(hasRace){
@@ -17820,6 +18012,9 @@ nav.tabbar button.active svg{
       }
       if(completed.length){
         html += '<div class="help" style="margin:10px 0 6px;">Treinos efetuados neste dia</div>' + completed.map(renderActivityCompact).join('');
+      }
+      if(manualDone.length){
+        html += '<div class="help" style="margin:10px 0 6px;">Confirmados pelo atleta</div>' + manualDone.map(m=>'<div class="coach-day-item" style="border-color:rgba(53,217,166,.4); background:rgba(53,217,166,.08);"><div class="di-title" style="color:#35D9A6;">✓ '+esc(m.name)+'</div><div class="di-desc">'+PL('Marcado como feito pelo atleta.','Marked as done by the athlete.')+'</div></div>').join('');
       }
       html += '</div>';
     });
@@ -18324,7 +18519,7 @@ nav.tabbar button.active svg{
   function renderAthleteCalendar(){
     const el = document.getElementById('athlete-calendar');
     if(!el) return;
-    const data = mergeCalendarWithCompleted(getCalendarFor('local'), completedByDay(30));
+    const data = mergeCalendarWithCompleted(mergeCalendarWithCompleted(getCalendarFor('local'), completedByDay(30)), manualDoneByDay('local'));
     const race = racesFor('local');
     el.innerHTML = buildCalendarHTML(athleteCalRef, data, race, athleteSelectedDay);
     renderLast30Workouts();
@@ -18379,13 +18574,17 @@ nav.tabbar button.active svg{
     ['Sem tempo','No time'], ['Dor/lesão','Pain/injury'], ['Fácil','Easy'], ['Duro','Hard']
   ];
   function fbKey(date, w){ return date + '|' + ((w && (w.id || w.name)) || 'x'); }
-  function getFb(date, w){ return (planFeedback && planFeedback[fbKey(date,w)]) || null; }
+  function getFb(date, w){ const store = (typeof getPulso==='function' ? getPulso('plan-feedback', {}) : {}) || {}; return store[fbKey(date,w)] || null; }
   async function setFb(date, w, patch){
     const k = fbKey(date, w);
-    planFeedback[k] = Object.assign({}, planFeedback[k], patch, { at: new Date().toISOString() });
-    try{ await sSet('plan-feedback', planFeedback); }catch(e){}
-    try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
+    const store = (typeof getPulso==='function' ? getPulso('plan-feedback', {}) : {}) || {};
+    store[k] = Object.assign({}, store[k], patch, { at: new Date().toISOString() });
+    // Grava já (síncrono) para a UI refletir de imediato, mesmo offline; a sincronização
+    // com a cloud é feita a seguir sem bloquear o interface.
+    try{ localStorage.setItem('pulso:plan-feedback', JSON.stringify(store)); }catch(e){}
     try{ renderAthletePlanCard(); }catch(e){}
+    try{ sSet('plan-feedback', store); }catch(e){}
+    try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){}
   }
   function fbFeelColor(v){ const h = Math.max(0, Math.min(10, v)); return 'hsl(' + Math.round((h-1)/9*120) + ',70%,52%)'; }
   function fbStatusLabel(s){ return s==='done'?PL('Feito','Done'):(s==='skip'?PL('Não fiz','Skipped'):(s==='diff'?PL('Fiz diferente','Did differently'):'')); }
@@ -18413,6 +18612,7 @@ nav.tabbar button.active svg{
         + '<div class="cp-fb-feel"><span class="cp-fb-h">'+PL('Como te sentiste?','How did it feel?')+'</span><div class="cp-fb-bars">'+fbBarsHTML(fb.feel||0)+'</div></div>'
         + '<div class="cp-fb-chips">'+chips+'</div>'
         + '<input type="text" class="cp-fb-note" data-fb-note maxlength="140" placeholder="'+PL('Nota (opcional)','Note (optional)')+'" value="'+esc(fb.note||'')+'">'
+        + '<button type="button" class="cp-fb-send" data-fb-send style="margin-top:8px; width:100%; padding:11px; border:none; border-radius:12px; font-weight:800; cursor:pointer; '+(fb.sent?'background:rgba(53,217,166,.18); color:#35D9A6;':'background:#35D9A6; color:#04140d;')+'">'+(fb.sent?('✓ '+PL('Enviado ao treinador','Sent to coach')):PL('Confirmar e enviar ao treinador','Confirm & send to coach'))+'</button>'
         + '</div>';
     }catch(e){ console.warn('planFeedbackHTML feedback', e); feedbackPart = ''; }
     // O fio de mensagens é sempre renderizado (mesmo que a marcação falhe).
@@ -18427,6 +18627,205 @@ nav.tabbar button.active svg{
       return safeParse(coachCloudOverride['plan-feedback'], {}) || {};
     }
     return null; // dados desse atleta não estão carregados agora
+  }
+
+  // Dados por semana do plano: previsto (horas/km) vs efetuado (horas/km reais),
+  // treinos marcados (prescritos) e confirmados (status 'done'). Base da análise.
+  // Ajustes manuais do treinador às horas planeadas (por prova e por semana).
+  // Guardados no dispositivo; substituem a sugestão da IA quando existem.
+  function getPlanOverride(){ try{ return JSON.parse(localStorage.getItem('pulso:plan-hours-override')||'{}'); }catch(e){ return {}; } }
+  function setPlanOverride(raceId, weekKey, field, val){
+    const ov = getPlanOverride();
+    if(!ov[raceId]) ov[raceId] = {};
+    let cur = ov[raceId][weekKey];
+    if(typeof cur === 'number') cur = { h: cur }; // migra formato antigo (só horas)
+    if(!cur) cur = {};
+    if(val==null || isNaN(val)) delete cur[field]; else cur[field] = Math.round(val*10)/10;
+    if(Object.keys(cur).length===0) delete ov[raceId][weekKey]; else ov[raceId][weekKey] = cur;
+    try{ localStorage.setItem('pulso:plan-hours-override', JSON.stringify(ov)); }catch(e){}
+  }
+
+  function periodWeeklyData(athleteId){
+    const race = primaryRace(athleteId);
+    if(!race || typeof window.PulsoGenPlan!=='function') return null;
+    const raceId = race.id || race.name || 'race';
+    const rov = getPlanOverride()[raceId] || {};
+    const acts = aGet('strava-activities', []) || [];
+    const plan = window.PulsoGenPlan(race, acts);
+    if(!plan || !plan.weeks) return null;
+    const cat = plan.cat, scat = window.PulsoSportCat || (()=>cat);
+    const cal = getCalendarFor(athleteId) || {};
+    const store = fbStoreFor(athleteId) || {};
+    const today = new Date(); today.setHours(0,0,0,0);
+    let sumH=0, sumKm=0;
+    (acts||[]).forEach(a=>{ if(scat(a.type)===cat){ sumH+=(a.movingSec||0)/3600; sumKm+=(activityKm(a)||0); } });
+    const kmh = sumH>0 ? sumKm/sumH : 0;
+    // Fator de estado do atleta: modula SÓ a sugestão da IA (não o que o treinador define).
+    // Usa a prontidão (sono, FC repouso, carga/ACWR, nutrição). Mau estado => sugere menos carga.
+    let stateFactor = 1, stateScore = null;
+    try{
+      const rdComp = window.PulsoReadiness && window.PulsoReadiness.compute;
+      if(typeof rdComp==='function'){
+        const rd = rdComp(function(k){ return aGet(k, undefined); });
+        if(rd && rd.hasData && typeof rd.score==='number'){
+          stateScore = Math.round(rd.score);
+          stateFactor = stateScore>=50 ? (1 + (stateScore-50)/50*0.15) : (1 - (50-stateScore)/50*0.25);
+          stateFactor = Math.max(0.75, Math.min(1.15, stateFactor));
+        }
+      }
+    }catch(e){}
+    const rows = plan.weeks.map((w,i)=>{
+      const s = new Date(today); s.setDate(s.getDate()+i*7);
+      const e = new Date(s); e.setDate(e.getDate()+7);
+      const startKey = s.toISOString().slice(0,10);
+      let wov = rov[startKey]; if(typeof wov==='number') wov={h:wov}; wov = wov||{};
+      const planH = (wov.h!=null) ? wov.h : Math.round(w.hours*10)/10;
+      let marked=0, confirmed=0, markedMin=0, doneH=0, doneN=0;
+      for(let k=0;k<7;k++){ const dd=new Date(s); dd.setDate(dd.getDate()+k); const key=dd.toISOString().slice(0,10);
+        const items=cal[key]||[]; marked+=items.length;
+        items.forEach(it=>{ markedMin+=(it.baseMinutes||0); });
+        // Confirmações manuais do dia (chave alinhada com fbKey: id||name).
+        const manualItems = items.filter(it=>{ const fb=store[key+'|'+((it.id||it.name)||'x')]; return fb && fb.status==='done'; });
+        // Atividades reais do dia (Strava/ficheiros) para o desporto.
+        const dayActs = (acts||[]).filter(a=> scat(a.type)===cat && activityDay(a)===key);
+        // Prioridade por dia: manual (cumprimento total = horas prescritas) primeiro; senão Strava/ficheiros. Nunca ambos → sem duplicação.
+        if(manualItems.length){
+          manualItems.forEach(it=>{ doneH += (it.baseMinutes||0)/60; });
+          doneN += manualItems.length; confirmed += manualItems.length;
+        } else if(dayActs.length){
+          dayActs.forEach(a=>{ doneH += (a.movingSec||0)/3600; });
+          doneN += dayActs.length;
+        }
+      }
+      return { idx:i+1, phase:w.phase, start:s, startKey, planH, iaH:Math.round(w.hours*stateFactor*10)/10,
+               realH:Math.round(doneH*10)/10, markedH:Math.round((markedMin/60)*10)/10, marked, confirmed, done:doneN, editedH:(wov.h!=null) };
+    });
+    return { race, raceId, rows, kmh, stateFactor, stateScore };
+  }
+
+  // Formata horas decimais em h/m (sem frações de hora): 0.7 -> "42m", 4.7 -> "4h42".
+  function fmtHm(h){
+    h = Number(h)||0;
+    if(h<=0) return '0';
+    const t = Math.round(h*60), hh = Math.floor(t/60), mm = t%60;
+    if(hh<=0) return mm+'m';
+    return mm>0 ? (hh+'h'+String(mm).padStart(2,'0')) : (hh+'h');
+  }
+  const PHASE_COL = { 'Base':'#5B8DEF', 'Construção':'#35D9A6', 'Pico':'#F2B84B', 'Taper':'#C77DFF' };
+  let _periodMetrics = { h:true, done:false }; // gráfico simples: só horas
+  function periodBarsHTML(rows, metrics){
+    const groups=[];
+    if(metrics.h) groups.push({keys:[{k:'planH',c:'phase'},{k:'realH',c:'#9FB2CC'}], ref:'iaH'});
+    if(metrics.done) groups.push({keys:[{k:'marked',c:'phase'},{k:'done',c:'#9FB2CC'}], ref:null});
+    if(!groups.length) return '<div class="coach-empty" style="padding:22px;">'+PL('Escolhe Horas ou Nº treinos.','Pick Hours or Workouts.')+'</div>';
+    groups.forEach(g=>{ let mx=1; rows.forEach(r=>{ g.keys.forEach(s=>{ mx=Math.max(mx,r[s.k]||0); }); if(g.ref) mx=Math.max(mx,r[g.ref]||0); }); g.max=mx; });
+    return '<div style="display:flex; align-items:flex-end; gap:6px; height:132px; padding:4px 0;">'+
+      rows.map(r=>{
+        const col=PHASE_COL[r.phase]||'#35D9A6';
+        let bars='';
+        groups.forEach((g,gi)=>{
+          g.keys.forEach((s,si)=>{
+            const v=r[s.k]||0, hh=Math.max(2,Math.round((v/g.max)*112)), bg=(s.c==='phase'?col:s.c);
+            let ref='';
+            if(g.ref && si===0){ const ry=Math.round(((r[g.ref]||0)/g.max)*112); ref='<div title="IA: '+fmtHm(r[g.ref]||0)+'" style="position:absolute; left:-1px; right:-1px; bottom:'+ry+'px; height:2px; background:#fff;"></div>'; }
+            bars+='<div style="position:relative; flex:1; min-width:2px; height:114px; display:flex; align-items:flex-end;'+(gi>0&&si===0?' margin-left:3px;':'')+'"><div style="width:100%; height:'+hh+'px; border-radius:2px; background:'+bg+';"></div>'+ref+'</div>';
+          });
+        });
+        return '<div style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:2px;">'
+          +'<div style="width:100%; height:114px; display:flex; align-items:flex-end; justify-content:center; gap:2px;">'+bars+'</div>'
+          +'<div style="font-size:8px; color:var(--text-muted);">'+r.idx+'</div></div>';
+      }).join('')+'</div>';
+  }
+  function openPeriodModal(athleteId){
+    const data = periodWeeklyData(athleteId);
+    if(!data){ return; }
+    const rows = data.rows;
+    const tot = rows.reduce((o,r)=>({planH:o.planH+r.planH, realH:o.realH+r.realH, marked:o.marked+r.marked, done:o.done+r.done}), {planH:0,realH:0,marked:0,done:0});
+    const chip = (m,l)=> '<button type="button" class="coach-pill" data-period-metric="'+m+'" style="cursor:pointer;'+(_periodMetrics[m]?'background:rgba(53,217,166,.18); color:#35D9A6;':'')+'">'+l+'</button>';
+    const table = '<table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;">'+
+      '<tr style="color:var(--text-muted); text-align:right;"><th style="text-align:left;">Sem</th><th>IA</th><th>Trein. h:m</th><th>Feito</th><th>Marc</th><th>Feitos</th></tr>'+
+      rows.map(r=>{
+        const okH = r.realH>=r.planH*0.85, col=PHASE_COL[r.phase]||'#35D9A6';
+        return '<tr style="text-align:right; border-top:1px solid rgba(255,255,255,.06);">'
+          +'<td style="text-align:left;"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+col+';"></span> '+r.idx+'</td>'
+          +'<td style="color:rgba(255,255,255,.5);">'+fmtHm(r.iaH)+'</td>'
+          +'<td style="white-space:nowrap; text-align:right;"><input type="number" min="0" value="'+Math.floor(r.planH)+'" data-plan-week="'+r.startKey+'" data-plan-part="h" style="width:32px; background:rgba(255,255,255,.06); border:1px solid '+(r.editedH?'#35D9A6':'rgba(255,255,255,.18)')+'; color:#fff; border-radius:5px; padding:2px 2px; font-size:12px; text-align:center;">h<input type="number" min="0" max="59" value="'+Math.round((r.planH-Math.floor(r.planH))*60)+'" data-plan-week="'+r.startKey+'" data-plan-part="m" style="width:32px; background:rgba(255,255,255,.06); border:1px solid '+(r.editedH?'#35D9A6':'rgba(255,255,255,.18)')+'; color:#fff; border-radius:5px; padding:2px 2px; font-size:12px; text-align:center; margin-left:2px;">m</td><td style="color:'+(okH?'#35D9A6':'#F2B84B')+';">'+fmtHm(r.realH)+'</td>'
+          +'<td>'+r.marked+'</td><td>'+r.done+'</td></tr>';
+      }).join('')+
+      '<tr style="text-align:right; border-top:2px solid rgba(255,255,255,.14); font-weight:800;"><td style="text-align:left;">Total</td><td></td><td>'+fmtHm(tot.planH)+'</td><td>'+fmtHm(tot.realH)+'</td><td>'+tot.marked+'</td><td>'+tot.done+'</td></tr>'+
+      '</table>';
+    let ov = document.getElementById('period-modal');
+    if(ov) ov.remove();
+    ov = document.createElement('div');
+    ov.id = 'period-modal';
+    ov.style.cssText = 'position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.94); overflow:auto; padding:18px 14px 40px;';
+    ov.innerHTML = '<div style="max-width:640px; margin:0 auto;">'
+      +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h2 style="margin:0; font-size:19px;">Análise até '+esc(data.race.name||'à prova')+'</h2><button type="button" id="period-close" class="coach-pill" style="cursor:pointer;">✕ Fechar</button></div>'
+      +'<p class="help" style="margin:0 0 10px;">Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Toca em "Trein." na tabela para ajustares o plano.</p>'
+      +(data.stateScore!=null ? '<p class="help" style="margin:-4px 0 10px; font-weight:700; color:'+(data.stateFactor<0.98?'#F2B84B':(data.stateFactor>1.02?'#35D9A6':'var(--text-muted)'))+';">'+PL('IA ajustada ao estado do atleta: ','AI adjusted to athlete state: ')+(data.stateFactor>=1?'+':'')+Math.round((data.stateFactor-1)*100)+'% · '+PL('prontidão ','readiness ')+data.stateScore+'/100</p>' : '')
+      +'<div id="period-bars">'+periodBarsHTML(rows, _periodMetrics)+'</div>'
+      +'<div style="display:flex; gap:10px; flex-wrap:wrap; font-size:10px; color:var(--text-muted); margin:4px 0 2px;">'
+        +'<span><span style="display:inline-block;width:14px;height:9px;border-radius:2px;background:linear-gradient(90deg,#5B8DEF,#35D9A6,#F2B84B,#C77DFF);vertical-align:middle;"></span> '+PL('Planeado (fase)','Planned (phase)')+'</span>'
+        +'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#9FB2CC;vertical-align:middle;"></span> '+PL('Feito','Done')+'</span>'
+        +'<span><span style="display:inline-block;width:12px;height:2px;background:#fff;vertical-align:middle;"></span> '+PL('Sugestão IA','AI suggestion')+'</span>'
+      +'</div>'
+      +'<div style="display:flex; gap:10px; flex-wrap:wrap; font-size:10px; color:var(--text-muted); margin-bottom:6px;">'
+        +Object.keys(PHASE_COL).map(p=>'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+PHASE_COL[p]+';vertical-align:middle;"></span> '+p+'</span>').join('')
+      +'</div>'
+      +table
+      +'</div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('change', function(e){
+      const inp = e.target.closest ? e.target.closest('[data-plan-week]') : null;
+      if(!inp) return;
+      const wk = inp.getAttribute('data-plan-week');
+      const hEl = ov.querySelector('[data-plan-week="'+wk+'"][data-plan-part="h"]');
+      const mEl = ov.querySelector('[data-plan-week="'+wk+'"][data-plan-part="m"]');
+      const h = hEl ? (parseFloat(hEl.value)||0) : 0;
+      const m = mEl ? (parseFloat(mEl.value)||0) : 0;
+      const hours = h + m/60;
+      setPlanOverride(data.raceId, wk, 'h', hours>0 ? hours : null);
+      openPeriodModal(athleteId); // reabre já com o plano ajustado (recalcula tudo)
+    });
+    ov.addEventListener('click', function(e){
+      if(e.target.id==='period-modal' || e.target.id==='period-close'){ ov.remove(); return; }
+      const mb = e.target.closest ? e.target.closest('[data-period-metric]') : null;
+      if(mb){ const m=mb.getAttribute('data-period-metric');
+        _periodMetrics[m]=!_periodMetrics[m];
+        document.getElementById('period-bars').innerHTML = periodBarsHTML(rows, _periodMetrics);
+        ov.querySelectorAll('[data-period-metric]').forEach(b=>{ const on=_periodMetrics[b.getAttribute('data-period-metric')]; b.style.background=on?'rgba(53,217,166,.18)':''; b.style.color=on?'#35D9A6':''; });
+      }
+    });
+  }
+  document.addEventListener('click', function(e){
+    const t = e.target.closest ? e.target.closest('[data-open-period]') : null;
+    if(t){ openPeriodModal(t.getAttribute('data-open-period')); }
+  });
+
+  // Treinos prescritos que o atleta marcou como FEITOS (status 'done') num dado dia.
+  // É a terceira fonte de "treino feito", além do Strava e das atividades importadas —
+  // essencial para atletas que não usam Strava: confirmam o treino à mão e aparece feito.
+  function manualDoneItems(athleteId, day){
+    try{
+      const store = fbStoreFor(athleteId); if(!store) return [];
+      const items = (getCalendarFor(athleteId)[day] || []);
+      const out = [];
+      items.forEach(w=>{
+        const fb = store[day + '|' + ((w.id||w.name)||'x')];
+        if(fb && fb.status === 'done') out.push({ id:'mdone-'+(w.id||w.name||day), name:(w.name||'Treino'), minutes:(w.baseMinutes||0), day:day });
+      });
+      return out;
+    }catch(e){ return []; }
+  }
+
+  // Confirmações manuais agrupadas por dia (para os calendários mostrarem o ponto verde).
+  function manualDoneByDay(athleteId){
+    const out = {}; const cal = getCalendarFor(athleteId) || {};
+    Object.keys(cal).forEach(day=>{
+      const m = manualDoneItems(athleteId, day);
+      if(m.length) out[day] = m.map(x=>({ name:x.name, type:'done', completed:true }));
+    });
+    return out;
   }
   function fbMiniHTML(date, w, athleteId){
     const store = fbStoreFor(athleteId);
@@ -18604,7 +19003,9 @@ nav.tabbar button.active svg{
       const fb = e.target.closest ? e.target.closest('.cp-fb') : null;
       if(!fb) return;
       const date = fb.getAttribute('data-fb-date'), id = fb.getAttribute('data-fb-id');
-      const cur = planFeedback[date+'|'+id] || {};
+      const cur = ((typeof getPulso==='function' ? getPulso('plan-feedback', {}) : {})||{})[date+'|'+id] || {};
+      const snd = e.target.closest('[data-fb-send]');
+      if(snd){ setFb(date, {id:id}, { sent:true, sentAt:new Date().toISOString() }); try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData==='function') window.PulsoCloud.uploadData(); }catch(_e){} return; }
       const sb = e.target.closest('[data-fb-status]');
       if(sb){ const s = sb.getAttribute('data-fb-status'); setFb(date, {id:id}, { status: cur.status===s ? null : s }); return; }
       const vb = e.target.closest('[data-fb-feel]');
@@ -18922,6 +19323,53 @@ nav.tabbar button.active svg{
     ];
     return '<div class="swipe-nav"><button type="button" class="swipe-arrow prev" aria-label="Anterior">‹</button><div class="coach-chart-swiper">'+slides.join('')+'</div><button type="button" class="swipe-arrow next" aria-label="Seguinte">›</button></div><div class="coach-chart-hint">'+PL('Desliza ou usa as setas para ver os gráficos.','Swipe or use the arrows to see the charts.')+'</div>';
   }
+  // ---- Cartões configuráveis do treinador (mostrar/ocultar + reordenar por setas) ----
+  const _cardMeta = {}, _cardRerender = {};
+  function getCardCfg(area){ try{ return JSON.parse(localStorage.getItem('pulso:cards-'+area)||'{}'); }catch(e){ return {}; } }
+  function setCardCfg(area,cfg){ try{ localStorage.setItem('pulso:cards-'+area, JSON.stringify(cfg)); }catch(e){} }
+  function renderCardStack(area, cards, rerender){
+    _cardMeta[area] = cards.map(c=>({id:c.id,label:c.label}));
+    _cardRerender[area] = rerender;
+    const cfg=getCardCfg(area), order=cfg.order||[], hidden=cfg.hidden||[];
+    const byId={}; cards.forEach(c=>byId[c.id]=c);
+    const seq=order.filter(id=>byId[id]).concat(cards.filter(c=>order.indexOf(c.id)<0).map(c=>c.id));
+    const stack=seq.filter(id=>hidden.indexOf(id)<0).map(id=>byId[id].html).join('');
+    const btn='<button type="button" class="coach-pill" data-cards-edit="'+area+'" style="margin:12px auto 4px; display:block; cursor:pointer;">⚙ '+PL('Personalizar cartões','Customize cards')+'</button>';
+    return stack + btn;
+  }
+  function openCardCustomizer(area){
+    const cards=_cardMeta[area]||[]; if(!cards.length) return;
+    const byId={}; cards.forEach(c=>byId[c.id]=c);
+    const cfg=getCardCfg(area);
+    let order=(cfg.order||[]).filter(id=>byId[id]); cards.forEach(c=>{ if(order.indexOf(c.id)<0) order.push(c.id); });
+    let hidden=(cfg.hidden||[]).filter(id=>byId[id]);
+    function save(){ setCardCfg(area,{order:order.slice(),hidden:hidden.slice()}); }
+    let ov=document.getElementById('cards-modal'); if(ov) ov.remove();
+    ov=document.createElement('div'); ov.id='cards-modal';
+    ov.style.cssText='position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.95); overflow:auto; padding:18px 14px 40px;';
+    function draw(){
+      ov.innerHTML='<div style="max-width:560px; margin:0 auto;">'
+        +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><h2 style="margin:0; font-size:18px;">'+PL('Personalizar cartões','Customize cards')+'</h2><button type="button" id="cards-close" class="coach-pill" style="cursor:pointer;">✕ '+PL('Concluir','Done')+'</button></div>'
+        +'<p class="help" style="margin:0 0 10px;">'+PL('Mostra/oculta e usa as setas para ordenar.','Show/hide and use the arrows to order.')+'</p>'
+        +order.map((id,i)=>{ const c=byId[id]; const vis=hidden.indexOf(id)<0;
+          return '<div style="display:flex; align-items:center; gap:6px; padding:10px 12px; border:1px solid rgba(255,255,255,.1); border-radius:12px; margin-bottom:6px; background:rgba(255,255,255,.03);">'
+            +'<div style="flex:1; font-weight:700;'+(vis?'':'opacity:.45;')+'">'+esc(c.label)+'</div>'
+            +'<button type="button" class="coach-pill" data-card-vis="'+id+'" style="cursor:pointer;">'+(vis?'👁':'🚫')+'</button>'
+            +'<button type="button" class="coach-pill" data-card-up="'+id+'" style="cursor:pointer;'+(i===0?'opacity:.3;':'')+'">↑</button>'
+            +'<button type="button" class="coach-pill" data-card-down="'+id+'" style="cursor:pointer;'+(i===order.length-1?'opacity:.3;':'')+'">↓</button>'
+          +'</div>';
+        }).join('')+'</div>';
+    }
+    draw(); document.body.appendChild(ov);
+    ov.addEventListener('click', function(e){
+      if(e.target.id==='cards-modal'||e.target.closest('#cards-close')){ ov.remove(); const r=_cardRerender[area]; if(typeof r==='function') r(); return; }
+      const vb=e.target.closest('[data-card-vis]'); if(vb){ const id=vb.getAttribute('data-card-vis'); const i=hidden.indexOf(id); if(i<0)hidden.push(id); else hidden.splice(i,1); save(); draw(); return; }
+      const up=e.target.closest('[data-card-up]'); if(up){ const id=up.getAttribute('data-card-up'); const i=order.indexOf(id); if(i>0){ order.splice(i,1); order.splice(i-1,0,id); save(); draw(); } return; }
+      const dn=e.target.closest('[data-card-down]'); if(dn){ const id=dn.getAttribute('data-card-down'); const i=order.indexOf(id); if(i<order.length-1){ order.splice(i,1); order.splice(i+1,0,id); save(); draw(); } return; }
+    });
+  }
+  document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('[data-cards-edit]') : null; if(b){ openCardCustomizer(b.getAttribute('data-cards-edit')); } });
+
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
     const src = document.getElementById('coach-athlete-source');
@@ -18995,11 +19443,37 @@ nav.tabbar button.active svg{
 
     // Próxima prova (só se ainda estiver por vir), logo a seguir aos treinos previstos.
     const nextRace = (racesFor(selectedA.id) || []).find(r=> String(r.date||'').slice(0,10) >= todayK) || null;
-    const raceCard = '<div class="coach-card"><h3>'+PL('Próxima prova','Next race')+'</h3>'+
-      (nextRace
-        ? '<div class="coach-plan-item" style="border-color:rgba(242,184,75,.4); background:rgba(242,184,75,.08);"><div class="cp-title" style="color:#F2B84B;">🏁 '+esc(nextRace.name||PL('Prova','Race'))+'</div><div class="cp-desc">'+esc(fmtDayLabel(nextRace.date))+(nextRace.distanceKm?' · '+esc(nextRace.distanceKm)+' km':'')+(nextRace.elevationM?' · '+esc(nextRace.elevationM)+' D+':'')+'</div></div>'
+    const allRaces = (racesFor(selectedA.id)||[]).filter(r=>String(r.date||'').slice(0,10) >= todayK).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    const raceCard = '<div class="coach-card"><h3>'+PL('Próxima prova','Next race')+(allRaces.length>1?' <span style="font-size:11px; color:var(--text-muted); font-weight:600;">('+allRaces.length+' · '+PL('desliza','swipe')+' →)</span>':'')+'</h3>'+
+      (allRaces.length
+        ? '<div style="display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:10px; -webkit-overflow-scrolling:touch; padding-bottom:4px;">'+
+          allRaces.map(r=>'<div style="flex:0 0 100%; scroll-snap-align:center; box-sizing:border-box;"><div class="coach-plan-item" style="margin:0; border-color:'+(r.primary?'rgba(242,184,75,.4)':'rgba(155,140,255,.4)')+'; background:'+(r.primary?'rgba(242,184,75,.08)':'rgba(155,140,255,.08)')+';"><div class="cp-title" style="color:'+(r.primary?'#F2B84B':'#9B8CFF')+';">🏁 '+esc(r.name||PL('Prova','Race'))+' <span style="font-size:10px; font-weight:800; opacity:.85;">('+(r.primary?PL('principal','main'):PL('secundária','secondary'))+')</span></div><div class="cp-desc">'+esc(fmtDayLabel(r.date))+(r.distanceKm?' · '+esc(r.distanceKm)+' km':'')+(r.elevationM?' · '+esc(r.elevationM)+' D+':'')+'</div></div></div>').join('')+
+          '</div>'
         : '<div class="coach-empty">'+PL('Sem prova marcada.','No race scheduled.')+'</div>')+
       '</div>';
+
+    // Periodização até à prova (só se houver prova por vir): mesma timeline do atleta,
+    // mas calculada com os dados do atleta selecionado (provas + atividades via aGet).
+    let periodCard = '';
+    if(nextRace && typeof window.PulsoGenPlan === 'function' && typeof window.PulsoPlanTimeline === 'function'){
+      try{
+        const athleteActs = aGet('strava-activities', []) || [];
+        const tlPlan = window.PulsoGenPlan(nextRace, athleteActs);
+        const tlSvg = tlPlan ? window.PulsoPlanTimeline(tlPlan, nextRace, athleteActs) : '';
+        if(tlSvg){
+          periodCard = '<div class="coach-card"><h3>'+PL('Periodização até à prova','Periodization to race day')+'</h3>'+
+            '<div data-open-period="'+esc(selectedAthleteId||'local')+'" style="cursor:pointer;">'+tlSvg+
+            '<div class="help" style="margin:2px 0 0; text-align:center; color:#35D9A6; font-size:11px;">'+PL('Toca para analisar semana a semana →','Tap to analyse week by week →')+'</div></div>'+
+            '<div style="margin-top:6px; display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--text-muted);">'+
+              '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(120,140,170,.6);vertical-align:middle;"></span> '+PL('Feito','Done')+'</span>'+
+              '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#5B8DEF;vertical-align:middle;"></span> Base</span>'+
+              '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#35D9A6;vertical-align:middle;"></span> '+PL('Construção','Build')+'</span>'+
+              '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#F2B84B;vertical-align:middle;"></span> '+PL('Pico','Peak')+'</span>'+
+              '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#8BE3C6;vertical-align:middle;"></span> Taper</span>'+
+            '</div></div>';
+        }
+      }catch(e){ periodCard = ''; }
+    }
 
     // Saúde Feminina (simplificada): só a bola + recomendação. A explicação (legenda) abre ao tocar na bola.
     let femInner = '';
@@ -19102,7 +19576,16 @@ nav.tabbar button.active svg{
     const infoSwipe = '<div class="coach-swipe-wrap"><button class="coach-swipe-arrow prev" type="button" data-swipe-dir="-1" aria-label="Anterior">‹</button><div class="coach-swipe" id="coach-info-swipe">'+slide(profileCard)+slide(health)+slide(nutri)+slide(drinks)+'</div><button class="coach-swipe-arrow next" type="button" data-swipe-dir="1" aria-label="Seguinte">›</button></div>'+
       '<p class="help" style="margin:2px 2px 10px; text-align:center; font-size:11px;">'+PL('Desliza: Perfil · Saúde · Nutrição · Bebidas','Swipe: Profile · Health · Nutrition · Drinks')+'</p>';
     // Ordem pedida: cartões (swipe) → gráficos → prontidão → restantes.
-    box.innerHTML = infoSwipe + overview + readyCard + plannedCard + raceCard + completedBox + recentBox;
+    box.innerHTML = renderCardStack('coach-athlete', [
+      {id:'info', label:PL('Info do atleta','Athlete info'), html:infoSwipe},
+      {id:'overview', label:PL('Resumo','Overview'), html:overview},
+      {id:'ready', label:PL('Prontidão','Readiness'), html:readyCard},
+      {id:'plan', label:PL('Treinos planeados','Planned workouts'), html:plannedCard},
+      {id:'race', label:PL('Próxima prova','Next race'), html:raceCard},
+      {id:'period', label:PL('Periodização','Periodization'), html:periodCard},
+      {id:'completed', label:PL('Treinos efetuados','Completed workouts'), html:completedBox},
+      {id:'recent', label:PL('Últimas atividades Strava','Latest Strava'), html:recentBox}
+    ], renderAthleteData);
     bindCoachCardCollapse(box);
   }
 
