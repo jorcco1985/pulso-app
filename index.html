@@ -6774,11 +6774,11 @@ nav.tabbar button.active svg{
   <section id="tab-perfil">
     <h2 class="section-title" data-i18n="Profile">Perfil</h2>
 
-    <div class="card" id="user-role-card">
-      <div style="font-weight:800; margin-bottom:6px;" data-i18n="Account type">Tipo de conta</div>
+    <div id="user-role-card" style="background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(16,24,39,.96)); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; margin-bottom:12px; position:relative; z-index:2;">
+      <div style="font-weight:800; margin-bottom:8px; color:#fff;" data-i18n="Account type">Tipo de conta</div>
       <div style="display:flex; gap:8px;">
-        <button type="button" class="ghost" data-user-role="athlete" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;">🏃 <span data-i18n="Athlete">Atleta</span></button>
-        <button type="button" class="ghost" data-user-role="coach" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;">🧑‍🏫 <span data-i18n="Coach">Treinador</span></button>
+        <button type="button" class="ghost" data-user-role="athlete" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px;">🏃 <span data-i18n="Athlete">Atleta</span></button>
+        <button type="button" class="ghost" data-user-role="coach" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px;">🧑‍🏫 <span data-i18n="Coach">Treinador</span></button>
       </div>
       <p class="help" id="user-role-desc" style="margin:8px 0 0;"></p>
     </div>
@@ -6793,7 +6793,7 @@ nav.tabbar button.active svg{
 
     <div class="card lang-switch-card">
       <span data-i18n="Session">Sessão</span>
-      <button type="button" id="btn-logout" class="ghost" style="color:#F2555A; border-color:rgba(242,85,90,.4); display:inline-flex; align-items:center; gap:8px; padding:9px 15px;">
+      <button type="button" id="btn-logout" class="ghost" style="color:#F2555A; border-color:rgba(242,85,90,.4); display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; flex:0 0 auto; margin-left:auto;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span data-i18n="Sign out">Terminar sessão</span>
       </button>
@@ -9363,7 +9363,8 @@ nav.tabbar button.active svg{
       showSearchAiPrompt(rawName.trim());
       return;
     }
-    clearFoodActions();
+    // Match exato = alimento conhecido; match aproximado = oferece a IA na mesma.
+    if(match.name === rawName.trim().toLowerCase()){ clearFoodActions(); } else { showSearchAiPrompt(rawName.trim()); }
     const food = match.food;
 
     // Só preenche a porção típica quando o alimento é escolhido e o utilizador NÃO está a apagar/escrever a quantidade.
@@ -9482,7 +9483,7 @@ nav.tabbar button.active svg{
     if(foodName){
       const grams = parseFloat(document.getElementById('kcal-grams').value) || 0;
       try{ await saveManualFood(foodName, grams, {kcal, carbs, protein, fat}); }catch(_){}
-      try{ const fav=getPulso('nutri-fav',{})||{}; const k=foodName.toLowerCase(); if(!fav[k]) fav[k]={n:0}; fav[k].n=(fav[k].n||0)+1; fav[k].name=foodName; fav[k].grams=grams; fav[k].kcal=kcal; fav[k].carbs=carbs; fav[k].protein=protein; fav[k].fat=fat; setPulso('nutri-fav',fav); }catch(_){}
+      try{ let fav={}; try{ const _r=localStorage.getItem('pulso:nutri-fav'); fav=_r?JSON.parse(_r):{}; }catch(_e){} const k=foodName.toLowerCase(); if(!fav[k]) fav[k]={n:0}; fav[k].n=(fav[k].n||0)+1; fav[k].name=foodName; fav[k].grams=grams; fav[k].kcal=kcal; fav[k].carbs=carbs; fav[k].protein=protein; fav[k].fat=fat; localStorage.setItem('pulso:nutri-fav', JSON.stringify(fav)); }catch(_){}
       try{ renderNutriFavs(); }catch(_){}
     }
     e.target.reset();
@@ -9753,9 +9754,10 @@ nav.tabbar button.active svg{
 
   // Favoritos de comida: os mais registados (frequência) + os já guardados na memória.
   let _navFavData = {};
+  const _escFav = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   function renderNutriFavs(){
     const el=document.getElementById('kcal-favs'); if(!el) return;
-    let fav={}; try{ fav=getPulso('nutri-fav',{})||{}; }catch(e){}
+    let fav={}; try{ const _r=localStorage.getItem('pulso:nutri-fav'); fav=_r?JSON.parse(_r):{}; }catch(e){}
     const items=[]; const seen={};
     Object.keys(fav).forEach(k=>{ const x=fav[k]; if(x&&x.name){ items.push({name:x.name, n:x.n||0, grams:x.grams, kcal:x.kcal, carbs:x.carbs, protein:x.protein, fat:x.fat}); seen[k]=1; } });
     try{ Object.keys(aiFoods||{}).forEach(k=>{ if(seen[k]) return; const a=aiFoods[k]; if(!a) return; const g=a.defaultG||100; const nm=a.name||(k.charAt(0).toUpperCase()+k.slice(1)); items.push({name:nm, n:0, grams:g, kcal:Math.round((a.kcal||0)*g/100), carbs:Math.round((a.carbs||0)*g/100*10)/10, protein:Math.round((a.protein||0)*g/100*10)/10, fat:Math.round((a.fat||0)*g/100*10)/10}); }); }catch(e){}
@@ -9765,28 +9767,50 @@ nav.tabbar button.active svg{
     if(!list.length){ el.innerHTML='<div class="help" style="margin:8px 0;">'+PL('Ainda sem favoritos. Regista alimentos para aparecerem aqui.','No favorites yet. Log foods to see them here.')+'</div>'; return; }
     el.innerHTML='<div class="help" style="margin:8px 0 4px; font-weight:700;">'+PL('Favoritos','Favorites')+'</div>'
       +'<div style="display:flex; gap:6px; flex-wrap:wrap;">'
-      +list.map(x=>{ _navFavData[x.name.toLowerCase()]=x; return '<button type="button" class="chip" data-fav-food="'+esc(x.name)+'">'+esc(x.name)+'</button>'; }).join('')
+      +list.map(x=>{ _navFavData[x.name.toLowerCase()]=x; return '<button type="button" class="chip" data-fav-food="'+_escFav(x.name)+'">'+_escFav(x.name)+'</button>'; }).join('')
       +'</div>';
   }
-  document.addEventListener('click', function(e){
-    const fb=e.target.closest ? e.target.closest('#kcal-fav-btn') : null; if(!fb) return;
-    const el=document.getElementById('kcal-favs'); if(!el) return;
-    try{ renderNutriFavs(); }catch(_){}
-    el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
-  });
-  document.addEventListener('click', function(e){
-    const b=e.target.closest ? e.target.closest('[data-fav-food]') : null; if(!b) return;
-    const name=b.getAttribute('data-fav-food'); const d=_navFavData[name.toLowerCase()]||{};
+  function computeFavItems(){
+    let fav={}; try{ const _r=localStorage.getItem('pulso:nutri-fav'); fav=_r?JSON.parse(_r):{}; }catch(e){}
+    const items=[]; const seen={};
+    Object.keys(fav).forEach(k=>{ const x=fav[k]; if(x&&x.name){ items.push({name:x.name, n:x.n||0, grams:x.grams, kcal:x.kcal, carbs:x.carbs, protein:x.protein, fat:x.fat}); seen[k]=1; } });
+    try{ Object.keys(aiFoods||{}).forEach(k=>{ if(seen[k]) return; const a=aiFoods[k]; if(!a) return; const g=a.defaultG||100; const nm=a.name||(k.charAt(0).toUpperCase()+k.slice(1)); items.push({name:nm, n:0, grams:g, kcal:Math.round((a.kcal||0)*g/100), carbs:Math.round((a.carbs||0)*g/100*10)/10, protein:Math.round((a.protein||0)*g/100*10)/10, fat:Math.round((a.fat||0)*g/100*10)/10}); }); }catch(e){}
+    items.sort((a,b)=>(b.n||0)-(a.n||0));
+    return items.slice(0,10);
+  }
+  function pickFav(d){
+    if(!d) return;
     const set=(id,v)=>{ const el=document.getElementById(id); if(el && v!=null && v!=='') el.value=v; };
-    set('kcal-food', name);
+    set('kcal-food', d.name);
     if(d.grams) set('kcal-grams', d.grams);
     if(d.kcal!=null){ set('kcal-value', Math.round(d.kcal)); set('kcal-carbs', d.carbs||0); set('kcal-protein', d.protein||0); set('kcal-fat', d.fat||0);
-      try{ kcalAiBase = { desc:name, grams:(d.grams||0), kcal:Number(d.kcal)||0, carbs:Number(d.carbs)||0, protein:Number(d.protein)||0, fat:Number(d.fat)||0 }; }catch(_){}
+      try{ kcalAiBase = { desc:d.name, grams:(d.grams||0), kcal:Number(d.kcal)||0, carbs:Number(d.carbs)||0, protein:Number(d.protein)||0, fat:Number(d.fat)||0 }; }catch(_){}
     } else { const inp=document.getElementById('kcal-food'); if(inp){ try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){} } }
     const foodInp=document.getElementById('kcal-food'); if(foodInp) foodInp.focus();
-  });
+  }
+  window.PulsoToggleFavs = function(){
+    const list=computeFavItems();
+    _navFavData={}; list.forEach(x=>_navFavData[x.name.toLowerCase()]=x);
+    let ov=document.getElementById('favs-modal'); if(ov) ov.remove();
+    ov=document.createElement('div'); ov.id='favs-modal';
+    ov.style.cssText='position:fixed; inset:0; z-index:99999; background:rgba(5,10,18,.96); overflow:auto; padding:calc(env(safe-area-inset-top,24px) + 60px) 16px 40px;';
+    ov.innerHTML='<div style="max-width:560px; margin:0 auto;">'
+      +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><h2 style="margin:0; font-size:20px;">⭐ '+PL('Favoritos','Favorites')+'</h2><button type="button" id="favs-close" class="coach-pill" style="cursor:pointer;">✕ '+PL('Fechar','Close')+'</button></div>'
+      +(list.length
+        ? list.map(x=>'<button type="button" data-fav-pick="'+_escFav(x.name.toLowerCase())+'" style="display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; text-align:left; margin-bottom:8px; padding:14px 16px; border:1px solid rgba(255,255,255,.14); border-radius:14px; background:rgba(255,255,255,.04); color:#fff; font-size:15px; font-weight:700; cursor:pointer;"><span>'+_escFav(x.name)+'</span><span style="opacity:.6; font-size:12px; font-weight:600;">'+(x.grams?Math.round(x.grams)+'g':'')+(x.kcal?' · '+Math.round(x.kcal)+' kcal':'')+'</span></button>').join('')
+        : '<div class="help" style="padding:16px 0;">'+PL('Ainda sem favoritos. Regista alimentos para aparecerem aqui.','No favorites yet. Log foods to see them here.')+'</div>')
+      +'</div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e){
+      if(e.target.id==='favs-modal' || (e.target.closest && e.target.closest('#favs-close'))){ ov.remove(); return; }
+      const pk=e.target.closest ? e.target.closest('[data-fav-pick]') : null;
+      if(pk){ pickFav(_navFavData[pk.getAttribute('data-fav-pick')]); ov.remove(); }
+    });
+  };
+  document.addEventListener('click', function(e){ const fb=e.target.closest ? e.target.closest('#kcal-fav-btn') : null; if(fb){ e.preventDefault(); try{ window.PulsoToggleFavs(); }catch(_){} } });
 
   function renderKcal(){
+    try{ renderNutriFavs(); }catch(e){}
     const today = todayStr();
     const todays = kcalEntries.filter(e=>e.date===today);
     const coffeeTotal = getTodayCoffeeTotal();
@@ -16049,6 +16073,8 @@ nav.tabbar button.active svg{
   .pcal-dot.planned{background:#9B8CFF;}
   .pcal-dot.done{background:var(--teal);}
   .pcal-dot.race{background:#F2B84B;}
+  #user-role-card button.role-on{ background:var(--teal)!important; color:#04140f!important; border-color:var(--teal)!important; }
+  body[data-user-role="athlete"] #coach-add-athlete{ display:none !important; }
   .pcal-dot.race-sec{background:#9B8CFF;}
   .pcal-legend{display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--text-muted); flex-wrap:wrap;}
   .pcal-legend span{display:inline-flex; align-items:center; gap:5px;}
@@ -19424,7 +19450,7 @@ nav.tabbar button.active svg{
       if(role!=='coach' && role!=='athlete') role='athlete';
       if(save){ try{ setPulso('user-role', role); }catch(e){} }
       try{ document.body.setAttribute('data-user-role', role); }catch(e){}
-      document.querySelectorAll('button[data-user-role]').forEach(b=>{ const on=b.getAttribute('data-user-role')===role; b.style.background=on?'var(--teal)':''; b.style.color=on?'#04140f':''; b.style.borderColor=on?'var(--teal)':''; });
+      document.querySelectorAll('button[data-user-role]').forEach(b=>{ b.classList.toggle('role-on', b.getAttribute('data-user-role')===role); });
       const d=document.getElementById('user-role-desc');
       if(d) d.textContent = role==='coach'
         ? PL('Como treinador, podes ligar e acompanhar vários atletas na área de Treinador.','As a coach, you can connect and follow several athletes in the Coach area.')
@@ -21181,6 +21207,7 @@ document.addEventListener("click", function(e){
   #pulso-lang-gate .plg-note{color:#6b7688; font-size:12px; margin:20px 0 0;}
   /* Switch de idioma no perfil */
   .lang-switch-card{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  #tab-perfil #btn-logout{ width:auto !important; min-height:0 !important; font-size:13px !important; padding:7px 12px !important; border-radius:12px !important; flex:0 0 auto !important; margin-left:auto !important; }
   .lang-seg{display:inline-flex; border:1px solid rgba(255,255,255,.12); border-radius:10px; overflow:hidden;}
   .lang-seg button{background:transparent; color:var(--text-muted); border:0; padding:8px 14px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:7px;}
   .lang-seg button.active{background:rgba(53,217,166,.16); color:var(--teal);}
@@ -21431,8 +21458,8 @@ document.addEventListener("click", function(e){
          'Below you have rings you can swipe. "Overall status" (wellbeing) and "Training readiness" (whether you\'re recovered or at overload risk, combining load and recovery). Swipe to move between them and tap either one to see why. If you\'re female, a cycle ring also appears.'] },
     { tab:'hidratacao', focusSel:'#tab-hidratacao .subtabs', emoji:'🥤',
       t:['Nutrição e hidratação','Nutrition & hydration'],
-      b:['Aqui registas o que bebes e comes. Em "Bebida", escolhe (Água, Café…) e toca para somar. Em "Comida", escreves o alimento e a quantidade — e podes usar a IA para ir buscar as calorias e os macros de qualquer alimento. O que pesquisas fica guardado para as próximas vezes aparecer nas sugestões.',
-         'Here you log what you drink and eat. Under "Drink", pick one (Water, Coffee…) and tap to add. Under "Food", type the food and amount — and you can use the AI to fetch calories and macros for any food. What you search is saved so it shows up in suggestions next time.'] },
+      b:['Aqui registas o que comes e bebes. Em "Comida" (à esquerda) escreves o alimento e a quantidade — a IA vai buscar as calorias e os macros de qualquer alimento. Toca em ⭐ Favoritos para escolheres rapidamente os que mais usas. Em "Bebida" (à direita) escolhes (Água, Café…) e tocas para somar.',
+         'Here you log what you eat and drink. Under "Food" (left) type the food and amount — the AI fetches calories and macros for any food. Tap ⭐ Favorites to quickly pick the ones you use most. Under "Drink" (right) pick one (Water, Coffee…) and tap to add.'] },
     { tab:'treinos', focusSel:'#tab-treinos .subtabs', emoji:'🏁',
       t:['Treinos e provas','Training & races'],
       b:['Aqui defines a tua "Prova" (o teu objetivo) e vês/executas os teus treinos. Os treinos em si não se criam aqui — são feitos na área de Treinador, por ti (no papel de treinador) ou pelo teu treinador, que os escolhe para ti. Liga o Strava (no Perfil) para importar as atividades automaticamente.',
@@ -21443,8 +21470,8 @@ document.addEventListener("click", function(e){
          'Log your sleep, weight and blood pressure — pick the tab, enter the value and save. If you\'re female, you also get female-health fields (menstrual cycle) that adjust the readiness reads. After a few days, the trend charts appear.'] },
     { tab:'perfil', focusSel:'#tab-perfil', emoji:'⚙️',
       t:['O teu perfil','Your profile'],
-      b:['Preenche os teus dados (idade, altura, sexo…) para os cálculos serem certos. Aqui também importas os teus treinos, defines as zonas de treino e mudas o idioma.',
-         'Fill in your data (age, height, sex…) so the calculations are accurate. Here you also import your workouts, set training zones and change the language.'] },
+      b:['No topo escolhes o Tipo de conta — Atleta (treinas-te a ti) ou Treinador (acompanhas vários atletas na área de Treinador). Preenche também os teus dados (idade, altura, sexo…) para os cálculos serem certos. Aqui importas treinos, defines zonas e mudas o idioma.',
+         'At the top you pick the Account type — Athlete (you train yourself) or Coach (you follow several athletes in the Coach area). Also fill in your data (age, height, sex…) so the calculations are accurate. Here you import workouts, set zones and change the language.'] },
     { tab:'perfil', profileTab:'strava', focusSel:'#btn-import-workouts', emoji:'📥',
       t:['Importar treinos','Import workouts'],
       b:['Em Perfil → "Importar treinos" há duas formas. AUTOMÁTICO: liga o Strava uma vez e as atividades entram sozinhas. MANUAL: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem — a app abre-o). No Garmin, exporta em connect.garmin.com (abre a atividade → engrenagem → Exportar). Os treinos entram no histórico e alimentam os cálculos.',
