@@ -18852,7 +18852,7 @@ nav.tabbar button.active svg{
     ov.style.cssText = 'position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.94); overflow:auto; padding:calc(env(safe-area-inset-top,24px) + 64px) 14px 40px;';
     ov.innerHTML = '<button type="button" id="period-close-fixed" style="position:fixed; top:calc(env(safe-area-inset-top,20px) + 54px); right:14px; z-index:100000; min-width:100px; height:44px; border-radius:999px; background:rgba(20,28,44,.96); border:1px solid rgba(53,217,166,.55); color:#35D9A6; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.5);">\u2715 Fechar</button>'
       +'<div style="max-width:640px; margin:0 auto;">'
-      +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h2 style="margin:0; font-size:19px;">Análise até '+esc(data.race.name||'à prova')+'</h2><button type="button" id="period-close" class="coach-pill" style="cursor:pointer;">✕ Fechar</button></div>'
+      +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h2 style="margin:0; font-size:19px;">Análise até '+esc(data.race.name||'à prova')+'</h2></div>'
       +'<p class="help" style="margin:0 0 10px;">Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Toca em "Trein." na tabela para ajustares o plano.</p>'
       +(data.stateScore!=null ? '<p class="help" style="margin:-4px 0 10px; font-weight:700; color:'+(data.stateFactor<0.98?'#F2B84B':(data.stateFactor>1.02?'#35D9A6':'var(--text-muted)'))+';">'+PL('IA ajustada ao estado do atleta: ','AI adjusted to athlete state: ')+(data.stateFactor>=1?'+':'')+Math.round((data.stateFactor-1)*100)+'% · '+PL('prontidão ','readiness ')+data.stateScore+'/100</p>' : '')
       +'<div id="period-bars">'+periodBarsHTML(rows, _periodMetrics)+'</div>'
@@ -20310,7 +20310,7 @@ nav.tabbar button.active svg{
   .pc-error{color:var(--red); font-size:13px; min-height:18px; margin:10px 0 4px;}
   .pc-auth-links{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
   .pc-link{background:none; border:0; color:var(--teal); font-size:13px; font-weight:700; cursor:pointer; padding:6px;}
-  #pulso-cloud-btn{position:fixed; top:calc(12px + env(safe-area-inset-top)); right:70px; z-index:99990; width:44px; height:44px; border-radius:999px; background:rgba(15,22,38,.92); border:1px solid rgba(53,217,166,.45); color:var(--teal); font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center;}
+  #pulso-cloud-btn{position:fixed; top:calc(12px + env(safe-area-inset-top)); right:70px; z-index:5000; opacity:1; width:44px; height:44px; border-radius:999px; background:rgba(15,22,38,.92); border:1px solid rgba(53,217,166,.45); color:var(--teal); font-size:20px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center;}
   #pulso-cloud-btn[hidden]{display:none;}
   .pc-sheet{position:fixed; inset:0; z-index:100001; background:rgba(4,7,13,.72); display:flex; align-items:flex-end; justify-content:center;}
   .pc-sheet[hidden]{display:none;}
@@ -20365,7 +20365,7 @@ nav.tabbar button.active svg{
   </div>
 </div>
 
-<button id="pulso-cloud-btn" type="button" aria-label="Conta e ligações Pulso" hidden>☁</button>
+<button id="pulso-cloud-btn" type="button" aria-label="Conta e ligações Pulso">☁</button>
 
 <div id="pulso-cloud-sheet" class="pc-sheet" hidden aria-hidden="true">
   <div class="pc-sheet-inner">
