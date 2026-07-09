@@ -6600,7 +6600,7 @@ nav.tabbar button.active svg{
           <!-- Força -->
           <div class="card" style="padding:11px 12px; display:none;" id="wb-forca-card">
             <div class="row" style="gap:10px; flex-wrap:wrap;">
-              <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Muscle group">Grupo muscular</label><select id="wb-fx-group"><option value="Core" data-i18n="Core">Core</option><option value="Pernas" selected data-i18n="Legs">Pernas</option><option value="Glúteos" data-i18n="Glutes">Glúteos</option><option value="Posterior" data-i18n="Hamstrings">Posterior</option><option value="Tronco" data-i18n="Trunk">Tronco</option><option value="Superior" data-i18n="Upper body">Superior</option><option value="Corpo inteiro" data-i18n="Full body">Corpo inteiro</option></select></div>
+              <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Muscle group">Grupo muscular</label><select id="wb-fx-group"><option value="Core" data-i18n="Core">Core</option><option value="Pernas" selected data-i18n="Legs">Pernas</option><option value="Glúteos" data-i18n="Glutes">Glúteos</option><option value="Posterior" data-i18n="Hamstrings">Posterior</option><option value="Tronco" data-i18n="Trunk">Tronco</option><option value="Superior" data-i18n="Upper body">Superior</option><option value="Corpo inteiro" data-i18n="Full body">Corpo inteiro</option><option value="Hyrox">Hyrox</option><option value="Funcional" data-i18n="Functional">Funcional</option></select></div>
               <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Type">Tipo</label><select id="wb-fx-equip"><option value="Peso corporal" selected data-i18n="Bodyweight">Peso corporal</option><option value="Halteres" data-i18n="Dumbbells">Halteres</option><option value="Barra" data-i18n="Barbell">Barra</option><option>Kettlebell</option><option value="Elásticos" data-i18n="Bands">Elásticos</option><option value="Máquinas" data-i18n="Machines">Máquinas</option></select></div>
               <div class="field" style="flex:1; min-width:80px;"><label data-i18n="Sets">Séries</label><select id="wb-fx-series"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
               <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Rest">Descanso</label><select id="wb-fx-rest"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option></select></div>
@@ -6615,8 +6615,10 @@ nav.tabbar button.active svg{
             <div class="row" style="gap:10px; flex-wrap:wrap;">
               <div class="field" style="flex:1; min-width:140px;"><label data-i18n="Type">Tipo</label><select id="wb-mob-type"><option value="Antes do treino" data-i18n="Pre-workout">Antes do treino</option><option value="Depois do treino" data-i18n="Post-workout">Depois do treino</option><option value="Recuperação" selected data-i18n="Recovery">Recuperação</option><option value="Alongamentos" data-i18n="Stretching">Alongamentos</option><option value="Foam Roller" data-i18n="Foam roller">Foam Roller</option><option value="Respiração" data-i18n="Breathing">Respiração</option><option value="Mobilidade dinâmica" data-i18n="Dynamic mobility">Mobilidade dinâmica</option></select></div>
               <div class="field" style="flex:1; min-width:90px;"><label data-i18n="Time">Tempo</label><select id="wb-mob-dur"><option value="5">5 min</option><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
-              <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Body area">Zona corporal</label><select id="wb-mob-zone"><option value="Anca" data-i18n="Hip">Anca</option><option value="Tornozelo" data-i18n="Ankle">Tornozelo</option><option value="Lombar" data-i18n="Lower back">Lombar</option><option value="Ombros" data-i18n="Shoulders">Ombros</option><option value="Pescoço" data-i18n="Neck">Pescoço</option><option value="Corpo inteiro" selected data-i18n="Full body">Corpo inteiro</option></select></div>
+              <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Body area">Zona corporal</label><select id="wb-mob-zone"><option value="Anca" data-i18n="Hip">Anca</option><option value="Tornozelo" data-i18n="Ankle">Tornozelo</option><option value="Lombar" data-i18n="Lower back">Lombar</option><option value="Ombros" data-i18n="Shoulders">Ombros</option><option value="Pescoço" data-i18n="Neck">Pescoço</option><option value="Coluna torácica" data-i18n="Thoracic spine">Coluna torácica</option><option value="Corpo inteiro" selected data-i18n="Full body">Corpo inteiro</option></select></div>
             </div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; display:block; margin:10px 0 6px;" data-i18n="Exercises (tap to add)">Exercícios (toca para adicionar)</label>
+            <div id="wb-mob-ex" class="row" style="gap:6px; flex-wrap:wrap;"></div>
           </div>
 
           <!-- Desaquecimento -->
@@ -7079,7 +7081,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.08 · build 50</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 54</p>
 
 
 </section>
@@ -10085,7 +10087,7 @@ nav.tabbar button.active svg{
       <button class="today-clear-x" id="btn-clear-today" type="button" aria-label="Remover treino de hoje">×</button>
       <button class="today-menu-dot" id="btn-today-menu" type="button" aria-label="Opções do treino">⋮</button>
       <p class="today-workout-title">${todayPlan.title}</p>
-      <p class="today-workout-desc">${todayPlan.detail || ''}</p>
+      <p class="today-workout-desc">${window.exerciseDemos(todayPlan.detail || '')}</p>
       <span class="today-workout-badge">✓ Treino de hoje</span>`;
     const clearBtn = document.getElementById('btn-clear-today');
     if(clearBtn){
@@ -10128,17 +10130,66 @@ nav.tabbar button.active svg{
     subidasTrail: ['Rampa curta','Rampa longa','Escadas','Rampa técnica'],
     subidasRun: ['Rampa curta','Rampa longa','Escadas'],
     forca: {
-      'Core': ['Prancha','Side Plank','Bird Dog','Dead Bug'],
-      'Pernas': ['Agachamento','Lunges','Step Up','Gémeos','Afundos búlgaros'],
-      'Glúteos': ['Ponte de glúteos','Hip Thrust','Abdução'],
-      'Posterior': ['Deadlift romeno','Nordic curl','Good morning'],
-      'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação'],
-      'Superior': ['Flexões','Remada','Press ombros'],
-      'Corpo inteiro': ['Agachamento','Lunges','Deadlift romeno','Prancha','Step Up','Flexões']
+      'Core': ['Prancha','Side Plank','Bird Dog','Dead Bug','Hollow Hold','Russian Twist','Mountain Climbers','V-up','Elevação de pernas'],
+      'Pernas': ['Agachamento','Agachamento frontal','Goblet Squat','Lunges','Step Up','Afundos búlgaros','Gémeos','Wall Sit','Pistol Squat','Box Jump'],
+      'Glúteos': ['Ponte de glúteos','Hip Thrust','Abdução','Marcha de glúteo','Kickback'],
+      'Posterior': ['Deadlift romeno','Peso morto','Nordic curl','Good morning','Hamstring curl'],
+      'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação','Pallof press'],
+      'Superior': ['Flexões','Remada','Press ombros','Elevações','Fundos','Supino','Press militar','Curl bíceps','Extensão tríceps','Face pull'],
+      'Corpo inteiro': ['Burpees','Thruster','Clean','Snatch','Turkish Get-up','Devils Press','Agachamento','Flexões'],
+      'Hyrox': ['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Remo','Farmers Carry','Sandbag Lunges','Wall Ball','Kettlebell Swing','Sandbag over shoulder'],
+      'Funcional': ['Kettlebell Swing','Goblet Squat','Turkish Get-up','Thruster','Devils Press','Dumbbell Snatch','Box Jump','Wall Ball','Battle Ropes','Medicine Ball Slam','Bear Crawl','Farmers Carry']
     },
-    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','default':'10' }
+    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','Hollow Hold':'30 s','Mountain Climbers':'30 s','Wall Sit':'45 s','Bear Crawl':'20 m','Battle Ropes':'30 s','SkiErg':'250 m','Sled Push':'25 m','Sled Pull':'25 m','Burpee Broad Jump':'10','Remo':'250 m','Farmers Carry':'40 m','Sandbag Lunges':'20 m','Wall Ball':'15','Kettlebell Swing':'20','Sandbag over shoulder':'8','Box Jump':'12','Thruster':'12','Burpees':'12','Goblet Squat':'12','Turkish Get-up':'4','Devils Press':'8','Dumbbell Snatch':'8','Snatch':'8','Clean':'8','Elevações':'8','Fundos':'10','Supino':'8','Press militar':'8','Pistol Squat':'6','Russian Twist':'20','V-up':'12','Elevação de pernas':'12','Medicine Ball Slam':'12','default':'10' },
+    mob: {
+      'Anca': ['90/90','Hip CARs','Agachamento profundo','Pombo','Cossack Squat','Frog Stretch'],
+      'Tornozelo': ['Mobilidade de tornozelo na parede','Ankle CARs','Alongamento de gémeos','Agachamento profundo'],
+      'Lombar': ['Gato-camelo','Postura da criança','Rotação lombar deitado','Cobra','Bird Dog'],
+      'Ombros': ['Wall Slides','Shoulder CARs','Alongamento de peito na porta','Band Pull-apart','Thread the Needle'],
+      'Pescoço': ['Neck CARs','Alongamento de trapézio','Rotação de pescoço','Retração cervical'],
+      'Coluna torácica': ['Rotação torácica','Thread the Needle','Extensão torácica no rolo','Open Book'],
+      'Corpo inteiro': ['Worlds Greatest Stretch','Saudação ao sol','Gato-camelo','Agachamento profundo','Inchworm','Lunge com rotação']
+    },
+    mobReps: { 'default':'30 s','90/90':'8 cada lado','Hip CARs':'5 cada lado','Shoulder CARs':'5 cada lado','Neck CARs':'5','Ankle CARs':'8 cada lado','Gato-camelo':'10','Bird Dog':'8 cada lado','Band Pull-apart':'15','Wall Slides':'12','Inchworm':'6','Saudação ao sol':'5','Open Book':'8 cada lado','Thread the Needle':'8 cada lado','Lunge com rotação':'6 cada lado','Worlds Greatest Stretch':'6 cada lado','Rotação torácica':'8 cada lado','Cossack Squat':'6 cada lado','Pombo':'45 s cada lado' }
   };
   let wbForcaSelected = [];
+  let wbMobSelected = [];
+
+  // ===== Demonstrações de exercícios de força (atleta) =====
+  // Torna cada exercício reconhecido na descrição de um treino tocável:
+  // ao tocar, abre a demonstração no YouTube (pesquisa pelo nome, em PT).
+  window.PulsoExerciseVocab = null;
+  function pulsoBuildExerciseVocab(){
+    var names = ['Afundos búlgaros','Agachamento frontal','Sandbag over shoulder','Burpee Broad Jump','Medicine Ball Slam','Rotação anti-rotação','Elevação de pernas','Ponte de glúteos','Deadlift romeno','Turkish Get-up','Kettlebell Swing','Extensão tríceps','Marcha de glúteo','Mountain Climbers','Dumbbell Snatch','Hamstring curl','Sandbag Lunges','Press militar','Pallof press','Russian Twist','Farmers Carry','Battle Ropes','Goblet Squat','Pistol Squat','Devils Press','Good morning','Press ombros','Nordic curl','Curl bíceps','Wall Ball','Bear Crawl','Box Jump','Face pull','Hip Thrust','Wall Sit','Side Plank','Hollow Hold','Sled Push','Sled Pull','Peso morto','Elevações','Agachamento','Thruster','Burpees','SkiErg','Dead Bug','Bird Dog','Abdução','Flexões','Remada','Prancha','Lunges','Step Up','Gémeos','Fundos','Supino','Snatch','Clean','Remo','V-up','Kickback','90/90','Hip CARs','Shoulder CARs','Neck CARs','Ankle CARs','Gato-camelo','Wall Slides','Thread the Needle','Open Book','Worlds Greatest Stretch','Saudação ao sol','Rotação torácica','Pombo','Cossack Squat','Postura da criança','Band Pull-apart','Inchworm','Lunge com rotação','Cobra'];
+    ['WB_EX','CWB_EX'].forEach(function(key){
+      try{
+        var obj = (key === 'WB_EX') ? (typeof WB_EX !== 'undefined' ? WB_EX : null) : (typeof CWB_EX !== 'undefined' ? CWB_EX : null);
+        if(obj){ ['forca','mob'].forEach(function(cat){ var lib = obj[cat]; if(lib){ Object.keys(lib).forEach(function(g){ (lib[g] || []).forEach(function(x){ if(x && names.indexOf(x) < 0) names.push(x); }); }); } }); }
+      }catch(e){}
+    });
+    names.sort(function(a,b){ return b.length - a.length; });
+    return names;
+  }
+
+  window.exerciseDemos = function(text){
+    if(!text) return text || '';
+    if(!window.PulsoExerciseVocab) window.PulsoExerciseVocab = pulsoBuildExerciseVocab();
+    var vocab = window.PulsoExerciseVocab || [];
+    var out = String(text), slots = [];
+    vocab.forEach(function(name){
+      if(!name) return;
+      var esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      var re = new RegExp('(^|[^0-9A-Za-zÀ-ÿ])(' + esc + ')(?![0-9A-Za-zÀ-ÿ])', 'g');
+      out = out.replace(re, function(m, pre){ slots.push(name); return pre + '\uE000' + (slots.length - 1) + '\uE000'; });
+    });
+    out = out.replace(/\uE000(\d+)\uE000/g, function(m, i){
+      var nm = slots[parseInt(i, 10)];
+      var q = encodeURIComponent(nm + ' como fazer técnica execução');
+      return '<a href="https://www.youtube.com/results?search_query=' + q + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--amber); text-decoration:underline; text-underline-offset:2px; white-space:nowrap;">' + nm + '<span style="font-size:.8em; opacity:.7;"> \u25B6</span></a>';
+    });
+    return out;
+  };
+
 
   const wbEl = id => document.getElementById(id);
   const wbVal = id => { const el = wbEl(id); return el ? el.value : ''; };
@@ -10158,6 +10209,15 @@ nav.tabbar button.active svg{
     wbForcaSelected = wbForcaSelected.filter(x=>list.includes(x));
     if(!wbForcaSelected.length) wbForcaSelected = list.slice(0,3);
     wbEl('wb-fx-ex').innerHTML = list.map(x=>`<button type="button" class="wb-chip${wbForcaSelected.includes(x)?' active':''}" data-ex="${x}">${x}</button>`).join('');
+  }
+
+  function wbRenderMobEx(){
+    const zone = wbVal('wb-mob-zone');
+    const list = (WB_EX.mob && WB_EX.mob[zone]) || [];
+    wbMobSelected = wbMobSelected.filter(x=>list.includes(x));
+    if(!wbMobSelected.length) wbMobSelected = list.slice(0,3);
+    const box = wbEl('wb-mob-ex'); if(!box) return;
+    box.innerHTML = list.map(x=>`<button type="button" class="wb-chip${wbMobSelected.includes(x)?' active':''}" data-ex="${x}">${x}</button>`).join('');
   }
 
   function wbRefresh(){
@@ -10196,6 +10256,7 @@ nav.tabbar button.active svg{
     wbFillSelect('wb-int-ex', isRun ? WB_EX.intervalosRun : ['Tempo livre']);
     wbFillSelect('wb-sub-ex', mod==='trail' ? ['Livre'].concat(WB_EX.subidasTrail) : (mod==='estrada' ? ['Livre'].concat(WB_EX.subidasRun) : ['Livre']));
     if(isForca) wbRenderForcaEx();
+    if(isMob) wbRenderMobEx();
 
     wbUpdatePreview();
   }
@@ -10234,6 +10295,10 @@ nav.tabbar button.active svg{
     }else if(mod==='mobilidade'){
       const d = parseInt(wbVal('wb-mob-dur'),10);
       lines.push(`${d} min ${wbVal('wb-mob-type')} — ${wbVal('wb-mob-zone')}`);
+      wbMobSelected.forEach(ex=>{
+        const r = (WB_EX.mobReps && (WB_EX.mobReps[ex]||WB_EX.mobReps['default'])) || '30 s';
+        lines.push(`• ${r} ${ex}`);
+      });
       minutes += d;
     }else if(goal==='Longo'){
       const d = parseInt(wbVal('wb-long-dur'),10);
@@ -10299,7 +10364,7 @@ nav.tabbar button.active svg{
   }
 
   function wbCollectState(){
-    const state = { forcaEx: [...wbForcaSelected] };
+    const state = { forcaEx: [...wbForcaSelected], mobEx: [...wbMobSelected] };
     document.querySelectorAll('#form-favorite select, #form-favorite input[type=text], #form-favorite input[type=checkbox]').forEach(el=>{
       if(!el.id || el.id==='wb-edit-id') return;
       state[el.id] = el.type==='checkbox' ? el.checked : el.value;
@@ -10314,6 +10379,7 @@ nav.tabbar button.active svg{
       else el.value = state[el.id];
     });
     wbForcaSelected = Array.isArray(state.forcaEx) ? [...state.forcaEx] : [];
+    wbMobSelected = Array.isArray(state.mobEx) ? [...state.mobEx] : [];
   }
 
   function openWorkoutBuilder(workoutId){
@@ -10321,6 +10387,7 @@ nav.tabbar button.active svg{
     form.reset();
     wbEl('wb-edit-id').value = '';
     wbForcaSelected = [];
+    wbMobSelected = [];
     if(workoutId){
       const w = favoriteWorkouts.find(x=>x.id===workoutId);
       if(w){
@@ -10348,6 +10415,15 @@ nav.tabbar button.active svg{
     const ex = chip.dataset.ex;
     if(wbForcaSelected.includes(ex)) wbForcaSelected = wbForcaSelected.filter(x=>x!==ex);
     else wbForcaSelected.push(ex);
+    chip.classList.toggle('active');
+    wbUpdatePreview();
+  });
+
+  document.getElementById('wb-mob-ex')?.addEventListener('click', (e)=>{
+    const chip = e.target.closest('.wb-chip'); if(!chip) return;
+    const ex = chip.dataset.ex;
+    if(wbMobSelected.includes(ex)) wbMobSelected = wbMobSelected.filter(x=>x!==ex);
+    else wbMobSelected.push(ex);
     chip.classList.toggle('active');
     wbUpdatePreview();
   });
@@ -10444,7 +10520,7 @@ nav.tabbar button.active svg{
         ${workoutIconHtml(w.type, w.name)}
         <div class="workout-card-main">
           <h3 class="workout-card-title" style="color:var(--text);">${w.name}</h3>
-          <p class="help workout-card-desc">${localizeDesc(w.desc)}</p>
+          <p class="help workout-card-desc">${window.exerciseDemos(localizeDesc(w.desc))}</p>
           ${workoutTagsHtml(w, scalingNote(w.baseMinutes, time))}
         </div>
         <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="suggest" type="button" aria-label="Opções do treino">⋮</button>
@@ -10486,7 +10562,7 @@ nav.tabbar button.active svg{
             ${workoutIconHtml(w.type, w.name)}
             <div class="workout-card-main">
               <h3 class="workout-card-title">${w.name}</h3>
-              <p class="help workout-card-desc">${localizeDesc(w.desc)}</p>
+              <p class="help workout-card-desc">${window.exerciseDemos(localizeDesc(w.desc))}</p>
               ${workoutTagsHtml(w)}
             </div>
             <button class="workout-menu-dot" data-workout-menu="${w.id}" data-context="fav" type="button" aria-label="Opções do treino">⋮</button>
@@ -12479,7 +12555,7 @@ nav.tabbar button.active svg{
           return `<div class="card workout-pick-card plan-week-workout ${active ? 'is-selected' : ''}" style="margin-bottom:10px;" data-plan-session="${sidx}">
             <button class="workout-select-check ${active ? 'is-selected' : ''}" data-plan-select="${sidx}" type="button" aria-label="Selecionar treino"></button>
             <h3 class="workout-card-title">${s.title}</h3>
-            <p class="help workout-card-desc">${localizeDesc(s.detail)}</p>
+            <p class="help workout-card-desc">${window.exerciseDemos(localizeDesc(s.detail))}</p>
           </div>`;
         }).join('')}
       </div>`;
@@ -15505,7 +15581,7 @@ nav.tabbar button.active svg{
     const body = document.getElementById('today-workout-body');
     if(body){
       body.innerHTML = '<div class="today-workout-title">' + esc(title) + '</div>' +
-        '<div class="today-workout-desc">' + esc(localizeDesc(desc)) + '</div>' +
+        '<div class="today-workout-desc">' + window.exerciseDemos(esc(localizeDesc(desc))) + '</div>' +
         '<span class="today-workout-badge">Treino de hoje</span>';
     }
     document.querySelectorAll('#quick-suggestions .is-selected').forEach(c=>c.classList.remove('is-selected'));
@@ -16710,7 +16786,7 @@ nav.tabbar button.active svg{
               <!-- Força -->
               <div class="cwb-sub" id="cwb-forca-card" style="display:none;">
                 <div class="cwb-row">
-                  <div class="cwb-field"><label data-i18n="Muscle group">Grupo muscular</label><select id="cwb-fx-group"><option value="Core" data-i18n="Core">Core</option><option value="Pernas" selected data-i18n="Legs">Pernas</option><option value="Glúteos" data-i18n="Glutes">Glúteos</option><option value="Posterior" data-i18n="Hamstrings">Posterior</option><option value="Tronco" data-i18n="Trunk">Tronco</option><option value="Superior" data-i18n="Upper body">Superior</option><option value="Corpo inteiro" data-i18n="Full body">Corpo inteiro</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Muscle group">Grupo muscular</label><select id="cwb-fx-group"><option value="Core" data-i18n="Core">Core</option><option value="Pernas" selected data-i18n="Legs">Pernas</option><option value="Glúteos" data-i18n="Glutes">Glúteos</option><option value="Posterior" data-i18n="Hamstrings">Posterior</option><option value="Tronco" data-i18n="Trunk">Tronco</option><option value="Superior" data-i18n="Upper body">Superior</option><option value="Corpo inteiro" data-i18n="Full body">Corpo inteiro</option><option value="Hyrox">Hyrox</option><option value="Funcional" data-i18n="Functional">Funcional</option></select></div>
                   <div class="cwb-field"><label data-i18n="Type">Tipo</label><select id="cwb-fx-equip"><option value="Peso corporal" selected data-i18n="Bodyweight">Peso corporal</option><option value="Halteres" data-i18n="Dumbbells">Halteres</option><option value="Barra" data-i18n="Barbell">Barra</option><option>Kettlebell</option><option value="Elásticos" data-i18n="Bands">Elásticos</option><option value="Máquinas" data-i18n="Machines">Máquinas</option></select></div>
                   <div class="cwb-field"><label data-i18n="Sets">Séries</label><select id="cwb-fx-series"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
                   <div class="cwb-field"><label data-i18n="Rest">Descanso</label><select id="cwb-fx-rest"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option></select></div>
@@ -16725,8 +16801,10 @@ nav.tabbar button.active svg{
                 <div class="cwb-row">
                   <div class="cwb-field"><label data-i18n="Type">Tipo</label><select id="cwb-mob-type"><option value="Antes do treino" data-i18n="Pre-workout">Antes do treino</option><option value="Depois do treino" data-i18n="Post-workout">Depois do treino</option><option value="Recuperação" selected data-i18n="Recovery">Recuperação</option><option value="Alongamentos" data-i18n="Stretching">Alongamentos</option><option value="Foam Roller" data-i18n="Foam roller">Foam Roller</option><option value="Respiração" data-i18n="Breathing">Respiração</option><option value="Mobilidade dinâmica" data-i18n="Dynamic mobility">Mobilidade dinâmica</option></select></div>
                   <div class="cwb-field"><label data-i18n="Tempo">Tempo</label><select id="cwb-mob-dur"><option value="5">5 min</option><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option><option value="30">30 min</option></select></div>
-                  <div class="cwb-field"><label data-i18n="Body area">Zona corporal</label><select id="cwb-mob-zone"><option value="Anca" data-i18n="Hip">Anca</option><option value="Tornozelo" data-i18n="Ankle">Tornozelo</option><option value="Lombar" data-i18n="Lower back">Lombar</option><option value="Ombros" data-i18n="Shoulders">Ombros</option><option value="Pescoço" data-i18n="Neck">Pescoço</option><option value="Corpo inteiro" selected data-i18n="Full body">Corpo inteiro</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Body area">Zona corporal</label><select id="cwb-mob-zone"><option value="Anca" data-i18n="Hip">Anca</option><option value="Tornozelo" data-i18n="Ankle">Tornozelo</option><option value="Lombar" data-i18n="Lower back">Lombar</option><option value="Ombros" data-i18n="Shoulders">Ombros</option><option value="Pescoço" data-i18n="Neck">Pescoço</option><option value="Coluna torácica" data-i18n="Thoracic spine">Coluna torácica</option><option value="Corpo inteiro" selected data-i18n="Full body">Corpo inteiro</option></select></div>
                 </div>
+                <label style="display:block; margin:8px 0 6px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:700;" data-i18n="Exercises (tap to add)">Exercícios (toca para adicionar)</label>
+                <div id="cwb-mob-ex" class="cwb-chips"></div>
               </div>
 
               <!-- Desaquecimento -->
@@ -17111,7 +17189,7 @@ nav.tabbar button.active svg{
             <span class="coach-collapse-icon">›</span>
           </summary>
           <div class="coach-lib-details">
-            ${w.desc ? `<div class="coach-workout-desc">${esc(localizeDesc(w.desc))}</div>` : `<div class="coach-workout-desc">${PL('Sem descrição.','No description.')}</div>`}
+            ${w.desc ? `<div class="coach-workout-desc">${window.exerciseDemos(esc(localizeDesc(w.desc)))}</div>` : `<div class="coach-workout-desc">${PL('Sem descrição.','No description.')}</div>`}
             <div class="coach-pill-row">
               ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
               ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
@@ -17136,7 +17214,7 @@ nav.tabbar button.active svg{
             <span class="coach-collapse-icon">›</span>
           </summary>
           <div class="coach-lib-details">
-            ${w.desc ? `<div class="coach-workout-desc">${esc(localizeDesc(w.desc))}</div>` : `<div class="coach-workout-desc">${PL('Sem descrição.','No description.')}</div>`}
+            ${w.desc ? `<div class="coach-workout-desc">${window.exerciseDemos(esc(localizeDesc(w.desc)))}</div>` : `<div class="coach-workout-desc">${PL('Sem descrição.','No description.')}</div>`}
             <div class="coach-pill-row">
               <span class="coach-pill" style="background:rgba(91,141,239,.16); color:#9bbcff;">${esc(w.source)}</span>
               ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
@@ -17167,17 +17245,30 @@ nav.tabbar button.active svg{
     subidasTrail: ['Rampa curta','Rampa longa','Escadas','Rampa técnica'],
     subidasRun: ['Rampa curta','Rampa longa','Escadas'],
     forca: {
-      'Core': ['Prancha','Side Plank','Bird Dog','Dead Bug'],
-      'Pernas': ['Agachamento','Lunges','Step Up','Gémeos','Afundos búlgaros'],
-      'Glúteos': ['Ponte de glúteos','Hip Thrust','Abdução'],
-      'Posterior': ['Deadlift romeno','Nordic curl','Good morning'],
-      'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação'],
-      'Superior': ['Flexões','Remada','Press ombros'],
-      'Corpo inteiro': ['Agachamento','Lunges','Deadlift romeno','Prancha','Step Up','Flexões']
+      'Core': ['Prancha','Side Plank','Bird Dog','Dead Bug','Hollow Hold','Russian Twist','Mountain Climbers','V-up','Elevação de pernas'],
+      'Pernas': ['Agachamento','Agachamento frontal','Goblet Squat','Lunges','Step Up','Afundos búlgaros','Gémeos','Wall Sit','Pistol Squat','Box Jump'],
+      'Glúteos': ['Ponte de glúteos','Hip Thrust','Abdução','Marcha de glúteo','Kickback'],
+      'Posterior': ['Deadlift romeno','Peso morto','Nordic curl','Good morning','Hamstring curl'],
+      'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação','Pallof press'],
+      'Superior': ['Flexões','Remada','Press ombros','Elevações','Fundos','Supino','Press militar','Curl bíceps','Extensão tríceps','Face pull'],
+      'Corpo inteiro': ['Burpees','Thruster','Clean','Snatch','Turkish Get-up','Devils Press','Agachamento','Flexões'],
+      'Hyrox': ['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Remo','Farmers Carry','Sandbag Lunges','Wall Ball','Kettlebell Swing','Sandbag over shoulder'],
+      'Funcional': ['Kettlebell Swing','Goblet Squat','Turkish Get-up','Thruster','Devils Press','Dumbbell Snatch','Box Jump','Wall Ball','Battle Ropes','Medicine Ball Slam','Bear Crawl','Farmers Carry']
     },
-    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','default':'10' }
+    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','Hollow Hold':'30 s','Mountain Climbers':'30 s','Wall Sit':'45 s','Bear Crawl':'20 m','Battle Ropes':'30 s','SkiErg':'250 m','Sled Push':'25 m','Sled Pull':'25 m','Burpee Broad Jump':'10','Remo':'250 m','Farmers Carry':'40 m','Sandbag Lunges':'20 m','Wall Ball':'15','Kettlebell Swing':'20','Sandbag over shoulder':'8','Box Jump':'12','Thruster':'12','Burpees':'12','Goblet Squat':'12','Turkish Get-up':'4','Devils Press':'8','Dumbbell Snatch':'8','Snatch':'8','Clean':'8','Elevações':'8','Fundos':'10','Supino':'8','Press militar':'8','Pistol Squat':'6','Russian Twist':'20','V-up':'12','Elevação de pernas':'12','Medicine Ball Slam':'12','default':'10' },
+    mob: {
+      'Anca': ['90/90','Hip CARs','Agachamento profundo','Pombo','Cossack Squat','Frog Stretch'],
+      'Tornozelo': ['Mobilidade de tornozelo na parede','Ankle CARs','Alongamento de gémeos','Agachamento profundo'],
+      'Lombar': ['Gato-camelo','Postura da criança','Rotação lombar deitado','Cobra','Bird Dog'],
+      'Ombros': ['Wall Slides','Shoulder CARs','Alongamento de peito na porta','Band Pull-apart','Thread the Needle'],
+      'Pescoço': ['Neck CARs','Alongamento de trapézio','Rotação de pescoço','Retração cervical'],
+      'Coluna torácica': ['Rotação torácica','Thread the Needle','Extensão torácica no rolo','Open Book'],
+      'Corpo inteiro': ['Worlds Greatest Stretch','Saudação ao sol','Gato-camelo','Agachamento profundo','Inchworm','Lunge com rotação']
+    },
+    mobReps: { 'default':'30 s','90/90':'8 cada lado','Hip CARs':'5 cada lado','Shoulder CARs':'5 cada lado','Neck CARs':'5','Ankle CARs':'8 cada lado','Gato-camelo':'10','Bird Dog':'8 cada lado','Band Pull-apart':'15','Wall Slides':'12','Inchworm':'6','Saudação ao sol':'5','Open Book':'8 cada lado','Thread the Needle':'8 cada lado','Lunge com rotação':'6 cada lado','Worlds Greatest Stretch':'6 cada lado','Rotação torácica':'8 cada lado','Cossack Squat':'6 cada lado','Pombo':'45 s cada lado' }
   };
   let cwbForcaSelected = [];
+  let cwbMobSelected = [];
 
   const cwbEl = id => document.getElementById(id);
   const cwbVal = id => { const el = cwbEl(id); return el ? el.value : ''; };
@@ -17197,6 +17288,15 @@ nav.tabbar button.active svg{
     if(!cwbForcaSelected.length) cwbForcaSelected = list.slice(0,3);
     const box = cwbEl('cwb-fx-ex'); if(!box) return;
     box.innerHTML = list.map(x=>`<button type="button" class="cwb-chip${cwbForcaSelected.includes(x)?' active':''}" data-ex="${esc(x)}">${esc(x)}</button>`).join('');
+  }
+
+  function cwbRenderMobEx(){
+    const zone = cwbVal('cwb-mob-zone');
+    const list = (CWB_EX.mob && CWB_EX.mob[zone]) || [];
+    cwbMobSelected = cwbMobSelected.filter(x=>list.includes(x));
+    if(!cwbMobSelected.length) cwbMobSelected = list.slice(0,3);
+    const box = cwbEl('cwb-mob-ex'); if(!box) return;
+    box.innerHTML = list.map(x=>`<button type="button" class="cwb-chip${cwbMobSelected.includes(x)?' active':''}" data-ex="${esc(x)}">${esc(x)}</button>`).join('');
   }
 
   function cwbRefresh(){
@@ -17237,6 +17337,7 @@ nav.tabbar button.active svg{
     cwbFillSelect('cwb-int-ex', isRun ? CWB_EX.intervalosRun : ['Tempo livre']);
     cwbFillSelect('cwb-sub-ex', mod==='trail' ? ['Livre'].concat(CWB_EX.subidasTrail) : (mod==='estrada' ? ['Livre'].concat(CWB_EX.subidasRun) : ['Livre']));
     if(isForca) cwbRenderForcaEx();
+    if(isMob) cwbRenderMobEx();
 
     cwbUpdatePreview();
   }
@@ -17276,6 +17377,10 @@ nav.tabbar button.active svg{
     }else if(mod==='mobilidade'){
       const d = parseInt(cwbVal('cwb-mob-dur'),10);
       lines.push(`${d} min ${cwbVal('cwb-mob-type')} — ${cwbVal('cwb-mob-zone')}`);
+      cwbMobSelected.forEach(ex=>{
+        const r = (CWB_EX.mobReps && (CWB_EX.mobReps[ex]||CWB_EX.mobReps['default'])) || '30 s';
+        lines.push(`• ${r} ${ex}`);
+      });
       minutes += d;
     }else if(goal==='Longo'){
       const d = parseInt(cwbVal('cwb-long-dur'),10);
@@ -17369,7 +17474,7 @@ nav.tabbar button.active svg{
   }
 
   function cwbCollectState(){
-    const state = { forcaEx: [...cwbForcaSelected] };
+    const state = { forcaEx: [...cwbForcaSelected], mobEx: [...cwbMobSelected] };
     document.querySelectorAll('#cwb-form select, #cwb-form input[type=text], #cwb-form input[type=checkbox]').forEach(el=>{
       if(!el.id || el.id==='cwb-edit-id' || el.id==='cwb-name') return;
       state[el.id] = el.type==='checkbox' ? el.checked : el.value;
@@ -17384,6 +17489,7 @@ nav.tabbar button.active svg{
       else el.value = state[el.id];
     });
     cwbForcaSelected = Array.isArray(state.forcaEx) ? [...state.forcaEx] : [];
+    cwbMobSelected = Array.isArray(state.mobEx) ? [...state.mobEx] : [];
   }
 
   function openCoachEditor(workoutId){
@@ -17393,6 +17499,7 @@ nav.tabbar button.active svg{
     form.reset();
     cwbEl('cwb-edit-id').value = '';
     cwbForcaSelected = [];
+    cwbMobSelected = [];
     if(workoutId){
       const w = getCoachWorkouts().find(x=>x.id===workoutId);
       if(w){
@@ -18091,7 +18198,7 @@ nav.tabbar button.active svg{
         html += items.map(w=>`<button class="coach-day-item coach-day-open" type="button" data-coach-day-open="${esc(a.id)}" data-coach-open-day="${esc(coachSelectedDay)}" style="width:100%; text-align:left;">
           <div class="di-title">${esc(a.name)} — ${esc(w.name||'Treino')}</div>
           ${workoutProfileHTML(w.desc)}
-          ${w.desc ? `<div class="di-desc">${esc(localizeDesc(w.desc))}</div>` : ''}
+          ${w.desc ? `<div class="di-desc">${window.exerciseDemos(esc(localizeDesc(w.desc)))}</div>` : ''}
           <div class="coach-pill-row">
             ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
             ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
@@ -18643,7 +18750,7 @@ nav.tabbar button.active svg{
         return `<div class="coach-plan-item">
         <div class="cp-title">${esc(w.name||'Treino')}</div>
         ${prof}
-        ${w.desc ? `<div class="cp-desc">${esc(localizeDesc(w.desc))}</div>` : ''}
+        ${w.desc ? `<div class="cp-desc">${window.exerciseDemos(esc(localizeDesc(w.desc)))}</div>` : ''}
         <div class="coach-pill-row" style="margin-top:6px;">
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
           ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
@@ -19061,7 +19168,7 @@ nav.tabbar button.active svg{
         return `<div class="coach-plan-item">
         <div class="cp-title">${esc(w.name||'Treino')}</div>
         ${prof}
-        ${w.desc ? `<div class="cp-desc">${esc(localizeDesc(w.desc))}</div>` : ''}
+        ${w.desc ? `<div class="cp-desc">${window.exerciseDemos(esc(localizeDesc(w.desc)))}</div>` : ''}
         <div class="coach-pill-row" style="margin-top:6px;">
           ${w.type ? `<span class="coach-pill">${esc(coachModalityLabel(w.type))}</span>` : ''}
           ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
@@ -19549,7 +19656,7 @@ nav.tabbar button.active svg{
     plannedDays.forEach(d=>{
       (plan[d]||[]).forEach(w=>{
         plannedHtml += '<div class="coach-plan-item"><div class="cp-title">'+esc(fmtDayLabel(d))+' — '+esc(w.name||PL('Treino','Workout'))+'</div>'+
-          (w.desc ? '<div class="cp-desc">'+esc(localizeDesc(w.desc))+'</div>' : '')+
+          (w.desc ? '<div class="cp-desc">'+window.exerciseDemos(esc(localizeDesc(w.desc)))+'</div>' : '')+
           '<div class="coach-pill-row" style="margin-top:6px;">'+
             (w.type ? '<span class="coach-pill">'+esc(coachModalityLabel(w.type))+'</span>' : '')+
             (w.baseMinutes ? '<span class="coach-pill">'+esc(w.baseMinutes)+' min</span>' : '')+
@@ -19807,6 +19914,15 @@ nav.tabbar button.active svg{
       const ex = chip.dataset.ex;
       if(cwbForcaSelected.includes(ex)) cwbForcaSelected = cwbForcaSelected.filter(x=>x!==ex);
       else cwbForcaSelected.push(ex);
+      chip.classList.toggle('active');
+      cwbUpdatePreview();
+    });
+
+    document.getElementById('cwb-mob-ex')?.addEventListener('click', (e)=>{
+      const chip = e.target.closest('.cwb-chip'); if(!chip) return;
+      const ex = chip.dataset.ex;
+      if(cwbMobSelected.includes(ex)) cwbMobSelected = cwbMobSelected.filter(x=>x!==ex);
+      else cwbMobSelected.push(ex);
       chip.classList.toggle('active');
       cwbUpdatePreview();
     });
