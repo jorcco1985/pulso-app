@@ -12715,7 +12715,24 @@ nav.tabbar button.active svg{
   // #4: restaurar a cópia de segurança local mais recente (com confirmação).
   (function(){
     const rt = document.getElementById('btn-replay-tutorial');
-    if(rt) rt.addEventListener('click', ()=>{ try{ if(window.PulsoOnboarding) window.PulsoOnboarding.replay(); }catch(e){} });
+    if(rt) rt.addEventListener('click', ()=>{
+      let ov=document.getElementById('tut-choose'); if(ov) ov.remove();
+      ov=document.createElement('div'); ov.id='tut-choose';
+      ov.style.cssText='position:fixed; inset:0; z-index:99999; background:rgba(5,10,18,.92); display:flex; align-items:center; justify-content:center; padding:24px;';
+      ov.innerHTML='<div style="max-width:420px; width:100%; background:linear-gradient(180deg,#182238,#101827); border:1px solid rgba(255,255,255,.14); border-radius:18px; padding:20px;">'
+        +'<h3 style="margin:0 0 4px; color:#fff;">'+(window.PL?PL('Ver tutorial','View tutorial'):'Ver tutorial')+'</h3>'
+        +'<p style="margin:0 0 14px; color:#8894a8; font-size:13px;">'+(window.PL?PL('Escolhe o guia que queres rever.','Choose which guide to review.'):'Escolhe o guia que queres rever.')+'</p>'
+        +'<button type="button" id="tut-athlete" style="width:100%; margin-bottom:8px; min-height:50px; border:1px solid rgba(53,217,166,.4); background:rgba(53,217,166,.1); color:#fff; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer;">🏃 '+(window.PL?PL('Guia do Atleta','Athlete guide'):'Guia do Atleta')+'</button>'
+        +'<button type="button" id="tut-coach" style="width:100%; margin-bottom:8px; min-height:50px; border:1px solid rgba(53,217,166,.4); background:rgba(53,217,166,.1); color:#fff; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer;">🧑‍🏫 '+(window.PL?PL('Guia do Treinador','Coach guide'):'Guia do Treinador')+'</button>'
+        +'<button type="button" id="tut-cancel" style="width:100%; min-height:44px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#8894a8; border-radius:14px; cursor:pointer;">'+(window.PL?PL('Cancelar','Cancel'):'Cancelar')+'</button>'
+        +'</div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click', function(e){
+        if(e.target.id==='tut-choose' || e.target.id==='tut-cancel'){ ov.remove(); return; }
+        if(e.target.closest('#tut-athlete')){ ov.remove(); try{ if(window.PulsoOnboarding) window.PulsoOnboarding.replay(); }catch(_){} return; }
+        if(e.target.closest('#tut-coach')){ ov.remove(); try{ if(window.PulsoOnboarding) window.PulsoOnboarding.replayCoach(); }catch(_){} return; }
+      });
+    });
     // Terminar sessão: volta ao ecrã de entrada e faz o tutorial reaparecer no próximo login.
     const lo = document.getElementById('btn-logout');
     if(lo){
@@ -19446,17 +19463,27 @@ nav.tabbar button.active svg{
 
   // ---- Tipo de conta: Atleta (só se treina a si) vs Treinador (vários atletas) ----
   (function bindUserRole(){
+    // Bloqueio do tipo de conta (para o dono/treinador definir e o utilizador não poder mudar).
+    // Preparado para ativar no futuro: quando 'user-role-locked' = '1', os botões ficam bloqueados.
+    function isRoleLocked(){ try{ return localStorage.getItem('pulso:user-role-locked')==='1'; }catch(e){ return false; } }
     function applyRole(role, save){
       if(role!=='coach' && role!=='athlete') role='athlete';
       if(save){ try{ setPulso('user-role', role); }catch(e){} }
       try{ document.body.setAttribute('data-user-role', role); }catch(e){}
-      document.querySelectorAll('button[data-user-role]').forEach(b=>{ b.classList.toggle('role-on', b.getAttribute('data-user-role')===role); });
+      const locked = isRoleLocked();
+      document.querySelectorAll('button[data-user-role]').forEach(b=>{
+        b.classList.toggle('role-on', b.getAttribute('data-user-role')===role);
+        b.disabled = locked; b.style.opacity = locked ? '.55' : ''; b.style.cursor = locked ? 'not-allowed' : '';
+      });
       const d=document.getElementById('user-role-desc');
-      if(d) d.textContent = role==='coach'
-        ? PL('Como treinador, podes ligar e acompanhar vários atletas na área de Treinador.','As a coach, you can connect and follow several athletes in the Coach area.')
-        : PL('Como atleta, treinas-te a ti e podes ligar-te ao teu treinador.','As an athlete, you train yourself and can connect to your coach.');
+      if(d){
+        d.textContent = role==='coach'
+          ? PL('Como treinador, podes ligar e acompanhar vários atletas na área de Treinador.','As a coach, you can connect and follow several athletes in the Coach area.')
+          : PL('Como atleta, treinas-te a ti e podes ligar-te ao teu treinador.','As an athlete, you train yourself and can connect to your coach.');
+        if(locked) d.textContent += ' ' + PL('(definido pela tua conta principal — não podes alterar)','(set by your main account — you can\'t change it)');
+      }
     }
-    document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('button[data-user-role]') : null; if(b){ applyRole(b.getAttribute('data-user-role'), true); try{ toast(PL('Tipo de conta atualizado.','Account type updated.')); }catch(_){} } });
+    document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('button[data-user-role]') : null; if(b){ if(isRoleLocked()){ try{ toast(PL('O tipo de conta está bloqueado.','Account type is locked.')); }catch(_){} return; } applyRole(b.getAttribute('data-user-role'), true); try{ toast(PL('Tipo de conta atualizado.','Account type updated.')); }catch(_){} } });
     try{ const r=(typeof getPulso==='function'?getPulso('user-role',null):null); applyRole(r||'athlete', false); }catch(e){}
   })();
 
@@ -20369,7 +20396,7 @@ nav.tabbar button.active svg{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -20798,6 +20825,8 @@ async function doAuthSubmit(){
     if(mode === 'signup'){
       const cred = await createUserWithEmailAndPassword(auth, email, pw);
       try{ await updateProfile(cred.user, { displayName: name }); }catch(e){}
+      // Envia email de confirmação (o utilizador clica no link para validar a conta).
+      try{ await sendEmailVerification(cred.user); cloudToast(PL('Conta criada. Confirma o email que te enviámos.','Account created. Please confirm the email we sent you.')); }catch(e){}
       // guarda já o nome no perfil local para a app o usar
       try{
         const prof = JSON.parse(localStorage.getItem('pulso:profile')||'{}') || {};
@@ -20853,10 +20882,16 @@ async function renderSheet(){
   html += '<div class="pc-row"><div><div class="pc-k">'+esc(currentUser.displayName||'—')+'</div><div class="pc-muted">'+esc(currentUser.email||'')+' · '+esc(roleLabel(currentRole))+'</div></div></div>';
   html += '<div class="pc-code"><div class="pc-muted">O teu código Pulso (partilha para te ligarem):</div><div class="pc-code-val" id="pc-my-code">'+esc(currentUser.uid)+'</div><div class="pc-2col"><button type="button" class="pc-btn tiny" id="pc-copy-code">Copiar</button><button type="button" class="pc-btn tiny" id="pc-qr-code">QR code</button></div></div>';
 
-  html += '<h4 class="pc-h">Ligar a alguém</h4>';
-  html += '<div class="pc-muted" style="margin-bottom:6px;">Cola o código da outra pessoa e escolhe como te queres ligar.</div>';
-  html += '<input class="pc-input" id="pc-link-code" placeholder="Código Pulso da outra pessoa">';
-  html += '<div class="pc-2col"><button type="button" class="pc-btn" id="pc-link-as-athlete">É o meu treinador</button><button type="button" class="pc-btn" id="pc-link-as-trainer">Sou treinador dele</button></div>';
+  var _uRole = 'athlete'; try{ _uRole = (document.body.getAttribute('data-user-role')||'athlete'); }catch(e){}
+  if(_uRole === 'coach'){
+    html += '<h4 class="pc-h">Adicionar atleta</h4>';
+    html += '<div class="pc-muted" style="margin-bottom:6px;">Cola o código Pulso do atleta para o adicionares. Ele recebe um convite e, ao aceitar, ficam ligados.</div>';
+    html += '<input class="pc-input" id="pc-link-code" placeholder="Código Pulso do atleta">';
+    html += '<div class="pc-2col"><button type="button" class="pc-btn" id="pc-link-as-trainer">Adicionar como atleta</button></div>';
+  } else {
+    html += '<h4 class="pc-h">Ligar-te a um treinador</h4>';
+    html += '<div class="pc-muted" style="margin-bottom:6px;">Partilha o teu código Pulso (acima) com o teu treinador. Quando ele te adicionar, aparece aqui um convite para aceitares.</div>';
+  }
 
   if(pending.length){
     html += '<h4 class="pc-h">Convites a aguardar a tua resposta</h4>';
@@ -21462,8 +21497,8 @@ document.addEventListener("click", function(e){
          'Here you log what you eat and drink. Under "Food" (left) type the food and amount — the AI fetches calories and macros for any food. Tap ⭐ Favorites to quickly pick the ones you use most. Under "Drink" (right) pick one (Water, Coffee…) and tap to add.'] },
     { tab:'treinos', focusSel:'#tab-treinos .subtabs', emoji:'🏁',
       t:['Treinos e provas','Training & races'],
-      b:['Aqui defines a tua "Prova" (o teu objetivo) e vês/executas os teus treinos. Os treinos em si não se criam aqui — são feitos na área de Treinador, por ti (no papel de treinador) ou pelo teu treinador, que os escolhe para ti. Liga o Strava (no Perfil) para importar as atividades automaticamente.',
-         'Here you set your "Race" (your goal) and view/do your workouts. The workouts themselves aren\'t created here — they\'re made in the Coach area, either by you (acting as coach) or by your coach, who picks them for you. Connect Strava (in Profile) to import activities automatically.'] },
+      b:['Aqui defines as tuas "Provas" — ao criar cada uma escolhes se é Principal ou Secundária (a principal comanda a periodização). Vês também os treinos que o treinador te prescreve: no treino de hoje marca "Feito", "Não fiz" ou "Fiz diferente", diz como correu e carrega em "Confirmar e enviar ao treinador". Liga o Strava (no Perfil) para importares as atividades automaticamente.',
+         'Here you set your "Races" — when creating each one you choose Main or Secondary (the main race drives the periodization). You also see the workouts your coach prescribes: on today\'s workout tap "Done", "Skipped" or "Did differently", say how it went and hit "Confirm & send to coach". Connect Strava (in Profile) to import activities automatically.'] },
     { tab:'saude', focusSel:'#tab-saude .subtabs', emoji:'❤️',
       t:['Saúde','Health'],
       b:['Regista o sono, o peso e a tensão arterial — escolhe o separador, mete o valor e guarda. Se fores do sexo feminino, tens também campos de saúde feminina (ciclo menstrual), que ajustam as leituras de prontidão. Com alguns dias, aparecem os gráficos de tendência.',
@@ -21512,6 +21547,26 @@ document.addEventListener("click", function(e){
       t:['6. Vê os dados do atleta','6. See the athlete data'],
       b:['No separador "Atleta" vês tudo do atleta escolhido: tempo e distância de treino, saúde (sono, peso, tensão), prontidão/risco de sobrecarga e o resumo dos últimos dias.',
          'In the "Athlete" tab you see everything about the chosen athlete: training time and distance, health (sleep, weight, BP), readiness/overload risk and the summary of recent days.'] },
+    { coachTab:'treinos', focusSel:'#coach-period-body', emoji:'🏁',
+      t:['Prova principal e secundárias','Main and secondary races'],
+      b:['O atleta pode ter várias provas e escolhe uma como PRINCIPAL (no campo Prioridade, ao criar a prova). É a principal que comanda a periodização e a timeline; as secundárias aparecem no calendário mas não mandam no plano. No calendário, a principal é âmbar e a secundária roxa.',
+         'An athlete can have several races and picks one as MAIN (in the Priority field when creating the race). The main race drives the periodization and timeline; secondary races show on the calendar but do not drive the plan. On the calendar, the main is amber and the secondary purple.'] },
+    { coachTab:'treinos', focusSel:'#coach-period-body', emoji:'📈',
+      t:['Periodização até à prova','Periodization to race day'],
+      b:['O cartão Periodização mostra a linha do tempo até à prova principal: barras cinzentas = carga real recente, linha HOJE, e as fases coloridas (Base, Construção, Pico, Taper) até à bandeira. Escala em horas/semana.',
+         'The Periodization card shows the timeline to the main race: grey bars = recent real load, the TODAY line, and the coloured phases (Base, Build, Peak, Taper) up to the flag. Scale in hours/week.'] },
+    { coachTab:'treinos', focusSel:'#coach-period-body', emoji:'🔍',
+      t:['Analisar semana a semana','Analyse week by week'],
+      b:['Toca na timeline para abrir a análise: horas previstas (barra roxa) vs feitas (barra da cor da fase), com uma linha branca = sugestão da IA, que se ajusta ao estado do atleta (sono, FC, carga, nutrição). Podes editar as horas de cada semana (em h e min) e ver também o nº de treinos marcados vs feitos.',
+         'Tap the timeline to open the analysis: planned hours (purple bar) vs done (phase-coloured bar), with a white line = AI suggestion, adjusted to the athlete state (sleep, HR, load, nutrition). You can edit each week hours (in h and min) and also see marked vs done workouts.'] },
+    { coachTab:'treinos', focusSel:'#coach-treinos-cards-btn', emoji:'🗂️',
+      t:['Organiza os teus cartões','Organize your cards'],
+      b:['No fim de cada área ("Treinos" e "Atleta") tens "⚙ Personalizar cartões": mostra/oculta (👁/🚫) e reordena com as setas ↑↓ os cartões que quiseres. A tua organização fica guardada.',
+         'At the end of each area ("Workouts" and "Athlete") there is "⚙ Customize cards": show/hide (👁/🚫) and reorder with the ↑↓ arrows. Your layout is saved.'] },
+    { coachTab:'atleta', focusSel:'#coach-athlete-data', emoji:'✅',
+      t:['Treinos confirmados pelo atleta','Athlete-confirmed workouts'],
+      b:['Quando o atleta marca um treino como Feito e confirma, ele conta como efetuado no calendário, na semana de relance e na análise — mesmo sem Strava. Assim segues o cumprimento do plano de quem não usa relógio ligado.',
+         'When the athlete marks a workout as Done and confirms, it counts as completed on the calendar, the week glance and the analysis — even without Strava. This lets you track plan adherence for those without a connected watch.'] },
     { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🎉',
       t:['Tudo pronto!','All set!'],
       b:['O fluxo é: cria o treino → escolhe o atleta → prescreve no dia → liguem-se pela Cloud. A partir daí é acompanhar os dados. Bons treinos!',
