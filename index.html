@@ -18849,8 +18849,9 @@ nav.tabbar button.active svg{
     if(ov) ov.remove();
     ov = document.createElement('div');
     ov.id = 'period-modal';
-    ov.style.cssText = 'position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.94); overflow:auto; padding:18px 14px 40px;';
-    ov.innerHTML = '<div style="max-width:640px; margin:0 auto;">'
+    ov.style.cssText = 'position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.94); overflow:auto; padding:calc(env(safe-area-inset-top,24px) + 64px) 14px 40px;';
+    ov.innerHTML = '<button type="button" id="period-close-fixed" style="position:fixed; top:calc(env(safe-area-inset-top,20px) + 54px); right:14px; z-index:100000; min-width:100px; height:44px; border-radius:999px; background:rgba(20,28,44,.96); border:1px solid rgba(53,217,166,.55); color:#35D9A6; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.5);">\u2715 Fechar</button>'
+      +'<div style="max-width:640px; margin:0 auto;">'
       +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h2 style="margin:0; font-size:19px;">Análise até '+esc(data.race.name||'à prova')+'</h2><button type="button" id="period-close" class="coach-pill" style="cursor:pointer;">✕ Fechar</button></div>'
       +'<p class="help" style="margin:0 0 10px;">Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Toca em "Trein." na tabela para ajustares o plano.</p>'
       +(data.stateScore!=null ? '<p class="help" style="margin:-4px 0 10px; font-weight:700; color:'+(data.stateFactor<0.98?'#F2B84B':(data.stateFactor>1.02?'#35D9A6':'var(--text-muted)'))+';">'+PL('IA ajustada ao estado do atleta: ','AI adjusted to athlete state: ')+(data.stateFactor>=1?'+':'')+Math.round((data.stateFactor-1)*100)+'% · '+PL('prontidão ','readiness ')+data.stateScore+'/100</p>' : '')
@@ -18879,7 +18880,7 @@ nav.tabbar button.active svg{
       openPeriodModal(athleteId); // reabre já com o plano ajustado (recalcula tudo)
     });
     ov.addEventListener('click', function(e){
-      if(e.target.id==='period-modal' || e.target.id==='period-close'){ ov.remove(); return; }
+      if(e.target.id==='period-modal' || e.target.id==='period-close' || (e.target.closest && e.target.closest('#period-close-fixed'))){ ov.remove(); return; }
       const mb = e.target.closest ? e.target.closest('[data-period-metric]') : null;
       if(mb){ const m=mb.getAttribute('data-period-metric');
         _periodMetrics[m]=!_periodMetrics[m];
@@ -20841,21 +20842,36 @@ async function doAuthSubmit(){
   }
 }
 function friendlyAuthError(e){
-  const c = (e && e.code) || '';
-  if(c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found')) return 'Email ou palavra-passe errados.';
-  if(c.includes('email-already-in-use')) return 'Esse email já tem conta. Tenta entrar.';
-  if(c.includes('invalid-email')) return 'Email inválido.';
-  if(c.includes('weak-password')) return 'Palavra-passe fraca (mín. 6 caracteres).';
-  if(c.includes('network')) return 'Sem ligação à internet.';
-  if(c.includes('too-many-requests')) return 'Demasiadas tentativas. Espera um pouco.';
-  return 'Não foi possível continuar. Tenta de novo.';
+  const c = ((e && e.code) || (e && e.message) || '').toString();
+  const lc = c.toLowerCase();
+  if(lc.includes('invalid-credential') || lc.includes('invalid-login-credentials') || lc.includes('wrong-password') || lc.includes('user-not-found')) return 'Email ou palavra-passe errados.';
+  if(lc.includes('email-already-in-use')) return 'Esse email já tem conta. Tenta entrar.';
+  if(lc.includes('invalid-email')) return 'Email inválido.';
+  if(lc.includes('weak-password')) return 'Palavra-passe fraca (mín. 6 caracteres).';
+  if(lc.includes('network')) return 'Sem ligação à internet.';
+  if(lc.includes('too-many-requests')) return 'Demasiadas tentativas. Espera um pouco.';
+  if(lc.includes('user-disabled')) return 'Esta conta foi desativada.';
+  if(lc.includes('operation-not-allowed')) return 'O login por email/palavra-passe não está ativado no Firebase.';
+  return 'Não foi possível continuar' + (c ? ' ('+c.replace('auth/','')+')' : '') + '. Tenta de novo.';
 }
 
 async function doReset(){
-  const email = ($('pc-email').value||'').trim();
-  if(!email){ $('pc-error').textContent = 'Escreve o email para recuperar.'; return; }
-  try{ await sendPasswordResetEmail(auth, email); cloudToast(PL('Email de recuperação enviado.','Recovery email sent.')); }
-  catch(e){ $('pc-error').textContent = friendlyAuthError(e); }
+  let email = ($('pc-email').value||'').trim();
+  email = (window.prompt(PL('Escreve o email onde queres receber o link de recuperação:','Enter the email to receive the reset link:'), email) || '').trim();
+  if(!email){ return; }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    try{ $('pc-error').textContent=''; }catch(_){}
+    cloudToast(PL('Enviámos o link de recuperação para '+email+'. Vê o email (e o spam).','We sent the reset link to '+email+'. Check your email (and spam).'));
+  }
+  catch(e){
+    const c = (((e&&e.code)||(e&&e.message)||'')+'').toLowerCase();
+    if(c.includes('user-not-found')) $('pc-error').textContent = PL('Não existe conta com esse email.','No account with that email.');
+    else if(c.includes('invalid-email') || c.includes('missing-email')) $('pc-error').textContent = PL('Email inválido.','Invalid email.');
+    else if(c.includes('network')) $('pc-error').textContent = PL('Sem ligação à internet.','No internet connection.');
+    else if(c.includes('too-many-requests')) $('pc-error').textContent = PL('Demasiados pedidos. Espera um pouco.','Too many requests. Wait a moment.');
+    else $('pc-error').textContent = friendlyAuthError(e);
+  }
 }
 
 // ---------- UI: folha da conta ----------
@@ -20887,7 +20903,8 @@ async function renderSheet(){
     html += '<h4 class="pc-h">Adicionar atleta</h4>';
     html += '<div class="pc-muted" style="margin-bottom:6px;">Cola o código Pulso do atleta para o adicionares. Ele recebe um convite e, ao aceitar, ficam ligados.</div>';
     html += '<input class="pc-input" id="pc-link-code" placeholder="Código Pulso do atleta">';
-    html += '<div class="pc-2col"><button type="button" class="pc-btn" id="pc-link-as-trainer">Adicionar como atleta</button></div>';
+    html += '<div class="pc-2col"><button type="button" class="pc-btn" id="pc-link-as-trainer">Adicionar como atleta</button><button type="button" class="pc-btn" id="pc-scan-qr">📷 Ler QR</button></div>';
+    html += '<input type="file" id="pc-qr-file" accept="image/*" style="display:none;">';
   } else {
     html += '<h4 class="pc-h">Ligar-te a um treinador</h4>';
     html += '<div class="pc-muted" style="margin-bottom:6px;">Partilha o teu código Pulso (acima) com o teu treinador. Quando ele te adicionar, aparece aqui um convite para aceitares.</div>';
@@ -20919,6 +20936,23 @@ async function renderSheet(){
   const qrBtn = $('pc-qr-code'); if(qrBtn) qrBtn.onclick = ()=> showQr(currentUser.uid);
   const la = $('pc-link-as-athlete'); if(la) la.onclick = ()=> requestLink($('pc-link-code').value, 'athlete');
   const lt = $('pc-link-as-trainer'); if(lt) lt.onclick = ()=> requestLink($('pc-link-code').value, 'trainer');
+  const scanBtn = $('pc-scan-qr'); if(scanBtn) scanBtn.onclick = ()=>{ const fi=$('pc-qr-file'); if(fi) fi.click(); };
+  const qrFile = $('pc-qr-file'); if(qrFile) qrFile.onchange = async (e)=>{
+    const file = e.target.files && e.target.files[0]; if(!file) return;
+    try{
+      cloudToast(PL('A ler QR…','Reading QR…'));
+      if(!window.jsQR){ await new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); }); }
+      const img=new Image(); const url=URL.createObjectURL(file);
+      await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
+      const cv=document.createElement('canvas'); cv.width=img.naturalWidth; cv.height=img.naturalHeight;
+      const cx=cv.getContext('2d'); cx.drawImage(img,0,0);
+      const d=cx.getImageData(0,0,cv.width,cv.height); try{ URL.revokeObjectURL(url); }catch(_){}
+      const code = window.jsQR ? window.jsQR(d.data,d.width,d.height) : null;
+      if(code && code.data){ const inp=$('pc-link-code'); if(inp) inp.value=String(code.data).trim(); cloudToast(PL('Código lido! Toca em Adicionar.','Code read! Tap Add.')); }
+      else cloudToast(PL('Não consegui ler o QR. Tenta outra foto ou cola o código.','Could not read the QR. Try another photo or paste the code.'));
+    }catch(err){ cloudToast(PL('Não consegui ler o QR.','Could not read the QR.')); }
+    finally{ try{ e.target.value=''; }catch(_){} }
+  };
   body.querySelectorAll('[data-accept]').forEach(b=> b.onclick = ()=> respondLink(b.getAttribute('data-accept'), true));
   body.querySelectorAll('[data-reject]').forEach(b=> b.onclick = ()=> respondLink(b.getAttribute('data-reject'), false));
   body.querySelectorAll('[data-unlink]').forEach(b=> b.onclick = ()=> unlink(b.getAttribute('data-unlink')));
