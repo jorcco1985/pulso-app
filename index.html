@@ -6191,8 +6191,8 @@ nav.tabbar button.active svg{
   <!-- ================= HIDRATAÇÃO (fixo) ================= -->
   <section id="tab-hidratacao">
     <div class="subtabs">
-      <button class="ghost active" data-sub="bebida" type="button" data-i18n="Drink">Bebida</button>
       <button class="ghost" data-sub="kcal" type="button" data-i18n="Food">Comida</button>
+      <button class="ghost active" data-sub="bebida" type="button" data-i18n="Drink">Bebida</button>
     </div>
 
     <div class="subview active" id="sub-bebida">
@@ -6315,10 +6315,12 @@ nav.tabbar button.active svg{
           </div>
           <div class="field" style="min-width:80px;"><label for="kcal-grams" data-i18n="Qty (g)">Qtd. (g)</label><input type="number" id="kcal-grams" placeholder="150" min="0" step="any" inputmode="decimal"></div>
         </div>
-        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <button type="button" id="kcal-photo-btn" class="chip">📷 <span data-i18n="Photo of label or meal">Foto do rótulo ou prato</span></button>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:stretch;">
+          <button type="button" id="kcal-photo-btn" class="chip" style="flex:1; justify-content:center; text-align:center;">📷 <span data-i18n="Photo of label or meal">Foto do rótulo ou prato</span></button>
+          <button type="button" id="kcal-fav-btn" class="chip" style="flex:1; justify-content:center; text-align:center;">⭐ <span data-i18n="Favorites">Favoritos</span></button>
           <input type="file" id="kcal-photo-input" accept="image/*" capture="environment" style="display:none;">
         </div>
+        <div id="kcal-favs" style="display:none;"></div>
         <p class="help" id="kcal-food-note" style="margin-top:4px;" data-i18n="Type the food and amount — we fill in calories and macros automatically (estimate). You can always adjust by hand.">Escreve o alimento e a quantidade — preenchemos calorias e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
         <div id="kcal-food-actions" style="margin-top:8px; display:none; gap:8px; flex-wrap:wrap;"></div>
         <form class="entry" id="form-kcal-values" style="margin-top:8px;">
@@ -6771,6 +6773,15 @@ nav.tabbar button.active svg{
   <!-- ================= PERFIL (com subgrupos) ================= -->
   <section id="tab-perfil">
     <h2 class="section-title" data-i18n="Profile">Perfil</h2>
+
+    <div class="card" id="user-role-card">
+      <div style="font-weight:800; margin-bottom:6px;" data-i18n="Account type">Tipo de conta</div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="ghost" data-user-role="athlete" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;">🏃 <span data-i18n="Athlete">Atleta</span></button>
+        <button type="button" class="ghost" data-user-role="coach" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;">🧑‍🏫 <span data-i18n="Coach">Treinador</span></button>
+      </div>
+      <p class="help" id="user-role-desc" style="margin:8px 0 0;"></p>
+    </div>
 
     <div class="card lang-switch-card">
       <span data-i18n="Language">Idioma</span>
@@ -9471,6 +9482,8 @@ nav.tabbar button.active svg{
     if(foodName){
       const grams = parseFloat(document.getElementById('kcal-grams').value) || 0;
       try{ await saveManualFood(foodName, grams, {kcal, carbs, protein, fat}); }catch(_){}
+      try{ const fav=getPulso('nutri-fav',{})||{}; const k=foodName.toLowerCase(); if(!fav[k]) fav[k]={n:0}; fav[k].n=(fav[k].n||0)+1; fav[k].name=foodName; fav[k].grams=grams; fav[k].kcal=kcal; fav[k].carbs=carbs; fav[k].protein=protein; fav[k].fat=fat; setPulso('nutri-fav',fav); }catch(_){}
+      try{ renderNutriFavs(); }catch(_){}
     }
     e.target.reset();
     kcalAiBase = null;
@@ -9737,6 +9750,41 @@ nav.tabbar button.active svg{
     el.textContent = notes.join(' ');
     card.style.display = notes.length ? '' : 'none';
   }
+
+  // Favoritos de comida: os mais registados (frequência) + os já guardados na memória.
+  let _navFavData = {};
+  function renderNutriFavs(){
+    const el=document.getElementById('kcal-favs'); if(!el) return;
+    let fav={}; try{ fav=getPulso('nutri-fav',{})||{}; }catch(e){}
+    const items=[]; const seen={};
+    Object.keys(fav).forEach(k=>{ const x=fav[k]; if(x&&x.name){ items.push({name:x.name, n:x.n||0, grams:x.grams, kcal:x.kcal, carbs:x.carbs, protein:x.protein, fat:x.fat}); seen[k]=1; } });
+    try{ Object.keys(aiFoods||{}).forEach(k=>{ if(seen[k]) return; const a=aiFoods[k]; if(!a) return; const g=a.defaultG||100; const nm=a.name||(k.charAt(0).toUpperCase()+k.slice(1)); items.push({name:nm, n:0, grams:g, kcal:Math.round((a.kcal||0)*g/100), carbs:Math.round((a.carbs||0)*g/100*10)/10, protein:Math.round((a.protein||0)*g/100*10)/10, fat:Math.round((a.fat||0)*g/100*10)/10}); }); }catch(e){}
+    items.sort((a,b)=>(b.n||0)-(a.n||0));
+    const list=items.slice(0,10);
+    _navFavData={};
+    if(!list.length){ el.innerHTML='<div class="help" style="margin:8px 0;">'+PL('Ainda sem favoritos. Regista alimentos para aparecerem aqui.','No favorites yet. Log foods to see them here.')+'</div>'; return; }
+    el.innerHTML='<div class="help" style="margin:8px 0 4px; font-weight:700;">'+PL('Favoritos','Favorites')+'</div>'
+      +'<div style="display:flex; gap:6px; flex-wrap:wrap;">'
+      +list.map(x=>{ _navFavData[x.name.toLowerCase()]=x; return '<button type="button" class="chip" data-fav-food="'+esc(x.name)+'">'+esc(x.name)+'</button>'; }).join('')
+      +'</div>';
+  }
+  document.addEventListener('click', function(e){
+    const fb=e.target.closest ? e.target.closest('#kcal-fav-btn') : null; if(!fb) return;
+    const el=document.getElementById('kcal-favs'); if(!el) return;
+    try{ renderNutriFavs(); }catch(_){}
+    el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
+  });
+  document.addEventListener('click', function(e){
+    const b=e.target.closest ? e.target.closest('[data-fav-food]') : null; if(!b) return;
+    const name=b.getAttribute('data-fav-food'); const d=_navFavData[name.toLowerCase()]||{};
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el && v!=null && v!=='') el.value=v; };
+    set('kcal-food', name);
+    if(d.grams) set('kcal-grams', d.grams);
+    if(d.kcal!=null){ set('kcal-value', Math.round(d.kcal)); set('kcal-carbs', d.carbs||0); set('kcal-protein', d.protein||0); set('kcal-fat', d.fat||0);
+      try{ kcalAiBase = { desc:name, grams:(d.grams||0), kcal:Number(d.kcal)||0, carbs:Number(d.carbs)||0, protein:Number(d.protein)||0, fat:Number(d.fat)||0 }; }catch(_){}
+    } else { const inp=document.getElementById('kcal-food'); if(inp){ try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){} } }
+    const foodInp=document.getElementById('kcal-food'); if(foodInp) foodInp.focus();
+  });
 
   function renderKcal(){
     const today = todayStr();
@@ -19346,7 +19394,7 @@ nav.tabbar button.active svg{
     function save(){ setCardCfg(area,{order:order.slice(),hidden:hidden.slice()}); }
     let ov=document.getElementById('cards-modal'); if(ov) ov.remove();
     ov=document.createElement('div'); ov.id='cards-modal';
-    ov.style.cssText='position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.95); overflow:auto; padding:18px 14px 40px;';
+    ov.style.cssText='position:fixed; inset:0; z-index:9999; background:rgba(5,10,18,.95); overflow:auto; padding:calc(env(safe-area-inset-top, 24px) + 60px) 14px 40px;';
     function draw(){
       ov.innerHTML='<div style="max-width:560px; margin:0 auto;">'
         +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><h2 style="margin:0; font-size:18px;">'+PL('Personalizar cartões','Customize cards')+'</h2><button type="button" id="cards-close" class="coach-pill" style="cursor:pointer;">✕ '+PL('Concluir','Done')+'</button></div>'
@@ -19369,6 +19417,22 @@ nav.tabbar button.active svg{
     });
   }
   document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('[data-cards-edit]') : null; if(b){ openCardCustomizer(b.getAttribute('data-cards-edit')); } });
+
+  // ---- Tipo de conta: Atleta (só se treina a si) vs Treinador (vários atletas) ----
+  (function bindUserRole(){
+    function applyRole(role, save){
+      if(role!=='coach' && role!=='athlete') role='athlete';
+      if(save){ try{ setPulso('user-role', role); }catch(e){} }
+      try{ document.body.setAttribute('data-user-role', role); }catch(e){}
+      document.querySelectorAll('button[data-user-role]').forEach(b=>{ const on=b.getAttribute('data-user-role')===role; b.style.background=on?'var(--teal)':''; b.style.color=on?'#04140f':''; b.style.borderColor=on?'var(--teal)':''; });
+      const d=document.getElementById('user-role-desc');
+      if(d) d.textContent = role==='coach'
+        ? PL('Como treinador, podes ligar e acompanhar vários atletas na área de Treinador.','As a coach, you can connect and follow several athletes in the Coach area.')
+        : PL('Como atleta, treinas-te a ti e podes ligar-te ao teu treinador.','As an athlete, you train yourself and can connect to your coach.');
+    }
+    document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('button[data-user-role]') : null; if(b){ applyRole(b.getAttribute('data-user-role'), true); try{ toast(PL('Tipo de conta atualizado.','Account type updated.')); }catch(_){} } });
+    try{ const r=(typeof getPulso==='function'?getPulso('user-role',null):null); applyRole(r||'athlete', false); }catch(e){}
+  })();
 
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
