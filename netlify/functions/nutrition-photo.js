@@ -11,8 +11,10 @@
 // Resposta (JSON): { nome, gramas, kcal, carbs, protein, fat, itens:[{nome,kcal}] }
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-// Modelo com visão. Alinha-o, se quiseres, com o que usas na função "nutrition".
-const MODEL = process.env.NUTRITION_MODEL || 'claude-3-5-sonnet-20241022';
+// Modelo com visão. IMPORTANTE: usa de preferência o MESMO modelo da tua função
+// "nutrition" (que já sabes que funciona na tua conta). Podes defini-lo sem mexer no
+// código, na variável de ambiente NUTRITION_MODEL do Netlify.
+const MODEL = process.env.NUTRITION_MODEL || 'claude-sonnet-5';
 
 const SYSTEM_PROMPT = [
   'És um nutricionista que lê fotografias.',
