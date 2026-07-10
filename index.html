@@ -6826,15 +6826,6 @@ nav.tabbar button.active svg{
   <section id="tab-perfil">
     <h2 class="section-title" data-i18n="Profile">Perfil</h2>
 
-    <div id="user-role-card" style="background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(16,24,39,.96)); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; margin-bottom:12px; position:relative; z-index:2;">
-      <div style="font-weight:800; margin-bottom:8px; color:#fff;" data-i18n="Account type">Tipo de conta</div>
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="ghost" data-user-role="athlete" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px;">🏃 <span data-i18n="Athlete">Atleta</span></button>
-        <button type="button" class="ghost" data-user-role="coach" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px;">🧑‍🏫 <span data-i18n="Coach">Treinador</span></button>
-      </div>
-      <p class="help" id="user-role-desc" style="margin:8px 0 0;"></p>
-    </div>
-
     <div class="card lang-switch-card">
       <span data-i18n="Language">Idioma</span>
       <span class="lang-seg" id="lang-switch">
@@ -6849,6 +6840,16 @@ nav.tabbar button.active svg{
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span data-i18n="Sign out">Terminar sessão</span>
       </button>
+    </div>
+
+    <div id="user-role-card" style="background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(16,24,39,.96)); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; margin-bottom:12px; position:relative; z-index:2;">
+      <div style="font-weight:800; margin-bottom:8px; color:#fff;" data-i18n="Account type">Tipo de conta</div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="ghost" data-user-role="athlete" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px;">🏃 <span data-i18n="Athlete">Atleta</span></button>
+        <button type="button" class="ghost" data-user-role="coach" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px; position:relative;">🧑‍🏫 <span data-i18n="Coach">Treinador</span><span style="position:absolute; top:5px; right:7px; font-size:9px; font-weight:800; letter-spacing:.5px; color:#F2B84B; background:rgba(242,184,75,.16); border:1px solid rgba(242,184,75,.45); border-radius:6px; padding:1px 5px;">PRO</span></button>
+      </div>
+      <p class="help" id="user-role-desc" style="margin:8px 0 0;"></p>
+      <p class="help" style="margin:6px 0 0; font-size:11px; color:#F2B84B; opacity:.9;" data-i18n="Coach mode will become a premium plan — free to try during the beta.">O modo Treinador será um plano pago no futuro — grátis para testar durante a beta.</p>
     </div>
 
     <div class="subtabs profile-subtabs" id="profile-subtabs">
@@ -7158,7 +7159,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 92</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 94</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -10017,11 +10018,30 @@ nav.tabbar button.active svg{
   const foodInputEl = document.getElementById('kcal-food');
   const normTxt = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
+  const _fSug = s => String(s==null?'':s).replace(/[&<>\"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
   function showFoodSuggestions(){
     const q = normTxt(foodInputEl.value.trim());
-    const matches = (q ? FOOD_NAMES_SORTED.filter(n=>normTxt(n).includes(q)) : FOOD_NAMES_SORTED).slice(0,12);
-    if(!matches.length){ foodSuggestEl.style.display='none'; foodSuggestEl.innerHTML=''; return; }
-    foodSuggestEl.innerHTML = matches.map(n=>`<div class="food-suggest-item" data-food="${n}">${n}</div>`).join('');
+    // 1) Alimentos pessoais: favoritos (por uso) + aprendidos (memória) primeiro.
+    let personal = [];
+    try{
+      const raw = localStorage.getItem('pulso:nutri-fav');
+      const fav = raw ? JSON.parse(raw) : {};
+      personal = Object.keys(fav).map(k=>({key:k, name:fav[k].name||k, n:fav[k].n||0, fav:true}))
+        .sort((a,b)=>(b.n||0)-(a.n||0));
+    }catch(e){}
+    try{
+      const favKeys = new Set(personal.map(x=>x.key));
+      Object.keys(aiFoods||{}).forEach(k=>{ if(!favKeys.has(k)){ favKeys.add(k); personal.push({key:k, name:(aiFoods[k]&&aiFoods[k].name)||k, n:0, fav:false}); } });
+    }catch(e){}
+    const pMatch = personal.filter(x=> !q || normTxt(x.name).includes(q) || normTxt(x.key).includes(q)).slice(0,8);
+    const pKeys = new Set(pMatch.map(x=>x.key));
+    // 2) Genéricos da tabela (que não sejam já pessoais).
+    const generic = (q ? FOOD_NAMES_SORTED.filter(n=>normTxt(n).includes(q)) : FOOD_NAMES_SORTED)
+      .filter(n=>!pKeys.has(n)).slice(0, Math.max(0, 12 - pMatch.length));
+    if(!pMatch.length && !generic.length){ foodSuggestEl.style.display='none'; foodSuggestEl.innerHTML=''; return; }
+    const pHtml = pMatch.map(x=>'<div class="food-suggest-item" data-food="'+_fSug(x.name)+'">'+(x.fav?'⭐ ':'🕘 ')+_fSug(x.name)+'</div>').join('');
+    const gHtml = generic.map(n=>'<div class="food-suggest-item" data-food="'+_fSug(n)+'">'+_fSug(n)+'</div>').join('');
+    foodSuggestEl.innerHTML = pHtml + gHtml;
     foodSuggestEl.style.display = 'block';
   }
   function hideFoodSuggestions(){ foodSuggestEl.style.display='none'; foodSuggestEl.innerHTML=''; }
@@ -10132,7 +10152,7 @@ nav.tabbar button.active svg{
     }
     const match = findFoodMatch(rawName);
     if(!match){
-      noteEl.textContent = '"' + rawName.trim() + '" ' + PL('não está na lista de alimentos. Queres pesquisar na IA?','is not in the food list. Search with AI?');
+      noteEl.textContent = '"' + rawName.trim() + '" ' + PL('não está na lista. Pesquisa na IA, ou preenche kcal/macros à mão em baixo — fica guardado para a próxima.','is not in the list. Search with AI, or fill kcal/macros by hand below — it will be saved for next time.');
       showSearchAiPrompt(rawName.trim());
       return;
     }
