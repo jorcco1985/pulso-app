@@ -6346,6 +6346,7 @@ nav.tabbar button.active svg{
           <h3 style="margin:0;">💊 <span data-i18n="Supplements">Suplementação</span></h3>
           <button type="button" id="supp-add-btn" class="chip" style="padding:6px 12px;">+ <span data-i18n="Add">Adicionar</span></button>
         </div>
+        <p class="help" style="margin:6px 0 0; font-size:11px; opacity:.75;" data-i18n="Brands belong to their owners. Pulso is not affiliated or endorsed by them; values are approximate (public info).">As marcas pertencem aos respetivos titulares. A Pulso não é afiliada nem endossada por elas; os valores são aproximados (informação pública).</p>
         <div id="supps-body"></div>
       </div>
     </div>
@@ -7136,7 +7137,10 @@ nav.tabbar button.active svg{
           <div class="row" style="margin-top:8px;">
             <button class="ghost" id="btn-restore-backup" type="button" data-i18n="Restore backup">Restaurar cópia de segurança</button>
           </div>
-          <p class="help" style="margin:8px 0 0; font-size:11.5px;" data-i18n="Automatic local backups are kept before each cloud sync, in case anything is overwritten.">São guardadas cópias locais automáticas antes de cada sincronização com a cloud, caso algo seja sobreposto.</p>
+          <div class="row" style="margin-top:16px;">
+            <button class="ghost" id="btn-delete-account" type="button" style="color:#F2555A; border-color:rgba(242,85,90,.4); width:100%;" data-i18n="Delete account & all data">Apagar conta e todos os dados</button>
+          </div>
+          <p class="help" style="margin:8px 0 0; font-size:11.5px;" data-i18n="Deleting removes your account and all cloud data permanently (right to be forgotten). Automatic local backups are kept before each cloud sync, in case anything is overwritten.">Apagar remove a tua conta e todos os dados na cloud de forma permanente (direito ao esquecimento). São guardadas cópias locais automáticas antes de cada sincronização com a cloud, caso algo seja sobreposto.</p>
         </div>
       </div>
       <div class="profile-subview" id="profile-sub-guias">
@@ -7154,7 +7158,9 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 82</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 89</p>
+    <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
+    <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
 
 </section>
@@ -9474,6 +9480,60 @@ nav.tabbar button.active svg{
   (function initTutorialDir(){ try{ renderTutorialDir(); }catch(e){} })();
 
 
+  window.pulsoShowTerms = function(){
+    const T = '<p style="margin:0 0 10px;">Ao criar conta e usar a Pulso, aceitas os seguintes termos:</p>'
+      + '<ol style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:9px;">'
+      + '<li><strong>Fim informativo.</strong> A Pulso \u00e9 uma ferramenta de acompanhamento de sa\u00fade e treino. Toda a informa\u00e7\u00e3o, estimativas e sugest\u00f5es (nutri\u00e7\u00e3o, calorias, prontid\u00e3o, massa gorda, treino, hidrata\u00e7\u00e3o, etc.) t\u00eam car\u00e1ter meramente informativo e educativo.</li>'
+      + '<li><strong>N\u00e3o \u00e9 aconselhamento m\u00e9dico.</strong> A app n\u00e3o substitui o diagn\u00f3stico, tratamento ou aconselhamento de um profissional de sa\u00fade qualificado. O autor da Pulso n\u00e3o \u00e9 m\u00e9dico nem tem forma\u00e7\u00e3o na \u00e1rea da sa\u00fade, nutri\u00e7\u00e3o ou medicina.</li>'
+      + '<li><strong>Consulta um profissional.</strong> Antes de decis\u00f5es de sa\u00fade, alimenta\u00e7\u00e3o, suplementa\u00e7\u00e3o ou treino \u2014 sobretudo com condi\u00e7\u00f5es m\u00e9dicas, gravidez, amamenta\u00e7\u00e3o, ou se fores menor \u2014 consulta um m\u00e9dico ou profissional certificado.</li>'
+      + '<li><strong>Responsabilidade.</strong> Usas a app por tua conta e risco. O autor n\u00e3o se responsabiliza por quaisquer danos, les\u00f5es ou consequ\u00eancias resultantes do uso da informa\u00e7\u00e3o ou funcionalidades da app.</li>'
+      + '<li><strong>Sem garantias.</strong> Os c\u00e1lculos e estimativas podem conter erros e n\u00e3o s\u00e3o garantidos. Os \u00edndices (prontid\u00e3o, estado, massa gorda) s\u00e3o heur\u00edsticos e servem para acompanhar tend\u00eancias, n\u00e3o como verdade absoluta.</li>'
+      + '<li><strong>Dados.</strong> Os teus dados s\u00e3o guardados no teu dispositivo e, se ativares a sincroniza\u00e7\u00e3o, na cloud associada \u00e0 tua conta. \u00c9s respons\u00e1vel por manteres a tua palavra-passe segura.</li>'
+      + '<li><strong>Uso pessoal.</strong> A app destina-se a uso pessoal e n\u00e3o comercial.</li>'
+      + '<li><strong>Marcas de terceiros.</strong> Os nomes de marcas de suplementação e outros produtos pertencem aos respetivos titulares. A Pulso não é afiliada, patrocinada nem endossada por essas marcas; os nomes servem apenas para identificar produtos e os valores nutricionais são aproximados, baseados em informação pública, podendo diferir das embalagens.</li>'
+      + '</ol>'
+      + '<h3 style="font-size:15px; margin:16px 0 8px; color:#e8eef5;">Política de Privacidade</h3>'
+      + '<ol style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:9px;">'
+      + '<li><strong>Que dados recolhemos.</strong> Dados de conta (nome, email) e os que registas: treino, sono, peso, cardio/FC, tensão, nutrição, hidratação, suplementação, bem-estar e, opcionalmente, ciclo menstrual. Alguns são dados de saúde (categoria especial).</li>'
+      + '<li><strong>Finalidade.</strong> Fazer a app funcionar: guardar e mostrar os teus registos, calcular índices e sincronizar entre dispositivos.</li>'
+      + '<li><strong>Onde ficam.</strong> No teu dispositivo e, se ativares a sincronização, na cloud (Google Firebase) associada à tua conta; a autenticação é gerida pelo Firebase.</li>'
+      + '<li><strong>Treinador e atleta.</strong> Se te ligares a um treinador (ou fores treinador), os dados de treino e saúde relevantes são partilhados entre as contas ligadas, com o teu consentimento ao estabelecer a ligação.</li>'
+      + '<li><strong>Os teus direitos.</strong> Podes ver, exportar (Perfil → Dados → Exportar) e apagar os teus dados quando quiseres. Para apagares a conta e os dados na cloud, contacta o email abaixo.</li>'
+      + '<li><strong>Partilha.</strong> Não vendemos os teus dados nem os partilhamos com terceiros, exceto os fornecedores necessários ao funcionamento (ex.: Google Firebase).</li>'
+      + '<li><strong>Contacto.</strong> Para questões de privacidade ou para exercer os teus direitos: [INSERE AQUI O TEU EMAIL DE CONTACTO].</li>'
+      + '</ol>'
+      + '<p style="margin:12px 0 0; font-size:11.5px; color:#8894a8;">\u00daltima atualiza\u00e7\u00e3o: julho 2026. Ao continuar, confirmas que leste e aceitas estes termos.</p>';
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; padding:16px;';
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+    ov.innerHTML='<div style="width:100%; max-width:520px; max-height:86vh; overflow-y:auto; background:#151b23; color:#e8eef5; border-radius:16px; padding:18px 18px 22px; box-shadow:0 12px 44px rgba(0,0,0,.5);">'
+      +'<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;"><strong style="font-size:17px;">Termos de Utiliza\u00e7\u00e3o</strong><button id="pc-terms-x" style="background:none; border:none; color:#8894a8; font-size:20px; cursor:pointer;">\u2715</button></div>'
+      +'<div style="font-size:13px; line-height:1.6; color:#c7d0dc;">'+T+'</div>'
+      +'<button id="pc-terms-ok" style="width:100%; margin-top:14px; padding:11px; border-radius:10px; border:none; background:#35D9A6; color:#06231a; font-weight:800; cursor:pointer;">Fechar</button>'
+      +'</div>';
+    document.body.appendChild(ov);
+    const x=ov.querySelector('#pc-terms-x'); if(x) x.onclick=()=>ov.remove();
+    const ok=ov.querySelector('#pc-terms-ok'); if(ok) ok.onclick=()=>ov.remove();
+  };
+
+  (function initDeleteAccount(){
+    const b=document.getElementById('btn-delete-account'); if(!b) return;
+    b.addEventListener('click', async ()=>{
+      if(!confirm(PL('Apagar a tua conta e TODOS os dados na cloud? Esta ação é permanente e não pode ser desfeita.','Delete your account and ALL cloud data? This is permanent and cannot be undone.'))) return;
+      if(!confirm(PL('Tens a certeza absoluta? Vais perder tudo: treinos, saúde, nutrição e histórico.','Are you absolutely sure? You will lose everything: training, health, nutrition and history.'))) return;
+      try{
+        if(!(window.PulsoCloud && typeof window.PulsoCloud.deleteAccount==='function')){ alert(PL('Precisas de estar ligado à tua conta (online) para apagar.','You need to be signed in (online) to delete.')); return; }
+        await window.PulsoCloud.deleteAccount();
+        alert(PL('Conta e dados apagados.','Account and data deleted.'));
+        setTimeout(()=>location.reload(), 600);
+      }catch(e){
+        const msg = String((e && (e.code||e.message))||'');
+        if(msg.indexOf('requires-recent-login')>=0){ alert(PL('Por segurança, termina sessão, volta a entrar e apaga logo a seguir.','For security, sign out, sign back in and delete right after.')); }
+        else { alert(PL('Não foi possível apagar agora. Verifica a ligação e tenta de novo.','Could not delete now. Check your connection and try again.')); }
+      }
+    });
+  })();
+
   function renderEstadoBalls(){
     const card = document.getElementById('estado-card');
     if(!card) return;
@@ -10595,6 +10655,22 @@ nav.tabbar button.active svg{
       { n:'Electrolytes', cat:'Líquidos', fase:'durante', kcal:0, na:300, ml:500 },
       { n:'4Recovery Drink', cat:'Pós', fase:'pos', kcal:205, hc:41, prot:10, ml:500 },
       { n:'Caffeine', cat:'Cápsulas', fase:'pre', kcal:0, caf:100 }
+    ]},
+    { id:'tailwind', n:'Tailwind', cor:'#F58220', prod:[
+      { n:'Endurance Fuel', cat:'Líquidos', fase:'durante', kcal:200, hc:50, na:620, ml:600 },
+      { n:'Endurance Fuel Cafeinada', cat:'Líquidos', fase:'durante', kcal:200, hc:50, caf:70, na:620, ml:600 },
+      { n:'High Carb Fuel', cat:'Líquidos', fase:'durante', kcal:360, hc:90, ml:500 },
+      { n:'Rapid Hydration', cat:'Líquidos', fase:'pre', kcal:45, hc:11, ml:500 },
+      { n:'Recovery Mix', cat:'Pós', fase:'pos', kcal:230, hc:34, prot:20, ml:475 }
+    ]},
+    { id:'naak', n:'Näak', cor:'#7CB342', prod:[
+      { n:'Ultra Energy Drink Mix', cat:'Líquidos', fase:'durante', kcal:250, hc:55, prot:8, na:650, ml:500 },
+      { n:'Salted Soup Drink Mix', cat:'Líquidos', fase:'durante', kcal:250, hc:55, prot:8, na:650, ml:500 },
+      { n:'Ultra Energy Gel', cat:'Géis', fase:'durante', kcal:200, hc:27, prot:2, caf:35 },
+      { n:'Ultra Energy Puree', cat:'Géis', fase:'durante', kcal:200, hc:40, prot:2 },
+      { n:'Ultra Energy Bar', cat:'Barras', fase:'durante', kcal:200, hc:28, prot:7 },
+      { n:'Ultra Energy Caffeine Bar', cat:'Barras', fase:'durante', kcal:180, hc:29, prot:7, caf:65 },
+      { n:'Ultra Energy Waffle', cat:'Barras', fase:'durante', kcal:140, hc:16, prot:3 }
     ]}
   ];
   function suppBrandById(id){ return SUPPS_CATALOG.find(b=>b.id===id); }
@@ -21492,6 +21568,12 @@ nav.tabbar button.active svg{
       <label for="pc-pass" data-i18n="Password">Palavra-passe</label>
       <input id="pc-pass" class="pc-input" type="password" autocomplete="current-password" placeholder="••••••">
     </div>
+    <div class="pc-field" id="pc-terms-field" style="display:none;">
+      <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer; font-size:12.5px; font-weight:400; line-height:1.4;">
+        <input type="checkbox" id="pc-accept" style="margin-top:2px; flex:none; width:18px; height:18px;">
+        <span data-i18n="I have read and accept the">Li e aceito os</span> <button type="button" class="pc-link" style="display:inline; padding:0; font-size:12.5px;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button>.
+      </label>
+    </div>
     <button class="pc-btn primary block" id="pc-submit" type="button" data-i18n="Sign in">Entrar</button>
     <div class="pc-error" id="pc-error"></div>
     <div class="pc-auth-links">
@@ -21533,7 +21615,7 @@ nav.tabbar button.active svg{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail, sendEmailVerification, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -21938,6 +22020,7 @@ function showAuth(show){
 function setAuthMode(mode){
   $('pc-auth').dataset.mode = mode;
   $('pc-name-field').style.display = mode === 'signup' ? '' : 'none';
+  if($('pc-terms-field')) $('pc-terms-field').style.display = mode === 'signup' ? '' : 'none';
   var _t = (window.PulsoI18n ? window.PulsoI18n.t.bind(window.PulsoI18n) : function(pt){ return pt; });
   $('pc-submit').textContent = mode === 'signup' ? _t('Criar conta','Create account') : _t('Entrar','Sign in');
   $('pc-toggle').textContent = mode === 'signup' ? _t('Já tenho conta','I already have an account') : _t('Criar conta nova','Create new account');
@@ -21957,6 +22040,7 @@ async function doAuthSubmit(){
   if(!email || !pw){ err.textContent = 'Preenche email e palavra-passe.'; return; }
   if(mode === 'signup' && !name){ err.textContent = 'Escreve o teu nome.'; return; }
   if(mode === 'signup' && pw.length < 6){ err.textContent = 'A palavra-passe precisa de 6+ caracteres.'; return; }
+  if(mode === 'signup' && $('pc-accept') && !$('pc-accept').checked){ err.textContent = 'Tens de aceitar os Termos de Utilização para criar conta.'; return; }
   authBusy(true);
   try{
     if(mode === 'signup'){
@@ -22253,6 +22337,35 @@ async function doSignOut(){
   location.reload();
 }
 
+function showVerifyEmail(user){
+  var ex=document.getElementById('pc-verify'); if(ex) ex.remove();
+  const ov=document.createElement('div');
+  ov.id='pc-verify';
+  ov.style.cssText='position:fixed; inset:0; z-index:99998; background:#0b0f16; color:#e8eef5; display:flex; align-items:center; justify-content:center; padding:22px; font-family:inherit;';
+  ov.innerHTML='<div style="width:100%; max-width:420px; text-align:center;">'
+    +'<div style="font-size:42px; margin-bottom:10px;">\u2709\uFE0F</div>'
+    +'<h2 style="font-size:20px; margin:0 0 8px;">'+PL('Confirma o teu email','Verify your email')+'</h2>'
+    +'<p style="font-size:13.5px; color:#8894a8; line-height:1.6; margin:0 0 18px;">'+PL('Enviámos um link de confirmação para','We sent a confirmation link to')+' <strong style="color:#e8eef5;">'+(user.email||'')+'</strong>. '+PL('Abre o email e clica no link para ativar a conta.','Open the email and click the link to activate your account.')+'</p>'
+    +'<button id="pc-verify-check" style="width:100%; padding:12px; border-radius:10px; border:none; background:#35D9A6; color:#06231a; font-weight:800; cursor:pointer; margin-bottom:10px;">'+PL('J\u00e1 confirmei \u2014 continuar','I have confirmed \u2014 continue')+'</button>'
+    +'<button id="pc-verify-resend" style="width:100%; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:transparent; color:#e8eef5; cursor:pointer; margin-bottom:10px;">'+PL('Reenviar email','Resend email')+'</button>'
+    +'<button id="pc-verify-out" style="background:none; border:none; color:#8894a8; font-size:13px; cursor:pointer; text-decoration:underline;">'+PL('Terminar sess\u00e3o','Sign out')+'</button>'
+    +'<p id="pc-verify-msg" style="font-size:12px; color:#F2B84B; margin-top:12px; min-height:16px;"></p>'
+    +'</div>';
+  document.body.appendChild(ov);
+  const msg=ov.querySelector('#pc-verify-msg');
+  ov.querySelector('#pc-verify-check').onclick=async ()=>{
+    msg.style.color='#F2B84B'; msg.textContent=PL('A verificar\u2026','Checking\u2026');
+    try{ await user.reload(); }catch(e){}
+    if(auth.currentUser && auth.currentUser.emailVerified){ location.reload(); }
+    else { msg.textContent=PL('Ainda n\u00e3o confirmado. Verifica o email (e a pasta de spam).','Not confirmed yet. Check your email (and spam folder).'); }
+  };
+  ov.querySelector('#pc-verify-resend').onclick=async ()=>{
+    try{ await sendEmailVerification(user); msg.style.color='#35D9A6'; msg.textContent=PL('Email reenviado. Verifica a caixa de entrada.','Email resent. Check your inbox.'); }
+    catch(e){ msg.style.color='#F2555A'; msg.textContent=PL('N\u00e3o foi poss\u00edvel reenviar agora. Tenta daqui a pouco.','Could not resend now. Try again shortly.'); }
+  };
+  ov.querySelector('#pc-verify-out').onclick=()=>{ doSignOut(); };
+}
+
 // ---------- ciclo de autenticação ----------
 onAuthStateChanged(auth, async (user)=>{
   currentUser = user || null;
@@ -22266,6 +22379,13 @@ onAuthStateChanged(auth, async (user)=>{
     return;
   }
   setSyncStatus('ok', 'Ligado');
+  if(user && !user.emailVerified){
+    showAuth(false);
+    if(btn) btn.hidden = false;
+    showVerifyEmail(user);
+    return;
+  }
+  var _vv=document.getElementById('pc-verify'); if(_vv) _vv.remove();
   try{ currentRole = await ensureUserDoc(user); }catch(e){ currentRole = 'athlete'; }
   const needsReload = await hydrateFromCloudOnce(user);
   if(needsReload){ location.reload(); return; }
@@ -22318,7 +22438,17 @@ function wireStaticUI(){
 }
 
 // ---------- API pública ----------
+async function deleteAccount(){
+  if(!currentUser) throw new Error('no-user');
+  const uid = currentUser.uid;
+  try{ await deleteDoc(doc(db, 'athleteData', uid)); }catch(e){}
+  try{ await deleteDoc(doc(db, 'users', uid)); }catch(e){}
+  await deleteUser(currentUser);
+  try{ Object.keys(localStorage).filter(function(k){ return k.indexOf('pulso:')===0; }).forEach(function(k){ localStorage.removeItem(k); }); }catch(e){}
+  try{ sessionStorage.clear(); }catch(e){}
+}
 window.PulsoCloud = {
+  deleteAccount,
   uploadData,
   get user(){ return currentUser; },
   get role(){ return currentRole; },
