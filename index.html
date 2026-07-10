@@ -6109,7 +6109,7 @@ nav.tabbar button.active svg{
         <div class="estado-page" data-estado="geral">
           <div class="estado-ball" id="estado-geral-ball"><span class="n" id="verdict-n">—</span></div>
           <p class="estado-title" data-i18n="Overall status">Estado geral</p>
-          <p class="estado-legend" data-i18n="Wellbeing &amp; habits — sleep, training, weight and alcohol">Bem-estar e hábitos — sono, treino, peso e álcool</p>
+          <p class="estado-legend" data-i18n="Wellbeing &amp; habits — sleep, hydration, weight and alcohol">Bem-estar e hábitos — sono, hidratação, peso e álcool</p>
           <p class="estado-sub" id="estado-geral-sub" data-i18n="Tap to see the assessment.">Toca para ver a avaliação.</p>
         </div>
         <div class="estado-page" data-estado="treino" id="estado-page-treino" style="display:none;">
@@ -6663,6 +6663,7 @@ nav.tabbar button.active svg{
       <button class="ghost active" data-sub="sono" type="button" data-i18n="Sleep">Sono</button>
       <button class="ghost" data-sub="peso" type="button" data-i18n="Weight">Peso</button>
       <button class="ghost" data-sub="pressao" type="button" data-i18n="Cardio">Cardio</button>
+      <button class="ghost" data-sub="bemestar" type="button" data-i18n="Well-being">Bem-estar</button>
       <button class="ghost" data-sub="ciclo" type="button" id="cycle-subtab-btn" style="display:none;" data-i18n="Cycle">Ciclo</button>
     </div>
 
@@ -6751,6 +6752,14 @@ nav.tabbar button.active svg{
       <div class="card" style="flex:1; min-height:0; display:flex; flex-direction:column;">
         <div class="scroll-y" style="flex:1; min-height:0;"><table class="log"><thead><tr><th data-i18n="Date">Data</th><th data-i18n="Max/Min">Máx/Mín</th><th></th></tr></thead><tbody id="bp-list"></tbody></table>
         <div class="empty" id="bp-empty" style="display:none;" data-i18n="No entries.">Sem registos.</div></div>
+      </div>
+    </div>
+
+    <div class="subview" id="sub-bemestar">
+      <div class="card fixed-form">
+        <h3 style="margin:0 0 4px;">🧭 <span data-i18n="Morning well-being">Bem-estar (manhã)</span></h3>
+        <p class="help" style="margin:0 0 10px;" data-i18n="Rate 1-5 how you feel on waking — this feeds readiness.">Avalia de 1 a 5 como te sentes ao acordar — alimenta a prontidão.</p>
+        <div id="wellness-body"></div>
       </div>
     </div>
 
@@ -6848,6 +6857,7 @@ nav.tabbar button.active svg{
       <button class="ghost" data-profile-tab="nutricao" type="button" data-i18n="AI Nutrition">Nutrição IA</button>
       <button class="ghost" data-profile-tab="dados" type="button" data-i18n="Data">Dados</button>
       <button class="ghost" data-profile-tab="historico" type="button" data-i18n="History">Histórico</button>
+      <button class="ghost" data-profile-tab="guias" type="button" data-i18n="Guides">Guias</button>
     </div>
 
     <div class="fill scroll-y profile-content">
@@ -6868,6 +6878,7 @@ nav.tabbar button.active svg{
               <select id="profile-gender"><option value="">—</option><option value="M" data-i18n="Male">Masculino</option><option value="F" data-i18n="Female">Feminino</option></select>
             </div>
             <div class="field"><label for="profile-height" data-i18n="Height (cm)">Altura (cm)</label><input type="number" id="profile-height" placeholder="178"></div>
+            <div class="field"><label for="profile-weight" data-i18n="Weight (kg)">Peso (kg)</label><input type="number" step="0.1" id="profile-weight" placeholder="78.4"></div>
             <div class="field activity-field">
               <label for="profile-activity" data-i18n="Activity level">Nível de atividade</label>
               <input type="range" min="1" max="10" step="1" value="6" id="profile-activity" class="activity-range">
@@ -7131,9 +7142,21 @@ nav.tabbar button.active svg{
           <p class="help" style="margin:8px 0 0; font-size:11.5px;" data-i18n="Automatic local backups are kept before each cloud sync, in case anything is overwritten.">São guardadas cópias locais automáticas antes de cada sincronização com a cloud, caso algo seja sobreposto.</p>
         </div>
       </div>
+      <div class="profile-subview" id="profile-sub-guias">
+        <div class="card">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">📚</div>
+            <div>
+              <h3 data-i18n="Guides">Guias</h3>
+              <p class="help" style="margin:0;" data-i18n="Short illustrated how-tos. Pick a topic.">Guias ilustrados de "como se faz". Escolhe um tema.</p>
+            </div>
+          </div>
+          <div id="tutorial-dir" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;"></div>
+        </div>
+      </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 71</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 81</p>
 
 
 </section>
@@ -7311,7 +7334,7 @@ nav.tabbar button.active svg{
     // Mantém o resumo de HOJE sempre atualizado no histórico sempre que muda um dado
     // diário — para nunca ficar preso num valor parcial (ex.: água a meio do dia).
     try{
-      const DAILY_ARCHIVE_KEYS = ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','weight-entries','sleep-entries','bp-entries'];
+      const DAILY_ARCHIVE_KEYS = ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','weight-entries','sleep-entries','bp-entries','wellness-entries'];
       if(DAILY_ARCHIVE_KEYS.indexOf(key) !== -1 && window.PulsoArchiveToday){
         clearTimeout(sSet._archiveTimer);
         sSet._archiveTimer = setTimeout(function(){
@@ -7534,7 +7557,7 @@ nav.tabbar button.active svg{
   initGate();
 
   // ================= APP STATE ================= //
-  let weightEntries = [], sleepEntries = [], plannedWorkouts = [], bpEntries = [];
+  let weightEntries = [], sleepEntries = [], plannedWorkouts = [], bpEntries = [], wellnessEntries = [];
   let planFeedback = {}; // cumprimento do plano: { 'YYYY-MM-DD|workoutId': {status, note, feel, at} }
   let planMessages = {}; // mensagens do atleta por treino: { 'YYYY-MM-DD|workoutId': [{text, at}] }
   let deletedActivityIds = []; // ids de treinos apagados à mão (para o Strava não os voltar a trazer)
@@ -7634,6 +7657,7 @@ nav.tabbar button.active svg{
       if(activeSub && activeSub.id === 'sub-peso') renderWeight();
       if(activeSub && activeSub.id === 'sub-sono') renderSleep();
       if(activeSub && activeSub.id === 'sub-pressao') renderBP();
+      if(activeSub && activeSub.id === 'sub-bemestar') renderWellness();
       if(activeSub && activeSub.id === 'sub-ciclo') renderCycle();
     }
     else if(activeTab.id === 'tab-hidratacao'){
@@ -7824,6 +7848,9 @@ nav.tabbar button.active svg{
     profile.gender = this.value || null;
     try{ updateCycleSubtabVisibility(); renderCycle(); renderEstadoBalls(); }catch(err){}
   });
+  document.getElementById('profile-age')?.addEventListener('change', function(){ profile.age = parseInt(this.value,10) || null; try{ renderKcal(); renderDashboard(); }catch(e){} });
+  document.getElementById('profile-height')?.addEventListener('change', function(){ profile.heightCm = parseInt(this.value,10) || null; try{ renderKcal(); renderDashboard(); }catch(e){} });
+  document.getElementById('profile-weight')?.addEventListener('change', async function(){ const kg=parseFloat(this.value); if(!isFinite(kg)||kg<=0) return; const today=todayStr(); const ex=weightEntries.find(e=>e.date===today); if(ex) ex.kg=kg; else weightEntries.push({id:uid(), date:today, kg}); weightEntries.sort((a,b)=>a.date.localeCompare(b.date)); try{ await sSet('weight-entries', weightEntries); }catch(e){} try{ renderKcal(); renderDashboard(); renderWeight(); }catch(e){} });
   document.getElementById('form-profile').addEventListener('submit', async (e)=>{
     e.preventDefault();
     profile.name = document.getElementById('profile-name').value.trim();
@@ -7854,6 +7881,7 @@ nav.tabbar button.active svg{
   });
 
   function renderWeight(){
+    const _pw=document.getElementById('profile-weight'); if(_pw && document.activeElement!==_pw) _pw.value = weightEntries.length ? weightEntries[weightEntries.length-1].kg : '';
     const tbody = document.getElementById('weight-list'); const empty = document.getElementById('weight-empty');
     tbody.innerHTML = '';
     if(weightEntries.length===0){ empty.style.display='block'; }
@@ -8791,6 +8819,7 @@ nav.tabbar button.active svg{
       const weight = (get('weight-entries') || []) || [];
       const profile = (get('profile') || {}) || {};
       const cycleRaw = get('cycle-data');
+      const wellness = (get('wellness-entries') || []) || [];
 
       const dayOffset = (ds)=> Math.round((today - new Date(readinessDayKey(ds)+'T12:00:00'))/86400000);
       // --- Carga diária mais precisa ---
@@ -8823,13 +8852,26 @@ nav.tabbar button.active svg{
         return effMin * f;
       }
       const daily = new Array(28).fill(0);
+      const dailyKcal = new Array(28).fill(0);
+      function actKcal(a){
+        const c = Number(a.calories || a.kcal || 0); if(c>0) return c;
+        const min = (Number(a.movingSec || a.moving_time || 0))/60;
+        const t = String(a.type || a.sportType || '').toLowerCase();
+        const per = (t.includes('walk')||t.includes('camin')) ? 5 : ((t.includes('ride')||t.includes('bike')||t.includes('cicl')) ? 8 : 11);
+        return min*per;
+      }
       acts.forEach(a=>{
         const off = dayOffset(a.date || a.start_date || a.time);
-        if(off>=0 && off<28){ daily[off] += actLoad(a); }
+        if(off>=0 && off<28){ daily[off] += actLoad(a); dailyKcal[off] += actKcal(a); }
       });
       const acute = daily.slice(0,7).reduce((s,v)=>s+v,0);
       const chronicWeekly = daily.slice(0,28).reduce((s,v)=>s+v,0)/4;
-      const acwr = chronicWeekly>0 ? acute/chronicWeekly : null;
+      // ACWR por EWMA (Williams et al., 2017) — média exponencial não-acoplada,
+      // menos enviesada que a média móvel simples e mais sensível a picos recentes.
+      function ewmaLoad(arr, lam){ let e=0, started=false; for(let i=arr.length-1;i>=0;i--){ if(!started){ e=arr[i]; started=true; } else { e = arr[i]*lam + e*(1-lam); } } return e; }
+      const acuteEwma = ewmaLoad(daily.slice(0,28), 2/(7+1));
+      const chronicEwma = ewmaLoad(daily.slice(0,28), 2/(28+1));
+      const acwr = chronicEwma>0 ? acuteEwma/chronicEwma : null;
       // Monotonia (7 dias): média/desvio-padrão.
       const w = daily.slice(0,7); const mean = w.reduce((s,v)=>s+v,0)/7;
       const sd = Math.sqrt(w.reduce((s,v)=>s+Math.pow(v-mean,2),0)/7) || 0;
@@ -8849,13 +8891,19 @@ nav.tabbar button.active svg{
 
       // Nutrição: dias em défice acentuado nos últimos 7 (comida vs necessidade estimada).
       const lastKg = (weight.slice().reverse().find(x=>x&&x.kg!=null)||{}).kg;
+      // #4 Manutenção real (Mifflin-St Jeor × NEAT 1.4), com o gasto de treino do próprio dia.
+      const kgNow = lastKg || 70;
+      const cmH = Number(profile.heightCm) || 175;
+      const ageN = age || 30;
+      const bmr = female ? (10*kgNow + 6.25*cmH - 5*ageN - 161) : (10*kgNow + 6.25*cmH - 5*ageN + 5);
+      const maintKcal = bmr * 1.4;
       let deficitDays = 0, foodDays = 0;
       for(let d=0; d<7; d++){
         const dayFood = food.filter(e=>dayOffset(e.date)===d);
         if(!dayFood.length) continue;
         foodDays++;
         const kcalIn = dayFood.reduce((s,e)=>s+(Number(e.kcal)||0),0);
-        const need = (lastKg? lastKg*28 : 1900) + (daily[d]*7); // BMR aprox + treino
+        const need = maintKcal + dailyKcal[d];
         if(kcalIn>0 && kcalIn < need*0.6) deficitDays++;
       }
 
@@ -8866,8 +8914,13 @@ nav.tabbar button.active svg{
         if(cyc && cyc.hasData) cycleAvail = cyc.availability;
       }
 
+      // Bem-estar subjetivo de hoje (índice de Hooper) — sinal de alto valor.
+      let wellness100 = null;
+      const wToday = wellness.filter(e=>dayOffset(e.date)===0).slice(-1)[0] || null;
+      if(wToday){ const wv=['sono','energia','musculos','stress','humor'].map(k=>Number(wToday[k])).filter(v=>v>=1&&v<=5); if(wv.length) wellness100 = ((wv.reduce((s,v)=>s+v,0)/wv.length)-1)/4*100; }
+
       // Confiança: quantos sinais temos?
-      const signals = [acts.length>=4, sl7.length>=2, rhrDelta!=null, foodDays>=2].filter(Boolean).length;
+      const signals = [acts.length>=4, sl7.length>=2, rhrDelta!=null, foodDays>=2, wellness100!=null].filter(Boolean).length;
       if(acts.length < 2 && sl7.length < 2){
         return { hasData:false, reason:PL('Ainda sem dados suficientes (treinos, sono ou FC) para avaliar a prontidão.','Not enough data yet (workouts, sleep or HR) to assess readiness.') };
       }
@@ -8894,8 +8947,19 @@ nav.tabbar button.active svg{
         if(cycleAvail < 50){ score -= 12; reasons.push(PL('Fase do ciclo com recuperação reduzida.','Cycle phase with reduced recovery.')); }
         else if(cycleAvail < 70){ score -= 6; reasons.push(PL('Ciclo em fase de recuperação moderada.','Cycle in a moderate recovery phase.')); }
       }
+      if(wellness100!=null){
+        if(wellness100 < 40){ score -= 18; reasons.push(PL('Sensação subjetiva má (dor/fadiga/stress) — cautela hoje.','Poor subjective feel (soreness/fatigue/stress) — take it easy today.')); }
+        else if(wellness100 < 55){ score -= 10; reasons.push(PL('Bem-estar subjetivo em baixo hoje.','Low subjective well-being today.')); }
+        else if(wellness100 < 70){ score -= 4; reasons.push(PL('Bem-estar subjetivo ligeiramente em baixo.','Subjective well-being slightly down.')); }
+      }
 
       score = Math.max(5, Math.min(100, Math.round(score)));
+      // #5 A confiança afeta o número: com poucos sinais, aproxima-se de um neutro (65).
+      const confW = Math.min(1, 0.6 + signals*0.1);
+      const confidencePct = Math.round(confW*100);
+      const uncertainty = Math.round((1-confW)*25);
+      score = Math.max(5, Math.min(100, Math.round(score*confW + 65*(1-confW))));
+      try{ const cal = Number(localStorage.getItem('pulso:readiness-cal'))||0; if(cal){ score = Math.max(5, Math.min(100, Math.round(score + cal))); } }catch(e){}
       const level = score>=70 ? 'green' : (score>=45 ? 'yellow' : 'red');
       if(!reasons.length) reasons.push(PL('Sem sinais de sobrecarga — carga, recuperação e combustível equilibrados.','No overload signs — load, recovery and fuel are balanced.'));
       // --- Forma do dia (4 estados, sem números) ---
@@ -8915,7 +8979,7 @@ nav.tabbar button.active svg{
       const form = { key:formKey, col:ff.col,
         label: PL(ff.pt[0], ff.en[0]),
         phrase: PL(ff.pt[0]+' — '+ff.pt[1], ff.en[0]+' — '+ff.en[1]) };
-      return { hasData:true, score, level, reasons, confidence:signals, acwr, form };
+      return { hasData:true, score, level, reasons, confidence:signals, confidencePct, uncertainty, acwr, form };
     }catch(err){ console.warn('computeReadiness falhou', err); return { hasData:false, reason:PL('Não foi possível calcular a prontidão.','Couldn\'t calculate readiness.') }; }
   }
   window.PulsoReadiness = { compute: computeReadiness };
@@ -8989,7 +9053,7 @@ nav.tabbar button.active svg{
   function _tipEsc(s){ return String(s==null?'':s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function _tipLocalD(dt){ const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), d=String(dt.getDate()).padStart(2,'0'); return y+'-'+m+'-'+d; }
   function _tipDayAgo(n){ const dt=new Date(); dt.setHours(12,0,0,0); dt.setDate(dt.getDate()-n); return _tipLocalD(dt); }
-  function _tipKcalDay(ds){ try{ return Math.round((kcalEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0)); }catch(e){ return 0; } }
+  function _tipKcalDay(ds){ try{ let k=(kcalEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0); try{ k+=(hydrationEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0); }catch(e){} try{ k+=(alcoholEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0); }catch(e){} return Math.round(k); }catch(e){ return 0; } }
   function _tipProtDay(ds){ try{ return Math.round((kcalEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.protein||0),0)); }catch(e){ return 0; } }
   function _tipWaterDay(ds){ try{ return Math.round((hydrationEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.ml||0),0)); }catch(e){ return 0; } }
   function _tipLastSleep(){ try{ const s=(sleepEntries||[]); return s.length?Number(s[s.length-1].hours):null; }catch(e){ return null; } }
@@ -9006,6 +9070,7 @@ nav.tabbar button.active svg{
     try{ if(!(sleepEntries||[]).some(e=>e.date===t)) miss.push({label:'Sono da noite', icon:'😴', tab:'saude', sub:'sono'}); }catch(e){}
     try{ if(!(weightEntries||[]).some(e=>e.date===t)) miss.push({label:'Peso da manhã', icon:'⚖️', tab:'saude', sub:'peso'}); }catch(e){}
     try{ if(!(bpEntries||[]).some(e=>e.date===t && e.hr!=null && e.hr!=='' && Number(e.hr)>0)) miss.push({label:'Cardio (FC repouso)', icon:'❤️', tab:'saude', sub:'pressao'}); }catch(e){}
+    try{ if(!(wellnessEntries||[]).some(e=>e.date===t)) miss.push({label:'Bem-estar', icon:'🧭', tab:'saude', sub:'bemestar'}); }catch(e){}
     return miss;
   }
   function _missingBlockHTML(miss){
@@ -9150,15 +9215,34 @@ nav.tabbar button.active svg{
     if(!tipsNotesOn()){ el.innerHTML=''; el.style.display='none'; return; }
     let tips=[]; try{ tips = buildDayInsights(null); }catch(e){ tips=[]; }
     const miss = (new Date().getHours() < 13) ? _morningMissing() : [];
-    if(!tips.length && !miss.length){ el.innerHTML=''; el.style.display='none'; return; }
+    // Auto-calibração: feedback do atleta sobre a prontidão de hoje.
+    let calRow='';
+    try{
+      const r = (window.PulsoReadiness && window.PulsoReadiness.compute) ? window.PulsoReadiness.compute(readinessLocalGet) : null;
+      if(r && r.hasData){
+        if(localStorage.getItem('pulso:cal-fb-date')===todayStr()){
+          calRow='<div style="margin-top:12px; font-size:11px; color:var(--text-muted);">'+PL('Feedback de hoje registado ✓','Today\'s feedback saved ✓')+'</div>';
+        } else {
+          calRow='<div style="margin-top:12px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">'
+            +'<span style="font-size:11.5px; color:var(--text-muted); width:100%;">'+PL('A prontidão bate certo hoje?','Does readiness feel right today?')+'</span>'
+            +'<button type="button" class="chip cal-fb" data-cal="worse" style="padding:6px 11px;">'+PL('Sinto-me pior','Feel worse')+'</button>'
+            +'<button type="button" class="chip cal-fb" data-cal="ok" style="padding:6px 11px;">'+PL('Certo','Right')+'</button>'
+            +'<button type="button" class="chip cal-fb" data-cal="better" style="padding:6px 11px;">'+PL('Sinto-me melhor','Feel better')+'</button>'
+            +'</div>';
+        }
+      }
+    }catch(e){}
+    if(!tips.length && !miss.length && !calRow){ el.innerHTML=''; el.style.display='none'; return; }
     el.style.display='';
     el.innerHTML = (miss.length ? _missingBlockHTML(miss) : '')
-      + '<div style="margin-top:'+(miss.length?'2px':'12px')+'; display:flex; flex-direction:column; gap:7px;">'
+      + (tips.length ? ('<div style="margin-top:'+(miss.length?'2px':'12px')+'; display:flex; flex-direction:column; gap:7px;">'
       + tips.map(t=>'<div style="display:flex; gap:9px; align-items:flex-start; background:rgba(53,217,166,.08); border:1px solid rgba(53,217,166,.18); border-radius:12px; padding:9px 11px;">'
         + '<span style="font-size:15px; line-height:1.3;">'+t.icon+'</span>'
         + '<span style="font-size:12.5px; line-height:1.45; color:var(--text);">'+_tipEsc(t.text)+'</span></div>').join('')
-      + '</div>';
+      + '</div>') : '')
+      + calRow;
     try{ _bindGoto(el, null); }catch(e){}
+    el.querySelectorAll('.cal-fb').forEach(b=> b.onclick=()=> readinessCalFeedback(b.dataset.cal));
   }
 
   function _tipsRenderPopup(tips, headerPt, headerEn, missHTML){
@@ -9209,6 +9293,167 @@ nav.tabbar button.active svg{
       if(pp){ pp.checked=(localStorage.getItem('pulso:pref-tips-popup')!=='0'); pp.addEventListener('change', ()=>{ try{ localStorage.setItem('pulso:pref-tips-popup', pp.checked?'1':'0'); }catch(e){} }); }
     }catch(e){}
   })();
+
+  // ===== Bem-estar subjetivo (índice de Hooper) + auto-calibração da prontidão ===== //
+  const WELLNESS_ITEMS = [
+    {k:'sono', label:'Sono', lo:'Péssimo', hi:'Ótimo'},
+    {k:'energia', label:'Energia', lo:'Exausto', hi:'Cheio'},
+    {k:'musculos', label:'Músculos', lo:'Muita dor', hi:'Sem dor'},
+    {k:'stress', label:'Stress', lo:'Muito', hi:'Calmo'},
+    {k:'humor', label:'Humor', lo:'Mau', hi:'Ótimo'}
+  ];
+  let wellnessDraft = {};
+  function wellnessToday(){ const t=todayStr(); return (wellnessEntries||[]).filter(e=>e.date===t).slice(-1)[0] || null; }
+  function wellnessScore100(e){ if(!e) return null; const v=WELLNESS_ITEMS.map(it=>Number(e[it.k])).filter(x=>x>=1&&x<=5); return v.length ? Math.round(((v.reduce((s,x)=>s+x,0)/v.length)-1)/4*100) : null; }
+  function renderWellness(){
+    const box=document.getElementById('wellness-body'); if(!box) return;
+    const cur = wellnessToday();
+    const draft = Object.assign({}, cur||{}, wellnessDraft);
+    let html='';
+    WELLNESS_ITEMS.forEach(it=>{
+      html+='<div style="margin-bottom:13px;"><div style="font-size:13px; font-weight:600; margin-bottom:6px;">'+it.label+'</div><div style="display:flex; gap:6px;">';
+      for(let v=1; v<=5; v++){
+        const on = Number(draft[it.k])===v;
+        html+='<button type="button" class="well-chip" data-well-k="'+it.k+'" data-well-v="'+v+'" style="flex:1; padding:10px 0; border-radius:10px; cursor:pointer; font-weight:700; font-size:14px; border:1px solid '+(on?'rgba(53,217,166,.6)':'rgba(255,255,255,.12)')+'; background:'+(on?'rgba(53,217,166,.16)':'rgba(255,255,255,.04)')+'; color:'+(on?'var(--teal)':'var(--text)')+';">'+v+'</button>';
+      }
+      html+='</div><div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:3px;"><span>'+it.lo+'</span><span>'+it.hi+'</span></div></div>';
+    });
+    const sc = wellnessScore100(draft);
+    html+='<div style="margin:8px 0 12px; text-align:center; font-size:13px; color:var(--text-muted);">'+PL('Bem-estar','Well-being')+': <strong style="color:var(--teal); font-size:18px;">'+(sc!=null?sc:'—')+'</strong>'+(sc!=null?' /100':'')+'</div>';
+    html+='<button type="button" id="wellness-save" class="primary" style="width:100%;">'+PL('Guardar','Save')+'</button>';
+    box.innerHTML=html;
+    box.querySelectorAll('.well-chip').forEach(b=> b.onclick=()=>{ wellnessDraft[b.dataset.wellK]=Number(b.dataset.wellV); renderWellness(); });
+    const sv=document.getElementById('wellness-save'); if(sv) sv.onclick=saveWellness;
+  }
+  async function saveWellness(){
+    const cur = wellnessToday();
+    const draft = Object.assign({}, cur||{}, wellnessDraft);
+    const entry = { id: cur?cur.id:uid(), date: todayStr() };
+    WELLNESS_ITEMS.forEach(it=>{ if(draft[it.k]!=null) entry[it.k]=Number(draft[it.k]); });
+    wellnessEntries = (wellnessEntries||[]).filter(e=>e.date!==todayStr());
+    wellnessEntries.push(entry);
+    try{ await sSet('wellness-entries', wellnessEntries); }catch(e){}
+    wellnessDraft={};
+    renderWellness();
+    try{ renderDashboard(); }catch(e){}
+    toast(PL('Bem-estar guardado','Well-being saved'));
+  }
+
+  // Auto-calibração: o feedback do atleta ("sinto-me pior/certo/melhor") ajusta um
+  // desvio pessoal (bias) aplicado à prontidão, aprendendo com a pessoa ao longo do tempo.
+  function readinessCalGet(){ try{ return Number(localStorage.getItem('pulso:readiness-cal'))||0; }catch(e){ return 0; } }
+  function readinessCalFeedback(kind){
+    let cal = readinessCalGet();
+    if(kind==='worse') cal -= 3;
+    else if(kind==='better') cal += 3;
+    else cal = cal*0.7;
+    cal = Math.max(-20, Math.min(20, Math.round(cal*10)/10));
+    try{ localStorage.setItem('pulso:readiness-cal', String(cal)); localStorage.setItem('pulso:cal-fb-date', todayStr()); }catch(e){}
+    try{ renderDashboard(); }catch(e){}
+    toast(PL('Obrigado — a prontidão vai ajustar-se a ti.','Thanks — readiness will adapt to you.'));
+  }
+
+
+  // ===== Diretório de guias ilustrados (Perfil → Guias) ===== //
+  const TUT_ILLO = {
+    comida: '<svg viewBox="0 0 300 140"><rect x="14" y="20" width="180" height="30" rx="8" fill="none" stroke="rgba(255,255,255,.2)"/><text x="26" y="40" fill="#8894a8" font-size="13" font-family="sans-serif">ex: arroz cozido</text><rect x="14" y="58" width="90" height="26" rx="8" fill="none" stroke="rgba(255,255,255,.2)"/><text x="26" y="76" fill="#8894a8" font-size="12" font-family="sans-serif">200 g</text><circle cx="245" cy="60" r="42" fill="none" stroke="rgba(53,217,166,.25)" stroke-width="9"/><circle cx="245" cy="60" r="42" fill="none" stroke="#35D9A6" stroke-width="9" stroke-linecap="round" stroke-dasharray="150 265" transform="rotate(-90 245 60)"/><text x="245" y="58" fill="#e8eef5" font-size="17" font-weight="700" text-anchor="middle" font-family="sans-serif">kcal</text><text x="245" y="74" fill="#8894a8" font-size="10" text-anchor="middle" font-family="sans-serif">HC · Prot · Gord</text><rect x="14" y="100" width="120" height="24" rx="12" fill="rgba(242,184,75,.14)"/><text x="74" y="116" fill="#F2B84B" font-size="12" font-weight="700" text-anchor="middle" font-family="sans-serif">\u2b50 Favoritos</text></svg>',
+    bebidas: '<svg viewBox="0 0 300 140"><circle cx="150" cy="46" r="34" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/><circle cx="150" cy="46" r="34" fill="none" stroke="#F2B84B" stroke-width="9" stroke-linecap="round" stroke-dasharray="90 214" transform="rotate(-90 150 46)"/><text x="150" y="44" fill="#e8eef5" font-size="15" font-weight="700" text-anchor="middle" font-family="sans-serif">330</text><text x="150" y="60" fill="#8894a8" font-size="10" text-anchor="middle" font-family="sans-serif">ml</text><rect x="40" y="96" width="100" height="32" rx="9" fill="rgba(242,184,75,.16)" stroke="#F2B84B"/><text x="90" y="116" fill="#F2B84B" font-size="12" font-weight="700" text-anchor="middle" font-family="sans-serif">Normal</text><rect x="160" y="96" width="100" height="32" rx="9" fill="rgba(53,217,166,.12)" stroke="rgba(53,217,166,.5)"/><text x="210" y="116" fill="#35D9A6" font-size="12" font-weight="700" text-anchor="middle" font-family="sans-serif">Zero</text></svg>',
+    supp: '<svg viewBox="0 0 300 140"><rect x="14" y="18" width="76" height="40" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.12)"/><circle cx="30" cy="38" r="6" fill="#F0A500"/><text x="44" y="42" fill="#e8eef5" font-size="11" font-weight="700" font-family="sans-serif">Marca</text><rect x="112" y="18" width="76" height="40" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.12)"/><text x="150" y="42" fill="#8894a8" font-size="11" text-anchor="middle" font-family="sans-serif">Categoria</text><rect x="210" y="18" width="76" height="40" rx="10" fill="rgba(53,217,166,.12)" stroke="rgba(53,217,166,.5)"/><text x="248" y="42" fill="#35D9A6" font-size="11" font-weight="700" text-anchor="middle" font-family="sans-serif">Produto</text><path d="M92 38h18M190 38h18" stroke="#8894a8" stroke-width="2" fill="none" marker-end="url(#a)"/><g fill="#8894a8"><path d="M108 34l6 4-6 4z"/><path d="M206 34l6 4-6 4z"/></g><rect x="70" y="86" width="54" height="30" rx="9" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.12)"/><text x="97" y="105" fill="#e8eef5" font-size="11" text-anchor="middle" font-family="sans-serif">Pré</text><rect x="128" y="86" width="64" height="30" rx="9" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.12)"/><text x="160" y="105" fill="#e8eef5" font-size="11" text-anchor="middle" font-family="sans-serif">Durante</text><rect x="196" y="86" width="54" height="30" rx="9" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.12)"/><text x="223" y="105" fill="#e8eef5" font-size="11" text-anchor="middle" font-family="sans-serif">Pós</text></svg>',
+    prontidao: '<svg viewBox="0 0 300 140"><g font-family="sans-serif">'+([1,2,3,4,5].map(function(v,i){var x=16+i*56;var on=v>=4;return '<rect x="'+x+'" y="20" width="46" height="30" rx="8" fill="'+(on?'rgba(53,217,166,.16)':'rgba(255,255,255,.04)')+'" stroke="'+(on?'#35D9A6':'rgba(255,255,255,.12)')+'"/><text x="'+(x+23)+'" y="40" fill="'+(on?'#35D9A6':'#e8eef5')+'" font-size="13" font-weight="700" text-anchor="middle">'+v+'</text>';}).join(''))+'<text x="150" y="70" fill="#8894a8" font-size="11" text-anchor="middle">sono \u00b7 energia \u00b7 m\u00fasculos \u00b7 stress \u00b7 humor</text><rect x="24" y="90" width="80" height="30" rx="15" fill="rgba(242,85,90,.14)"/><text x="64" y="109" fill="#F2555A" font-size="11" text-anchor="middle">Pior</text><rect x="110" y="90" width="80" height="30" rx="15" fill="rgba(255,255,255,.06)"/><text x="150" y="109" fill="#e8eef5" font-size="11" text-anchor="middle">Certo</text><rect x="196" y="90" width="80" height="30" rx="15" fill="rgba(53,217,166,.14)"/><text x="236" y="109" fill="#35D9A6" font-size="11" text-anchor="middle">Melhor</text></g></svg>',
+    cardio: '<svg viewBox="0 0 300 140"><path d="M150 44c-9-13-30-9-30 8 0 12 18 22 30 32 12-10 30-20 30-32 0-17-21-21-30-8Z" fill="none" stroke="#F2555A" stroke-width="2.4"/><path d="M96 60h20l6-12 8 24 6-12h22" fill="none" stroke="#35D9A6" stroke-width="2" stroke-linecap="round"/><text x="150" y="110" fill="#e8eef5" font-size="20" font-weight="800" text-anchor="middle" font-family="sans-serif">52 <tspan fill="#8894a8" font-size="12">bpm</tspan></text></svg>',
+    painel: '<svg viewBox="0 0 300 140"><path d="M40 60a34 34 0 0 1 68 0" fill="none" stroke="#35D9A6" stroke-width="6" stroke-linecap="round"/><path d="M74 60l16-13" stroke="#e8eef5" stroke-width="3" stroke-linecap="round"/><circle cx="74" cy="60" r="3.5" fill="#e8eef5"/><text x="74" y="88" fill="#8894a8" font-size="11" text-anchor="middle" font-family="sans-serif">Massa gorda</text><rect x="150" y="26" width="130" height="26" rx="9" fill="rgba(53,217,166,.08)" stroke="rgba(53,217,166,.18)"/><text x="162" y="43" fill="#e8eef5" font-size="11" font-family="sans-serif">\ud83c\udf5d carb load...</text><rect x="150" y="58" width="130" height="26" rx="9" fill="rgba(53,217,166,.08)" stroke="rgba(53,217,166,.18)"/><text x="162" y="75" fill="#e8eef5" font-size="11" font-family="sans-serif">\ud83d\udca7 bebe água...</text><rect x="150" y="90" width="130" height="26" rx="9" fill="rgba(53,217,166,.08)" stroke="rgba(53,217,166,.18)"/><text x="162" y="107" fill="#e8eef5" font-size="11" font-family="sans-serif">\ud83d\ude34 dormiste...</text></svg>',
+    importar: '<svg viewBox="0 0 300 140"><rect x="18" y="30" width="86" height="44" rx="10" fill="rgba(252,82,0,.12)" stroke="#FC5200"/><text x="61" y="57" fill="#FC5200" font-size="13" font-weight="800" text-anchor="middle" font-family="sans-serif">Strava</text><rect x="18" y="84" width="86" height="34" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)"/><text x="61" y="105" fill="#e8eef5" font-size="11" text-anchor="middle" font-family="sans-serif">.FIT / .ZIP</text><path d="M112 68h40" stroke="#8894a8" stroke-width="2"/><path d="M150 64l7 4-7 4z" fill="#8894a8"/><rect x="168" y="26" width="114" height="90" rx="10" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.12)"/><g stroke="rgba(53,217,166,.6)" stroke-width="2"><path d="M182 46h86M182 68h86M182 90h60"/></g></svg>',
+    'c-treino':'<svg viewBox="0 0 300 140"><rect x="16" y="20" width="120" height="18" rx="6" fill="rgba(53,217,166,.18)"/><rect x="16" y="46" width="90" height="14" rx="5" fill="rgba(255,255,255,.1)"/><rect x="16" y="68" width="150" height="14" rx="5" fill="rgba(255,255,255,.1)"/><rect x="16" y="94" width="58" height="26" rx="13" fill="rgba(53,217,166,.14)" stroke="#35D9A6"/><text x="45" y="111" fill="#35D9A6" font-size="11" text-anchor="middle" font-family="sans-serif">Chip</text><text x="196" y="66" fill="#F2B84B" font-size="26" font-family="sans-serif">▶</text><text x="228" y="62" fill="#8894a8" font-size="12" font-family="sans-serif">vídeo</text><text x="252" y="34" fill="#F2B84B" font-size="20" font-family="sans-serif">★</text></svg>',
+    'c-cloud':'<svg viewBox="0 0 300 140"><rect x="112" y="16" width="76" height="76" rx="8" fill="#ffffff"/><g fill="#0b0f16"><rect x="120" y="24" width="20" height="20"/><rect x="160" y="24" width="20" height="20"/><rect x="120" y="64" width="20" height="20"/><rect x="150" y="54" width="10" height="10"/><rect x="168" y="64" width="12" height="12"/><rect x="150" y="74" width="10" height="10"/></g><text x="150" y="112" fill="#8894a8" font-size="12" text-anchor="middle" font-family="sans-serif">Lê o QR ou cola o código</text></svg>'
+  };
+  const TUTORIAL_GUIDES = [
+    { id:'comida', icon:'📝', title:'Registar comida', how:[
+      'Nutrição → Comida.',
+      'Escreve o alimento (ex.: "arroz cozido") e a quantidade em gramas.',
+      'A IA busca as calorias e os macros. Toca ⭐ Favoritos para repetires os habituais.',
+      'A meta e as dicas só aparecem depois de teres idade, altura e sexo (Perfil) e um peso registado em Saúde → Peso.' ] },
+    { id:'bebidas', icon:'🥤', title:'Bebidas e hidratação', how:[
+      'Nutrição → Bebida. Desliza entre as bolas: Água, Café, Sumo, Álcool.',
+      'Toca nos atalhos (ex.: +200 ml) para somar.',
+      'No Sumo escolhe Normal ou Zero — e tens Red Bull 330/500 (a cafeína conta).',
+      'No Álcool escolhe Com ou Sem álcool (Cerveja e Somersby 200/330).',
+      'A cafeína (cafés + géis + Red Bull) soma no total, na bola do Café.' ] },
+    { id:'supp', icon:'💊', title:'Suplementação', how:[
+      'Nutrição → Suplementação → Adicionar.',
+      'Escolhe a marca (Maurten, SIS, GU, 226ers, Gold Nutrition, Nduranz, 4Endurance…).',
+      'Depois a categoria (géis, líquidos, pós) e o produto.',
+      'Escolhe a fase (Pré / Durante / Pós) e a quantidade (até 0.5).',
+      'Kcal e hidratos entram no dia, líquidos contam para a água, a cafeína soma no total. "Recentes" repete num toque.' ] },
+    { id:'prontidao', icon:'🧭', title:'Bem-estar e prontidão', how:[
+      'De manhã: Saúde → Bem-estar. Avalia 1–5 (sono, energia, músculos, stress, humor) e guarda.',
+      'Isto alimenta a bola de Prontidão, no painel.',
+      'No painel, responde "A prontidão bate certo hoje?" (Pior / Certo / Melhor) — o modelo aprende contigo.',
+      'Quantos mais dados registares (sono, cardio, bem-estar, comida), mais fiável fica o número.' ] },
+    { id:'cardio', icon:'❤️', title:'Cardio (FC de repouso)', how:[
+      'Saúde → Cardio.',
+      'Ao acordar, deitado e antes de te levantares, mede a FC de repouso e regista o valor (bpm).',
+      'É o cardio que mais conta para a prontidão.',
+      'Vês também a média de cardio dos treinos. A tensão arterial fica aqui em baixo, opcional.' ] },
+    { id:'painel', icon:'📊', title:'Massa gorda e dicas', how:[
+      'No painel, o cartão Massa gorda mostra a estimativa (peso + altura + idade + sexo) — boa para a tendência.',
+      'Por baixo das bolas aparecem dicas dos últimos 7 dias e das provas a chegar (carb load, défice, água…).',
+      'Ao abrir a app recebes um pop-up de manhã e a meio da tarde.',
+      'Para desligar dicas e pop-up: Perfil → Atleta → Dicas e avisos.' ] },
+    { id:'importar', icon:'📥', title:'Importar treinos', how:[
+      'Perfil → Importar treinos.',
+      'Automático: liga o Strava uma vez e as atividades entram sozinhas.',
+      'Manual: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem).',
+      'Garmin: connect.garmin.com → abre a atividade → engrenagem → Exportar.',
+      'Nos treinos de força/mobilidade, cada exercício tem um ▶ para veres o vídeo.' ] },
+    { id:'c-treino', coach:true, icon:'🏗️', title:'Criar um treino (treinador)', how:[
+      'Modo Treinador → Treinos → "+ Novo treino".',
+      'Monta aquecimento, blocos e séries. Para força/mobilidade escolhe o grupo/zona e os exercícios (chips).',
+      'Cada exercício tem um ▶ que abre uma demonstração em vídeo.',
+      'Marca ★ para guardar nos Favoritos e reutilizar sempre que quiseres.' ] },
+    { id:'c-prescrever', coach:true, icon:'📅', title:'Prescrever a um atleta', how:[
+      'Escolhe o atleta na lista.',
+      'Abre um treino (dos favoritos) e toca em prescrever.',
+      'Toca no dia do calendário do atleta — o treino fica ligado a ele e aparece no "hoje" dele.' ] },
+    { id:'c-cloud', coach:true, icon:'☁️', title:'Ligar-te ao atleta (Cloud)', how:[
+      'Toca no botão ☁ (topo).',
+      'Mostra o QR ou o código ao atleta (ou lê o dele).',
+      'O atleta lê o QR / cola o código — ficam associados e os treinos sincronizam.' ] },
+    { id:'c-atleta', coach:true, icon:'📊', title:'Ver os dados do atleta', how:[
+      'Modo Treinador → separador "Atleta".',
+      'Vês treino, saúde (sono, peso, cardio, bem-estar), prontidão e risco de sobrecarga.',
+      'A periodização mostra a linha do tempo até à prova principal.' ] },
+    { id:'c-periodizacao', coach:true, icon:'📈', title:'Periodização e análise semanal', how:[
+      'No cartão Periodização vês as fases (Base, Construção, Pico, Taper) até à prova principal.',
+      'Toca na timeline para abrir a análise da semana: horas previstas vs feitas + sugestão da IA.',
+      'Podes editar as horas de cada semana (h e min).' ] }
+  ];
+  function _tutEsc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function renderTutorialDir(){
+    const el = document.getElementById('tutorial-dir'); if(!el) return;
+    const _tbtn = g=>'<button type="button" class="tut-open" data-tut="'+g.id+'" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 12px; border-radius:11px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); cursor:pointer;"><span style="font-size:17px;">'+g.icon+'</span><span style="flex:1; font-size:14px; font-weight:600; color:var(--text);">'+_tutEsc(g.title)+'</span><span style="color:var(--text-muted); font-size:18px;">›</span></button>';
+    const _ath = TUTORIAL_GUIDES.filter(g=>!g.coach), _co = TUTORIAL_GUIDES.filter(g=>g.coach);
+    let _h = _ath.map(_tbtn).join('');
+    if(_co.length) _h += '<div style="margin:12px 2px 4px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:700;">'+PL('Treinador','Coach')+'</div>' + _co.map(_tbtn).join('');
+    el.innerHTML = _h;
+    el.querySelectorAll('.tut-open').forEach(b=> b.onclick=()=> openTutorialGuide(b.dataset.tut));
+  }
+  function openTutorialGuide(id){
+    const g = TUTORIAL_GUIDES.find(x=>x.id===id); if(!g) return;
+    const ov = document.createElement('div');
+    ov.style.cssText='position:fixed; inset:0; z-index:9600; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center;';
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+    const illo = TUT_ILLO[id] ? ('<div style="background:#0b0f16; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:8px; margin-bottom:14px;">'+TUT_ILLO[id]+'</div>') : '';
+    ov.innerHTML = '<div style="width:100%; max-width:520px; max-height:88vh; overflow-y:auto; background:var(--card,#151b23); border-radius:18px 18px 0 0; padding:16px 16px 24px; box-shadow:0 -8px 30px rgba(0,0,0,.4);">'
+      + '<div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;"><span style="font-size:20px;">'+g.icon+'</span><strong style="font-size:17px; flex:1;">'+_tutEsc(g.title)+'</strong><button type="button" id="tut-close" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button></div>'
+      + illo
+      + '<ol style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:9px;">'
+      + g.how.map(h=>'<li style="font-size:13.5px; line-height:1.5; color:var(--text);">'+_tutEsc(h)+'</li>').join('')
+      + '</ol></div>';
+    document.body.appendChild(ov);
+    const x=ov.querySelector('#tut-close'); if(x) x.onclick=()=>ov.remove();
+  }
+  (function initTutorialDir(){ try{ renderTutorialDir(); }catch(e){} })();
+
 
   function renderEstadoBalls(){
     const card = document.getElementById('estado-card');
@@ -10124,6 +10369,21 @@ nav.tabbar button.active svg{
     const el = document.getElementById('nutri-insight-text');
     if(!card || !el) return;
     if(typeof tipsNotesOn==='function' && !tipsNotesOn()){ card.style.display='none'; return; }
+    if(!data.goal){
+      const miss = [];
+      if(!profile.age) miss.push(PL('idade','age'));
+      if(!profile.gender) miss.push(PL('sexo','sex'));
+      if(!profile.heightCm) miss.push(PL('altura','height'));
+      const prof = miss.length ? (PL('Completa ','Complete ') + miss.join(', ') + PL(' no perfil',' in the profile')) : '';
+      const needW = !weightEntries.length;
+      let msg;
+      if(prof && needW) msg = prof + PL(' e regista um peso (Saúde › Peso).',' and log a weight (Health › Weight).');
+      else if(prof) msg = prof + PL(' e guarda com "Guardar atleta".',' and save with "Save athlete".');
+      else if(needW) msg = PL('Regista um peso em Saúde › Peso para veres a meta e as dicas.','Log a weight in Health › Weight to see the goal and tips.');
+      else msg = PL('Define a tua meta no perfil para veres as dicas.','Set your goal in the profile to see tips.');
+      el.textContent = msg;
+      card.style.display=''; return;
+    }
     const t = todayStr();
     const h = new Date().getHours();
     const period = h<11 ? 'manha' : (h<15 ? 'meiodia' : (h<19 ? 'tarde' : 'noite'));
@@ -13344,21 +13604,13 @@ nav.tabbar button.active svg{
     if(recentSleep.length){
       const avgHours = recentSleep.reduce((s,e)=>s+e.hours,0)/recentSleep.length;
       const sleepScore100 = Math.max(0, Math.min(100, (avgHours/8)*100));
-      scoreSum += sleepScore100*0.45; weightSum += 0.45;
+      scoreSum += sleepScore100*0.35; weightSum += 0.35;
       let sleepNote = PL(`Sono: média de ${avgHours.toFixed(1)}h nos últimos ${recentSleep.length} registos`,`Sleep: average of ${avgHours.toFixed(1)}h over the last ${recentSleep.length} entries`);
       sleepNote += (avgHours<7?PL(' — abaixo do recomendado (7-9h).',' — below the recommended (7-9h).'):'.');
       notes.push(sleepNote);
     }
 
-    if(stravaActivities.length){
-      const now = new Date(); const cutoff = new Date(now); cutoff.setDate(cutoff.getDate()-6);
-      const last7 = stravaActivities.filter(a=>new Date(a.date)>=cutoff);
-      const hours = last7.reduce((s,a)=>s+a.movingSec/3600,0);
-      const target = 4;
-      const trainScore = Math.max(0, Math.min(100, (hours/target)*100));
-      scoreSum += trainScore*0.40; weightSum += 0.40;
-      notes.push(PL(`Treino: ${hours.toFixed(1)}h somadas nos últimos 7 dias (${last7.length} treinos).`,`Training: ${hours.toFixed(1)}h over the last 7 days (${last7.length} workouts).`));
-    }
+    // O treino saiu do Estado geral: pertence à Prontidão (carga/recuperação). Aqui fica só bem-estar.
 
     if(weightEntries.length >= 1){
       const last = weightEntries[weightEntries.length-1];
@@ -13370,26 +13622,54 @@ nav.tabbar button.active svg{
         weightScore = diff < 1 ? 100 : diff < 2.5 ? 75 : 45;
         weightNote = PL(`Peso: ${last.kg.toFixed(1)} kg, variação de ${(last.kg-prev.kg>=0?'+':'')}${(last.kg-prev.kg).toFixed(1)} kg.`,`Weight: ${last.kg.toFixed(1)} kg, change of ${(last.kg-prev.kg>=0?'+':'')}${(last.kg-prev.kg).toFixed(1)} kg.`);
       }
-      scoreSum += weightScore*0.15; weightSum += 0.15;
+      scoreSum += weightScore*0.30; weightSum += 0.30;
       notes.push(weightNote);
     }
 
     if(profile.age){ notes.push(PL(`Perfil: ${profile.age} anos — contexto usado só para leitura geral.`,`Profile: ${profile.age} years — context used only for a general read.`)); }
 
-    const alcoholTotals = getTodayAlcoholTotals();
-    const penalty = alcoholPenalty(alcoholTotals.units);
-    notes.push(alcoholNoteText(alcoholTotals.units));
+    // Hidratação (hábito): média dos últimos 3 dias vs meta.
+    try{
+      const goalMl = getDailyWaterGoalMl();
+      if(goalMl>0){
+        let sumR=0, nD=0;
+        for(let d=1; d<=3; d++){
+          const dt=new Date(); dt.setHours(12,0,0,0); dt.setDate(dt.getDate()-d);
+          const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+          const ml=hydrationEntries.filter(e=>e.date===ds).reduce((s,e)=>s+(e.ml||0),0);
+          if(ml>0){ sumR += Math.min(1, ml/goalMl); nD++; }
+        }
+        if(nD>0){ const hydroScore=(sumR/nD)*100; scoreSum += hydroScore*0.35; weightSum += 0.35;
+          notes.push(PL('Hidratação: ~'+Math.round((sumR/nD)*100)+'% da meta nos últimos dias.','Hydration: ~'+Math.round((sumR/nD)*100)+'% of goal recently.')); }
+      }
+    }catch(e){}
+
+    // Álcool: média dos últimos 7 dias (não só hoje) — uma noite não afunda o estado.
+    let weeklyUnits = 0;
+    try{
+      for(let d=0; d<7; d++){
+        const dt=new Date(); dt.setHours(12,0,0,0); dt.setDate(dt.getDate()-d);
+        const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+        weeklyUnits += alcoholEntries.filter(e=>e.date===ds).reduce((s,e)=>s+(Number(e.units)||0),0);
+      }
+    }catch(e){}
+    const penalty = Math.min(20, Math.max(0, Math.round((weeklyUnits - 4) * 1.6)));
+    notes.push(weeklyUnits>0 ? PL('Álcool: ~'+(Math.round(weeklyUnits*10)/10)+' unidades nos últimos 7 dias.','Alcohol: ~'+(Math.round(weeklyUnits*10)/10)+' units over the last 7 days.') : PL('Álcool: sem registos esta semana.','Alcohol: none logged this week.'));
 
     if(weightSum === 0) return null;
     const baseOverall = Math.round(scoreSum/weightSum);
-    const overall = Math.max(0, baseOverall - penalty);
+    // #5 A confiança (quantos domínios foram medidos) aproxima o valor de um neutro (65).
+    const confW = Math.min(1, weightSum + 0.15);
+    const confidencePct = Math.round(confW*100);
+    const shrunk = Math.round(baseOverall*confW + 65*(1-confW));
+    const overall = Math.max(0, shrunk - penalty);
     let title, ringColor;
     if(overall>=80){ title=PL('Muito bom','Very good'); ringColor='#35D9A6'; }
     else if(overall>=65){ title=PL('Bom','Good'); ringColor='#35D9A6'; }
     else if(overall>=50){ title=PL('Razoável','Fair'); ringColor='#F2B84B'; }
     else{ title=PL('Precisa de atenção','Needs attention'); ringColor='#F2555A'; }
 
-    return { overall, title, ringColor, notes };
+    return { overall, title, ringColor, notes, confidencePct };
   }
 
   function renderDashboard(){
@@ -13581,11 +13861,13 @@ nav.tabbar button.active svg{
     setVal('profile-age', profile.age || '');
     setVal('profile-gender', profile.gender || '');
     setVal('profile-height', profile.heightCm || '');
+    setVal('profile-weight', (weightEntries.length ? weightEntries[weightEntries.length-1].kg : ''));
     setVal('profile-activity', (profile.activityLevel!=null) ? profile.activityLevel : '');
 
     weightEntries = await sGet('weight-entries', []);
     sleepEntries = await sGet('sleep-entries', []);
     bpEntries = await sGet('bp-entries', []);
+    wellnessEntries = await sGet('wellness-entries', []);
     plannedWorkouts = await sGet('planned-workouts', []);
     planFeedback = await sGet('plan-feedback', {}) || {};
     planMessages = await sGet('plan-messages', {}) || {};
@@ -22347,95 +22629,58 @@ document.addEventListener("click", function(e){
   // Passos do guia da ÁREA DE ATLETA. Cada passo abre o separador certo, foca uma zona
   // e explica. 'focusSel' = elemento a centrar; 'demo' = pequena demonstração ao vivo.
   var ATHLETE_STEPS = [
-    { tab:'dashboard', focusSel:'#estado-card', emoji:'👋',
+    { tab:'dashboard', focusSel:'#estado-swipe', demo:'estado', emoji:'👋',
       t:['Bem-vindo ao Pulso','Welcome to Pulso'],
-      b:['Em meio minuto mostro-te como funciona. Este é o teu Painel. O anel grande é o teu Estado geral — resume os teus hábitos recentes (sono, treino, peso, álcool). Toca no anel para veres a avaliação detalhada.',
-         'In half a minute I\'ll show you how it works. This is your Dashboard. The big ring is your Overall status — it sums up your recent habits (sleep, training, weight, alcohol). Tap the ring to see the detailed assessment.'] },
-    { tab:'dashboard', focusSel:'#estado-swipe', demo:'estado', emoji:'🎯',
-      t:['As tuas bolas de estado','Your status rings'],
-      b:['Por baixo tens bolas que deslizam. A "Estado geral" (bem-estar) e a "Prontidão para treino" (estás recuperado ou em risco de sobrecarga, cruzando carga e recuperação). Desliza para passar de uma para a outra e toca em qualquer uma para saber o porquê. Se fores do sexo feminino, aparece também a do ciclo.',
-         'Below you have rings you can swipe. "Overall status" (wellbeing) and "Training readiness" (whether you\'re recovered or at overload risk, combining load and recovery). Swipe to move between them and tap either one to see why. If you\'re female, a cycle ring also appears.'] },
-    { tab:'hidratacao', focusSel:'#tab-hidratacao .subtabs', emoji:'🥤',
-      t:['Nutrição e hidratação','Nutrition & hydration'],
-      b:['Aqui registas o que comes e bebes. Em "Comida" (à esquerda) escreves o alimento e a quantidade — a IA vai buscar as calorias e os macros de qualquer alimento. Toca em ⭐ Favoritos para escolheres rapidamente os que mais usas. Em "Bebida" (à direita) escolhes (Água, Café…) e tocas para somar.',
-         'Here you log what you eat and drink. Under "Food" (left) type the food and amount — the AI fetches calories and macros for any food. Tap ⭐ Favorites to quickly pick the ones you use most. Under "Drink" (right) pick one (Water, Coffee…) and tap to add.'] },
+      b:['Em 30 segundos: este é o Painel. As bolas que deslizam são o teu Estado geral e a Prontidão para treino — toca numa para saber o porquê. Por baixo tens o cartão de Massa gorda e as dicas do dia.',
+         'In 30 seconds: this is the Dashboard. The swiping rings are your Overall status and Training readiness — tap one to see why. Below you have the Body fat card and the daily tips.'] },
+    { tab:'hidratacao', focusSel:'#tab-hidratacao .subtabs', emoji:'🍎',
+      t:['Nutrição','Nutrition'],
+      b:['Três separadores: Comida (escreve o alimento e a quantidade, a IA faz o resto), Bebida (desliza entre as bolas e toca para somar) e Suplementação. Guia detalhado em Perfil → Guias.',
+         'Three tabs: Food (type the food and amount, the AI does the rest), Drink (swipe between rings and tap to add) and Supplements. Detailed guide in Profile → Guides.'] },
     { tab:'treinos', focusSel:'#tab-treinos .subtabs', emoji:'🏁',
       t:['Treinos e provas','Training & races'],
-      b:['Aqui defines as tuas "Provas" — ao criar cada uma escolhes se é Principal ou Secundária (a principal comanda a periodização). Vês também os treinos que o treinador te prescreve: no treino de hoje marca "Feito", "Não fiz" ou "Fiz diferente", diz como correu e carrega em "Confirmar e enviar ao treinador". Liga o Strava (no Perfil) para importares as atividades automaticamente.',
-         'Here you set your "Races" — when creating each one you choose Main or Secondary (the main race drives the periodization). You also see the workouts your coach prescribes: on today\'s workout tap "Done", "Skipped" or "Did differently", say how it went and hit "Confirm & send to coach". Connect Strava (in Profile) to import activities automatically.'] },
+      b:['Cria as tuas provas e vê os treinos do treinador. No treino de hoje marca Feito / Não fiz / Diferente e confirma. Liga o Strava (Perfil) para importar tudo.',
+         'Create your races and see the workouts from your coach. On the workout for today tap Done / Skipped / Different and confirm. Connect Strava (Profile) to import everything.'] },
     { tab:'saude', focusSel:'#tab-saude .subtabs', emoji:'❤️',
       t:['Saúde','Health'],
-      b:['Regista o sono, o peso e a tensão arterial — escolhe o separador, mete o valor e guarda. Se fores do sexo feminino, tens também campos de saúde feminina (ciclo menstrual), que ajustam as leituras de prontidão. Com alguns dias, aparecem os gráficos de tendência.',
-         'Log your sleep, weight and blood pressure — pick the tab, enter the value and save. If you\'re female, you also get female-health fields (menstrual cycle) that adjust the readiness reads. After a few days, the trend charts appear.'] },
+      b:['Separadores: Sono, Peso, Cardio (FC de repouso ao acordar) e Bem-estar (avalia como acordaste, 1–5). Estes dados alimentam a prontidão.',
+         'Tabs: Sleep, Weight, Cardio (resting HR on waking) and Well-being (rate how you woke up, 1–5). This data feeds readiness.'] },
     { tab:'perfil', focusSel:'#tab-perfil', emoji:'⚙️',
       t:['O teu perfil','Your profile'],
-      b:['No topo escolhes o Tipo de conta — Atleta (treinas-te a ti) ou Treinador (acompanhas vários atletas na área de Treinador). Preenche também os teus dados (idade, altura, sexo…) para os cálculos serem certos. Aqui importas treinos, defines zonas e mudas o idioma.',
-         'At the top you pick the Account type — Athlete (you train yourself) or Coach (you follow several athletes in the Coach area). Also fill in your data (age, height, sex…) so the calculations are accurate. Here you import workouts, set zones and change the language.'] },
-    { tab:'perfil', profileTab:'strava', focusSel:'#btn-import-workouts', emoji:'📥',
-      t:['Importar treinos','Import workouts'],
-      b:['Em Perfil → "Importar treinos" há duas formas. AUTOMÁTICO: liga o Strava uma vez e as atividades entram sozinhas. MANUAL: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem — a app abre-o). No Garmin, exporta em connect.garmin.com (abre a atividade → engrenagem → Exportar). Os treinos entram no histórico e alimentam os cálculos.',
-         'In Profile → "Import workouts" there are two ways. AUTOMATIC: connect Strava once and activities come in on their own. MANUAL: load the file from your watch (.FIT, .TCX, .GPX, or the .ZIP as it comes — the app opens it). For Garmin, export at connect.garmin.com (open the activity → gear → Export). Workouts feed your history and the calculations.'] },
-    { tab:'dashboard', focusSel:'#estado-card', emoji:'🎉',
-      t:['Tudo pronto!','All set!'],
-      b:['Já sabes o essencial. Começa por preencher o teu perfil e registar a primeira água ou refeição. Podes rever este guia quando quiseres em Perfil → "Ver tutorial". Bons treinos!',
-         'You know the essentials now. Start by filling in your profile and logging your first water or meal. You can replay this guide anytime in Profile → "View tutorial". Enjoy!'] }
+      b:['Preenche os teus dados (idade, altura, sexo, atividade) — sem eles não há metas nem dicas. Escolhe Atleta ou Treinador, importa treinos e define zonas.',
+         'Fill in your data (age, height, sex, activity) — without them there are no goals or tips. Pick Athlete or Coach, import workouts and set zones.'] },
+    { tab:'perfil', profileTab:'guias', focusSel:'#tutorial-dir', emoji:'📚',
+      t:['Guias quando precisares','Guides when you need them'],
+      b:['Já sabes o essencial. Para o "como se faz" de cada função — bebidas, suplementação, bem-estar, cardio… — abre Perfil → Guias, com explicações ilustradas. Bons treinos!',
+         'You know the essentials. For the how-to of each feature — drinks, supplements, well-being, cardio… — open Profile → Guides, with illustrated explanations. Enjoy!'] }
   ];
 
-  // Passos do guia da ÁREA DE TREINADOR. 'coachTab' abre "treinos"/"atleta".
   var COACH_STEPS = [
     { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🧑‍🏫',
-      t:['Bem-vindo ao Modo Treinador','Welcome to Coach Mode'],
-      b:['Tens duas áreas, em cima: "Treinos" (criar treinos e planear) e "Atleta" (ver os dados de quem treinas). Vou mostrar-te o fluxo essencial.',
-         'You have two areas at the top: "Workouts" (create workouts and plan) and "Athlete" (see the data of who you train). Let me show you the essential flow.'] },
+      t:['Modo Treinador','Coach Mode'],
+      b:['Em cima tens duas áreas: "Treinos" (criar e planear) e "Atleta" (ver os dados de quem treinas). O fluxo é: cria → escolhe atleta → prescreve → liguem-se pela Cloud.',
+         'At the top you have two areas: "Workouts" (create and plan) and "Athlete" (see the data of who you train). The flow is: create → choose athlete → prescribe → connect via Cloud.'] },
     { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🏗️',
-      t:['1. Cria um treino','1. Create a workout'],
-      b:['Toca em "+ Novo treino" para montar um treino (aquecimento, blocos, séries…). Ao guardar, marca a estrela ★ para o pores nos Favoritos e o reutilizares sempre que quiseres.',
-         'Tap "+ New workout" to build a workout (warm-up, blocks, sets…). When saving, tick the star ★ to add it to Favorites and reuse it whenever you want.'] },
-    { coachTab:'treinos', focusSel:'#coach-workouts-list', emoji:'⭐',
-      t:['2. A tua biblioteca','2. Your library'],
-      b:['Os treinos favoritos aparecem aqui. Abre um pelo nome para o editar ou para o prescrever a um atleta.',
-         'Your favorite workouts appear here. Open one by name to edit it or to prescribe it to an athlete.'] },
-    { coachTab:'treinos', focusSel:'#coach-athletes-list', emoji:'👥',
-      t:['3. Escolhe o atleta','3. Choose the athlete'],
-      b:['Escolhe o atleta para quem estás a planear. Os atletas ligam-se pela Cloud (☁) — no telemóvel deles, ficam associados a ti.',
-         'Choose the athlete you are planning for. Athletes connect via Cloud (☁) — on their phone, they get linked to you.'] },
+      t:['Cria um treino','Create a workout'],
+      b:['Toca em "+ Novo treino" e monta-o (aquecimento, blocos, séries). Nos blocos de força e mobilidade cada exercício tem um ▶ (vídeo). Marca ★ para guardar nos Favoritos e reutilizar.',
+         'Tap "+ New workout" and build it (warm-up, blocks, sets). In strength and mobility blocks each exercise has a ▶ (video). Tick ★ to save to Favorites and reuse.'] },
     { coachTab:'treinos', focusSel:'#coach-calendar', emoji:'📅',
-      t:['4. Prescreve no calendário','4. Prescribe on the calendar'],
-      b:['Para prescrever: abre um treino, toca em prescrever e depois no dia do calendário do atleta escolhido. O treino fica ligado a esse atleta automaticamente e aparece no "hoje" dele.',
-         'To prescribe: open a workout, tap prescribe, then tap the day on the chosen athlete calendar. The workout links to that athlete automatically and shows up in their "today".'] },
+      t:['Escolhe o atleta e prescreve','Choose athlete & prescribe'],
+      b:['Escolhe o atleta, abre um treino, toca em prescrever e depois no dia do calendário dele. O treino aparece no "hoje" do atleta.',
+         'Choose the athlete, open a workout, tap prescribe, then tap the day on their calendar. The workout shows up in the athlete today.'] },
     { coachTab:'treinos', focusSel:'#pulso-cloud-btn', emoji:'☁️',
-      t:['5. Liga-te pela Cloud','5. Connect via Cloud'],
-      b:['Para os treinos chegarem mesmo ao atleta, liguem-se pela Cloud. No botão ☁ (topo) obténs um QR code ou um código para partilhar. O atleta lê o QR / cola o código (ou tu o dele) e ficam associados — a partir daí os treinos sincronizam e ele vê-os.',
-         'For workouts to actually reach the athlete, connect via Cloud. On the ☁ button (top) you get a QR code or a code to share. The athlete scans the QR / pastes the code (or you paste theirs) and you get linked — from then on workouts sync and they see them.'] },
+      t:['Liga-te pela Cloud','Connect via Cloud'],
+      b:['Para os treinos chegarem ao atleta, liguem-se pela Cloud. No botão ☁ (topo) tens um QR ou um código para partilhar. O atleta lê o QR ou cola o código e ficam associados.',
+         'For workouts to reach the athlete, connect via Cloud. On the ☁ button (top) you get a QR or a code to share. The athlete scans the QR or pastes the code and you get linked.'] },
     { coachTab:'atleta', focusSel:'#coach-tab-atleta', emoji:'📊',
-      t:['6. Vê os dados do atleta','6. See the athlete data'],
-      b:['No separador "Atleta" vês tudo do atleta escolhido: tempo e distância de treino, saúde (sono, peso, tensão), prontidão/risco de sobrecarga e o resumo dos últimos dias.',
-         'In the "Athlete" tab you see everything about the chosen athlete: training time and distance, health (sleep, weight, BP), readiness/overload risk and the summary of recent days.'] },
-    { coachTab:'treinos', focusSel:'#coach-period-body', emoji:'🏁',
-      t:['Prova principal e secundárias','Main and secondary races'],
-      b:['O atleta pode ter várias provas e escolhe uma como PRINCIPAL (no campo Prioridade, ao criar a prova). É a principal que comanda a periodização e a timeline; as secundárias aparecem no calendário mas não mandam no plano. No calendário, a principal é âmbar e a secundária roxa.',
-         'An athlete can have several races and picks one as MAIN (in the Priority field when creating the race). The main race drives the periodization and timeline; secondary races show on the calendar but do not drive the plan. On the calendar, the main is amber and the secondary purple.'] },
-    { coachTab:'treinos', focusSel:'#coach-period-body', emoji:'📈',
-      t:['Periodização até à prova','Periodization to race day'],
-      b:['O cartão Periodização mostra a linha do tempo até à prova principal: barras cinzentas = carga real recente, linha HOJE, e as fases coloridas (Base, Construção, Pico, Taper) até à bandeira. Escala em horas/semana.',
-         'The Periodization card shows the timeline to the main race: grey bars = recent real load, the TODAY line, and the coloured phases (Base, Build, Peak, Taper) up to the flag. Scale in hours/week.'] },
-    { coachTab:'treinos', focusSel:'#coach-period-body', emoji:'🔍',
-      t:['Analisar semana a semana','Analyse week by week'],
-      b:['Toca na timeline para abrir a análise: horas previstas (barra roxa) vs feitas (barra da cor da fase), com uma linha branca = sugestão da IA, que se ajusta ao estado do atleta (sono, FC, carga, nutrição). Podes editar as horas de cada semana (em h e min) e ver também o nº de treinos marcados vs feitos.',
-         'Tap the timeline to open the analysis: planned hours (purple bar) vs done (phase-coloured bar), with a white line = AI suggestion, adjusted to the athlete state (sleep, HR, load, nutrition). You can edit each week hours (in h and min) and also see marked vs done workouts.'] },
-    { coachTab:'treinos', focusSel:'#coach-treinos-cards-btn', emoji:'🗂️',
-      t:['Organiza os teus cartões','Organize your cards'],
-      b:['No fim de cada área ("Treinos" e "Atleta") tens "⚙ Personalizar cartões": mostra/oculta (👁/🚫) e reordena com as setas ↑↓ os cartões que quiseres. A tua organização fica guardada.',
-         'At the end of each area ("Workouts" and "Athlete") there is "⚙ Customize cards": show/hide (👁/🚫) and reorder with the ↑↓ arrows. Your layout is saved.'] },
-    { coachTab:'atleta', focusSel:'#coach-athlete-data', emoji:'✅',
-      t:['Treinos confirmados pelo atleta','Athlete-confirmed workouts'],
-      b:['Quando o atleta marca um treino como Feito e confirma, ele conta como efetuado no calendário, na semana de relance e na análise — mesmo sem Strava. Assim segues o cumprimento do plano de quem não usa relógio ligado.',
-         'When the athlete marks a workout as Done and confirms, it counts as completed on the calendar, the week glance and the analysis — even without Strava. This lets you track plan adherence for those without a connected watch.'] },
-    { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🎉',
-      t:['Tudo pronto!','All set!'],
-      b:['O fluxo é: cria o treino → escolhe o atleta → prescreve no dia → liguem-se pela Cloud. A partir daí é acompanhar os dados. Bons treinos!',
-         'The flow is: create the workout → choose the athlete → prescribe on the day → connect via Cloud. From there, just follow the data. Enjoy!'] }
-  ];
+      t:['Vê os dados do atleta','See the athlete data'],
+      b:['No separador "Atleta" vês tudo: treino, saúde (sono, peso, cardio), prontidão/risco de sobrecarga e a periodização até à prova principal (toca na timeline para a análise semanal).',
+         'In the "Athlete" tab you see everything: training, health (sleep, weight, cardio), readiness/overload risk and the periodization to the main race (tap the timeline for the weekly analysis).'] },
+    { coachTab:'treinos', focusSel:'#pulso-cloud-btn', emoji:'📚',
+      t:['Guias quando precisares','Guides when you need them'],
+      b:['Já tens o essencial. Para o "como se faz" detalhado, os guias ilustrados estão em Perfil → Guias (secção Treinador). Bons treinos!',
+         'You have the essentials. For the detailed how-to, the illustrated guides are in Profile → Guides (Coach section). Enjoy!'] }
+  ]
 
   var STEPS = ATHLETE_STEPS;               // conjunto ativo
   var DONE_KEY_ATHLETE = 'pulso_onboarded';
