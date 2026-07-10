@@ -7136,9 +7136,6 @@ nav.tabbar button.active svg{
           <div class="row" style="margin-top:8px;">
             <button class="ghost" id="btn-restore-backup" type="button" data-i18n="Restore backup">Restaurar cópia de segurança</button>
           </div>
-          <div class="row" style="margin-top:8px;">
-            <button class="ghost" id="btn-replay-tutorial" type="button" data-i18n="View tutorial">Ver tutorial</button>
-          </div>
           <p class="help" style="margin:8px 0 0; font-size:11.5px;" data-i18n="Automatic local backups are kept before each cloud sync, in case anything is overwritten.">São guardadas cópias locais automáticas antes de cada sincronização com a cloud, caso algo seja sobreposto.</p>
         </div>
       </div>
@@ -7152,11 +7149,12 @@ nav.tabbar button.active svg{
             </div>
           </div>
           <div id="tutorial-dir" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;"></div>
+          <button class="ghost" id="btn-replay-tutorial" type="button" data-i18n="Replay intro tour" style="width:100%; margin-top:12px;">▶ Rever tour de introdução</button>
         </div>
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 81</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 82</p>
 
 
 </section>
@@ -9191,12 +9189,18 @@ nav.tabbar button.active svg{
     let list = tips;
     if(mode==='am') list = tips.filter(t=>t.slot==='review' || t.slot==='race');
     else if(mode==='pm') list = tips.filter(t=>t.slot==='today' || t.slot==='race' || t.slot==='recovery');
+    else if(mode==='ball-prontidao') list = tips.filter(t=>['🏁','🍝','🗓️','😴','🔁','⚡'].indexOf(t.icon)>=0);
+    else if(mode==='ball-estado') list = tips.filter(t=>['⚖️','📉','📈','💧','🍗','🍽️','🛑'].indexOf(t.icon)>=0);
 
     list.sort((a,b)=>(b.pr||0)-(a.pr||0));
 
-    // Sem prova perto e poucas notas -> vida saudável (rotativo)
+    // Fallback da prontidão (sem alertas de treino)
+    if(mode==='ball-prontidao' && !list.length){
+      list.push({icon:'✅', pr:10, slot:'healthy', text:'Sem alertas de treino — carga e recuperação equilibradas. Bom para carregar.'});
+    }
+    // Sem prova perto e poucas notas -> vida saudável (rotativo) — só bem-estar/geral
     const hasRace = list.some(x=>x.slot==='race');
-    if(!hasRace && list.length < 2){
+    if(mode!=='ball-prontidao' && !hasRace && list.length < 2){
       const healthy = [
         {icon:'🥗', text:'Sem prova à vista — foca em comer saudável: proteína em todas as refeições e metade do prato de vegetais.'},
         {icon:'🐟', text:'Prioriza comida real: peixe, ovos, leguminosas, fruta e cereais integrais em vez de processados.'},
@@ -9213,12 +9217,14 @@ nav.tabbar button.active svg{
   function renderEstadoTips(){
     const el = document.getElementById('estado-tips'); if(!el) return;
     if(!tipsNotesOn()){ el.innerHTML=''; el.style.display='none'; return; }
-    let tips=[]; try{ tips = buildDayInsights(null); }catch(e){ tips=[]; }
+    const _active = (window._estadoActive)||'geral';
+    const _mode = (_active==='treino') ? 'ball-prontidao' : 'ball-estado';
+    let tips=[]; try{ tips = buildDayInsights(_mode); }catch(e){ tips=[]; }
     const miss = (new Date().getHours() < 13) ? _morningMissing() : [];
     // Auto-calibração: feedback do atleta sobre a prontidão de hoje.
     let calRow='';
     try{
-      const r = (window.PulsoReadiness && window.PulsoReadiness.compute) ? window.PulsoReadiness.compute(readinessLocalGet) : null;
+      const r = (_active==='treino' && window.PulsoReadiness && window.PulsoReadiness.compute) ? window.PulsoReadiness.compute(readinessLocalGet) : null;
       if(r && r.hasData){
         if(localStorage.getItem('pulso:cal-fb-date')===todayStr()){
           calRow='<div style="margin-top:12px; font-size:11px; color:var(--text-muted);">'+PL('Feedback de hoje registado ✓','Today\'s feedback saved ✓')+'</div>';
@@ -9365,6 +9371,9 @@ nav.tabbar button.active svg{
     importar: '<svg viewBox="0 0 300 140"><rect x="18" y="30" width="86" height="44" rx="10" fill="rgba(252,82,0,.12)" stroke="#FC5200"/><text x="61" y="57" fill="#FC5200" font-size="13" font-weight="800" text-anchor="middle" font-family="sans-serif">Strava</text><rect x="18" y="84" width="86" height="34" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)"/><text x="61" y="105" fill="#e8eef5" font-size="11" text-anchor="middle" font-family="sans-serif">.FIT / .ZIP</text><path d="M112 68h40" stroke="#8894a8" stroke-width="2"/><path d="M150 64l7 4-7 4z" fill="#8894a8"/><rect x="168" y="26" width="114" height="90" rx="10" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.12)"/><g stroke="rgba(53,217,166,.6)" stroke-width="2"><path d="M182 46h86M182 68h86M182 90h60"/></g></svg>',
     'c-treino':'<svg viewBox="0 0 300 140"><rect x="16" y="20" width="120" height="18" rx="6" fill="rgba(53,217,166,.18)"/><rect x="16" y="46" width="90" height="14" rx="5" fill="rgba(255,255,255,.1)"/><rect x="16" y="68" width="150" height="14" rx="5" fill="rgba(255,255,255,.1)"/><rect x="16" y="94" width="58" height="26" rx="13" fill="rgba(53,217,166,.14)" stroke="#35D9A6"/><text x="45" y="111" fill="#35D9A6" font-size="11" text-anchor="middle" font-family="sans-serif">Chip</text><text x="196" y="66" fill="#F2B84B" font-size="26" font-family="sans-serif">▶</text><text x="228" y="62" fill="#8894a8" font-size="12" font-family="sans-serif">vídeo</text><text x="252" y="34" fill="#F2B84B" font-size="20" font-family="sans-serif">★</text></svg>',
     'c-cloud':'<svg viewBox="0 0 300 140"><rect x="112" y="16" width="76" height="76" rx="8" fill="#ffffff"/><g fill="#0b0f16"><rect x="120" y="24" width="20" height="20"/><rect x="160" y="24" width="20" height="20"/><rect x="120" y="64" width="20" height="20"/><rect x="150" y="54" width="10" height="10"/><rect x="168" y="64" width="12" height="12"/><rect x="150" y="74" width="10" height="10"/></g><text x="150" y="112" fill="#8894a8" font-size="12" text-anchor="middle" font-family="sans-serif">Lê o QR ou cola o código</text></svg>'
+    ,'c-prescrever':'<svg viewBox="0 0 300 140"><rect x="14" y="36" width="88" height="64" rx="10" fill="rgba(53,217,166,.1)" stroke="rgba(53,217,166,.45)"/><text x="58" y="72" fill="#35D9A6" font-size="12" text-anchor="middle" font-family="sans-serif">Treino</text><path d="M108 68h24" stroke="#8894a8" stroke-width="2"/><path d="M130 64l7 4-7 4z" fill="#8894a8"/><rect x="150" y="30" width="136" height="80" rx="10" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.12)"/><g fill="none" stroke="rgba(255,255,255,.18)"><rect x="162" y="44" width="30" height="22" rx="4"/><rect x="200" y="44" width="30" height="22" rx="4"/><rect x="238" y="44" width="30" height="22" rx="4"/><rect x="162" y="72" width="30" height="22" rx="4"/><rect x="238" y="72" width="30" height="22" rx="4"/></g><rect x="200" y="72" width="30" height="22" rx="4" fill="rgba(53,217,166,.3)" stroke="#35D9A6"/><text x="215" y="88" fill="#35D9A6" font-size="12" text-anchor="middle" font-family="sans-serif">✓</text></svg>'
+    ,'c-atleta':'<svg viewBox="0 0 300 140"><circle cx="66" cy="58" r="30" fill="none" stroke="rgba(53,217,166,.2)" stroke-width="7"/><circle cx="66" cy="58" r="30" fill="none" stroke="#35D9A6" stroke-width="7" stroke-linecap="round" stroke-dasharray="132 188" transform="rotate(-90 66 58)"/><text x="66" y="63" fill="#e8eef5" font-size="16" font-weight="700" text-anchor="middle" font-family="sans-serif">78</text><text x="66" y="104" fill="#8894a8" font-size="10" text-anchor="middle" font-family="sans-serif">Prontidão</text><g fill="#5B8DEF"><rect x="150" y="58" width="15" height="34"/><rect x="173" y="44" width="15" height="48"/><rect x="196" y="52" width="15" height="40"/><rect x="219" y="38" width="15" height="54"/><rect x="242" y="56" width="15" height="36"/></g><text x="203" y="106" fill="#8894a8" font-size="10" text-anchor="middle" font-family="sans-serif">Carga de treino</text></svg>'
+    ,'c-periodizacao':'<svg viewBox="0 0 300 140"><rect x="16" y="58" width="62" height="16" fill="#4DA3FF"/><rect x="78" y="58" width="68" height="16" fill="#35D9A6"/><rect x="146" y="58" width="60" height="16" fill="#F2B84B"/><rect x="206" y="58" width="54" height="16" fill="#F2555A"/><path d="M112 40v52" stroke="#ffffff" stroke-width="1.4" stroke-dasharray="3 3"/><text x="112" y="36" fill="#ffffff" font-size="9" text-anchor="middle" font-family="sans-serif">HOJE</text><path d="M260 40v40" stroke="#e8eef5" stroke-width="2"/><path d="M260 42h14v10h-14z" fill="#e8eef5"/><text x="47" y="92" fill="#8894a8" font-size="9" text-anchor="middle" font-family="sans-serif">Base</text><text x="112" y="92" fill="#8894a8" font-size="9" text-anchor="middle" font-family="sans-serif">Construção</text><text x="176" y="92" fill="#8894a8" font-size="9" text-anchor="middle" font-family="sans-serif">Pico</text><text x="233" y="92" fill="#8894a8" font-size="9" text-anchor="middle" font-family="sans-serif">Taper</text></svg>'
   };
   const TUTORIAL_GUIDES = [
     { id:'comida', icon:'📝', title:'Registar comida', how:[
@@ -9406,26 +9415,36 @@ nav.tabbar button.active svg{
       'Garmin: connect.garmin.com → abre a atividade → engrenagem → Exportar.',
       'Nos treinos de força/mobilidade, cada exercício tem um ▶ para veres o vídeo.' ] },
     { id:'c-treino', coach:true, icon:'🏗️', title:'Criar um treino (treinador)', how:[
-      'Modo Treinador → Treinos → "+ Novo treino".',
-      'Monta aquecimento, blocos e séries. Para força/mobilidade escolhe o grupo/zona e os exercícios (chips).',
-      'Cada exercício tem um ▶ que abre uma demonstração em vídeo.',
-      'Marca ★ para guardar nos Favoritos e reutilizar sempre que quiseres.' ] },
+      'Modo Treinador → separador "Treinos" → "+ Novo treino". Dá um nome e escolhe o desporto.',
+      'Adiciona blocos: aquecimento, principal e retorno à calma. No principal escolhe o tipo (séries, intervalos, progressivo, over/under, pirâmide).',
+      'Em cada série define o alvo por zona — pace, FC, potência (watts) ou RPE — e a duração/distância e a recuperação.',
+      'Para força/mobilidade escolhe o grupo (Força, Hyrox, Funcional) ou a zona do corpo e adiciona os exercícios como chips.',
+      'Cada exercício tem um ▶ que abre a demonstração em vídeo.',
+      'Guarda e marca ★ para ir aos Favoritos — a tua biblioteca reutilizável.' ] },
     { id:'c-prescrever', coach:true, icon:'📅', title:'Prescrever a um atleta', how:[
-      'Escolhe o atleta na lista.',
-      'Abre um treino (dos favoritos) e toca em prescrever.',
-      'Toca no dia do calendário do atleta — o treino fica ligado a ele e aparece no "hoje" dele.' ] },
+      'No separador "Treinos", escolhe primeiro o atleta na lista.',
+      'Abre um treino da tua biblioteca (Favoritos) pelo nome.',
+      'Toca em "Prescrever" e depois no dia pretendido do calendário do atleta.',
+      'O treino fica ligado a esse atleta e aparece no "hoje" dele (a teal no calendário).',
+      'Podes prescrever vários dias e editar/remover. As provas do atleta aparecem a âmbar (principal) e roxo (secundária).' ] },
     { id:'c-cloud', coach:true, icon:'☁️', title:'Ligar-te ao atleta (Cloud)', how:[
-      'Toca no botão ☁ (topo).',
-      'Mostra o QR ou o código ao atleta (ou lê o dele).',
-      'O atleta lê o QR / cola o código — ficam associados e os treinos sincronizam.' ] },
+      'Toca no botão ☁ (topo direito) para abrir a ligação Cloud.',
+      'Mostra o teu QR ou código ao atleta — ou lê o dele com a câmara.',
+      'O atleta lê o QR / cola o código no telemóvel dele.',
+      'Ficam associados: os treinos que prescreves sincronizam e ele vê os teus planos.',
+      'A ligação usa o ID atleta+treinador e só sincroniza depois de ambos confirmarem.' ] },
     { id:'c-atleta', coach:true, icon:'📊', title:'Ver os dados do atleta', how:[
-      'Modo Treinador → separador "Atleta".',
-      'Vês treino, saúde (sono, peso, cardio, bem-estar), prontidão e risco de sobrecarga.',
-      'A periodização mostra a linha do tempo até à prova principal.' ] },
+      'Modo Treinador → separador "Atleta" (com o atleta escolhido).',
+      'Resumo: tempo e distância de treino dos últimos dias e as atividades importadas.',
+      'Saúde: sono, peso, cardio (FC de repouso) e bem-estar subjetivo.',
+      'As bolas de Prontidão e Estado geral do atleta, com o risco de sobrecarga.',
+      'Toca numa atividade para abrir o gráfico completo (FC, pace, potência).' ] },
     { id:'c-periodizacao', coach:true, icon:'📈', title:'Periodização e análise semanal', how:[
-      'No cartão Periodização vês as fases (Base, Construção, Pico, Taper) até à prova principal.',
-      'Toca na timeline para abrir a análise da semana: horas previstas vs feitas + sugestão da IA.',
-      'Podes editar as horas de cada semana (h e min).' ] }
+      'O cartão Periodização mostra a linha do tempo até à prova PRINCIPAL do atleta.',
+      'Fases coloridas: Base, Construção, Pico e Taper, com a linha "HOJE" e a bandeira na prova.',
+      'Barras cinzentas = carga real recente; escala em horas/semana.',
+      'Toca na timeline para a análise da semana: horas previstas (roxo) vs feitas (cor da fase) + linha branca = sugestão da IA, ajustada ao estado do atleta.',
+      'Podes editar as horas de cada semana (h e min) e ver treinos marcados vs feitos.' ] }
   ];
   function _tutEsc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function renderTutorialDir(){
@@ -9556,6 +9575,11 @@ nav.tabbar button.active svg{
     if(sw) sw.addEventListener('scroll', ()=>{
       const i = Math.round(sw.scrollLeft / Math.max(1, sw.clientWidth));
       document.querySelectorAll('#estado-dots .estado-dot').forEach((d,idx)=> d.classList.toggle('active', idx===i));
+      try{
+        const pages = Array.from(document.querySelectorAll('#estado-swipe .estado-page')).filter(pg=>pg.style.display!=='none');
+        const act = pages[i] ? pages[i].getAttribute('data-estado') : 'geral';
+        if(window._estadoActive !== act){ window._estadoActive = act; try{ renderEstadoTips(); }catch(e){} }
+      }catch(e){}
     });
   })();
 
