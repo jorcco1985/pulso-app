@@ -7158,7 +7158,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 89</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 92</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -7677,7 +7677,7 @@ nav.tabbar button.active svg{
     resizeCharts();
   }
 
-  document.getElementById('d-bodyfat-card')?.addEventListener('click', ()=> toast(PL('Massa gorda estimada (fórmula de Deurenberg) a partir de peso, altura, idade e sexo. É aproximada.','Estimated body fat (Deurenberg) from weight, height, age and sex. Approximate.')));
+  document.getElementById('d-bodyfat-card')?.addEventListener('click', ()=>{ try{ showBodyFatInfo(); }catch(e){} });
   document.getElementById('d-race-card').addEventListener('click', ()=> goToSubTab('treinos','objetivo'));
 
   function resizeCharts(){
@@ -9060,6 +9060,7 @@ nav.tabbar button.active svg{
   function _tipKcalDay(ds){ try{ let k=(kcalEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0); try{ k+=(hydrationEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0); }catch(e){} try{ k+=(alcoholEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.kcal||0),0); }catch(e){} return Math.round(k); }catch(e){ return 0; } }
   function _tipProtDay(ds){ try{ return Math.round((kcalEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.protein||0),0)); }catch(e){ return 0; } }
   function _tipWaterDay(ds){ try{ return Math.round((hydrationEntries||[]).filter(e=>e.date===ds).reduce((s,e)=>s+(e.ml||0),0)); }catch(e){ return 0; } }
+  function _tipAguaDay(ds){ try{ return Math.round((hydrationEntries||[]).filter(e=>e.date===ds && (e.type==='Água'||e.type==='Agua')).reduce((s,e)=>s+(e.ml||0),0)); }catch(e){ return 0; } }
   function _tipLastSleep(){ try{ const s=(sleepEntries||[]); return s.length?Number(s[s.length-1].hours):null; }catch(e){ return null; } }
   function _tipWorkoutKcalDay(ds){
     try{
@@ -9158,12 +9159,12 @@ nav.tabbar button.active svg{
     try{
       const goal = (typeof getDailyWaterGoalMl==='function') ? getDailyWaterGoalMl() : 2000;
       let wsum=0, wn=0;
-      for(let i=1;i<=3;i++){ wsum+=_tipWaterDay(_tipDayAgo(i)); wn++; }
+      for(let i=1;i<=3;i++){ wsum+=_tipAguaDay(_tipDayAgo(i)); wn++; }
       const wavg = wn ? wsum/wn : 0;
-      if(wn && wavg>0 && wavg < goal*0.7){
-        tips.push({icon:'💧', pr:60, slot:'review', text:'Andas a beber pouca água (~'+Math.round(wavg)+' ml/dia, meta '+goal+' ml) — bebe mais cedo e ao longo do dia.'});
+      const wt = _tipAguaDay(today);
+      if(wn && wavg>0 && wavg < goal*0.7 && wt < goal*0.5){
+        tips.push({icon:'💧', pr:60, slot:'review', text:'Costumas beber pouca água (~'+Math.round(wavg)+' ml/dia nos últimos dias, meta '+goal+' ml) — hoje bebe mais cedo e ao longo do dia.'});
       }
-      const wt=_tipWaterDay(today);
       if(hourNow>=13 && goal>0 && wt < goal*0.5) tips.push({icon:'💧', pr:53, slot:'today', text:'Até agora só bebeste '+wt+' ml (meta '+goal+') — bebe água já.'});
     }catch(e){}
 
@@ -9500,7 +9501,7 @@ nav.tabbar button.active svg{
       + '<li><strong>Treinador e atleta.</strong> Se te ligares a um treinador (ou fores treinador), os dados de treino e saúde relevantes são partilhados entre as contas ligadas, com o teu consentimento ao estabelecer a ligação.</li>'
       + '<li><strong>Os teus direitos.</strong> Podes ver, exportar (Perfil → Dados → Exportar) e apagar os teus dados quando quiseres. Para apagares a conta e os dados na cloud, contacta o email abaixo.</li>'
       + '<li><strong>Partilha.</strong> Não vendemos os teus dados nem os partilhamos com terceiros, exceto os fornecedores necessários ao funcionamento (ex.: Google Firebase).</li>'
-      + '<li><strong>Contacto.</strong> Para questões de privacidade ou para exercer os teus direitos: [INSERE AQUI O TEU EMAIL DE CONTACTO].</li>'
+      + '<li><strong>Contacto.</strong> Para questões de privacidade ou para exercer os teus direitos: admin@pulsohealth.app.</li>'
       + '</ol>'
       + '<p style="margin:12px 0 0; font-size:11.5px; color:#8894a8;">\u00daltima atualiza\u00e7\u00e3o: julho 2026. Ao continuar, confirmas que leste e aceitas estes termos.</p>';
     const ov=document.createElement('div');
@@ -9843,6 +9844,38 @@ nav.tabbar button.active svg{
     if(bf < b[2]) return PL('em forma','fit');
     if(bf < b[3]) return PL('média','average');
     return PL('elevada','high');
+  }
+
+  function showBodyFatInfo(){
+    const bf = estimateBodyFatPct();
+    const m = (profile.gender==='M');
+    const scaleMax = m ? 42 : 46;
+    const segEnds = m ? [6,14,18,25,scaleMax] : [14,21,25,32,scaleMax];
+    const zones = m
+      ? [['Muito baixa','< 6%'],['Atleta','6\u201314%'],['Em forma','14\u201318%'],['Média','18\u201325%'],['Elevada','> 25%']]
+      : [['Muito baixa','< 14%'],['Atleta','14\u201321%'],['Em forma','21\u201325%'],['Média','25\u201332%'],['Elevada','> 32%']];
+    const colors = ['#5B8DEF','#35D9A6','#7CD992','#F2B84B','#F2555A'];
+    let prev=0;
+    const bar = zones.map(function(z,i){ const w=((segEnds[i]-prev)/scaleMax)*100; prev=segEnds[i]; return '<div style="flex:0 0 '+w.toFixed(2)+'%; background:'+colors[i]+';"></div>'; }).join('');
+    const markerLeft = (bf!=null) ? Math.max(1, Math.min(99, (bf/scaleMax)*100)) : null;
+    const marker = (markerLeft!=null) ? '<div style="position:absolute; top:-9px; left:'+markerLeft.toFixed(1)+'%; transform:translateX(-50%); text-align:center;"><div style="font-size:10px; color:#fff; font-weight:800; margin-bottom:1px;">'+bf+'%</div><div style="width:0; height:0; margin:0 auto; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #fff;"></div></div>' : '';
+    const legend = zones.map(function(z,i){ return '<div style="display:flex; align-items:center; gap:8px; font-size:12.5px;"><span style="width:12px; height:12px; border-radius:3px; background:'+colors[i]+'; flex:none;"></span><span style="flex:1;">'+z[0]+'</span><span style="color:var(--text-muted);">'+z[1]+'</span></div>'; }).join('');
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed; inset:0; z-index:9600; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center;';
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    ov.innerHTML='<div style="width:100%; max-width:480px; max-height:88vh; overflow-y:auto; background:var(--card,#151b23); border-radius:18px 18px 0 0; padding:18px 18px 24px;">'
+      +'<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;"><strong style="font-size:17px;">Massa gorda</strong><button id="bf-x" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">\u2715</button></div>'
+      +'<div style="font-size:32px; font-weight:800; color:var(--teal); line-height:1.1;">'+(bf!=null?bf+'%':'\u2014')+'</div>'
+      +'<p style="font-size:12.5px; color:var(--text-muted); line-height:1.55; margin:6px 0 18px;">Estimativa pela f\u00f3rmula de Deurenberg, a partir do IMC (peso e altura), idade e sexo. \u00c9 aproximada e serve para acompanhar a tend\u00eancia \u2014 n\u00e3o substitui uma medi\u00e7\u00e3o (bioimped\u00e2ncia/adip\u00f3metro).'+(bf==null?'<br><br>Completa peso, altura, idade e sexo no perfil para veres o valor.':'')+'</p>'
+      +'<div style="position:relative; margin:26px 4px 6px;">'+marker+'<div style="display:flex; height:14px; border-radius:7px; overflow:hidden;">'+bar+'</div></div>'
+      +'<div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin:0 4px 16px;"><span>0%</span><span>'+scaleMax+'%</span></div>'
+      +'<div style="display:flex; flex-direction:column; gap:7px;">'+legend+'</div>'
+      +'<p style="font-size:11px; color:var(--text-muted); margin:14px 0 0; line-height:1.5;">Faixas de refer\u00eancia para '+(m?'homens':'mulheres')+'. Valores muito baixos tamb\u00e9m podem ser pouco saud\u00e1veis.</p>'
+      +'<button id="bf-ok" class="primary" style="width:100%; margin-top:16px;">Fechar</button>'
+      +'</div>';
+    document.body.appendChild(ov);
+    const x=ov.querySelector('#bf-x'); if(x) x.onclick=function(){ ov.remove(); };
+    const ok=ov.querySelector('#bf-ok'); if(ok) ok.onclick=function(){ ov.remove(); };
   }
 
   // Alimentos aprendidos pela IA (guardados na memória, valores normalizados por 100g). Carregados no arranque.
