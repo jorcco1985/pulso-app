@@ -7190,7 +7190,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 125</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 126</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -9631,13 +9631,13 @@ nav.tabbar button.active svg{
   // ===================== ASSISTENTE DE ARRANQUE (setup) ===================== //
   window.PulsoSetup = (function(){
     function done(){ try{ return !!localStorage.getItem('pulso_setup_done'); }catch(e){ return false; } }
-    var S = { step:0, role:'athlete', type:'atleta-full', caps:{health:true,training:true}, name:'', gender:'', age:'', height:'', weight:'', activity:6, raceName:'', raceDate:'', raceKm:'' };
+    var S = { step:0, introIdx:0, introDone:false, role:'athlete', type:'atleta-full', caps:{health:true,training:true}, name:'', gender:'', age:'', height:'', weight:'', activity:6, raceName:'', raceDate:'', raceKm:'' };
     var TYPES=[
-      {k:'saude', ic:'🩺', t:'Saúde & Nutrição', d:'Cuido da minha saúde e alimentação (sono, peso, nutrição, hidratação). Sem treinos.', role:'athlete', caps:{health:true,training:false}},
-      {k:'atleta-full', ic:'🏃', t:'Atleta', d:'Treino + saúde — o pacote completo.', role:'athlete', caps:{health:true,training:true}},
-      {k:'atleta-treino', ic:'🏃', t:'Atleta (só treino)', d:'Só treinos e calendário, sem a parte de saúde.', role:'athlete', caps:{health:false,training:true}},
-      {k:'treinador', ic:'🧑‍🏫', t:'Treinador', d:'Giro os meus atletas.', role:'coach', caps:{health:false,training:false}},
-      {k:'treinador-atleta', ic:'🧑‍🏫', t:'Treinador + atleta', d:'Giro atletas e também treino/registo a minha saúde.', role:'coach', caps:{health:true,training:true}}
+      {k:'saude', ic:'🩺', t:'Saúde & Nutrição', d:'Cuido da minha saúde e alimentação (sono, peso, nutrição, hidratação). Sem treinos.', who:'Para quem quer cuidar da saúde e da alimentação, sem parte de treino.', role:'athlete', caps:{health:true,training:false}},
+      {k:'atleta-full', ic:'🏃', t:'Atleta', d:'Treino + saúde — o pacote completo.', who:'Para atletas que querem juntar treino, saúde e nutrição num só sítio.', role:'athlete', caps:{health:true,training:true}},
+      {k:'atleta-treino', ic:'🏃', t:'Atleta (só treino)', d:'Só treinos e calendário, sem a parte de saúde.', who:'Para atletas focados só no treino, sem registar saúde/nutrição.', role:'athlete', caps:{health:false,training:true}},
+      {k:'treinador', ic:'🧑‍🏫', t:'Treinador', d:'Giro os meus atletas.', who:'Para treinadores que só acompanham atletas (não treinam na app).', role:'coach', caps:{health:false,training:false}},
+      {k:'treinador-atleta', ic:'🧑‍🏫', t:'Treinador + atleta', d:'Giro atletas e também treino/registo a minha saúde.', who:'Para treinadores que também treinam e registam a sua saúde.', role:'coach', caps:{health:true,training:true}}
     ];
     var ov=null;
     function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -9717,8 +9717,21 @@ nav.tabbar button.active svg{
           +'</div>';
       }
       if(S.step===1){
-        return '<h2 style="font-size:20px; margin:0 0 6px;">Como vais usar a Pulso?</h2>'
-          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 14px;">Escolhe o que se aplica a ti \u2014 podes mudar depois no Perfil.</p>'
+        if(!S.introDone){
+          var _x = TYPES[S.introIdx];
+          return '<div style="text-align:center; padding:6px 0;">'
+            +'<div style="font-size:11px; color:#35D9A6; font-weight:800; letter-spacing:.8px; margin-bottom:14px;">OS 5 TIPOS &middot; '+(S.introIdx+1)+'/'+TYPES.length+'</div>'
+            +'<div style="font-size:46px; line-height:1; margin-bottom:8px;">'+_x.ic+'</div>'
+            +'<h2 style="font-size:22px; margin:0 0 14px;">'+_x.t+'</h2>'
+            +'<div style="text-align:left; max-width:340px; margin:0 auto; display:flex; flex-direction:column; gap:10px;">'
+            +'<div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px;"><div style="font-size:10.5px; color:#8894a8; font-weight:800; letter-spacing:.5px; margin-bottom:4px;">O QUE FAZ</div><div style="font-size:13.5px; color:#e8eef5; line-height:1.5;">'+_x.d+'</div></div>'
+            +'<div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px;"><div style="font-size:10.5px; color:#8894a8; font-weight:800; letter-spacing:.5px; margin-bottom:4px;">PARA QUEM</div><div style="font-size:13.5px; color:#e8eef5; line-height:1.5;">'+_x.who+'</div></div>'
+            +'</div>'
+            +(S.introIdx===TYPES.length-1 ? '<p style="color:#35D9A6; font-size:12px; margin:16px auto 0; max-width:320px; line-height:1.5;">Podes mudar isto quando quiseres em Perfil &rarr; "O que uso na Pulso".</p>' : '')
+            +'</div>';
+        }
+        return '<h2 style="font-size:20px; margin:0 0 6px;">Escolhe o teu tipo</h2>'
+          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 14px;">Já viste o que cada um faz. Podes mudar depois no Perfil.</p>'
           +'<div style="display:flex; flex-direction:column; gap:10px;">'
           + TYPES.map(function(x){ var sel=S.type===x.k; return '<button type="button" data-set-type="'+x.k+'" style="text-align:left; padding:14px; border-radius:14px; cursor:pointer; border:1px solid '+(sel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(sel?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">'+x.ic+' '+x.t+'</div><div style="font-size:12px; color:#8894a8; margin-top:3px;">'+x.d+'</div></button>'; }).join('')
           +'</div>';
@@ -9756,7 +9769,7 @@ nav.tabbar button.active svg{
     function footer(){
       var isLast = (S.step===lastStep());
       var backBtn = S.step>0 ? '<button type="button" id="su-back" style="background:none; border:none; color:#8894a8; font-size:14px; cursor:pointer;">Voltar</button>' : '<span></span>';
-      var nextLabel = S.step===0 ? 'Come\u00e7ar' : (isLast ? 'Concluir' : 'Continuar');
+      var nextLabel = S.step===0 ? 'Começar' : (S.step===1 && !S.introDone ? (S.introIdx < TYPES.length-1 ? 'Seguinte' : 'Escolher o meu') : (isLast ? 'Concluir' : 'Continuar'));
       var skipLabel = S.step===2 ? 'Preencher depois' : 'Saltar';
       var skip = (S.step===2 || S.step===3) ? '<button type="button" id="su-skip" style="background:none; border:none; color:#8894a8; font-size:13px; cursor:pointer; text-decoration:underline; margin-right:12px;">'+skipLabel+'</button>' : '';
       return '<div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px;">'+backBtn
@@ -9772,7 +9785,7 @@ nav.tabbar button.active svg{
         + footer()
         + '</div>';
       var next=ov.querySelector('#su-next'); if(next) next.onclick=onNext;
-      var back=ov.querySelector('#su-back'); if(back) back.onclick=function(){ collect(); if(S.step>0) S.step--; render(); };
+      var back=ov.querySelector('#su-back'); if(back) back.onclick=function(){ if(S.step===1 && S.introDone){ S.introDone=false; S.introIdx=TYPES.length-1; render(); return; } if(S.step===1 && !S.introDone && S.introIdx>0){ S.introIdx--; render(); return; } collect(); if(S.step>0) S.step--; render(); };
       var skip=ov.querySelector('#su-skip'); if(skip) skip.onclick=function(){ if(S.step===2){ collect(); if(S.caps.training){ S.step=3; render(); } else { finish(); } } else { S.raceName=''; finish(); } };
       ov.querySelectorAll('[data-set-type]').forEach(function(b){ b.onclick=function(){ var k=b.getAttribute('data-set-type'); var x=null; for(var i=0;i<TYPES.length;i++){ if(TYPES[i].k===k){ x=TYPES[i]; break; } } if(x){ S.type=k; S.role=x.role; S.caps={health:x.caps.health, training:x.caps.training}; } render(); }; });
       ov.querySelectorAll('[data-set-gender]').forEach(function(b){ b.onclick=function(){ collect(); S.gender=b.getAttribute('data-set-gender'); render(); }; });
@@ -9780,6 +9793,10 @@ nav.tabbar button.active svg{
 
     function onNext(){
       collect();
+      if(S.step===1 && !S.introDone){
+        if(S.introIdx < TYPES.length-1){ S.introIdx++; } else { S.introDone=true; }
+        render(); return;
+      }
       if(S.step===lastStep()){ finish(); return; }
       S.step++;
       render();
@@ -21401,7 +21418,7 @@ nav.tabbar button.active svg{
       if(d){
         d.textContent = role==='coach'
           ? PL('Como treinador, podes ligar e acompanhar vários atletas na área de Treinador.','As a coach, you can connect and follow several athletes in the Coach area.')
-          : PL('Como atleta, treinas-te a ti e podes ligar-te ao teu treinador.','As an athlete, you train yourself and can connect to your coach.');
+          : PL('Como atleta, acompanhas o teu treino e a tua saúde, e podes ligar-te ao teu treinador.','As an athlete, you follow your training and health, and can connect to your coach.');
         if(locked) d.textContent += ' ' + PL('(definido pela tua conta principal — não podes alterar)','(set by your main account — you can\'t change it)');
       }
     }
