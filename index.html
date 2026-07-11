@@ -185,7 +185,7 @@
 
   .toast{position:fixed; bottom:70px; left:50%; transform:translateX(-50%); background:var(--surface-2);
     border:1px solid var(--border); color:var(--text); padding:10px 16px; border-radius:10px; font-size:13px;
-    z-index:100; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88%; text-align:center;}
+    z-index:100010; opacity:0; pointer-events:none; transition:opacity .25s ease; max-width:88%; text-align:center;}
   .toast.show{opacity:1;}
 
   /* sub-tabs (within Treinos) */
@@ -297,6 +297,14 @@ section.active{animation:pulsoFade .22s ease-out;}
   box-shadow:var(--shadow-card);
   overflow:hidden;
 }
+body[data-caps-health="0"] #tab-dashboard .metric-kcal,
+body[data-caps-health="0"] #tab-dashboard .metric-sleep,
+body[data-caps-health="0"] #tab-dashboard .metric-hydro,
+body[data-caps-health="0"] #tab-dashboard .metric-weight,
+body[data-caps-health="0"] #estado-card{display:none !important;}
+body[data-caps-training="0"] #today-workout-card,
+body[data-caps-training="0"] #coach-plan-card,
+body[data-caps-training="0"] #d-race-card{display:none !important;}
 .card::before{
   content:'';
   position:absolute;
@@ -6088,8 +6096,9 @@ nav.tabbar button.active svg{
         <path class="pm-ecg" d="M12 35h10l4-9 5 18 5-13h16"/>
       </svg>
     </div><div class="brand-text"><h1>PULSO</h1><span class="tagline">Health &amp; Training</span><span class="pulso-sync-status off" title="Estado da sincronização" aria-live="polite"><span class="dot"></span><span class="txt">Offline</span></span></div></div>
-  <button id="athlete-switch-role" class="athlete-switch-btn" type="button" aria-label="Voltar à escolha de área" title="Voltar à escolha de área">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+  <button id="athlete-switch-role" class="athlete-switch-btn" type="button" aria-label="Estás em modo Atleta — toca para trocar para Treinador" title="Modo atual: Atleta · toca para trocar para Treinador" style="display:none;">
+    <svg viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px;"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    <span>Atleta</span>
   </button>
   <div class="ecg-wrap" aria-hidden="true">
     <svg viewBox="0 0 600 46" preserveAspectRatio="none">
@@ -6842,7 +6851,7 @@ nav.tabbar button.active svg{
       </button>
     </div>
 
-    <div id="user-role-card" style="background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(16,24,39,.96)); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; margin-bottom:12px; position:relative; z-index:2;">
+    <div id="user-role-card" style="background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(16,24,39,.96)); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; margin-bottom:12px; position:relative; z-index:2; overflow:visible;">
       <div style="font-weight:800; margin-bottom:8px; color:#fff;" data-i18n="Account type">Tipo de conta</div>
       <div style="display:flex; gap:8px;">
         <button type="button" class="ghost" data-user-role="athlete" style="flex:1; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:#fff; border-radius:12px;">🏃 <span data-i18n="Athlete">Atleta</span></button>
@@ -6850,6 +6859,15 @@ nav.tabbar button.active svg{
       </div>
       <p class="help" id="user-role-desc" style="margin:8px 0 0;"></p>
       <p class="help" style="margin:6px 0 0; font-size:11px; color:#F2B84B; opacity:.9;" data-i18n="Coach mode will become a premium plan — free to try during the beta.">O modo Treinador será um plano pago no futuro — grátis para testar durante a beta.</p>
+    </div>
+
+    <div id="caps-card" style="background:linear-gradient(180deg, rgba(24,34,56,.96), rgba(16,24,39,.96)); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; margin-bottom:12px;">
+      <div style="font-weight:800; margin-bottom:4px; color:#fff;" data-i18n="What I use in Pulso">O que uso na Pulso</div>
+      <p class="help" style="margin:0 0 10px;" data-i18n="Turn areas on or off — change it whenever you want.">Liga ou desliga as áreas conforme o que precisas. Podes mudar quando quiseres.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="cap-chip" data-cap="health" style="font-size:13.5px; font-weight:700; padding:10px 18px; border-radius:999px; cursor:pointer; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text); display:inline-flex; align-items:center; gap:6px;"><span class="cap-dot" style="width:8px; height:8px; border-radius:50%; background:currentColor; opacity:.5;"></span><span data-i18n="Health &amp; Nutrition">Saúde &amp; Nutrição</span></button>
+        <button type="button" class="cap-chip" data-cap="training" style="font-size:13.5px; font-weight:700; padding:10px 18px; border-radius:999px; cursor:pointer; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text); display:inline-flex; align-items:center; gap:6px;"><span class="cap-dot" style="width:8px; height:8px; border-radius:50%; background:currentColor; opacity:.5;"></span><span data-i18n="Training">Treino</span></button>
+      </div>
     </div>
 
     <div class="subtabs profile-subtabs" id="profile-subtabs">
@@ -6919,44 +6937,14 @@ nav.tabbar button.active svg{
 
       <div class="profile-subview" id="profile-sub-strava">
         <div class="card" style="background:transparent; border:0; padding:4px 2px 0;">
-          <p class="help" style="margin:0;" data-i18n="Two ways to get your workouts into Pulso: automatically via Strava, or manually by uploading a file.">Duas formas de trazer os teus treinos para o Pulso: automaticamente pelo Strava, ou manualmente carregando um ficheiro.</p>
+          <p class="help" style="margin:0;" data-i18n="Two ways to get your workouts into Pulso: automatically via Strava, or manually by uploading a file.">A forma mais fiável é importar por ficheiro (.FIT/.TCX/.GPX) — funciona com qualquer relógio e sem subscrições. O Strava é opcional (e, desde junho de 2026, requer subscrição Strava).</p>
         </div>
-        <div class="card fixed-form">
-          <div class="profile-group-head">
-            <div class="profile-group-icon">🔗</div>
-            <div>
-              <h3 data-i18n="Automatic — Strava">Automático — Strava</h3>
-              <p class="help" style="margin:0;" data-i18n="Connect once and activities sync on their own (also covers Garmin, Coros, Wahoo… if they sync to Strava).">Liga uma vez e as atividades sincronizam sozinhas (cobre também Garmin, Coros, Wahoo… se sincronizarem para o Strava).</p>
-            </div>
-          </div>
-          <p class="help">Cria uma app em <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a>.</p>
-          <form class="entry" id="form-strava-creds">
-            <div class="field" style="min-width:110px;"><label for="strava-client-id" data-i18n="Client ID">Client ID</label><input type="text" id="strava-client-id"></div>
-            <div class="field" style="min-width:150px;"><label for="strava-client-secret" data-i18n="Client Secret">Client Secret</label><input type="text" id="strava-client-secret"></div>
-          </form>
-          <ol class="help" style="padding-left:16px; margin:8px 0;">
-            <li data-i18n="Open the Strava authorization and sign in.">Abre a autorização Strava e inicia sessão.</li>
-            <li><span data-i18n="The browser tries to open">O browser tenta abrir</span> <code>localhost/...&code=XXXX</code> <span data-i18n="and fails — copy the value after">e falha — copia o valor depois de</span> <code>code=</code>.</li>
-            <li data-i18n="Paste the code below and finish.">Cola o código abaixo e conclui.</li>
-            <li><span data-i18n="HR zones and VO₂ max are in the">As zonas cardio e o VO₂ máx ficam no separador</span> <strong data-i18n="HR zones">Zonas cardio</strong>.</li>
-          </ol>
-          <div class="row"><button class="ghost" id="btn-strava-auth" type="button" data-i18n="1. Open authorization">1. Abrir autorização</button></div>
-          <div class="row" style="margin-top:8px;">
-            <div class="field" style="min-width:160px;"><label for="strava-code" data-i18n="Code">Código</label><input type="text" id="strava-code"></div>
-            <button class="primary" id="btn-strava-finish" type="button" data-i18n="2. Finish">2. Concluir</button>
-          </div>
-          <div class="row space-between" style="margin-top:10px;">
-            <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2" data-i18n="Not connected">Não ligado</span></div>
-            <button class="ghost" id="btn-strava-disconnect" type="button" data-i18n="Disconnect">Desligar</button>
-          </div>
-        </div>
-
-        <div class="card fixed-form" style="margin-top:12px;">
+        <div class="card fixed-form" style="border:1px solid rgba(53,217,166,.4);">
           <div class="profile-group-head">
             <div class="profile-group-icon">📥</div>
             <div>
-              <h3 data-i18n="Manual — file">Manual — ficheiro</h3>
-              <p class="help" style="margin:0;" data-i18n="Load the file from your watch: .FIT, .TCX, .GPX — or the .ZIP as it comes.">Carrega o ficheiro do teu relógio: .FIT, .TCX, .GPX — ou o .ZIP tal como vem.</p>
+              <h3 data-i18n="File — recommended">Ficheiro — recomendado</h3>
+              <p class="help" style="margin:0;" data-i18n="Load the file from your watch: .FIT, .TCX, .GPX — or the .ZIP as it comes.">Carrega o ficheiro do teu relógio: .FIT, .TCX, .GPX — ou o .ZIP tal como vem. Funciona com qualquer relógio (Garmin, Xiaomi, Coros…) e sem subscrições.</p>
             </div>
           </div>
           <div class="row" style="margin-top:10px;">
@@ -6981,6 +6969,36 @@ nav.tabbar button.active svg{
           <div style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);">
             <button class="ghost" id="btn-clear-imports" type="button" style="color:#F2555A; border-color:rgba(242,85,90,.35);" data-i18n="Remove imported workouts">Apagar treinos importados</button>
             <p class="help" style="margin:6px 2px 0; font-size:11px;" data-i18n="Removes only workouts imported from files (and their charts). Does not touch Strava or anything else.">Apaga só os treinos importados de ficheiro (e os gráficos deles). Não mexe no Strava nem no resto.</p>
+          </div>
+        </div>
+
+        <div class="card fixed-form" style="margin-top:12px;">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🔗</div>
+            <div>
+              <h3 data-i18n="Optional — Strava">Opcional — Strava</h3>
+              <p class="help" style="margin:0;">Liga uma vez e as atividades sincronizam sozinhas (cobre também Garmin, Coros, Wahoo… se sincronizarem para o Strava).</p><p class="help" style="margin:6px 0 0; color:#F2B84B; font-size:11px;">⚠️ Desde junho de 2026, a API do Strava requer subscrição Strava. O importar por ficheiro (acima) não tem esta limitação.</p>
+            </div>
+          </div>
+          <p class="help">Cria uma app em <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener">strava.com/settings/api</a>.</p>
+          <form class="entry" id="form-strava-creds">
+            <div class="field" style="min-width:110px;"><label for="strava-client-id" data-i18n="Client ID">Client ID</label><input type="text" id="strava-client-id"></div>
+            <div class="field" style="min-width:150px;"><label for="strava-client-secret" data-i18n="Client Secret">Client Secret</label><input type="text" id="strava-client-secret"></div>
+          </form>
+          <ol class="help" style="padding-left:16px; margin:8px 0;">
+            <li data-i18n="Open the Strava authorization and sign in.">Abre a autorização Strava e inicia sessão.</li>
+            <li><span data-i18n="The browser tries to open">O browser tenta abrir</span> <code>localhost/...&code=XXXX</code> <span data-i18n="and fails — copy the value after">e falha — copia o valor depois de</span> <code>code=</code>.</li>
+            <li data-i18n="Paste the code below and finish.">Cola o código abaixo e conclui.</li>
+            <li><span data-i18n="HR zones and VO₂ max are in the">As zonas cardio e o VO₂ máx ficam no separador</span> <strong data-i18n="HR zones">Zonas cardio</strong>.</li>
+          </ol>
+          <div class="row"><button class="ghost" id="btn-strava-auth" type="button" data-i18n="1. Open authorization">1. Abrir autorização</button></div>
+          <div class="row" style="margin-top:8px;">
+            <div class="field" style="min-width:160px;"><label for="strava-code" data-i18n="Code">Código</label><input type="text" id="strava-code"></div>
+            <button class="primary" id="btn-strava-finish" type="button" data-i18n="2. Finish">2. Concluir</button>
+          </div>
+          <div class="row space-between" style="margin-top:10px;">
+            <div class="strava-status"><span class="dot off" id="strava-dot-2"></span><span id="strava-status-text-2" data-i18n="Not connected">Não ligado</span></div>
+            <button class="ghost" id="btn-strava-disconnect" type="button" data-i18n="Disconnect">Desligar</button>
           </div>
         </div>
 
@@ -7159,7 +7177,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 96</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 120</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -7608,6 +7626,7 @@ nav.tabbar button.active svg{
     closeAllFloatingPanels();
     document.querySelectorAll('nav.tabbar button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
+    try{ applyCaps(); }catch(_){}
     document.querySelectorAll('main section').forEach(s=>s.classList.remove('active'));
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
     refreshVisibleCharts();
@@ -9418,15 +9437,25 @@ nav.tabbar button.active svg{
       'Para desligar dicas e pop-up: Perfil → Atleta → Dicas e avisos.' ] },
     { id:'importar', icon:'📥', title:'Importar treinos', how:[
       'Perfil → Importar treinos.',
-      'Automático: liga o Strava uma vez e as atividades entram sozinhas.',
-      'Manual: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem).',
+      'Recomendado — Ficheiro: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem). Funciona com qualquer relógio (Garmin, Xiaomi, Coros…) e sem subscrições.',
       'Garmin: connect.garmin.com → abre a atividade → engrenagem → Exportar.',
+      'Opcional — Strava: desde junho de 2026 a API do Strava requer subscrição Strava; por isso o ficheiro é o caminho recomendado.',
       'Nos treinos de força/mobilidade, cada exercício tem um ▶ para veres o vídeo.' ] },
     { id:'instalar', icon:'📲', title:'Instalar no telemóvel', how:[
       'iPhone (Safari): toca em Partilhar (o ícone ⎋ na barra) → "Adicionar ao Ecrã Principal" → Adicionar.',
       'Android (Chrome): menu ⋮ → "Instalar app" (ou "Adicionar ao ecrã principal").',
       'A app passa a abrir em ecrã inteiro, com ícone próprio, como uma app normal.',
       'Fica a funcionar offline para consulta e sincroniza quando tiveres internet.' ] },
+    { id:'personalizar', icon:'🎛️', title:'Personalizar (o que usas)', how:[
+      'No 1.º arranque escolhes como vais usar a Pulso: só saúde, atleta (treino + saúde), atleta só treino, treinador ou treinador + atleta.',
+      'Podes mudar depois em Perfil → "O que uso na Pulso": liga/desliga Saúde & Nutrição e Treino.',
+      'Se desligares Saúde & Nutrição, o Painel e os separadores de saúde e nutrição (sono, peso, comida, bebida…) deixam de aparecer.',
+      'Se fores Treinador + atleta, usa a pastilha "Modo treinador" / "Modo atleta" no topo para alternar entre os dois.' ] },
+    { id:'c-ia', coach:true, icon:'✨', title:'Treinos IA (gerador)', how:[
+      'Modo Treinador → separador "✨ IA".',
+      'Gerador: escolhe o tipo (corrida, bike, força, mobilidade, Hyrox, funcional), o objetivo, o tempo, o nível e o equipamento disponível → "Gerar treino".',
+      'Treinos prontos: uma lista já feita por categoria, para quem não quer montar do zero.',
+      'Em qualquer treino: "Guardar na biblioteca" (fica editável e reutilizável) ou "Prescrever" direto a um atleta.' ] },
     { id:'c-treino', coach:true, icon:'🏗️', title:'Criar um treino (treinador)', how:[
       'Modo Treinador → separador "Treinos" → "+ Novo treino". Dá um nome e escolhe o desporto.',
       'Adiciona blocos: aquecimento, principal e retorno à calma. No principal escolhe o tipo (séries, intervalos, progressivo, over/under, pirâmide).',
@@ -9556,7 +9585,7 @@ nav.tabbar button.active svg{
         const b = document.createElement('div');
         b.id='pulso-install-banner';
         b.style.cssText='position:fixed; left:12px; right:12px; bottom:14px; z-index:9700; background:var(--card,#151b23); border:1px solid rgba(53,217,166,.35); border-radius:16px; padding:14px; box-shadow:0 10px 34px rgba(0,0,0,.45); display:flex; gap:12px; align-items:flex-start; max-width:460px; margin:0 auto;';
-        let inner = '<div style="font-size:22px; line-height:1;">\U0001F4F2</div><div style="flex:1; min-width:0;"><div style="font-weight:800; font-size:14px; margin-bottom:3px;">Instala a Pulso</div>';
+        let inner = '<div style="font-size:22px; line-height:1;">📲</div><div style="flex:1; min-width:0;"><div style="font-weight:800; font-size:14px; margin-bottom:3px;">Instala a Pulso</div>';
         if(isIOS){
           inner += '<div style="font-size:12.5px; color:var(--text-muted); line-height:1.5;">Para abrir em ecr\u00e3 inteiro como uma app: toca em <strong>Partilhar</strong> \u2b06\ufe0f (barra do Safari) e depois em <strong>\u201cAdicionar ao Ecr\u00e3 Principal\u201d</strong>.</div>';
         } else if(deferredPrompt){
@@ -9579,7 +9608,14 @@ nav.tabbar button.active svg{
   // ===================== ASSISTENTE DE ARRANQUE (setup) ===================== //
   window.PulsoSetup = (function(){
     function done(){ try{ return !!localStorage.getItem('pulso_setup_done'); }catch(e){ return false; } }
-    var S = { step:0, role:'athlete', name:'', gender:'', age:'', height:'', weight:'', activity:6, raceName:'', raceDate:'', raceKm:'' };
+    var S = { step:0, role:'athlete', type:'atleta-full', caps:{health:true,training:true}, name:'', gender:'', age:'', height:'', weight:'', activity:6, raceName:'', raceDate:'', raceKm:'' };
+    var TYPES=[
+      {k:'saude', ic:'🩺', t:'Saúde & Nutrição', d:'Cuido da minha saúde e alimentação (sono, peso, nutrição, hidratação). Sem treinos.', role:'athlete', caps:{health:true,training:false}},
+      {k:'atleta-full', ic:'🏃', t:'Atleta', d:'Treino + saúde — o pacote completo.', role:'athlete', caps:{health:true,training:true}},
+      {k:'atleta-treino', ic:'🏃', t:'Atleta (só treino)', d:'Só treinos e calendário, sem a parte de saúde.', role:'athlete', caps:{health:false,training:true}},
+      {k:'treinador', ic:'🧑‍🏫', t:'Treinador', d:'Giro os meus atletas.', role:'coach', caps:{health:false,training:false}},
+      {k:'treinador-atleta', ic:'🧑‍🏫', t:'Treinador + atleta', d:'Giro atletas e também treino/registo a minha saúde.', role:'coach', caps:{health:true,training:true}}
+    ];
     var ov=null;
     function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
@@ -9604,6 +9640,8 @@ nav.tabbar button.active svg{
         }
       }catch(e){}
       try{ var rb=document.querySelector('button[data-user-role="'+(d.role||'athlete')+'"]'); if(rb) rb.click(); }catch(e){}
+      try{ setCaps(d.caps); }catch(e){}
+      try{ applyCaps(); }catch(e){}
       try{
         if(d.raceName && d.raceDate){
           var nr={ id:'race-'+Date.now().toString(36), name:d.raceName, sport:'run', date:d.raceDate, distanceKm:(parseFloat(d.raceKm)||null), elevationM:null, primary:true, photoDataUrl:null, createdAt:new Date().toISOString() };
@@ -9620,7 +9658,7 @@ nav.tabbar button.active svg{
       collect();
       saveSetupData(S);
       close();
-      try{ setTimeout(function(){ if(window.PulsoOnboarding && window.PulsoOnboarding.maybeStart) window.PulsoOnboarding.maybeStart(); }, 300); }catch(e){}
+      try{ var _r=S.role; setTimeout(function(){ try{ if(window.PulsoOnboarding){ if(_r==='coach' && window.PulsoOnboarding.maybeStartCoach) window.PulsoOnboarding.maybeStartCoach(); else if(window.PulsoOnboarding.maybeStart) window.PulsoOnboarding.maybeStart(); } }catch(e){} }, 400); }catch(e){}
     }
     function close(){ if(ov){ ov.remove(); ov=null; } }
 
@@ -9638,10 +9676,10 @@ nav.tabbar button.active svg{
       }catch(e){}
     }
 
-    var lastStep = function(){ return S.role==='coach' ? 2 : 3; };
+    var lastStep = function(){ return S.caps.training ? 3 : 2; };
 
     function dots(active){
-      var n = S.role==='coach' ? 3 : 4; var h='';
+      var n = S.caps.training ? 4 : 3; var h='';
       for(var i=0;i<n;i++){ h+='<span style="width:7px; height:7px; border-radius:50%; background:'+(i===active?'#35D9A6':'rgba(255,255,255,.2)')+';"></span>'; }
       return '<div style="display:flex; gap:6px; justify-content:center; margin-bottom:18px;">'+h+'</div>';
     }
@@ -9652,14 +9690,14 @@ nav.tabbar button.active svg{
           +'<div style="font-size:46px; margin-bottom:8px;">\uD83D\uDC9A</div>'
           +'<h1 style="font-size:25px; margin:0 0 8px;">Bem-vindo \u00e0 Pulso</h1>'
           +'<p style="color:#8894a8; font-size:14px; line-height:1.6; max-width:330px; margin:0 auto;">Em menos de 1 minuto configuramos o essencial para a app funcionar contigo \u2014 treino, sa\u00fade e nutri\u00e7\u00e3o num s\u00f3 s\u00edtio.</p>'
+          +'<p style="color:#35D9A6; font-size:12.5px; line-height:1.55; max-width:330px; margin:12px auto 0;">📲 Dica: instala a Pulso no telem\u00f3vel (Partilhar \u2192 Adicionar ao Ecr\u00e3 Principal) para a usares como uma app, em ecr\u00e3 inteiro.</p>'
           +'</div>';
       }
       if(S.step===1){
-        var a=(S.role==='athlete'), c=(S.role==='coach');
-        return '<h2 style="font-size:20px; margin:0 0 16px;">\u00c9s atleta ou treinador?</h2>'
-          +'<div style="display:flex; flex-direction:column; gap:12px;">'
-          +'<button type="button" data-set-role="athlete" style="text-align:left; padding:16px; border-radius:14px; cursor:pointer; border:1px solid '+(a?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(a?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">\uD83C\uDFC3 Atleta</div><div style="font-size:12.5px; color:#8894a8; margin-top:3px;">Treino-me a mim e posso ligar-me ao meu treinador.</div></button>'
-          +'<button type="button" data-set-role="coach" style="text-align:left; padding:16px; border-radius:14px; cursor:pointer; border:1px solid '+(c?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(c?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">\uD83E\uDDD1\u200D\uD83C\uDFEB Treinador</div><div style="font-size:12.5px; color:#8894a8; margin-top:3px;">Crio treinos e giro os meus atletas.</div></button>'
+        return '<h2 style="font-size:20px; margin:0 0 6px;">Como vais usar a Pulso?</h2>'
+          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 14px;">Escolhe o que se aplica a ti \u2014 podes mudar depois no Perfil.</p>'
+          +'<div style="display:flex; flex-direction:column; gap:10px;">'
+          + TYPES.map(function(x){ var sel=S.type===x.k; return '<button type="button" data-set-type="'+x.k+'" style="text-align:left; padding:14px; border-radius:14px; cursor:pointer; border:1px solid '+(sel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(sel?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">'+x.ic+' '+x.t+'</div><div style="font-size:12px; color:#8894a8; margin-top:3px;">'+x.d+'</div></button>'; }).join('')
           +'</div>';
       }
       if(S.step===2){
@@ -9696,7 +9734,8 @@ nav.tabbar button.active svg{
       var isLast = (S.step===lastStep());
       var backBtn = S.step>0 ? '<button type="button" id="su-back" style="background:none; border:none; color:#8894a8; font-size:14px; cursor:pointer;">Voltar</button>' : '<span></span>';
       var nextLabel = S.step===0 ? 'Come\u00e7ar' : (isLast ? 'Concluir' : 'Continuar');
-      var skip = (S.step===3) ? '<button type="button" id="su-skip" style="background:none; border:none; color:#8894a8; font-size:13px; cursor:pointer; text-decoration:underline; margin-right:12px;">Saltar</button>' : '';
+      var skipLabel = S.step===2 ? 'Preencher depois' : 'Saltar';
+      var skip = (S.step===2 || S.step===3) ? '<button type="button" id="su-skip" style="background:none; border:none; color:#8894a8; font-size:13px; cursor:pointer; text-decoration:underline; margin-right:12px;">'+skipLabel+'</button>' : '';
       return '<div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px;">'+backBtn
         +'<div style="display:flex; align-items:center;">'+skip
         +'<button type="button" id="su-next" style="padding:11px 22px; border-radius:10px; border:none; background:#35D9A6; color:#06231a; font-weight:800; font-size:15px; cursor:pointer;">'+nextLabel+'</button></div></div>';
@@ -9711,8 +9750,8 @@ nav.tabbar button.active svg{
         + '</div>';
       var next=ov.querySelector('#su-next'); if(next) next.onclick=onNext;
       var back=ov.querySelector('#su-back'); if(back) back.onclick=function(){ collect(); if(S.step>0) S.step--; render(); };
-      var skip=ov.querySelector('#su-skip'); if(skip) skip.onclick=function(){ S.raceName=''; finish(); };
-      ov.querySelectorAll('[data-set-role]').forEach(function(b){ b.onclick=function(){ S.role=b.getAttribute('data-set-role'); render(); }; });
+      var skip=ov.querySelector('#su-skip'); if(skip) skip.onclick=function(){ if(S.step===2){ collect(); if(S.caps.training){ S.step=3; render(); } else { finish(); } } else { S.raceName=''; finish(); } };
+      ov.querySelectorAll('[data-set-type]').forEach(function(b){ b.onclick=function(){ var k=b.getAttribute('data-set-type'); var x=null; for(var i=0;i<TYPES.length;i++){ if(TYPES[i].k===k){ x=TYPES[i]; break; } } if(x){ S.type=k; S.role=x.role; S.caps={health:x.caps.health, training:x.caps.training}; } render(); }; });
       ov.querySelectorAll('[data-set-gender]').forEach(function(b){ b.onclick=function(){ collect(); S.gender=b.getAttribute('data-set-gender'); render(); }; });
     }
 
@@ -9720,8 +9759,6 @@ nav.tabbar button.active svg{
       collect();
       if(S.step===lastStep()){ finish(); return; }
       S.step++;
-      // treinador salta o passo do objetivo
-      if(S.role==='coach' && S.step>2){ finish(); return; }
       render();
     }
 
@@ -9738,6 +9775,71 @@ nav.tabbar button.active svg{
   })();
 
 
+  function checkMsgNotifications(){
+    try{
+      var total=0; try{ Object.keys(planMessages||{}).forEach(function(k){ total += (planMessages[k]||[]).length; }); }catch(e){}
+      var raw=localStorage.getItem('pulso:seen-msg-count'); var seen = raw==null ? -1 : parseInt(raw,10);
+      try{ localStorage.setItem('pulso:seen-msg-count', String(total)); }catch(e){}
+      if(seen>=0 && total>seen){
+        var n=total-seen;
+        try{ if(typeof toast==='function') toast('\uD83D\uDCAC '+PL('Tens '+n+' nova(s) mensagem(ns) nos treinos.','You have '+n+' new workout message(s).')); }catch(e){}
+      }
+    }catch(e){}
+  }
+  // ===== Capacidades da app (o utilizador escolhe o que usa) ===== //
+  function getCaps(){ try{ var r=localStorage.getItem('pulso:caps'); if(r){ var c=JSON.parse(r); return {health: c.health!==false, training: c.training!==false}; } }catch(e){} return {health:true, training:true}; }
+  function setCaps(c){ try{ localStorage.setItem('pulso:caps', JSON.stringify({health:!!(c&&c.health), training:!!(c&&c.training)})); }catch(e){} }
+  function applyCaps(){
+    try{
+      var c=getCaps();
+      var map={ hidratacao:c.health, saude:c.health, treinos:c.training };
+      document.querySelectorAll('nav.tabbar button[data-tab]').forEach(function(b){
+        var t=b.getAttribute('data-tab');
+        if(Object.prototype.hasOwnProperty.call(map,t)){ b.style.display = map[t] ? '' : 'none'; }
+      });
+      // Suplementação = nutrição desportiva: só com treino
+      var suppBtn=document.querySelector('#tab-hidratacao button[data-sub="supp"]');
+      if(suppBtn){ suppBtn.style.display = c.training ? '' : 'none';
+        if(!c.training && suppBtn.classList.contains('active')){ var fb=document.querySelector('#tab-hidratacao button[data-sub="bebida"]'); if(fb) fb.click(); } }
+      // Cartão Atleta/Treinador só para quem tem treino ou já é treinador
+      var isCoach=(document.body.getAttribute('data-user-role')==='coach');
+      try{ if(getPulso('user-role','athlete')==='coach') isCoach=true; }catch(_){}
+      var sw=document.getElementById('athlete-switch-role'); if(sw){ var _cc=document.getElementById('coach-content'); var _cv=_cc && getComputedStyle(_cc).display!=='none'; sw.style.display = (isCoach && !_cv) ? '' : 'none'; }
+      var roleCard=document.getElementById('user-role-card');
+      if(roleCard) roleCard.style.display = (c.training || isCoach) ? '' : 'none';
+      // Painel adapta-se às capacidades (atributo + inline !important = à prova de balas)
+      try{
+        document.body.setAttribute('data-caps-health', c.health?'1':'0');
+        document.body.setAttribute('data-caps-training', c.training?'1':'0');
+        var hh=!c.health, ht=!c.training;
+        document.querySelectorAll('#tab-dashboard .metric-kcal, #tab-dashboard .metric-sleep, #tab-dashboard .metric-hydro, #tab-dashboard .metric-weight, #estado-card').forEach(function(el){ if(hh) el.style.setProperty('display','none','important'); else el.style.removeProperty('display'); });
+        ['today-workout-card','coach-plan-card','d-race-card'].forEach(function(id){ var el=document.getElementById(id); if(el){ if(ht) el.style.setProperty('display','none','important'); else el.style.removeProperty('display'); } });
+      }catch(e){}
+      var active=document.querySelector('nav.tabbar button.active');
+      if(active && active.style.display==='none'){ var db=document.querySelector('nav.tabbar button[data-tab="dashboard"]'); if(db) db.click(); }
+      renderCapsChips();
+    }catch(e){}
+  }
+  function renderCapsChips(){
+    try{
+      var c=getCaps();
+      document.querySelectorAll('.cap-chip').forEach(function(b){
+        var k=b.getAttribute('data-cap'); var on=!!c[k];
+        b.setAttribute('data-on', on?'1':'0');
+        b.style.borderColor = on?'#35D9A6':'rgba(255,255,255,.14)';
+        b.style.background = on?'rgba(53,217,166,.14)':'rgba(255,255,255,.04)';
+        b.style.color = on?'#35D9A6':'var(--text)';
+        var dot=b.querySelector('.cap-dot'); if(dot) dot.style.opacity = on?'1':'.4';
+      });
+    }catch(e){}
+  }
+  document.addEventListener('click', function(e){
+    var chip=e.target.closest ? e.target.closest('.cap-chip') : null;
+    if(!chip) return;
+    var k=chip.getAttribute('data-cap'); var c=getCaps(); c[k]=!c[k];
+    setCaps(c); applyCaps();
+    try{ var msg = k==='health' ? ('Saúde & Nutrição '+(c[k]?'ligada':'desligada')) : ('Treino '+(c[k]?'ligado':'desligado')); if(typeof toast==='function') toast(msg); }catch(_){}
+  });
   function renderEstadoBalls(){
     const card = document.getElementById('estado-card');
     if(!card) return;
@@ -14278,7 +14380,9 @@ nav.tabbar button.active svg{
     try{ if(window.PulsoReArchiveRecent) window.PulsoReArchiveRecent(3); }catch(e){}
     // Tutorial de primeira utilização (só atleta, só uma vez).
     try{ setTimeout(function(){
-      if(window.PulsoSetup && !PulsoSetup.done() && !localStorage.getItem('pulso_onboarded')){ PulsoSetup.start(); }
+      try{ applyCaps(); }catch(e){}
+      try{ setTimeout(checkMsgNotifications, 2600); }catch(e){}
+      if(window.PulsoSetup && !PulsoSetup.done()){ PulsoSetup.start(); }
       else if(window.PulsoOnboarding) window.PulsoOnboarding.maybeStart();
     }, 800); }catch(e){}
   }
@@ -17483,11 +17587,11 @@ nav.tabbar button.active svg{
 
   /* Botão de troca de área na app do Atleta */
   .athlete-switch-btn{
-    position:absolute; top:max(14px, env(safe-area-inset-top)); right:14px; z-index:4;
-    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
-    border-radius:12px; border:1px solid rgba(255,255,255,.10);
-    background:rgba(20,28,46,.72); color:var(--teal); cursor:pointer; padding:0;
-    box-shadow:0 6px 18px rgba(0,0,0,.28);
+    position:fixed; top:calc(66px + env(safe-area-inset-top)); right:12px; z-index:30;
+    height:34px; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:132px;
+    border-radius:999px; border:1px solid rgba(53,217,166,.5);
+    background:rgba(12,20,34,.95); color:var(--teal); cursor:pointer; padding:0 14px;
+    box-shadow:0 6px 20px rgba(0,0,0,.45); font-weight:800; font-size:12.5px; white-space:nowrap;
   }
   .athlete-switch-btn svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
   .athlete-switch-btn:active{transform:scale(.94);}
@@ -17588,16 +17692,17 @@ nav.tabbar button.active svg{
   #coach-content .coach-title h1{margin:0; font-size:20px; letter-spacing:1px;}
   #coach-content .coach-title span{display:block; color:var(--text-muted); font-size:11px; margin-top:2px;}
   #coach-content .coach-switch-btn{
-    flex:0 0 auto; width:38px; height:38px; display:flex; align-items:center; justify-content:center;
-    border-radius:12px; border:1px solid rgba(255,255,255,.10);
-    background:rgba(20,28,46,.72); color:var(--teal); cursor:pointer; padding:0;
-    box-shadow:0 6px 18px rgba(0,0,0,.28);
+    position:fixed; top:calc(66px + env(safe-area-inset-top)); right:12px; z-index:30;
+    height:34px; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:132px;
+    border-radius:999px; border:1px solid rgba(53,217,166,.5);
+    background:rgba(12,20,34,.95); color:var(--teal); cursor:pointer; padding:0 14px;
+    box-shadow:0 6px 20px rgba(0,0,0,.45); font-weight:800; font-size:12.5px; white-space:nowrap;
   }
-  #coach-content .coach-switch-btn svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  #coach-content .coach-switch-btn svg{width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
   #coach-content .coach-switch-btn:active{transform:scale(.94);}
   #coach-content .coach-main{flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 14px calc(32px + env(safe-area-inset-bottom)); max-width:1180px; width:100%; margin:0 auto;}
-  #coach-content .coach-tabs{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; padding:6px; border-radius:999px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);}
-  #coach-content .coach-tabs button{border:0; min-height:44px; border-radius:999px; background:transparent; color:var(--text-muted); font-weight:900; font-size:14px;}
+  #coach-content .coach-tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:14px; padding:6px; border-radius:999px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);}
+  #coach-content .coach-tabs button{border:0; min-height:44px; border-radius:999px; background:transparent; color:var(--text-muted); font-weight:900; font-size:13px; padding:0 4px;}
   #coach-content .coach-tabs button.active{background:rgba(53,217,166,.16); color:var(--teal);}
   #coach-content .coach-view{display:none; flex-direction:column; gap:12px;}
   #coach-content .coach-view.active{display:flex;}
@@ -17625,7 +17730,7 @@ nav.tabbar button.active svg{
   .coach-section-head h2{margin:0; font-family:var(--font-display); font-size:15px; letter-spacing:.4px;}
 
   /* Botões genéricos do treinador */
-  .coach-btn{border:1px solid rgba(53,217,166,.32); background:rgba(53,217,166,.12); color:var(--teal); font-weight:900; font-size:13px; border-radius:14px; min-height:42px; padding:0 14px; cursor:pointer;}
+  .coach-btn{display:inline-flex; align-items:center; justify-content:center; text-align:center; line-height:1.15; border:1px solid rgba(53,217,166,.32); background:rgba(53,217,166,.12); color:var(--teal); font-weight:900; font-size:13px; border-radius:14px; min-height:42px; padding:8px 14px; cursor:pointer;}
   .coach-btn:active{transform:scale(.97);}
   .coach-btn.primary{background:linear-gradient(180deg,#35D9A6,#25b98c); color:#04140f; border-color:transparent;}
   .coach-btn.ghost{background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.12); color:var(--text);}
@@ -18001,8 +18106,9 @@ nav.tabbar button.active svg{
         </div>
         <div class="coach-title"><h1>PULSO</h1><span data-i18n="Coach Mode">Modo Treinador</span><span class="pulso-sync-status off" title="Estado da sincronização" aria-live="polite"><span class="dot"></span><span class="txt" data-i18n="Offline">Offline</span></span></div>
       </div>
-      <button class="coach-switch-btn" type="button" id="coach-back-athlete" aria-label="Voltar à escolha de área" title="Voltar à escolha de área">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>
+      <button class="coach-switch-btn" type="button" id="coach-back-athlete" aria-label="Estás em modo Treinador — toca para trocar para Atleta" title="Modo atual: Treinador · toca para trocar para Atleta">
+        <svg viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px;"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        <span>Treinador</span>
       </button>
     </div>
   </header>
@@ -18010,6 +18116,7 @@ nav.tabbar button.active svg{
     <div class="coach-tabs">
       <button type="button" class="active" data-coach-tab="treinos" data-i18n="Workouts">Treinos</button>
       <button type="button" data-coach-tab="atleta" data-i18n="Athlete">Atleta</button>
+      <button type="button" data-coach-tab="ia">✨ IA</button>
     </div>
 
     <section id="coach-tab-treinos" class="coach-view active">
@@ -18244,6 +18351,14 @@ nav.tabbar button.active svg{
       </div>
     </section>
 
+    <section id="coach-tab-ia" class="coach-view">
+      <div class="coach-section-head" style="display:flex; align-items:center; gap:8px; padding:0 2px;">
+        <h3 style="margin:0;">✨ <span data-i18n="AI workouts">Treinos IA</span></h3>
+      </div>
+      <div class="coach-note" style="margin:2px 2px 6px;" data-i18n="Ready-made workouts by category (editable) plus a generator: pick the type and time and it builds the workout.">Treinos prontos por categoria (editáveis) e um gerador: escolhe o tipo e o tempo e ele cria o treino. Guarda na biblioteca para editar/prescrever.</div>
+      <div id="coach-ia-body"></div>
+    </section>
+
     <section id="coach-tab-atleta" class="coach-view">
       <div class="coach-card">
         <div class="coach-section-head">
@@ -18439,14 +18554,11 @@ nav.tabbar button.active svg{
       if(input) input.focus({preventScroll:true});
       return;
     }
-    const form = document.getElementById('login-form');
-    const role = document.getElementById('pulso-role-step');
-    const title = document.getElementById('login-title');
-    const sub = document.getElementById('login-sub');
-    if(form) form.style.display = 'none';
-    if(role) role.classList.add('active');
-    if(title) title.textContent = 'ENTRAR COMO';
-    if(sub) sub.textContent = PL('Escolhe a área que queres abrir.','Choose the area you want to open.');
+    // Entra sempre direto no modo certo — sem ecrã de escolha.
+    var _lastMode='athlete'; try{ _lastMode=localStorage.getItem(MODE_KEY)||'athlete'; }catch(_){}
+    var _isCoach=false; try{ _isCoach=(getPulso('user-role','athlete')==='coach'); }catch(_){}
+    if(_isCoach && _lastMode==='coach'){ openCoach(); return; }
+    openAthlete();
   }
   function showNameStep(){
     const form = document.getElementById('login-form');
@@ -18462,6 +18574,7 @@ nav.tabbar button.active svg{
   async function openAthlete(){
     saveName();
     localStorage.setItem(MODE_KEY, 'athlete');
+    setTimeout(function(){ try{ applyCaps(); }catch(e){} }, 350);
     const coach = document.getElementById('coach-content');
     if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
     const form = document.getElementById('login-form');
@@ -18938,6 +19051,325 @@ nav.tabbar button.active svg{
     try{ renderCoachCalendar(); }catch(e){}
     try{ renderCoachWeekGlance(); }catch(e){}
   }
+  // ===== Modelos de treino (planos reutilizáveis) ===== //
+  function getPlanModels(){ const a=getPulso('plan-models', []); return Array.isArray(a)?a:[]; }
+  function setPlanModels(list){ setPulso('plan-models', list); }
+  function _pmEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function _pmAddDays(iso, n){ try{ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+(n||0)); return d.toISOString().slice(0,10); }catch(e){ return iso; } }
+
+  function renderPlanModels(){
+    const host=document.getElementById('coach-models-list'); if(!host) return;
+    const models=getPlanModels();
+    if(!models.length){ host.innerHTML='<div class="coach-note">Ainda não tens modelos. Um modelo é um plano reutilizável (várias sessões ao longo dos dias) que aplicas a qualquer atleta de uma vez.</div>'; return; }
+    host.innerHTML=models.map(function(m){
+      const n=(m.sessions||[]).length;
+      return '<div class="card" style="padding:14px;">'
+        +'<div style="font-weight:800; font-size:15px;">'+_pmEsc(m.name||'Modelo')+'</div>'
+        +(m.desc?'<div class="coach-note" style="margin-top:2px;">'+_pmEsc(m.desc)+'</div>':'')
+        +'<div class="coach-note" style="margin-top:2px;">'+n+' '+(n===1?'sessão':'sessões')+'</div>'
+        +'<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">'
+        +'<button class="coach-btn tiny primary" type="button" data-model-apply="'+_pmEsc(m.id)+'">Aplicar a atleta</button>'
+        +'<button class="coach-btn tiny" type="button" data-model-edit="'+_pmEsc(m.id)+'">Editar</button>'
+        +'<button class="coach-btn tiny" type="button" data-model-dup="'+_pmEsc(m.id)+'">Duplicar</button>'
+        +'<button class="coach-btn tiny" type="button" data-model-del="'+_pmEsc(m.id)+'">Apagar</button>'
+        +'</div></div>';
+    }).join('');
+  }
+
+  function _pmModal(html){
+    const ov=document.createElement('div');
+    ov.style.cssText='position:fixed; inset:0; z-index:9600; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center;';
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    ov.innerHTML='<div style="width:100%; max-width:520px; max-height:88vh; overflow-y:auto; background:var(--card,#151b23); border-radius:18px 18px 0 0; padding:18px;">'+html+'</div>';
+    document.body.appendChild(ov);
+    return ov;
+  }
+
+  function openModelEditor(id){
+    const models=getPlanModels();
+    let m = id ? models.find(function(x){return x.id===id;}) : null;
+    const isNew = !m;
+    if(isNew) m = { id:'pm-'+Date.now().toString(36), name:'', desc:'', sessions:[] };
+    const lib=getCoachWorkouts();
+    function libOptsFor(sel){ return lib.map(function(w){ return '<option value="'+_pmEsc(w.id)+'"'+(w.id===sel?' selected':'')+'>'+_pmEsc(w.name||'Treino')+'</option>'; }).join(''); }
+    function sessionRow(sess){
+      return '<div class="pm-sess" style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">'
+        +'<span style="font-size:12px; color:var(--text-muted);">Dia</span>'
+        +'<input type="number" min="1" class="pm-day" value="'+(sess.day||1)+'" style="width:56px; padding:7px; border-radius:8px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
+        +'<select class="pm-wk" style="flex:1; min-width:0; padding:7px; border-radius:8px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+libOptsFor(sess.workoutId)+'</select>'
+        +'<button type="button" class="coach-btn tiny pm-del-sess">✕</button>'
+        +'</div>';
+    }
+    const ov=_pmModal(
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><strong style="font-size:17px;">'+(isNew?'Novo modelo':'Editar modelo')+'</strong><button id="pm-x" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button></div>'
+      +(lib.length? '' : '<div class="coach-note" style="margin-bottom:10px;">Ainda não tens treinos na biblioteca. Cria treinos no separador Treinos primeiro — depois monta o modelo com eles.</div>')
+      +'<label style="font-size:12px; color:var(--text-muted);">Nome</label><input id="pm-name" value="'+_pmEsc(m.name)+'" placeholder="ex: Base 4 semanas" style="width:100%; margin:4px 0 10px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
+      +'<label style="font-size:12px; color:var(--text-muted);">Descrição (opcional)</label><input id="pm-desc" value="'+_pmEsc(m.desc)+'" placeholder="ex: 3 corridas + 1 força por semana" style="width:100%; margin:4px 0 12px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
+      +'<div style="font-weight:700; margin-bottom:6px;">Sessões</div>'
+      +'<div class="coach-note" style="margin-bottom:8px;">O "Dia" é o número do dia dentro do plano (Dia 1 = data de início ao aplicar).</div>'
+      +'<div id="pm-sessions">'+(m.sessions||[]).map(sessionRow).join('')+'</div>'
+      +'<button type="button" id="pm-add-sess" class="coach-btn tiny" style="margin-top:4px;"'+(lib.length?'':' disabled')+'>+ Adicionar sessão</button>'
+      +'<button type="button" id="pm-save" class="coach-btn primary" style="width:100%; margin-top:16px;">Guardar modelo</button>'
+    );
+    const close=function(){ ov.remove(); };
+    ov.querySelector('#pm-x').onclick=close;
+    const sessBox=ov.querySelector('#pm-sessions');
+    function bindDel(node){ const b=node.querySelector('.pm-del-sess'); if(b) b.onclick=function(){ node.remove(); }; }
+    sessBox.querySelectorAll('.pm-sess').forEach(bindDel);
+    ov.querySelector('#pm-add-sess').onclick=function(){
+      if(!lib.length) return;
+      const div=document.createElement('div');
+      div.innerHTML=sessionRow({day:(sessBox.querySelectorAll('.pm-sess').length+1), workoutId:(lib[0]&&lib[0].id)});
+      const node=div.firstChild; sessBox.appendChild(node); bindDel(node);
+    };
+    ov.querySelector('#pm-save').onclick=function(){
+      const name=(ov.querySelector('#pm-name').value||'').trim(); if(!name){ toast('Dá um nome ao modelo.'); return; }
+      const desc=(ov.querySelector('#pm-desc').value||'').trim();
+      const sessions=[];
+      sessBox.querySelectorAll('.pm-sess').forEach(function(row){ const day=parseInt(row.querySelector('.pm-day').value,10)||1; const wk=row.querySelector('.pm-wk').value; if(wk) sessions.push({day:day, workoutId:wk}); });
+      m.name=name; m.desc=desc; m.sessions=sessions.sort(function(a,b){return a.day-b.day;});
+      const list=getPlanModels(); const idx=list.findIndex(function(x){return x.id===m.id;});
+      if(idx>=0) list[idx]=m; else list.push(m);
+      setPlanModels(list); renderPlanModels(); close(); toast('Modelo guardado');
+    };
+  }
+
+  function applyPlanModel(id){
+    const m=getPlanModels().find(function(x){return x.id===id;}); if(!m) return;
+    if(!(m.sessions||[]).length){ toast('Este modelo não tem sessões.'); return; }
+    const ath=(typeof getAthletes==='function') ? getAthletes() : [];
+    if(!ath.length){ toast('Sem atletas. Liga-te a um atleta primeiro.'); return; }
+    const athOpts=ath.map(function(a){ return '<option value="'+_pmEsc(a.id)+'">'+_pmEsc(a.name||'Atleta')+'</option>'; }).join('');
+    const today=todayStr();
+    const ov=_pmModal(
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><strong style="font-size:17px;">Aplicar "'+_pmEsc(m.name)+'"</strong><button id="pm-ax" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button></div>'
+      +'<label style="font-size:12px; color:var(--text-muted);">Atleta</label><select id="pm-ath" style="width:100%; margin:4px 0 10px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+athOpts+'</select>'
+      +'<label style="font-size:12px; color:var(--text-muted);">Data de início (Dia 1)</label><input type="date" id="pm-start" value="'+today+'" style="width:100%; margin:4px 0 12px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
+      +'<div class="coach-note">Vai prescrever '+(m.sessions.length)+' sessões a partir da data escolhida, cada uma no seu dia.</div>'
+      +'<button type="button" id="pm-apply-go" class="coach-btn primary" style="width:100%; margin-top:14px;">Prescrever ao calendário</button>'
+    );
+    ov.querySelector('#pm-ax').onclick=function(){ ov.remove(); };
+    ov.querySelector('#pm-apply-go').onclick=function(){
+      const athleteId=ov.querySelector('#pm-ath').value;
+      const start=ov.querySelector('#pm-start').value||today;
+      const lib=getCoachWorkouts(); let count=0;
+      m.sessions.forEach(function(s){
+        const w=lib.find(function(x){return x.id===s.workoutId;}); if(!w) return;
+        const date=_pmAddDays(start, (s.day||1)-1);
+        try{ scheduleWorkout(athleteId, date, Object.assign({}, w, {id:'w-'+Date.now().toString(36)+'-'+count})); count++; }catch(e){}
+      });
+      ov.remove();
+      const aName=((typeof getAthletes==='function'?getAthletes():[]).find(function(a){return a.id===athleteId;})||{}).name||'atleta';
+      toast(count+' sessões → '+aName);
+      try{ renderCoachCalendar(); }catch(e){}
+      try{ renderCoachWeekGlance(); }catch(e){}
+    };
+  }
+
+  document.addEventListener('click', function(e){
+    const t=e.target.closest ? e.target.closest('[data-model-apply],[data-model-edit],[data-model-dup],[data-model-del],#coach-model-new') : null;
+    if(!t) return;
+    if(t.id==='coach-model-new'){ openModelEditor(null); return; }
+    if(t.hasAttribute('data-model-apply')){ applyPlanModel(t.getAttribute('data-model-apply')); return; }
+    if(t.hasAttribute('data-model-edit')){ openModelEditor(t.getAttribute('data-model-edit')); return; }
+    if(t.hasAttribute('data-model-dup')){ const list=getPlanModels(); const m=list.find(function(x){return x.id===t.getAttribute('data-model-dup');}); if(m){ const copy=JSON.parse(JSON.stringify(m)); copy.id='pm-'+Date.now().toString(36); copy.name=(m.name||'Modelo')+' (cópia)'; list.push(copy); setPlanModels(list); renderPlanModels(); toast('Modelo duplicado'); } return; }
+    if(t.hasAttribute('data-model-del')){ if(confirm('Apagar este modelo?')){ setPlanModels(getPlanModels().filter(function(x){return x.id!==t.getAttribute('data-model-del');})); renderPlanModels(); } return; }
+  });
+
+
+  // ===== Treinos IA (gerador + biblioteca de treinos prontos) ===== //
+  var AI_CATS = [
+    { key:'corrida', label:'Corrida', modality:'estrada', subs:['Rodagem fácil','Intervalos','Tempo (limiar)','Fartlek','Longão'],
+      equip:[['ar-livre','Ar livre'],['passadeira','Passadeira']] },
+    { key:'bike', label:'Bicicleta', modality:'bike-fora', subs:['Endurance','Sweet spot','Intervalos','Tempo'],
+      equip:[['estrada','Estrada'],['rolo','Rolo/Trainer'],['estatica','Estática/Spin']] },
+    { key:'forca', label:'Força', modality:'forca', subs:['Corpo inteiro','Membros inferiores','Empurrar','Puxar','Core'],
+      equip:[['peso-corporal','Peso corporal'],['halteres','Halteres'],['barra','Barra'],['kettlebell','Kettlebell'],['elasticos','Elásticos'],['trx','TRX'],['maquinas','Máquinas']] },
+    { key:'mobilidade', label:'Mobilidade', modality:'mobilidade', subs:['Geral','Anca & lombar','Ombros & torácica','Pós-treino'],
+      equip:[['tapete','Tapete'],['rolo-foam','Foam roller'],['elasticos','Elásticos']] },
+    { key:'hyrox', label:'Hyrox', modality:'forca', subs:['Simulação','Estações','Corre + estação'],
+      equip:[['kettlebell','Kettlebell'],['wall-ball','Wall ball'],['remo','Remo/Ski'],['sled','Trenó'],['halteres','Halteres'],['peso-corporal','Peso corporal']] },
+    { key:'funcional', label:'Funcional', modality:'forca', subs:['Circuito','AMRAP','EMOM','Tabata'],
+      equip:[['peso-corporal','Peso corporal'],['halteres','Halteres'],['kettlebell','Kettlebell'],['caixa','Caixa'],['corda','Corda']] }
+  ];
+  var STRENGTH_EX = [
+    {n:'Agachamento', part:'inf', eq:['peso-corporal','halteres','barra','kettlebell','maquinas']},
+    {n:'Agachamento búlgaro', part:'inf', eq:['peso-corporal','halteres','kettlebell']},
+    {n:'Afundos', part:'inf', eq:['peso-corporal','halteres','kettlebell']},
+    {n:'Peso morto romeno', part:'inf', eq:['halteres','barra','kettlebell']},
+    {n:'Hip thrust', part:'inf', eq:['peso-corporal','halteres','barra','maquinas']},
+    {n:'Elevação de gémeos', part:'inf', eq:['peso-corporal','halteres','maquinas']},
+    {n:'Swing russo', part:'inf', eq:['kettlebell']},
+    {n:'Flexões', part:'push', eq:['peso-corporal']},
+    {n:'Supino/press peito', part:'push', eq:['halteres','barra','maquinas']},
+    {n:'Desenvolvimento ombros', part:'push', eq:['halteres','barra','kettlebell','maquinas']},
+    {n:'Fundos de tríceps', part:'push', eq:['peso-corporal','trx']},
+    {n:'Extensão tríceps', part:'push', eq:['halteres','elasticos']},
+    {n:'Remada', part:'pull', eq:['halteres','barra','kettlebell','elasticos','trx','maquinas']},
+    {n:'Elevações/puxada', part:'pull', eq:['barra','elasticos','trx','maquinas']},
+    {n:'Face pull', part:'pull', eq:['elasticos','maquinas']},
+    {n:'Rosca bíceps', part:'pull', eq:['halteres','barra','elasticos','kettlebell']},
+    {n:'Prancha', part:'core', eq:['peso-corporal']},
+    {n:'Rotação russa', part:'core', eq:['peso-corporal','halteres','kettlebell']},
+    {n:'Elevação de pernas', part:'core', eq:['peso-corporal']},
+    {n:'Dead bug', part:'core', eq:['peso-corporal']}
+  ];
+  function _aiLvl(l){ return l==='iniciante'?0.8:(l==='avancado'?1.2:1.0); }
+  function _aiR(n){ return Math.max(1, Math.round(n)); }
+  function _aiHas(equip, k){ return equip && equip.indexOf(k)>=0; }
+  function _aiPick(arr, n){ var a=arr.slice(); var out=[]; while(a.length && out.length<n){ out.push(a.shift()); } return out; }
+
+  function genWorkout(opts){
+    opts = opts||{}; var cat=AI_CATS.find(function(c){return c.key===opts.cat;})||AI_CATS[0];
+    var sub=opts.sub||cat.subs[0], min=parseInt(opts.min,10)||45, level=opts.level||'intermedio';
+    var equip = (opts.equip&&opts.equip.length)?opts.equip:[]; var f=_aiLvl(level); var L=[]; var name='';
+    var lvlTxt = level==='iniciante'?'iniciante':(level==='avancado'?'avançado':'intermédio');
+    function wu(m){ L.push('Aquecimento ('+m+' min): mobilidade + ativação progressiva.'); }
+    function cd(m){ L.push('Retorno à calma ('+m+' min): esforço fácil + alongamentos.'); }
+
+    if(cat.key==='corrida' || cat.key==='bike'){
+      var isBike=cat.key==='bike';
+      var venue = isBike ? (_aiHas(equip,'rolo')?'rolo':(_aiHas(equip,'estatica')?'estatica':'estrada'))
+                         : (_aiHas(equip,'passadeira')?'passadeira':'ar-livre');
+      var venueTxt = { 'passadeira':'na passadeira (ajusta velocidade/inclinação)','ar-livre':'no exterior (pelo pace/terreno)','estrada':'na estrada','rolo':'no rolo/trainer (controla potência e cadência)','estatica':'na bicicleta estática (resistência/cadência)' }[venue];
+      var verb = isBike?'pedala':'corre';
+      if(/Rodagem|Endurance/.test(sub)){ var w=Math.max(15,min-15); wu(10); L.push('Bloco contínuo ('+w+' min) '+venueTxt+': '+verb+' fácil e conversável (Z2), constante.'); cd(5); name=(isBike?'Endurance':'Rodagem')+' '+min+'min'; }
+      else if(/Intervalos/.test(sub)){ wu(15); var wk=isBike?4:3, rst=isBike?3:2, reps=_aiR(((min-25)/(wk+rst))*f); L.push('Série '+venueTxt+': '+reps+' × '+wk+' min forte (Z4) com '+rst+' min fácil entre repetições.'); L.push('Mantém o mesmo esforço da 1.ª à última.'); cd(10); name='Intervalos '+reps+'×'+wk+"'"; }
+      else if(/Tempo|Sweet/.test(sub)){ wu(15); var t=_aiR((min-25)*f); L.push('Bloco '+(/Sweet/.test(sub)?'sweet spot':'tempo')+' ('+t+' min) '+venueTxt+': ritmo de limiar (Z3-Z4), forte mas sustentável.'); cd(10); name=(/Sweet/.test(sub)?'Sweet spot ':'Tempo ')+t+"'"; }
+      else if(/Fartlek/.test(sub)){ wu(12); var blk=_aiR(((min-22))/3); L.push('Fartlek '+venueTxt+' ('+blk+' min): alterna 1 min forte / 2 min fácil, à sensação.'); cd(10); name='Fartlek '+min+'min'; }
+      else { var lg=Math.max(20,min-15); wu(10); L.push('Longão ('+lg+' min) '+venueTxt+': fácil e constante (Z2). Alimenta/hidrata se >75 min.'); cd(5); name='Longão '+min+'min'; }
+    } else if(cat.key==='forca'){
+      var eq = equip.length?equip:['peso-corporal'];
+      var partMap = {'Membros inferiores':['inf','inf','inf','core'],'Empurrar':['push','push','push','core'],'Puxar':['pull','pull','pull','core'],'Core':['core','core','core','core']};
+      var wantParts = partMap[sub] || ['inf','push','pull','core','inf'];
+      wu(8);
+      var sets=_aiR(3*f), reps= level==='avancado'?'6-10':(level==='iniciante'?'12-15':'8-12');
+      var nEx=Math.max(3, Math.min(6, Math.round((min-13)/6)));
+      var used={}, chosen=[];
+      for(var p=0; p<wantParts.length && chosen.length<nEx; p++){
+        var cand=STRENGTH_EX.filter(function(x){ return x.part===wantParts[p] && !used[x.n] && x.eq.some(function(k){return eq.indexOf(k)>=0;}); });
+        if(cand.length){ var pick=cand[0]; used[pick.n]=1; chosen.push(pick.n); }
+      }
+      // completa com o que houver disponível
+      if(chosen.length<nEx){ STRENGTH_EX.filter(function(x){ return !used[x.n] && x.eq.some(function(k){return eq.indexOf(k)>=0;}); }).forEach(function(x){ if(chosen.length<nEx){ used[x.n]=1; chosen.push(x.n); } }); }
+      if(!chosen.length){ chosen=['Agachamento','Flexões','Prancha']; }
+      var eqTxt = eq.map(function(k){ var c=AI_CATS.find(function(x){return x.key==='forca';}); var e=c.equip.find(function(z){return z[0]===k;}); return e?e[1]:k; }).join(', ');
+      L.push('Circuito de força ('+eqTxt+') — '+sets+' séries de '+reps+' reps, descanso 60-90s:');
+      chosen.forEach(function(n){ L.push('  • '+n); });
+      L.push('Core final: 5 min à escolha.'); cd(5);
+      name='Força '+({'Corpo inteiro':'total','Membros inferiores':'pernas','Empurrar':'push','Puxar':'pull','Core':'core'}[sub]||'')+' '+min+'min';
+    } else if(cat.key==='mobilidade'){
+      var zones = /Anca/.test(sub)?['Anca (flexores, glúteos)','Lombar','Isquiotibiais','Gémeos']:(/Ombros/.test(sub)?['Ombros','Coluna torácica','Peitoral','Pescoço']:['Anca','Ombros','Coluna torácica','Tornozelos','Lombar']);
+      var hold=level==='avancado'?'60s':'45s', rounds=_aiR(2*f);
+      if(_aiHas(equip,'rolo-foam')) L.push('Foam roller (5 min): quadríceps, glúteos, dorsal.');
+      L.push('Sequência de mobilidade — '+rounds+' voltas, '+hold+' por posição'+(_aiHas(equip,'elasticos')?' (usa elástico onde ajudar)':'')+':');
+      zones.forEach(function(z){ L.push('  • '+z); });
+      L.push('Termina com 3-5 min de respiração diafragmática.'); name='Mobilidade '+sub+' '+min+'min';
+    } else {
+      wu(8);
+      var tools = equip.length?equip:['peso-corporal'];
+      var pool = { 'kettlebell':'15 swings','wall-ball':'15 wall balls','remo':'250 m remo/ski','sled':'20 m trenó','halteres':'12 thrusters','caixa':'15 box step-ups','corda':'40 saltos à corda','peso-corporal':'12 burpees' };
+      var moves = tools.map(function(k){ return pool[k]||'12 burpees'; });
+      if(moves.length<3) moves=moves.concat(['12 agachamentos','10 flexões']).slice(0,4);
+      if(/AMRAP/.test(sub)){ var amt=_aiR(min-13); L.push('AMRAP '+amt+' min (máx. voltas):'); moves.forEach(function(m){ L.push('  • '+m); }); }
+      else if(/EMOM/.test(sub)){ var mins=_aiR(min-13); L.push('EMOM '+mins+' min (a cada minuto, alterna):'); moves.forEach(function(m,i){ L.push('  • Min '+(i%2?'par':'ímpar')+': '+m); }); }
+      else if(/Tabata/.test(sub)){ L.push('Tabata (8×20s trabalho/10s descanso por exercício):'); moves.forEach(function(m){ L.push('  • '+m.replace(/^\d+\s?/,'')); }); }
+      else { var rd=_aiR(4*f); L.push((cat.key==='hyrox'?'Simulação':'Circuito')+' — '+rd+' voltas'+(cat.key==='hyrox'?' com 200-400 m corrida entre estações':' (40s/20s)')+':'); moves.forEach(function(m){ L.push('  • '+m); }); }
+      cd(6); name=(cat.key==='hyrox'?'Hyrox ':'Funcional ')+sub+' '+min+'min';
+    }
+    L.push('— Nível '+lvlTxt+'. Ajusta ritmos/cargas ao atleta.');
+    return { name:name, type:cat.modality, baseMinutes:min, desc:L.join('\n'), ai:true };
+  }
+
+  var AI_READY = [
+    genWorkout({cat:'corrida',sub:'Rodagem fácil',min:45,equip:['ar-livre']}),
+    genWorkout({cat:'corrida',sub:'Intervalos',min:50,equip:['passadeira']}),
+    genWorkout({cat:'corrida',sub:'Tempo (limiar)',min:45,equip:['ar-livre']}),
+    genWorkout({cat:'corrida',sub:'Longão',min:80,equip:['ar-livre']}),
+    genWorkout({cat:'bike',sub:'Sweet spot',min:60,equip:['rolo']}),
+    genWorkout({cat:'bike',sub:'Endurance',min:75,equip:['estrada']}),
+    genWorkout({cat:'forca',sub:'Corpo inteiro',min:45,equip:['halteres','peso-corporal']}),
+    genWorkout({cat:'forca',sub:'Membros inferiores',min:45,equip:['barra','halteres']}),
+    genWorkout({cat:'forca',sub:'Corpo inteiro',min:30,equip:['peso-corporal']}),
+    genWorkout({cat:'mobilidade',sub:'Geral',min:20,equip:['tapete']}),
+    genWorkout({cat:'hyrox',sub:'Simulação',min:50,equip:['kettlebell','wall-ball','remo']}),
+    genWorkout({cat:'funcional',sub:'AMRAP',min:25,equip:['peso-corporal','kettlebell']})
+  ];
+
+  function _aiSaveToLibrary(w){ var lib=getCoachWorkouts(); var copy=Object.assign({}, w, {id:'w-'+Date.now().toString(36)+'-'+Math.floor(Math.random()*999)}); lib.push(copy); setPulso('coach-workouts', lib); try{ renderCoachWorkouts(); }catch(e){} toast('Guardado na biblioteca'); return copy; }
+  function _aiPrescribe(w){
+    var ath=(typeof getAthletes==='function')?getAthletes():[]; if(!ath.length){ toast('Sem atletas. Liga-te a um atleta primeiro.'); return; }
+    var athOpts=ath.map(function(a){ return '<option value="'+_pmEsc(a.id)+'">'+_pmEsc(a.name||'Atleta')+'</option>'; }).join(''); var today=todayStr();
+    var ov=_pmModal('<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><strong style="font-size:17px;">Prescrever</strong><button id="ai-px" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button></div>'
+      +'<label style="font-size:12px; color:var(--text-muted);">Atleta</label><select id="ai-pa" style="width:100%; margin:4px 0 10px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+athOpts+'</select>'
+      +'<label style="font-size:12px; color:var(--text-muted);">Data</label><input type="date" id="ai-pd" value="'+today+'" style="width:100%; margin:4px 0 12px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
+      +'<button type="button" id="ai-pg" class="coach-btn primary" style="width:100%;">Prescrever</button>');
+    ov.querySelector('#ai-px').onclick=function(){ ov.remove(); };
+    ov.querySelector('#ai-pg').onclick=function(){ var aid=ov.querySelector('#ai-pa').value, d=ov.querySelector('#ai-pd').value||today; try{ scheduleWorkout(aid, d, Object.assign({}, w, {id:'w-'+Date.now().toString(36)})); }catch(e){} ov.remove(); var an=(ath.find(function(a){return a.id===aid;})||{}).name||'atleta'; toast(w.name+' → '+an); try{ renderCoachCalendar(); }catch(e){} };
+  }
+  function _aiCard(w, kind, idx){
+    return '<div class="card" style="padding:12px;">'
+      +'<div style="font-weight:800;">'+_pmEsc(w.name)+'</div>'
+      +'<div class="coach-note" style="margin:2px 0 6px;">'+(typeof coachModalityLabel==='function'?_pmEsc(coachModalityLabel(w.type)):_pmEsc(w.type))+' · ~'+(w.baseMinutes||0)+' min</div>'
+      +'<pre style="white-space:pre-wrap; font-family:inherit; font-size:12.5px; color:var(--text); margin:0 0 8px; opacity:.92;">'+_pmEsc(w.desc)+'</pre>'
+      +'<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="coach-btn tiny primary" type="button" data-ai-save="'+kind+':'+idx+'">Guardar na biblioteca</button><button class="coach-btn tiny" type="button" data-ai-presc="'+kind+':'+idx+'">Prescrever</button></div></div>';
+  }
+  var _aiLastGen=null;
+
+  function _aiEquipHtml(cat){
+    return cat.equip.map(function(e){ var def=(cat.key==='corrida'&&e[0]==='ar-livre')||(cat.key==='bike'&&e[0]==='estrada')||(cat.key==='forca'&&e[0]==='peso-corporal')||(cat.key==='mobilidade'&&e[0]==='tapete')||(cat.key==='funcional'&&e[0]==='peso-corporal')||(cat.key==='hyrox'&&e[0]==='kettlebell'); return '<button type="button" class="ai-eq-chip" data-eq="'+e[0]+'" data-on="'+(def?'1':'0')+'" style="font-size:12.5px; padding:7px 12px; border-radius:999px; cursor:pointer; border:1px solid '+(def?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(def?'rgba(53,217,166,.14)':'rgba(255,255,255,.04)')+'; color:'+(def?'#35D9A6':'var(--text)')+';">'+_pmEsc(e[1])+'</button>'; }).join(' ');
+  }
+  function renderTreinosIA(){
+    var host=document.getElementById('coach-ia-body'); if(!host) return;
+    var cat0=AI_CATS[0];
+    host.innerHTML =
+      '<div class="card">'
+      +'<div style="font-weight:800; margin-bottom:10px;">\u2699\ufe0f Gerador de treino</div>'
+      +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">Tipo</label><select id="ai-cat" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+AI_CATS.map(function(c){return '<option value="'+c.key+'">'+_pmEsc(c.label)+'</option>';}).join('')+'</select></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">Objetivo</label><select id="ai-sub" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+cat0.subs.map(function(s){return '<option>'+_pmEsc(s)+'</option>';}).join('')+'</select></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">Tempo (min)</label><input id="ai-min" type="number" min="10" step="5" value="45" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);"></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">Nível</label><select id="ai-lvl" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);"><option value="iniciante">Iniciante</option><option value="intermedio" selected>Intermédio</option><option value="avancado">Avançado</option></select></div>'
+      +'</div>'
+      +'<div style="margin-top:10px;"><label style="font-size:12px; color:var(--text-muted);">Equipamento disponível</label><div id="ai-equip" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">'+_aiEquipHtml(cat0)+'</div></div>'
+      +'<button type="button" id="ai-gen" data-ai-gen="1" class="coach-btn primary" style="width:100%; margin-top:12px;">Gerar treino</button>'
+      +'<div id="ai-gen-out" style="margin-top:12px;"></div>'
+      +'</div>'
+      +'<div style="font-weight:800; margin:16px 2px 8px;">📚 Treinos prontos</div>'
+      +'<div class="coach-note" style="margin:0 2px 10px;">Muitos treinos j\u00e1 feitos, por categoria. Guarda na biblioteca para editar/prescrever.</div>'
+      +'<div id="ai-ready">'+AI_READY.map(function(w,i){ return _aiCard(w,'ready',i); }).join('')+'</div>';
+    var catSel=host.querySelector('#ai-cat');
+    catSel.onchange=function(){
+      var c=AI_CATS.find(function(x){return x.key===catSel.value;})||AI_CATS[0];
+      host.querySelector('#ai-sub').innerHTML=c.subs.map(function(s){return '<option>'+_pmEsc(s)+'</option>';}).join('');
+      host.querySelector('#ai-equip').innerHTML=_aiEquipHtml(c);
+    };
+  }
+
+  // Handler delegado (robusto): gerar / guardar / prescrever
+  document.addEventListener('click', function(e){
+    if(!e.target.closest) return;
+    var chip=e.target.closest('.ai-eq-chip');
+    if(chip){ var on=chip.getAttribute('data-on')==='1'?'0':'1'; chip.setAttribute('data-on',on); var sel=on==='1'; chip.style.borderColor=sel?'#35D9A6':'rgba(255,255,255,.14)'; chip.style.background=sel?'rgba(53,217,166,.14)':'rgba(255,255,255,.04)'; chip.style.color=sel?'#35D9A6':'var(--text)'; return; }
+    var gen=e.target.closest('[data-ai-gen]');
+    if(gen){
+      var host=document.getElementById('coach-ia-body'); if(!host) return;
+      var cat=host.querySelector('#ai-cat').value, sub=host.querySelector('#ai-sub').value;
+      var min=parseInt(host.querySelector('#ai-min').value,10)||45, lvl=host.querySelector('#ai-lvl').value;
+      var equip=Array.prototype.slice.call(host.querySelectorAll('.ai-eq-chip[data-on="1"]')).map(function(c){return c.getAttribute('data-eq');});
+      _aiLastGen=genWorkout({cat:cat, sub:sub, min:min, level:lvl, equip:equip});
+      host.querySelector('#ai-gen-out').innerHTML=_aiCard(_aiLastGen,'gen',0);
+      return;
+    }
+    var t=e.target.closest('[data-ai-save],[data-ai-presc]'); if(!t) return;
+    var save=t.hasAttribute('data-ai-save');
+    var v=(t.getAttribute('data-ai-save')||t.getAttribute('data-ai-presc')||'').split(':');
+    var w = v[0]==='gen' ? _aiLastGen : AI_READY[parseInt(v[1],10)||0];
+    if(!w) return;
+    if(save) _aiSaveToLibrary(w); else _aiPrescribe(w);
+  });
+
+
   function deleteCoachWorkout(id){
     const list = getCoachWorkouts().filter(w=>w.id!==id);
     setPulso('coach-workouts', list);
@@ -21183,6 +21615,8 @@ nav.tabbar button.active svg{
      ===================================================================== */
   function openCoach(){
     saveName();
+    try{ localStorage.setItem(MODE_KEY,'coach'); }catch(e){}
+    setTimeout(function(){ try{ applyCaps(); }catch(e){} }, 350);
     localStorage.setItem(MODE_KEY, 'coach');
     const locked = document.getElementById('app-locked');
     const app = document.getElementById('app-content');
@@ -21248,11 +21682,11 @@ nav.tabbar button.active svg{
     document.getElementById('role-athlete')?.addEventListener('click', openAthlete);
     document.getElementById('role-coach')?.addEventListener('click', openCoach);
     document.getElementById('role-back-name')?.addEventListener('click', showNameStep);
-    document.getElementById('coach-back-athlete')?.addEventListener('click', backToSelection);
+    document.getElementById('coach-back-athlete')?.addEventListener('click', function(){ try{ openAthlete(); }catch(e){} });
 
     // Botão de troca de área na app do Atleta
     const switchBtn = document.getElementById('athlete-switch-role');
-    if(switchBtn && !switchBtn.dataset.bound){ switchBtn.dataset.bound='1'; switchBtn.addEventListener('click', backToSelection); }
+    if(switchBtn && !switchBtn.dataset.bound){ switchBtn.dataset.bound='1'; switchBtn.addEventListener('click', function(){ try{ openCoach(); }catch(e){} }); }
 
     // Editor
     document.getElementById('cwb-new')?.addEventListener('click', ()=> openCoachEditor(null));
@@ -21497,6 +21931,8 @@ nav.tabbar button.active svg{
         setCoachTab(tab);
         if(tab === 'treinos'){ renderCoachWorkouts(); renderAthletes(); renderCoachCalendar(); bindCoachCardCollapse(document.getElementById('coach-content')); }
         if(tab === 'atleta'){ fillDayPicker(); renderAthleteData(); }
+        if(tab === 'modelos'){ renderPlanModels(); }
+        if(tab === 'ia'){ renderTreinosIA(); }
       });
     });
   }
@@ -22420,16 +22856,24 @@ async function renderSheet(){
     const file = e.target.files && e.target.files[0]; if(!file) return;
     try{
       cloudToast(PL('A ler QR…','Reading QR…'));
-      if(!window.jsQR){ await new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); }); }
-      const img=new Image(); const url=URL.createObjectURL(file);
-      await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
-      const cv=document.createElement('canvas'); cv.width=img.naturalWidth; cv.height=img.naturalHeight;
-      const cx=cv.getContext('2d'); cx.drawImage(img,0,0);
-      const d=cx.getImageData(0,0,cv.width,cv.height); try{ URL.revokeObjectURL(url); }catch(_){}
-      const code = window.jsQR ? window.jsQR(d.data,d.width,d.height) : null;
-      if(code && code.data){ const inp=$('pc-link-code'); if(inp) inp.value=String(code.data).trim(); cloudToast(PL('Código lido! Toca em Adicionar.','Code read! Tap Add.')); }
-      else cloudToast(PL('Não consegui ler o QR. Tenta outra foto ou cola o código.','Could not read the QR. Try another photo or paste the code.'));
-    }catch(err){ cloudToast(PL('Não consegui ler o QR.','Could not read the QR.')); }
+      let result=null;
+      if('BarcodeDetector' in window){
+        try{ const bd=new window.BarcodeDetector({formats:['qr_code']}); const bmp=await createImageBitmap(file); const codes=await bd.detect(bmp); if(codes && codes.length) result=String(codes[0].rawValue||'').trim(); }catch(_){}
+      }
+      if(!result){
+        if(!window.jsQR){ await new Promise((res,rej)=>{ const sc=document.createElement('script'); sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); }); }
+        const img=new Image(); const url=URL.createObjectURL(file);
+        await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
+        let w=img.naturalWidth, h=img.naturalHeight; const MAX=1000; if(Math.max(w,h)>MAX){ const sc=MAX/Math.max(w,h); w=Math.round(w*sc); h=Math.round(h*sc); }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        const cx=cv.getContext('2d'); cx.drawImage(img,0,0,w,h);
+        const d=cx.getImageData(0,0,w,h); try{ URL.revokeObjectURL(url); }catch(_){}
+        const code = window.jsQR ? window.jsQR(d.data,d.width,d.height) : null;
+        if(code && code.data) result=String(code.data).trim();
+      }
+      if(result){ const inp=$('pc-link-code'); if(inp) inp.value=result; cloudToast(PL('Código lido! Toca em Adicionar.','Code read! Tap Add.')); }
+      else cloudToast(PL('Não consegui ler o QR (o leitor precisa de internet). Cola antes o código.','Could not read the QR (the reader needs internet). Paste the code instead.'));
+    }catch(err){ cloudToast(PL('Não consegui ler o QR. Cola o código à mão.','Could not read the QR. Paste the code instead.')); }
     finally{ try{ e.target.value=''; }catch(_){} }
   };
   body.querySelectorAll('[data-accept]').forEach(b=> b.onclick = ()=> respondLink(b.getAttribute('data-accept'), true));
@@ -22650,6 +23094,7 @@ onAuthStateChanged(auth, async (user)=>{
   if(needsReload){ location.reload(); return; }
   showAuth(false);
   if(btn) btn.hidden = false;
+  try{ setTimeout(checkLinkNotifications, 1600); }catch(e){}
   // O nome vem da conta — salta o ecrã do nome em vez de o mostrar.
   try{
     if(window.PulsoCompleteLoginWithName){
@@ -22705,6 +23150,24 @@ async function deleteAccount(){
   await deleteUser(currentUser);
   try{ Object.keys(localStorage).filter(function(k){ return k.indexOf('pulso:')===0; }).forEach(function(k){ localStorage.removeItem(k); }); }catch(e){}
   try{ sessionStorage.clear(); }catch(e){}
+}
+async function checkLinkNotifications(){
+  try{
+    if(!currentUser) return;
+    const links = await myLinks();
+    const active = links.filter(function(l){ return l.status==='active'; });
+    let seen={}; try{ seen=JSON.parse(localStorage.getItem('pulso:seen-links')||'{}'); }catch(e){}
+    const hadSeen = Object.keys(seen).length>0;
+    const novos = active.filter(function(l){ return !seen[l.id]; });
+    const nowSeen={}; active.forEach(function(l){ nowSeen[l.id]=1; });
+    try{ localStorage.setItem('pulso:seen-links', JSON.stringify(nowSeen)); }catch(e){}
+    if(hadSeen && novos.length){
+      const l=novos[0]; const otherUid = l.iAm==='athlete' ? l.trainerUid : l.athleteUid;
+      let nm=otherUid; try{ nm=await nameForUid(otherUid); }catch(e){}
+      const txt = l.iAm==='athlete' ? PL('\u2705 Ligado ao treinador '+nm+'.','\u2705 Linked to coach '+nm+'.') : PL('\u2705 '+nm+' ligou-se a ti.','\u2705 '+nm+' is now linked to you.');
+      try{ if(window.pulsoInfo) window.pulsoInfo(txt); else cloudToast(txt); }catch(e){ try{ cloudToast(txt); }catch(_){} }
+    }
+  }catch(e){}
 }
 window.PulsoCloud = {
   deleteAccount,
@@ -23052,16 +23515,16 @@ document.addEventListener("click", function(e){
          'Three tabs: Food (type the food and amount, the AI does the rest), Drink (swipe between rings and tap to add) and Supplements. Detailed guide in Profile → Guides.'] },
     { tab:'treinos', focusSel:'#tab-treinos .subtabs', emoji:'🏁',
       t:['Treinos e provas','Training & races'],
-      b:['Cria as tuas provas e vê os treinos do treinador. No treino de hoje marca Feito / Não fiz / Diferente e confirma. Liga o Strava (Perfil) para importar tudo.',
-         'Create your races and see the workouts from your coach. On the workout for today tap Done / Skipped / Different and confirm. Connect Strava (Profile) to import everything.'] },
+      b:['Cria as tuas provas e vê os treinos do treinador. No treino de hoje marca Feito / Não fiz / Diferente e confirma. Importa treinos por ficheiro em Perfil → Importar (o caminho recomendado).',
+         'Create your races and see the workouts from your coach. On the workout for today tap Done / Skipped / Different and confirm. Import workouts from a file in Profile → Import (the recommended way).'] },
     { tab:'saude', focusSel:'#tab-saude .subtabs', emoji:'❤️',
       t:['Saúde','Health'],
       b:['Separadores: Sono, Peso, Cardio (FC de repouso ao acordar) e Bem-estar (avalia como acordaste, 1–5). Estes dados alimentam a prontidão.',
          'Tabs: Sleep, Weight, Cardio (resting HR on waking) and Well-being (rate how you woke up, 1–5). This data feeds readiness.'] },
     { tab:'perfil', focusSel:'#tab-perfil', emoji:'⚙️',
       t:['O teu perfil','Your profile'],
-      b:['Preenche os teus dados (idade, altura, sexo, atividade) — sem eles não há metas nem dicas. Escolhe Atleta ou Treinador, importa treinos e define zonas.',
-         'Fill in your data (age, height, sex, activity) — without them there are no goals or tips. Pick Athlete or Coach, import workouts and set zones.'] },
+      b:['Preenche os teus dados (idade, altura, sexo, atividade) — sem eles não há metas nem dicas. Em "O que uso na Pulso" ligas/desligas as áreas Saúde & Nutrição e Treino. Importas treinos e defines zonas aqui.',
+         'Fill in your data (age, height, sex, activity) — without them there are no goals or tips. In "What I use in Pulso" you toggle Health and Training. Import workouts and set zones here.'] },
     { tab:'perfil', profileTab:'guias', focusSel:'#tutorial-dir', emoji:'📚',
       t:['Guias quando precisares','Guides when you need them'],
       b:['Já sabes o essencial. Para o "como se faz" de cada função — bebidas, suplementação, bem-estar, cardio… — abre Perfil → Guias, com explicações ilustradas. Bons treinos!',
@@ -23071,8 +23534,8 @@ document.addEventListener("click", function(e){
   var COACH_STEPS = [
     { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🧑‍🏫',
       t:['Modo Treinador','Coach Mode'],
-      b:['Em cima tens duas áreas: "Treinos" (criar e planear) e "Atleta" (ver os dados de quem treinas). O fluxo é: cria → escolhe atleta → prescreve → liguem-se pela Cloud.',
-         'At the top you have two areas: "Workouts" (create and plan) and "Athlete" (see the data of who you train). The flow is: create → choose athlete → prescribe → connect via Cloud.'] },
+      b:['Em cima tens três áreas: "Treinos" (criar e planear), "Atleta" (ver os dados de quem treinas) e "✨ IA" (gerador + treinos prontos). Para voltares a atleta, usa a pastilha "Modo atleta" no topo.',
+         'At the top you have three areas: "Workouts" (create and plan), "Athlete" (see the data of who you train) and "✨ AI" (generator + ready-made workouts). To go back to athlete, use the "Athlete mode" pill at the top.'] },
     { coachTab:'treinos', focusSel:'#cwb-new', emoji:'🏗️',
       t:['Cria um treino','Create a workout'],
       b:['Toca em "+ Novo treino" e monta-o (aquecimento, blocos, séries). Nos blocos de força e mobilidade cada exercício tem um ▶ (vídeo). Marca ★ para guardar nos Favoritos e reutilizar.',
@@ -23169,7 +23632,14 @@ document.addEventListener("click", function(e){
   function open(which){
     if(!root) return;
     mode = (which === 'coach') ? 'coach' : 'athlete';
-    STEPS = (mode === 'coach') ? COACH_STEPS : ATHLETE_STEPS;
+    STEPS = (mode === 'coach') ? COACH_STEPS : ATHLETE_STEPS.filter(function(st){
+      try{
+        var caps={health:true,training:true}; var r=localStorage.getItem('pulso:caps'); if(r){ var cc=JSON.parse(r); caps={health:cc.health!==false, training:cc.training!==false}; }
+        if((st.tab==='hidratacao'||st.tab==='saude') && !caps.health) return false;
+        if(st.tab==='treinos' && !caps.training) return false;
+      }catch(e){}
+      return true;
+    });
     idx = 0;
     root.classList.add('on');
     show(0);
@@ -23206,6 +23676,7 @@ document.addEventListener("click", function(e){
     // Atleta: mostra só na 1.ª vez, na área de atleta
     maybeStart: function(){
       try{
+        if(window.PulsoSetup && !PulsoSetup.done()) return;
         if(localStorage.getItem(DONE_KEY_ATHLETE) === '1') return;
         if(localStorage.getItem('pulso:selected-role') === 'coach') return; // só atleta
         var app = document.getElementById('app-content');
@@ -23216,6 +23687,7 @@ document.addEventListener("click", function(e){
     // Treinador: mostra só na 1.ª vez, na área de treinador
     maybeStartCoach: function(){
       try{
+        if(window.PulsoSetup && !PulsoSetup.done()) return;
         if(localStorage.getItem(DONE_KEY_COACH) === '1') return;
         var coach = document.getElementById('coach-content');
         if(!coach || getComputedStyle(coach).display === 'none') return;      // área de treinador não visível
