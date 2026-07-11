@@ -6330,7 +6330,7 @@ nav.tabbar button.active svg{
         <div style="margin-top:8px; display:flex; gap:8px; align-items:stretch;">
           <button type="button" id="kcal-photo-btn" class="chip" style="flex:1; justify-content:center; text-align:center;">📷 <span data-i18n="Photo of label or meal">Foto do rótulo ou prato</span></button>
           <button type="button" id="kcal-fav-btn" class="chip" style="flex:1; justify-content:center; text-align:center;">⭐ <span data-i18n="Favorites">Favoritos</span></button>
-          <input type="file" id="kcal-photo-input" accept="image/*" capture="environment" style="display:none;">
+          <input type="file" id="kcal-photo-input" accept="image/*" style="display:none;">
         </div>
         <div id="kcal-favs" style="display:none;"></div>
         <p class="help" id="kcal-food-note" style="margin-top:4px;" data-i18n="Type the food and amount — we fill in calories and macros automatically (estimate). You can always adjust by hand.">Escreve o alimento e a quantidade — preenchemos calorias e macros automaticamente (estimativa). Podes sempre ajustar à mão.</p>
@@ -6939,6 +6939,19 @@ nav.tabbar button.active svg{
         <div class="card" style="background:transparent; border:0; padding:4px 2px 0;">
           <p class="help" style="margin:0;" data-i18n="Two ways to get your workouts into Pulso: automatically via Strava, or manually by uploading a file.">A forma mais fiável é importar por ficheiro (.FIT/.TCX/.GPX) — funciona com qualquer relógio e sem subscrições. O Strava é opcional (e, desde junho de 2026, requer subscrição Strava).</p>
         </div>
+        <div class="card fixed-form" id="health-native-card" style="border:1px solid rgba(53,217,166,.4); display:none; margin-bottom:12px;">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">⌚</div>
+            <div>
+              <h3>Telemóvel — automático</h3>
+              <p class="help" style="margin:0;">Lê o sono e o peso do teu telemóvel (Health Connect). Liga primeiro o teu relógio ao Health Connect na app do relógio.</p>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="coach-btn primary" id="btn-health-connect" type="button" style="min-height:46px; padding:8px 16px;">Ligar saúde do telemóvel</button>
+          </div>
+          <p class="help" id="health-native-status" style="margin:8px 0 0;"></p>
+        </div>
         <div class="card fixed-form" style="border:1px solid rgba(53,217,166,.4);">
           <div class="profile-group-head">
             <div class="profile-group-icon">📥</div>
@@ -7177,7 +7190,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 120</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 124</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -7596,6 +7609,16 @@ nav.tabbar button.active svg{
   // Ponte para outros <script>/IIFE (ex.: área do atleta) acederem à lista viva
   // de atividades. Devolve sempre a referência atual, mesmo após reatribuições.
   window.PulsoGetStravaActivities = function(){ return stravaActivities; };
+  // API para o módulo nativo de saúde (Health Connect / HealthKit)
+  window.PulsoImportAPI = {
+    async addSleep(date, hours){
+      try{ if(!date || !isFinite(hours) || hours<=0) return; var h=Math.round(hours*10)/10; var ex=sleepEntries.find(function(e){return e.date===date;}); if(ex) ex.hours=h; else sleepEntries.push({id:uid(), date:date, hours:h}); await sSet('sleep-entries', sleepEntries); }catch(e){}
+    },
+    async addWeight(date, kg){
+      try{ if(!date || !isFinite(kg) || kg<=0) return; var ex=weightEntries.find(function(e){return e.date===date;}); if(ex) ex.kg=kg; else weightEntries.push({id:uid(), date:date, kg:kg}); weightEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('weight-entries', weightEntries); }catch(e){}
+    },
+    refresh(){ try{ renderDashboard(); }catch(e){} try{ renderWeight(); }catch(e){} }
+  };
 
   // Ponte para o modo Treinador ler os dados VIVOS (em memória) do atleta local,
   // garantindo que vê exatamente o que o atleta tem, sem depender de leituras
@@ -9867,7 +9890,8 @@ nav.tabbar button.active svg{
     // 2) Estado geral para treino (prontidão / overtraining).
     const treinoPage = document.getElementById('estado-page-treino');
     try{
-      const rd = window.PulsoReadiness ? window.PulsoReadiness.compute(readinessLocalGet) : null;
+      var _capsT = true; try{ _capsT = getCaps().training; }catch(_){}
+      const rd = (_capsT && window.PulsoReadiness) ? window.PulsoReadiness.compute(readinessLocalGet) : null;
       if(rd && rd.hasData){
         const col = rd.level==='green'?'#35D9A6':(rd.level==='yellow'?'#F2B84B':'#F2555A');
         const rlbl = rd.level==='green' ? PL('Recuperado','Recovered') : (rd.level==='yellow' ? PL('Fadiga a acumular','Fatigue building up') : PL('Risco de overtraining','Overtraining risk'));
@@ -18557,6 +18581,9 @@ nav.tabbar button.active svg{
     // Entra sempre direto no modo certo — sem ecrã de escolha.
     var _lastMode='athlete'; try{ _lastMode=localStorage.getItem(MODE_KEY)||'athlete'; }catch(_){}
     var _isCoach=false; try{ _isCoach=(getPulso('user-role','athlete')==='coach'); }catch(_){}
+    var _caps={health:true,training:true}; try{ _caps=getCaps(); }catch(_){}
+    // Treinador puro (sem Saúde & Nutrição nem Treino) entra logo em modo treinador — sem Painel vazio.
+    if(_isCoach && !_caps.health && !_caps.training){ openCoach(); return; }
     if(_isCoach && _lastMode==='coach'){ openCoach(); return; }
     openAthlete();
   }
@@ -21682,11 +21709,17 @@ nav.tabbar button.active svg{
     document.getElementById('role-athlete')?.addEventListener('click', openAthlete);
     document.getElementById('role-coach')?.addEventListener('click', openCoach);
     document.getElementById('role-back-name')?.addEventListener('click', showNameStep);
-    document.getElementById('coach-back-athlete')?.addEventListener('click', function(){ try{ openAthlete(); }catch(e){} });
+    document.getElementById('coach-back-athlete')?.addEventListener('click', function(){
+      var ask = (typeof window.pulsoConfirm==='function') ? window.pulsoConfirm(PL('Queres mudar para o modo Atleta?','Switch to Athlete mode?'), {yesLabel:PL('Mudar','Switch'), noLabel:PL('Cancelar','Cancel')}) : Promise.resolve(true);
+      Promise.resolve(ask).then(function(ok){ if(ok){ try{ openAthlete(); }catch(e){} } });
+    });
 
     // Botão de troca de área na app do Atleta
     const switchBtn = document.getElementById('athlete-switch-role');
-    if(switchBtn && !switchBtn.dataset.bound){ switchBtn.dataset.bound='1'; switchBtn.addEventListener('click', function(){ try{ openCoach(); }catch(e){} }); }
+    if(switchBtn && !switchBtn.dataset.bound){ switchBtn.dataset.bound='1'; switchBtn.addEventListener('click', function(){
+      var ask = (typeof window.pulsoConfirm==='function') ? window.pulsoConfirm(PL('Queres mudar para o modo Treinador?','Switch to Coach mode?'), {yesLabel:PL('Mudar','Switch'), noLabel:PL('Cancelar','Cancel')}) : Promise.resolve(true);
+      Promise.resolve(ask).then(function(ok){ if(ok){ try{ openCoach(); }catch(e){} } });
+    }); }
 
     // Editor
     document.getElementById('cwb-new')?.addEventListener('click', ()=> openCoachEditor(null));
@@ -24032,6 +24065,42 @@ document.addEventListener("click", function(e){
     }
   };
 })();
+</script>
+<script type="module">
+  // Só corre dentro da app nativa (Capacitor). No browser normal, não faz nada.
+  try{
+    const Cap = window.Capacitor;
+    if (Cap && Cap.isNativePlatform && Cap.isNativePlatform()){
+      const { Health } = await import('https://cdn.jsdelivr.net/npm/@capgo/capacitor-health/+esm');
+      const card = document.getElementById('health-native-card');
+      const btn = document.getElementById('btn-health-connect');
+      const status = document.getElementById('health-native-status');
+      const setStatus = (t)=>{ if(status) status.textContent = t; };
+      if (card) card.style.display = '';
+      if (btn) btn.addEventListener('click', async ()=>{
+        try{
+          setStatus('A verificar…');
+          const av = await Health.isAvailable();
+          if (!av.available){ setStatus('Health Connect não disponível. Instala-o da Play Store e liga o teu relógio.'); return; }
+          await Health.requestAuthorization({ read:['sleep','weight'], write:[] });
+          const fim = new Date().toISOString();
+          const ini = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+          // SONO: somar minutos por noite -> horas
+          const sono = await Health.readSamples({ dataType:'sleep', startDate:ini, endDate:fim });
+          const noites = {};
+          (sono.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); if(!d) return; noites[d]=(noites[d]||0)+(Number(x.value)||0); });
+          for (const d in noites){ await window.PulsoImportAPI.addSleep(d, noites[d]/60); }
+          // PESO: último valor por dia
+          const peso = await Health.readSamples({ dataType:'weight', startDate:ini, endDate:fim });
+          const pesos = {};
+          (peso.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); if(!d) return; if(Number(x.value)) pesos[d]=Number(x.value); });
+          for (const d in pesos){ await window.PulsoImportAPI.addWeight(d, pesos[d]); }
+          window.PulsoImportAPI.refresh();
+          setStatus('Importado: '+Object.keys(noites).length+' noites de sono e '+Object.keys(pesos).length+' pesos. (Treinos e FC no próximo passo.)');
+        }catch(e){ setStatus('Erro: '+((e && e.message) ? e.message : e)); }
+      });
+    }
+  }catch(e){ /* não-nativo: ignora */ }
 </script>
 </body>
 </html>
