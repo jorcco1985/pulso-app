@@ -7190,7 +7190,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 124</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 125</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -21405,7 +21405,7 @@ nav.tabbar button.active svg{
         if(locked) d.textContent += ' ' + PL('(definido pela tua conta principal — não podes alterar)','(set by your main account — you can\'t change it)');
       }
     }
-    document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('button[data-user-role]') : null; if(b){ if(isRoleLocked()){ try{ toast(PL('O tipo de conta está bloqueado.','Account type is locked.')); }catch(_){} return; } applyRole(b.getAttribute('data-user-role'), true); try{ toast(PL('Tipo de conta atualizado.','Account type updated.')); }catch(_){} } });
+    document.addEventListener('click', function(e){ const b=e.target.closest ? e.target.closest('button[data-user-role]') : null; if(b){ if(isRoleLocked()){ try{ toast(PL('O tipo de conta está bloqueado.','Account type is locked.')); }catch(_){} return; } var _nr=b.getAttribute('data-user-role'); applyRole(_nr, true); try{ applyCaps(); }catch(_){} if(_nr==='coach'){ try{ toast(PL('Modo Treinador','Coach mode')); }catch(_){} try{ openCoach(); }catch(_){} } else { try{ toast(PL('Tipo de conta atualizado.','Account type updated.')); }catch(_){} } } });
     try{ const r=(typeof getPulso==='function'?getPulso('user-role',null):null); applyRole(r||'athlete', false); }catch(e){}
   })();
 
