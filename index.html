@@ -7159,7 +7159,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 94</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 96</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -9422,6 +9422,11 @@ nav.tabbar button.active svg{
       'Manual: carrega o ficheiro do relógio (.FIT, .TCX, .GPX ou o .ZIP tal como vem).',
       'Garmin: connect.garmin.com → abre a atividade → engrenagem → Exportar.',
       'Nos treinos de força/mobilidade, cada exercício tem um ▶ para veres o vídeo.' ] },
+    { id:'instalar', icon:'📲', title:'Instalar no telemóvel', how:[
+      'iPhone (Safari): toca em Partilhar (o ícone ⎋ na barra) → "Adicionar ao Ecrã Principal" → Adicionar.',
+      'Android (Chrome): menu ⋮ → "Instalar app" (ou "Adicionar ao ecrã principal").',
+      'A app passa a abrir em ecrã inteiro, com ícone próprio, como uma app normal.',
+      'Fica a funcionar offline para consulta e sincroniza quando tiveres internet.' ] },
     { id:'c-treino', coach:true, icon:'🏗️', title:'Criar um treino (treinador)', how:[
       'Modo Treinador → separador "Treinos" → "+ Novo treino". Dá um nome e escolhe o desporto.',
       'Adiciona blocos: aquecimento, principal e retorno à calma. No principal escolhe o tipo (séries, intervalos, progressivo, over/under, pirâmide).',
@@ -9535,6 +9540,203 @@ nav.tabbar button.active svg{
       }
     });
   })();
+
+  (function pulsoInstallPrompt(){
+    try{
+      const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+      if(isStandalone) return;
+      const dm = localStorage.getItem('pulso:install-dismissed');
+      if(dm && (Date.now() - Number(dm)) < 7*24*3600*1000) return;
+      const ua = navigator.userAgent || '';
+      const isIOS = /iphone|ipad|ipod/i.test(ua);
+      let deferredPrompt = null;
+      function dismiss(b){ if(b) b.remove(); try{ localStorage.setItem('pulso:install-dismissed', String(Date.now())); }catch(e){} }
+      function show(){
+        if(document.getElementById('pulso-install-banner')) return;
+        const b = document.createElement('div');
+        b.id='pulso-install-banner';
+        b.style.cssText='position:fixed; left:12px; right:12px; bottom:14px; z-index:9700; background:var(--card,#151b23); border:1px solid rgba(53,217,166,.35); border-radius:16px; padding:14px; box-shadow:0 10px 34px rgba(0,0,0,.45); display:flex; gap:12px; align-items:flex-start; max-width:460px; margin:0 auto;';
+        let inner = '<div style="font-size:22px; line-height:1;">\U0001F4F2</div><div style="flex:1; min-width:0;"><div style="font-weight:800; font-size:14px; margin-bottom:3px;">Instala a Pulso</div>';
+        if(isIOS){
+          inner += '<div style="font-size:12.5px; color:var(--text-muted); line-height:1.5;">Para abrir em ecr\u00e3 inteiro como uma app: toca em <strong>Partilhar</strong> \u2b06\ufe0f (barra do Safari) e depois em <strong>\u201cAdicionar ao Ecr\u00e3 Principal\u201d</strong>.</div>';
+        } else if(deferredPrompt){
+          inner += '<div style="font-size:12.5px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;">Abre em ecr\u00e3 inteiro como uma app, com \u00edcone pr\u00f3prio.</div><button id="pulso-install-go" style="padding:8px 14px; border-radius:10px; border:none; background:#35D9A6; color:#06231a; font-weight:800; cursor:pointer;">Instalar</button>';
+        } else {
+          inner += '<div style="font-size:12.5px; color:var(--text-muted); line-height:1.5;">No menu do browser (\u22ee) escolhe <strong>\u201cInstalar app\u201d</strong> ou <strong>\u201cAdicionar ao ecr\u00e3 principal\u201d</strong>.</div>';
+        }
+        inner += '</div><button id="pulso-install-x" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; line-height:1;">\u2715</button>';
+        b.innerHTML = inner;
+        document.body.appendChild(b);
+        const x=b.querySelector('#pulso-install-x'); if(x) x.onclick=function(){ dismiss(b); };
+        const go=b.querySelector('#pulso-install-go'); if(go) go.onclick=async function(){ if(deferredPrompt){ deferredPrompt.prompt(); try{ await deferredPrompt.userChoice; }catch(e){} deferredPrompt=null; } dismiss(b); };
+      }
+      window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferredPrompt=e; });
+      window.addEventListener('appinstalled', function(){ try{ localStorage.setItem('pulso:install-dismissed', String(Date.now()+365*24*3600*1000)); }catch(e){} const b=document.getElementById('pulso-install-banner'); if(b) b.remove(); });
+      setTimeout(show, 4000);
+    }catch(e){}
+  })();
+
+  // ===================== ASSISTENTE DE ARRANQUE (setup) ===================== //
+  window.PulsoSetup = (function(){
+    function done(){ try{ return !!localStorage.getItem('pulso_setup_done'); }catch(e){ return false; } }
+    var S = { step:0, role:'athlete', name:'', gender:'', age:'', height:'', weight:'', activity:6, raceName:'', raceDate:'', raceKm:'' };
+    var ov=null;
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+    async function saveSetupData(d){
+      try{
+        if(!profile) profile = {};
+        if(d.name) profile.name = d.name;
+        var ageN=parseInt(d.age,10); if(ageN) profile.age=ageN;
+        if(d.gender) profile.gender=d.gender;
+        var hN=parseInt(d.height,10); if(hN) profile.heightCm=hN;
+        var actN=parseInt(d.activity,10); if(actN) profile.activity=actN;
+        try{ await sSet('profile', profile); }catch(e){}
+      }catch(e){}
+      try{
+        var wN=parseFloat(d.weight);
+        if(wN>0){
+          var today=todayStr();
+          var exi=weightEntries.find(function(e){return e.date===today;});
+          if(exi) exi.kg=wN; else weightEntries.push({id:uid(), date:today, kg:wN});
+          weightEntries.sort(function(a,b){return a.date.localeCompare(b.date);});
+          try{ await sSet('weight-entries', weightEntries); }catch(e){}
+        }
+      }catch(e){}
+      try{ var rb=document.querySelector('button[data-user-role="'+(d.role||'athlete')+'"]'); if(rb) rb.click(); }catch(e){}
+      try{
+        if(d.raceName && d.raceDate){
+          var nr={ id:'race-'+Date.now().toString(36), name:d.raceName, sport:'run', date:d.raceDate, distanceKm:(parseFloat(d.raceKm)||null), elevationM:null, primary:true, photoDataUrl:null, createdAt:new Date().toISOString() };
+          raceGoals.push(nr); raceGoal=nr;
+          try{ await sSet('race-goals', raceGoals); await sSet('race-goal', raceGoal); }catch(e){}
+        }
+      }catch(e){}
+      try{ var pn=document.getElementById('profile-name'); if(pn) pn.value=profile.name||''; }catch(e){}
+      try{ renderKcal(); renderDashboard(); }catch(e){}
+    }
+
+    function finish(){
+      try{ localStorage.setItem('pulso_setup_done','1'); }catch(e){}
+      collect();
+      saveSetupData(S);
+      close();
+      try{ setTimeout(function(){ if(window.PulsoOnboarding && window.PulsoOnboarding.maybeStart) window.PulsoOnboarding.maybeStart(); }, 300); }catch(e){}
+    }
+    function close(){ if(ov){ ov.remove(); ov=null; } }
+
+    // guarda os valores dos inputs do passo atual em S
+    function collect(){
+      try{
+        var g=function(id){ var el=document.getElementById(id); return el?el.value:undefined; };
+        if(S.step===2){
+          S.name=(g('su-name')||'').trim();
+          S.age=g('su-age')||''; S.height=g('su-height')||''; S.weight=g('su-weight')||'';
+          S.activity=g('su-activity')||6;
+        } else if(S.step===3){
+          S.raceName=(g('su-race-name')||'').trim(); S.raceDate=g('su-race-date')||''; S.raceKm=g('su-race-km')||'';
+        }
+      }catch(e){}
+    }
+
+    var lastStep = function(){ return S.role==='coach' ? 2 : 3; };
+
+    function dots(active){
+      var n = S.role==='coach' ? 3 : 4; var h='';
+      for(var i=0;i<n;i++){ h+='<span style="width:7px; height:7px; border-radius:50%; background:'+(i===active?'#35D9A6':'rgba(255,255,255,.2)')+';"></span>'; }
+      return '<div style="display:flex; gap:6px; justify-content:center; margin-bottom:18px;">'+h+'</div>';
+    }
+
+    function stepBody(){
+      if(S.step===0){
+        return '<div style="text-align:center; margin:auto 0;">'
+          +'<div style="font-size:46px; margin-bottom:8px;">\uD83D\uDC9A</div>'
+          +'<h1 style="font-size:25px; margin:0 0 8px;">Bem-vindo \u00e0 Pulso</h1>'
+          +'<p style="color:#8894a8; font-size:14px; line-height:1.6; max-width:330px; margin:0 auto;">Em menos de 1 minuto configuramos o essencial para a app funcionar contigo \u2014 treino, sa\u00fade e nutri\u00e7\u00e3o num s\u00f3 s\u00edtio.</p>'
+          +'</div>';
+      }
+      if(S.step===1){
+        var a=(S.role==='athlete'), c=(S.role==='coach');
+        return '<h2 style="font-size:20px; margin:0 0 16px;">\u00c9s atleta ou treinador?</h2>'
+          +'<div style="display:flex; flex-direction:column; gap:12px;">'
+          +'<button type="button" data-set-role="athlete" style="text-align:left; padding:16px; border-radius:14px; cursor:pointer; border:1px solid '+(a?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(a?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">\uD83C\uDFC3 Atleta</div><div style="font-size:12.5px; color:#8894a8; margin-top:3px;">Treino-me a mim e posso ligar-me ao meu treinador.</div></button>'
+          +'<button type="button" data-set-role="coach" style="text-align:left; padding:16px; border-radius:14px; cursor:pointer; border:1px solid '+(c?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(c?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">\uD83E\uDDD1\u200D\uD83C\uDFEB Treinador</div><div style="font-size:12.5px; color:#8894a8; margin-top:3px;">Crio treinos e giro os meus atletas.</div></button>'
+          +'</div>';
+      }
+      if(S.step===2){
+        var mSel=(S.gender==='M'), fSel=(S.gender==='F');
+        return '<h2 style="font-size:20px; margin:0 0 6px;">Os teus dados</h2>'
+          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 16px;">Precisamos disto para calcular metas, prontid\u00e3o e massa gorda.</p>'
+          +'<label style="font-size:12px; color:#8894a8;">Nome</label>'
+          +'<input id="su-name" type="text" value="'+esc(S.name)+'" placeholder="ex: Jorge" style="width:100%; margin:4px 0 12px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;">'
+          +'<label style="font-size:12px; color:#8894a8;">Sexo</label>'
+          +'<div style="display:flex; gap:8px; margin:4px 0 12px;">'
+          +'<button type="button" data-set-gender="M" style="flex:1; padding:11px; border-radius:10px; cursor:pointer; font-weight:700; border:1px solid '+(mSel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(mSel?'rgba(53,217,166,.12)':'rgba(255,255,255,.04)')+'; color:'+(mSel?'#35D9A6':'#e8eef5')+';">Masculino</button>'
+          +'<button type="button" data-set-gender="F" style="flex:1; padding:11px; border-radius:10px; cursor:pointer; font-weight:700; border:1px solid '+(fSel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(fSel?'rgba(53,217,166,.12)':'rgba(255,255,255,.04)')+'; color:'+(fSel?'#35D9A6':'#e8eef5')+';">Feminino</button>'
+          +'</div>'
+          +'<div style="display:flex; gap:8px; margin-bottom:12px;">'
+          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Idade</label><input id="su-age" type="number" inputmode="numeric" value="'+esc(S.age)+'" placeholder="34" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Altura (cm)</label><input id="su-height" type="number" inputmode="numeric" value="'+esc(S.height)+'" placeholder="178" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Peso (kg)</label><input id="su-weight" type="number" inputmode="decimal" step="0.1" value="'+esc(S.weight)+'" placeholder="74" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+          +'</div>'
+          +'<label style="font-size:12px; color:#8894a8;">N\u00edvel de atividade: <strong id="su-act-val" style="color:#35D9A6;">'+esc(S.activity)+'</strong>/10</label>'
+          +'<input id="su-activity" type="range" min="1" max="10" step="1" value="'+esc(S.activity)+'" style="width:100%; margin-top:6px;" oninput="var v=document.getElementById(\'su-act-val\'); if(v) v.textContent=this.value;">';
+      }
+      // step 3 (só atleta): objetivo
+      return '<h2 style="font-size:20px; margin:0 0 6px;">Tens uma prova em vista?</h2>'
+        +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 16px;">Opcional \u2014 ajuda a app a preparar carb load, taper e o plano. Podes saltar.</p>'
+        +'<label style="font-size:12px; color:#8894a8;">Nome da prova</label>'
+        +'<input id="su-race-name" type="text" value="'+esc(S.raceName)+'" placeholder="ex: Maratona de Lisboa" style="width:100%; margin:4px 0 12px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;">'
+        +'<div style="display:flex; gap:8px;">'
+        +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Data</label><input id="su-race-date" type="date" value="'+esc(S.raceDate)+'" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+        +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Dist\u00e2ncia (km)</label><input id="su-race-km" type="number" inputmode="decimal" step="0.1" value="'+esc(S.raceKm)+'" placeholder="42.2" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+        +'</div>';
+    }
+
+    function footer(){
+      var isLast = (S.step===lastStep());
+      var backBtn = S.step>0 ? '<button type="button" id="su-back" style="background:none; border:none; color:#8894a8; font-size:14px; cursor:pointer;">Voltar</button>' : '<span></span>';
+      var nextLabel = S.step===0 ? 'Come\u00e7ar' : (isLast ? 'Concluir' : 'Continuar');
+      var skip = (S.step===3) ? '<button type="button" id="su-skip" style="background:none; border:none; color:#8894a8; font-size:13px; cursor:pointer; text-decoration:underline; margin-right:12px;">Saltar</button>' : '';
+      return '<div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px;">'+backBtn
+        +'<div style="display:flex; align-items:center;">'+skip
+        +'<button type="button" id="su-next" style="padding:11px 22px; border-radius:10px; border:none; background:#35D9A6; color:#06231a; font-weight:800; font-size:15px; cursor:pointer;">'+nextLabel+'</button></div></div>';
+    }
+
+    function render(){
+      if(!ov) return;
+      ov.innerHTML = '<div style="width:100%; max-width:440px; margin:auto; display:flex; flex-direction:column; min-height:min(560px,86vh);">'
+        + dots(S.step)
+        + '<div style="flex:1; display:flex; flex-direction:column;">'+stepBody()+'</div>'
+        + footer()
+        + '</div>';
+      var next=ov.querySelector('#su-next'); if(next) next.onclick=onNext;
+      var back=ov.querySelector('#su-back'); if(back) back.onclick=function(){ collect(); if(S.step>0) S.step--; render(); };
+      var skip=ov.querySelector('#su-skip'); if(skip) skip.onclick=function(){ S.raceName=''; finish(); };
+      ov.querySelectorAll('[data-set-role]').forEach(function(b){ b.onclick=function(){ S.role=b.getAttribute('data-set-role'); render(); }; });
+      ov.querySelectorAll('[data-set-gender]').forEach(function(b){ b.onclick=function(){ collect(); S.gender=b.getAttribute('data-set-gender'); render(); }; });
+    }
+
+    function onNext(){
+      collect();
+      if(S.step===lastStep()){ finish(); return; }
+      S.step++;
+      // treinador salta o passo do objetivo
+      if(S.role==='coach' && S.step>2){ finish(); return; }
+      render();
+    }
+
+    function start(){
+      if(ov) return;
+      try{ if(profile && profile.name) S.name=profile.name; }catch(e){}
+      ov=document.createElement('div');
+      ov.id='pulso-setup';
+      ov.style.cssText='position:fixed; inset:0; z-index:99997; background:#0b0f16; color:#e8eef5; display:flex; padding:24px 20px; overflow-y:auto; font-family:inherit;';
+      document.body.appendChild(ov);
+      render();
+    }
+    return { start:start, done:done };
+  })();
+
 
   function renderEstadoBalls(){
     const card = document.getElementById('estado-card');
@@ -13959,6 +14161,7 @@ nav.tabbar button.active svg{
     if(lo){
       const doLogout = ()=>{
         try{ localStorage.removeItem('pulso_onboarded'); }catch(e){}
+        try{ localStorage.removeItem('pulso_setup_done'); }catch(e){}
         try{ if(window.PulsoOnboarding) window.PulsoOnboarding.reset(); }catch(e){}
         try{ localStorage.removeItem('pulso:selected-role'); }catch(e){}
         try{
@@ -14074,7 +14277,10 @@ nav.tabbar button.active svg{
     // registos antigos que tenham ficado com valores parciais (ex.: água gravada a meio do dia).
     try{ if(window.PulsoReArchiveRecent) window.PulsoReArchiveRecent(3); }catch(e){}
     // Tutorial de primeira utilização (só atleta, só uma vez).
-    try{ setTimeout(function(){ if(window.PulsoOnboarding) window.PulsoOnboarding.maybeStart(); }, 800); }catch(e){}
+    try{ setTimeout(function(){
+      if(window.PulsoSetup && !PulsoSetup.done() && !localStorage.getItem('pulso_onboarded')){ PulsoSetup.start(); }
+      else if(window.PulsoOnboarding) window.PulsoOnboarding.maybeStart();
+    }, 800); }catch(e){}
   }
 
   // Re-renderiza conteúdo gerado por JS quando o idioma muda (textos via PL()).
