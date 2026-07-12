@@ -5713,6 +5713,14 @@ nav.tabbar button.active svg{
 #tab-perfil #profile-subtabs button:nth-child(6)::before,
 #tab-perfil .profile-subtabs button:nth-child(6)::before{content:"🕘"; font-size:32px;}
 
+#tab-perfil .subtabs button:nth-child(7)::before,
+#tab-perfil #profile-subtabs button:nth-child(7)::before,
+#tab-perfil .profile-subtabs button:nth-child(7)::before{content:"📚"; font-size:32px;}
+
+#tab-perfil .subtabs button:nth-child(8)::before,
+#tab-perfil #profile-subtabs button:nth-child(8)::before,
+#tab-perfil .profile-subtabs button:nth-child(8)::before{content:"🏋️"; font-size:30px;}
+
 #tab-perfil .subtabs button.active,
 #tab-perfil #profile-subtabs button.active,
 #tab-perfil .profile-subtabs button.active{
@@ -6380,8 +6388,6 @@ nav.tabbar button.active svg{
       <button class="ghost active" data-sub="objetivo" type="button" data-i18n="Race">Prova</button>
       <button class="ghost" data-sub="calendario" type="button" data-i18n="Calendar">Calendário</button>
       <button class="ghost" data-sub="resumo" type="button" data-i18n="Data">Dados</button>
-      <button class="ghost" data-sub="rapido" type="button" data-i18n="Create">Criar</button>
-      <button class="ghost" data-sub="historico" type="button" data-i18n="Plan">Planear</button>
     </div>
 
     <div class="subview" id="sub-resumo">
@@ -6899,6 +6905,7 @@ nav.tabbar button.active svg{
       <button class="ghost" data-profile-tab="dados" type="button" data-i18n="Data">Dados</button>
       <button class="ghost" data-profile-tab="historico" type="button" data-i18n="History">Histórico</button>
       <button class="ghost" data-profile-tab="guias" type="button" data-i18n="Guides">Guias</button>
+      <button class="ghost" data-profile-tab="equipamento" type="button" data-i18n="Equipment">Equipamento</button>
     </div>
 
     <div class="fill scroll-y profile-content">
@@ -6953,24 +6960,6 @@ nav.tabbar button.active svg{
           <style>.pulso-sw{position:relative; display:inline-block; width:46px; height:27px; flex:none;}.pulso-sw input{position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:2;}.pulso-sw .track{position:absolute; inset:0; background:rgba(255,255,255,.18); border-radius:999px; transition:background .2s;}.pulso-sw .thumb{position:absolute; top:3px; left:3px; width:21px; height:21px; background:#fff; border-radius:50%; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,.3);}.pulso-sw input:checked ~ .track{background:var(--teal,#35D9A6);}.pulso-sw input:checked ~ .thumb{transform:translateX(19px);}</style>
           <label class="row" style="gap:12px; align-items:center; justify-content:space-between; cursor:pointer; margin-top:8px;"><span style="font-size:14px;" data-i18n="Nutrition notes & tips">Notas e dicas de nutrição</span><span class="pulso-sw"><input type="checkbox" id="pref-tips-notes"><span class="track"></span><span class="thumb"></span></span></label>
           <label class="row" style="gap:12px; align-items:center; justify-content:space-between; cursor:pointer; margin-top:12px;"><span style="font-size:14px;" data-i18n="Daily tips pop-up">Pop-up diário de dicas</span><span class="pulso-sw"><input type="checkbox" id="pref-tips-popup"><span class="track"></span><span class="thumb"></span></span></label>
-        </div>
-
-        <div class="card fixed-form" id="equip-card">
-          <div class="profile-group-head">
-            <div class="profile-group-icon">🏋️</div>
-            <div>
-              <h3 data-i18n="Training equipment">Equipamento de treino</h3>
-              <p class="help" style="margin:0;" data-i18n="Add what you have, item by item. Your coach uses it to build your workouts.">Adiciona o que tens, equipamento a equipamento. O treinador usa isto para montar os teus treinos.</p>
-            </div>
-          </div>
-          <div id="equip-body" style="margin-top:6px;">
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
-              <div class="field" style="flex:0 0 auto; min-width:96px;"><label data-i18n="Area">Área</label><select id="equip-cat"><option>Força</option><option>Bike</option><option>Corrida</option><option>Geral</option></select></div>
-              <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Equipment">Equipamento</label><input type="text" id="equip-input" placeholder="ex: halteres 20kg" data-i18n-ph="e.g. 20kg dumbbells"></div>
-              <button type="button" id="equip-add" class="chip" style="padding:11px 16px; min-height:44px; font-weight:700;">+ <span data-i18n="Add">Adicionar</span></button>
-            </div>
-            <div id="equip-list" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
-          </div>
         </div>
       </div>
 
@@ -7225,6 +7214,26 @@ nav.tabbar button.active svg{
           </div>
           <div id="tutorial-dir" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;"></div>
           <button class="ghost" id="btn-replay-tutorial" type="button" data-i18n="Replay intro tour" style="width:100%; margin-top:12px;">▶ Rever tour de introdução</button>
+        </div>
+      </div>
+
+      <div class="profile-subview" id="profile-sub-equipamento">
+        <div class="card fixed-form" id="equip-card">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🏋️</div>
+            <div>
+              <h3 data-i18n="Training equipment">Equipamento de treino</h3>
+              <p class="help" style="margin:0;" data-i18n="Add what you have, item by item. Your coach uses it to build your workouts.">Adiciona o que tens, equipamento a equipamento. O treinador usa isto para montar os teus treinos.</p>
+            </div>
+          </div>
+          <div id="equip-body" style="margin-top:6px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+              <div class="field" style="flex:0 0 auto; min-width:96px;"><label data-i18n="Area">Área</label><select id="equip-cat"><option>Força</option><option>Bike</option><option>Corrida</option><option>Geral</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Equipment">Equipamento</label><input type="text" id="equip-input" placeholder="ex: halteres 20kg" data-i18n-ph="e.g. 20kg dumbbells"></div>
+              <button type="button" id="equip-add" class="chip" style="padding:11px 16px; min-height:44px; font-weight:700;">+ <span data-i18n="Add">Adicionar</span></button>
+            </div>
+            <div id="equip-list" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -7789,8 +7798,6 @@ nav.tabbar button.active svg{
     else if(activeTab.id === 'tab-treinos'){
       if(activeSub && activeSub.id === 'sub-resumo') renderTraining7d();
       if(activeSub && activeSub.id === 'sub-objetivo') renderRaceAndPlan();
-      if(activeSub && activeSub.id === 'sub-rapido'){ try{ renderTrainingModeUI(); }catch(e){} try{ renderGeneratedTrainingSuggestions(); }catch(e){} }
-      if(activeSub && activeSub.id === 'sub-historico'){ try{ renderWorkouts(); }catch(e){} }
     }
     resizeCharts();
   }
