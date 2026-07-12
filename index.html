@@ -6380,6 +6380,8 @@ nav.tabbar button.active svg{
       <button class="ghost active" data-sub="objetivo" type="button" data-i18n="Race">Prova</button>
       <button class="ghost" data-sub="calendario" type="button" data-i18n="Calendar">Calendário</button>
       <button class="ghost" data-sub="resumo" type="button" data-i18n="Data">Dados</button>
+      <button class="ghost" data-sub="rapido" type="button" data-i18n="Create">Criar</button>
+      <button class="ghost" data-sub="historico" type="button" data-i18n="Plan">Planear</button>
     </div>
 
     <div class="subview" id="sub-resumo">
@@ -6461,6 +6463,14 @@ nav.tabbar button.active svg{
     </div>
 
     <div class="subview active" id="sub-objetivo">
+      <div class="card" style="margin-bottom:12px; border:1px solid rgba(53,217,166,.35);">
+        <h3 style="margin:0 0 4px;">🔎 <span data-i18n="Find races">Pesquisar provas</span></h3>
+        <p class="help" style="margin:0 0 10px;" data-i18n="Find your next race, then fill it in below.">Encontra a tua próxima prova e depois preenche-a aqui em baixo.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <a href="https://www.all4running.pt/" target="_blank" rel="noopener noreferrer" class="chip" style="text-decoration:none; padding:9px 14px; font-weight:700;">All4Running \u2197</a>
+          <a href="https://correrporprazer.com/provas/" target="_blank" rel="noopener noreferrer" class="chip" style="text-decoration:none; padding:9px 14px; font-weight:700;">Correr Por Prazer \u2197</a>
+        </div>
+      </div>
       <div class="card fixed-form">
         <form class="entry" id="form-race">
           <div class="field" style="min-width:150px;"><label for="race-name" data-i18n="Race">Prova</label><input type="text" id="race-name" placeholder="ex: Meia Maratona" data-i18n-ph="e.g. Half Marathon"></div>
@@ -6944,6 +6954,24 @@ nav.tabbar button.active svg{
           <label class="row" style="gap:12px; align-items:center; justify-content:space-between; cursor:pointer; margin-top:8px;"><span style="font-size:14px;" data-i18n="Nutrition notes & tips">Notas e dicas de nutrição</span><span class="pulso-sw"><input type="checkbox" id="pref-tips-notes"><span class="track"></span><span class="thumb"></span></span></label>
           <label class="row" style="gap:12px; align-items:center; justify-content:space-between; cursor:pointer; margin-top:12px;"><span style="font-size:14px;" data-i18n="Daily tips pop-up">Pop-up diário de dicas</span><span class="pulso-sw"><input type="checkbox" id="pref-tips-popup"><span class="track"></span><span class="thumb"></span></span></label>
         </div>
+
+        <div class="card fixed-form" id="equip-card">
+          <div class="profile-group-head">
+            <div class="profile-group-icon">🏋️</div>
+            <div>
+              <h3 data-i18n="Training equipment">Equipamento de treino</h3>
+              <p class="help" style="margin:0;" data-i18n="Add what you have, item by item. Your coach uses it to build your workouts.">Adiciona o que tens, equipamento a equipamento. O treinador usa isto para montar os teus treinos.</p>
+            </div>
+          </div>
+          <div id="equip-body" style="margin-top:6px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+              <div class="field" style="flex:0 0 auto; min-width:96px;"><label data-i18n="Area">Área</label><select id="equip-cat"><option>Força</option><option>Bike</option><option>Corrida</option><option>Geral</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Equipment">Equipamento</label><input type="text" id="equip-input" placeholder="ex: halteres 20kg" data-i18n-ph="e.g. 20kg dumbbells"></div>
+              <button type="button" id="equip-add" class="chip" style="padding:11px 16px; min-height:44px; font-weight:700;">+ <span data-i18n="Add">Adicionar</span></button>
+            </div>
+            <div id="equip-list" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;"></div>
+          </div>
+        </div>
       </div>
 
       <div class="profile-subview" id="profile-sub-strava">
@@ -7201,7 +7229,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 135</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 141</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -7682,6 +7710,7 @@ nav.tabbar button.active svg{
       case 'profile': return profile;
       case 'race-goal': return raceGoal;
       case 'cycle-data': return cycleData;
+      case 'equip': try{ var _eq = localStorage.getItem('pulso:equip'); return _eq ? JSON.parse(_eq) : []; }catch(e){ return []; }
       default: return null;
     }
   };
@@ -7760,6 +7789,8 @@ nav.tabbar button.active svg{
     else if(activeTab.id === 'tab-treinos'){
       if(activeSub && activeSub.id === 'sub-resumo') renderTraining7d();
       if(activeSub && activeSub.id === 'sub-objetivo') renderRaceAndPlan();
+      if(activeSub && activeSub.id === 'sub-rapido'){ try{ renderTrainingModeUI(); }catch(e){} try{ renderGeneratedTrainingSuggestions(); }catch(e){} }
+      if(activeSub && activeSub.id === 'sub-historico'){ try{ renderWorkouts(); }catch(e){} }
     }
     resizeCharts();
   }
@@ -9951,6 +9982,18 @@ nav.tabbar button.active svg{
     setCaps(c); applyCaps();
     try{ var msg = k==='health' ? ('Saúde & Nutrição '+(c[k]?'ligada':'desligada')) : ('Treino '+(c[k]?'ligado':'desligado')); if(typeof toast==='function') toast(msg); }catch(_){}
   });
+  function getEquipList(){ try{ var raw=localStorage.getItem('pulso:equip'); if(!raw) return []; var v=JSON.parse(raw); if(Array.isArray(v)) return v; var arr=[]; if(v&&v.forca) arr.push({cat:'Força',item:v.forca}); if(v&&v.bike) arr.push({cat:'Bike',item:v.bike}); if(v&&v.corrida) arr.push({cat:'Corrida',item:v.corrida}); return arr; }catch(e){ return []; } }
+  function setEquipList(arr){ try{ localStorage.setItem('pulso:equip', JSON.stringify(arr||[])); }catch(e){} try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData === 'function') window.PulsoCloud.uploadData(); }catch(e){} }
+  function renderEquipList(){ var box=document.getElementById('equip-list'); if(!box) return; var arr=getEquipList(); if(!arr.length){ box.innerHTML='<div class="empty" style="font-size:12px; padding:6px;">Ainda sem equipamento. Escreve e toca em Adicionar.</div>'; return; } var esc=function(x){ return String(x||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }; box.innerHTML=arr.map(function(e,i){ return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:8px 12px;"><span style="font-size:13px;"><strong style="color:var(--teal);">'+esc(e.cat||'Geral')+'</strong> · '+esc(e.item)+'</span><button type="button" class="equip-del" data-i="'+i+'" aria-label="Remover" style="background:none; border:none; color:#F2555A; font-size:15px; cursor:pointer; line-height:1;">✕</button></div>'; }).join(''); }
+  function addEquipItem(){ var cat=((document.getElementById('equip-cat')||{}).value)||'Geral'; var inp=document.getElementById('equip-input'); var item=((inp&&inp.value)||'').trim(); if(!item) return; var arr=getEquipList(); arr.push({cat:cat, item:item}); setEquipList(arr); if(inp) inp.value=''; renderEquipList(); }
+  function removeEquipItem(i){ var arr=getEquipList(); if(i>=0 && i<arr.length){ arr.splice(i,1); setEquipList(arr); renderEquipList(); } }
+  function wireEquip(){
+    var add=document.getElementById('equip-add'); if(add && !add.dataset.b){ add.dataset.b='1'; add.addEventListener('click', addEquipItem); }
+    var inp=document.getElementById('equip-input'); if(inp && !inp.dataset.b){ inp.dataset.b='1'; inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); addEquipItem(); } }); }
+    var list=document.getElementById('equip-list'); if(list && !list.dataset.b){ list.dataset.b='1'; list.addEventListener('click', function(e){ var d=e.target.closest?e.target.closest('.equip-del'):null; if(d) removeEquipItem(parseInt(d.getAttribute('data-i'),10)); }); }
+    var tg=document.getElementById('equip-toggle'); if(tg && !tg.dataset.b){ tg.dataset.b='1'; tg.addEventListener('click', function(){ var body=document.getElementById('equip-body'), car=document.getElementById('equip-caret'); if(!body) return; var hidden=body.style.display==='none'; body.style.display=hidden?'':'none'; if(car) car.textContent=hidden?'▾':'▸'; }); }
+    renderEquipList();
+  }
   function renderEstadoBalls(){
     const card = document.getElementById('estado-card');
     if(!card) return;
@@ -14576,6 +14619,7 @@ nav.tabbar button.active svg{
     // Tutorial de primeira utilização (só atleta, só uma vez).
     try{ setTimeout(function(){
       try{ applyCaps(); }catch(e){}
+      try{ wireEquip(); }catch(e){}
       try{ setTimeout(checkMsgNotifications, 2600); }catch(e){}
       if(window.PulsoSetup && !PulsoSetup.done()){ PulsoSetup.start(); }
       else if(window.PulsoOnboarding) window.PulsoOnboarding.maybeStart();
@@ -16686,6 +16730,7 @@ nav.tabbar button.active svg{
     return {
       id:'day-' + day,
       date:day,
+      equip:(function(){ try{ return JSON.parse(localStorage.getItem('pulso:equip')||'{}'); }catch(_){ return {}; } })(),
       savedAt:new Date().toISOString(),
       score:Math.max(0, 80 - penalty),
       totals:{ waterMl, colaMl, outraMl, coffeeCount, foodKcal, alcoholUnits, alcoholMl, alcoholKcal, totalKcal:foodKcal+alcoholKcal, protein, carbs, fat, workoutMin, workoutKm, workoutKcal, weightKg: weight.length ? Number(weight[weight.length-1].kg) : null, sleepHours: sleep.length ? Number(sleep[sleep.length-1].hours) : null, bpSys, bpDia, restingHr },
@@ -16712,7 +16757,13 @@ nav.tabbar button.active svg{
     const meals = (d.meals || []).slice(-8).map(x=>x.food || x.name || (Math.round(x.kcal||0)+' kcal')).join(', ') || 'Sem refeições detalhadas.';
     const alc = (d.alcohol || []).map(x=>x.type || x.label || 'Bebida').join(', ') || '0 álcool.';
     const workouts = (d.workouts || []).map(x=>x.name || x.type || 'Treino').join(', ') || ((d.planned||[]).map(x=>x.goal || x.type || 'Treino planeado').join(', ') || 'Sem treino registado.');
-    return '<div class="athlete-detail-section"><h4>Nutrição</h4><p>'+meals+'</p></div>'+
+    var _esc=function(x){ return String(x||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var eqRaw = rec.equip; var eqArr = Array.isArray(eqRaw) ? eqRaw : [];
+    if(!Array.isArray(eqRaw) && eqRaw){ if(eqRaw.forca) eqArr.push({cat:'Força',item:eqRaw.forca}); if(eqRaw.bike) eqArr.push({cat:'Bike',item:eqRaw.bike}); if(eqRaw.corrida) eqArr.push({cat:'Corrida',item:eqRaw.corrida}); }
+    var eqByCat={}; eqArr.forEach(function(e){ var c=e.cat||'Geral'; (eqByCat[c]=eqByCat[c]||[]).push(_esc(e.item)); });
+    var eqP=Object.keys(eqByCat).map(function(c){ return '<strong>'+_esc(c)+':</strong> '+eqByCat[c].join(', '); });
+    var eqHtml = eqP.length ? '<div class="athlete-detail-section"><h4>Equipamento disponível</h4><p>'+eqP.join('<br>')+'</p></div>' : '';
+    return eqHtml + '<div class="athlete-detail-section"><h4>Nutrição</h4><p>'+meals+'</p></div>'+
       '<div class="athlete-detail-section"><h4>Álcool</h4><p>'+alc+'</p></div>'+
       '<div class="athlete-detail-section"><h4>Treino</h4><p>'+workouts+'</p></div>';
   }
@@ -18376,11 +18427,14 @@ nav.tabbar button.active svg{
                   </select>
                 </div>
 
+                <div class="cwb-row" id="cwb-metric-row" style="display:none; margin-top:9px;">
+                  <div class="cwb-field"><label data-i18n="Intensity by">Intensidade por</label><select id="cwb-int-metric"><option value="Zona FC" data-i18n="HR zone">Zona FC</option><option>Pace</option><option>Watts</option><option>RPE</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
+                </div>
+
                 <div class="cwb-row" id="cwb-int-fields" style="display:none; margin-top:9px;">
                   <div class="cwb-field"><label data-i18n="Sets">Séries</label><select id="cwb-int-series"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option><option>10</option><option>12</option><option>14</option><option>15</option><option>16</option><option>20</option></select></div>
                   <div class="cwb-field"><label data-i18n="Effort">Esforço</label><select id="cwb-int-effort"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="90">90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option><option value="360">6 min</option><option value="480">8 min</option><option value="600">10 min</option><option value="720">12 min</option><option value="d200">200 m</option><option value="d300">300 m</option><option value="d400">400 m</option><option value="d600">600 m</option><option value="d800">800 m</option><option value="d1000">1000 m</option><option value="d1200">1200 m</option><option value="d1600">1600 m</option><option value="d2000">2000 m</option></select></div>
                   <div class="cwb-field" id="cwb-int-ex-wrap"><label data-i18n="Exercise">Exercício</label><select id="cwb-int-ex"></select></div>
-                  <div class="cwb-field"><label data-i18n="Intensity by">Intensidade por</label><select id="cwb-int-metric"><option value="Zona FC" data-i18n="HR zone">Zona FC</option><option>Pace</option><option>Watts</option><option>RPE</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
                   <div class="cwb-field"><label data-i18n="Intensity">Intensidade</label><select id="cwb-int-int"><option>Z1</option><option>Z2</option><option>Z3</option><option>Z4</option><option selected>Z5</option></select></div>
                   <div class="cwb-field"><label data-i18n="Recovery">Recuperação</label><select id="cwb-int-rec"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="90">90 s</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
                   <div class="cwb-field"><label data-i18n="Recovery type">Tipo recuperação</label><select id="cwb-int-rectype"><option value="Parado" data-i18n="Standing">Parado</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Trote" selected data-i18n="Jog">Trote</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option></select></div>
@@ -18965,9 +19019,27 @@ nav.tabbar button.active svg{
     box.innerHTML = list.map(x=>`<button type="button" class="cwb-chip${cwbMobSelected.includes(x)?' active':''}" data-ex="${esc(x)}">${esc(x)}</button>`).join('');
   }
 
+  function cwbSetIntensityOptions(metric){
+    var mode = (metric==='Pace') ? 'pace' : (metric==='RPE') ? 'rpe' : (metric==='Watts') ? 'watts' : 'zone';
+    var opts;
+    if(mode==='pace') opts = ['6:30/km','6:00/km','5:45/km','5:30/km','5:15/km','5:00/km','4:45/km','4:30/km','4:15/km','4:00/km','3:50/km','3:40/km','3:30/km','3:20/km','3:10/km','3:00/km'];
+    else if(mode==='rpe') opts = ['RPE 5','RPE 6','RPE 7','RPE 8','RPE 9','RPE 10'];
+    else if(mode==='watts') opts = ['Z1','Z2','Z3','Z4','Z5','Sweet Spot','FTP','VO2max'];
+    else opts = ['Z1','Z2','Z3','Z4','Z5'];
+    var defs = { 'cwb-int-int':(mode==='pace'?'4:00/km':mode==='rpe'?'RPE 8':'Z5'), 'cwb-prog-z1':(mode==='pace'?'5:00/km':mode==='rpe'?'RPE 5':'Z2'), 'cwb-prog-z2':(mode==='pace'?'4:00/km':mode==='rpe'?'RPE 8':'Z4'), 'cwb-ou-uz':(mode==='pace'?'4:45/km':mode==='rpe'?'RPE 6':'Z3'), 'cwb-ou-oz':(mode==='pace'?'3:50/km':mode==='rpe'?'RPE 9':'Z4') };
+    ['cwb-int-int','cwb-prog-z1','cwb-prog-z2','cwb-ou-uz','cwb-ou-oz'].forEach(function(id){
+      var sel = document.getElementById(id); if(!sel) return;
+      if(sel.dataset.mode === mode) return;
+      var cur = sel.value;
+      sel.innerHTML = opts.map(function(o){ return '<option>'+o+'</option>'; }).join('');
+      if(opts.indexOf(cur)>=0) sel.value = cur; else sel.value = defs[id] || opts[0];
+      sel.dataset.mode = mode;
+    });
+  }
   function cwbRefresh(){
     const mod = cwbVal('cwb-mod');
     const goal = cwbVal('cwb-goal');
+    try{ cwbSetIntensityOptions(cwbVal('cwb-int-metric')); }catch(e){}
     const main = cwbVal('cwb-main');
     const isForca = mod==='forca', isMob = mod==='mobilidade', isSport = !isForca && !isMob;
     const isLongo = isSport && goal==='Longo';
@@ -18984,6 +19056,8 @@ nav.tabbar button.active svg{
     cwbShow('cwb-cool-fields', !!(cool && cool.checked));
 
     cwbShow('cwb-int-fields', isSport && !isLongo && (main==='Intervalos' || main==='Repetições'));
+    var _runbike = (mod==='estrada'||mod==='trail'||mod==='bike-indoor'||mod==='bike-fora');
+    cwbShow('cwb-metric-row', isSport && !isLongo && _runbike && (main==='Intervalos'||main==='Repetições'||main==='Progressivo'||main==='Over/Under'));
     cwbShow('cwb-prog-fields', isSport && !isLongo && main==='Progressivo');
     cwbShow('cwb-ou-fields', isSport && !isLongo && main==='Over/Under');
     cwbShow('cwb-acc-fields', isSport && !isLongo && main==='Acelerações');
@@ -19067,7 +19141,7 @@ nav.tabbar button.active svg{
       const zone = cwbVal('cwb-int-int');
       let intLabel = '';
       if(metric !== 'Livre' && zone && zone!=='Livre'){
-        const suffix = metric==='Pace' ? ' (pace)' : metric==='Watts' ? ' (watts)' : metric==='RPE' ? ' (RPE)' : '';
+        const suffix = metric==='Watts' ? ' (watts)' : '';
         intLabel = ' ' + zone + suffix;
       }
       const unit = (ex && ex!=='Tempo livre') ? ex : effLabel;
@@ -21580,6 +21654,46 @@ nav.tabbar button.active svg{
     try{ const r=(typeof getPulso==='function'?getPulso('user-role',null):null); applyRole(r||'athlete', false); }catch(e){}
   })();
 
+  // Cartão "Equipamento do atleta" para o modo Treinador.
+  // Lê o que o atleta preencheu (equipamento a equipamento) via aGet('equip'),
+  // aceitando tanto o formato novo (lista de {cat,item}) como o antigo ({forca,bike,corrida}).
+  function coachEquipList(){
+    const raw = aGet('equip', []);
+    let arr = Array.isArray(raw) ? raw.slice() : [];
+    if(!Array.isArray(raw) && raw && typeof raw === 'object'){
+      if(raw.forca) arr.push({cat:'Força', item:raw.forca});
+      if(raw.bike) arr.push({cat:'Bike', item:raw.bike});
+      if(raw.corrida) arr.push({cat:'Corrida', item:raw.corrida});
+    }
+    return arr.filter(e=> e && e.item);
+  }
+  function coachEquipCard(){
+    const arr = coachEquipList();
+    const title = PL('Equipamento do atleta','Athlete equipment');
+    if(!arr.length){
+      return '<div class="coach-card"><h3>🏋️ '+title+'</h3><div class="coach-empty">'+
+        PL('O atleta ainda não indicou o equipamento que tem. Aparece aqui assim que o preencher no perfil (equipamento a equipamento).',
+           'The athlete hasn\'t listed their equipment yet. It shows up here once they fill it in their profile (item by item).')+'</div></div>';
+    }
+    const order = ['Força','Bike','Corrida','Geral'];
+    const emoji = {'Força':'💪','Bike':'🚴','Corrida':'🏃','Geral':'🎒'};
+    const byCat = {};
+    arr.forEach(e=>{ const c = e.cat || 'Geral'; (byCat[c] = byCat[c] || []).push(e.item); });
+    const cats = order.filter(c=>byCat[c]).concat(Object.keys(byCat).filter(c=>order.indexOf(c)<0));
+    const inner = cats.map(c=>{
+      const pills = byCat[c].map(it=>'<span class="coach-pill">'+esc(it)+'</span>').join('');
+      return '<div style="margin-bottom:12px;">'+
+        '<div style="font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.6px; color:var(--text-muted); margin-bottom:7px;">'+
+          (emoji[c]||'🎒')+' '+esc(c)+' <span style="opacity:.55;">· '+byCat[c].length+'</span></div>'+
+        '<div class="coach-pill-row" style="margin-top:0;">'+pills+'</div></div>';
+    }).join('');
+    return '<div class="coach-card"><h3>🏋️ '+title+' <span style="font-size:11px; color:var(--text-muted); font-weight:600;">('+arr.length+')</span></h3>'+
+      '<p class="coach-note" style="margin:0 0 12px;">'+
+        PL('O que o atleta indicou ter para treinar. Usa isto para montar os treinos de força, bike e corrida.',
+           'What the athlete listed for training. Use it to build strength, bike and running sessions.')+'</p>'+
+      inner + '</div>';
+  }
+
   function renderAthleteData(){
     const box = document.getElementById('coach-athlete-data');
     const src = document.getElementById('coach-athlete-source');
@@ -21790,6 +21904,7 @@ nav.tabbar button.active svg{
       {id:'info', label:PL('Info do atleta','Athlete info'), html:infoSwipe},
       {id:'overview', label:PL('Resumo','Overview'), html:overview},
       {id:'ready', label:PL('Prontidão','Readiness'), html:readyCard},
+      {id:'equip', label:PL('Equipamento','Equipment'), html:coachEquipCard()},
       {id:'plan', label:PL('Treinos planeados','Planned workouts'), html:plannedCard},
       {id:'race', label:PL('Próxima prova','Next race'), html:raceCard},
       {id:'period', label:PL('Periodização','Periodization'), html:periodCard},
@@ -21901,6 +22016,7 @@ nav.tabbar button.active svg{
       cform.addEventListener('submit', (e)=>{ e.preventDefault(); saveCoachWorkout(); });
       cform.addEventListener('change', cwbRefresh);
       cform.addEventListener('input', (e)=>{ if(e.target && e.target.id!=='cwb-name') cwbUpdatePreview(); });
+      var _mSel=document.getElementById('cwb-int-metric'); if(_mSel){ _mSel.addEventListener('change', function(){ try{ cwbSetIntensityOptions(this.value); }catch(e){} try{ cwbUpdatePreview(); }catch(e){} }); }
     }
     document.getElementById('cwb-fx-ex')?.addEventListener('click', (e)=>{
       const chip = e.target.closest('.cwb-chip'); if(!chip) return;
