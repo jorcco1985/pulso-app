@@ -6227,6 +6227,7 @@ nav.tabbar button.active svg{
         <div class="drink-dots" id="drink-dots"></div>
         <div class="single-ring-actions" id="drink-shortcuts"></div>
         <div id="coffee-caffeine" style="display:none; margin-top:8px;"></div>
+        <div id="drink-water-note" style="display:none; margin-top:8px;"></div>
         <p class="help single-ring-note" id="drink-note">Desliza o círculo para o lado para ver outra bebida.</p>
       </div>
       <div class="card fixed-form">
@@ -6357,6 +6358,16 @@ nav.tabbar button.active svg{
         </div>
         <p class="help" style="margin:6px 0 0; font-size:11px; opacity:.75;" data-i18n="Brands belong to their owners. Pulso is not affiliated or endorsed by them; values are approximate (public info).">As marcas pertencem aos respetivos titulares. A Pulso não é afiliada nem endossada por elas; os valores são aproximados (informação pública).</p>
         <div id="supps-body"></div>
+      </div>
+      <div class="card" id="training-water-card" style="margin-top:12px;">
+        <h3 style="margin:0 0 6px;">💧 Água em treino</h3>
+        <p class="help" style="margin:0 0 10px;">Água pura bebida durante a prova/treino. Repõe o suor — não conta para a meta diária.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="chip" data-train-water="250">+ 250 ml</button>
+          <button type="button" class="chip" data-train-water="500">+ 500 ml</button>
+          <button type="button" class="chip" data-train-water="750">+ 750 ml</button>
+        </div>
+        <div id="training-water-today" style="font-size:12px; color:var(--text-muted); margin-top:10px;"></div>
       </div>
     </div>
 
@@ -7190,7 +7201,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 132</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 135</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -8293,6 +8304,22 @@ nav.tabbar button.active svg{
     toast('+' + ml + ' ml (Red Bull)');
   }
   function getTodayDrinkCaffeine(){ const t=todayStr(); try{ return hydrationEntries.filter(e=>e.date===t).reduce((s,e)=>s+(e.caf||0),0); }catch(e){ return 0; } }
+  function getTodayTrainingWaterMl(){ const t=todayStr(); try{ return hydrationEntries.filter(e=>e.date===t && e.duringTraining && (e.type||'Água')==='Água').reduce((s,e)=>s+(e.ml||0),0); }catch(e){ return 0; } }
+  async function addTrainingWater(ml){
+    ml = Math.round(Number(ml)||0); if(ml<=0) return;
+    hydrationEntries.push({ id: uid(), date: todayStr(), time: new Date().toISOString(), ml, type:'Água', kcal:0, duringTraining:true });
+    try{ await sSet('hydration-entries', hydrationEntries); }catch(e){}
+    try{ renderDrinks(); }catch(e){}
+    try{ renderDashboard(); }catch(e){}
+    try{ renderTrainingWaterToday(); }catch(e){}
+    try{ toast('+' + ml + ' ml · ' + PL('em treino','in training')); }catch(e){}
+  }
+  function renderTrainingWaterToday(){
+    var el = document.getElementById('training-water-today'); if(!el) return;
+    var tw = getTodayTrainingWaterMl();
+    el.textContent = tw>0 ? (PL('Hoje em treino: ','Today in training: ') + tw + ' ml') : '';
+  }
+  document.addEventListener('click', function(e){ var b = e.target.closest ? e.target.closest('[data-train-water]') : null; if(b){ addTrainingWater(b.getAttribute('data-train-water')); } });
   async function addCoffee(){
     coffeeEntries.push({ id:uid(), date:todayStr(), time:new Date().toISOString(), units:1 });
     await sSet('coffee-entries', coffeeEntries);
@@ -8390,7 +8417,9 @@ nav.tabbar button.active svg{
       goalText = totals.drinks ? (totals.drinks + PL(' bebidas · ',' drinks · ') + totals.kcal + ' kcal') : PL('ideal 0 ml','ideal 0 ml');
     } else {
       const goal = drink.key === 'Água' ? getDailyWaterGoalMl() : (drink.goalMl || 1000);
-      pct = Math.min(1, goal ? total/goal : 0);
+      let effTotal = total;
+      if(drink.key === 'Água'){ effTotal = Math.max(0, total - getTodayTrainingWaterMl()); }
+      pct = Math.min(1, goal ? effTotal/goal : 0);
       goalText = '/ ' + goal + ' ml';
     }
     if(goalEl) goalEl.textContent = goalText;
@@ -8413,6 +8442,15 @@ nav.tabbar button.active svg{
         _cafEl.innerHTML = '<div style="display:inline-flex; align-items:center; gap:8px; background:rgba(242,184,75,.14); color:var(--amber); border-radius:999px; padding:7px 13px; font-size:13px; font-weight:800;">☕ '+PL('Cafeína hoje: ','Caffeine today: ')+_tCaf+' mg</div>'
           + '<div style="font-size:11px; color:var(--text-muted); margin-top:5px;">'+PL('Cafés','Coffees')+' '+_cCaf+' mg · '+PL('géis/suplementos','gels/supplements')+' '+_sCaf+' mg'+(_dCaf>0?(' · '+PL('bebidas','drinks')+' '+_dCaf+' mg'):'')+(_tCaf>400?' · <span style="color:#F2555A; font-weight:700;">'+PL('acima de 400 mg','above 400 mg')+'</span>':'')+'</div>';
       } else { _cafEl.style.display='none'; }
+    }
+
+    const _wNote = document.getElementById('drink-water-note');
+    if(_wNote){
+      const _tw = (drink.key==='Água') ? getTodayTrainingWaterMl() : 0;
+      if(drink.key==='Água' && _tw>0){
+        _wNote.style.display='';
+        _wNote.innerHTML = '<div style="display:inline-flex; align-items:center; gap:8px; background:rgba(53,217,166,.14); color:var(--teal); border-radius:999px; padding:7px 13px; font-size:13px; font-weight:800;"><span style="width:9px; height:9px; border-radius:50%; background:var(--teal); display:inline-block;"></span>+ '+_tw+PL(' ml em treino',' ml in training')+'</div><div style="font-size:11px; color:var(--text-muted); margin-top:5px;">'+PL('Repõe o suor \u2014 não conta para a meta diária.','Replaces sweat \u2014 not counted toward the daily goal.')+'</div>';
+      } else { _wNote.style.display='none'; }
     }
 
     const scEl = document.getElementById('drink-shortcuts');
@@ -11133,7 +11171,7 @@ nav.tabbar button.active svg{
       phase: phase || p.fase || 'durante', caf, na, ml, qty });
     try{ await sSet('kcal-entries', kcalEntries); }catch(e){}
     if(ml > 0){
-      hydrationEntries.push({ id: uid(), date: todayStr(), time: new Date().toISOString(), ml, type:'Água', kcal:0, suppId:id });
+      hydrationEntries.push({ id: uid(), date: todayStr(), time: new Date().toISOString(), ml, type:'Água', kcal:0, suppId:id, duringTraining: ((phase || p.fase || 'durante')==='durante') });
       try{ await sSet('hydration-entries', hydrationEntries); }catch(e){}
     }
     suppFavBump({ brand:p.brand, product:p.product, cat:p.cat, fase: phase || p.fase || 'durante',
@@ -11158,6 +11196,7 @@ nav.tabbar button.active svg{
 
   // ---- render do cartão ----
   function renderSupps(){
+    try{ renderTrainingWaterToday(); }catch(e){}
     const body = document.getElementById('supps-body'); if(!body) return;
     const btn = document.getElementById('supp-add-btn');
     if(btn && !btn.dataset.bound){ btn.dataset.bound='1'; btn.addEventListener('click', ()=>openSuppModal(null)); }
@@ -11349,7 +11388,7 @@ nav.tabbar button.active svg{
     }catch(e){}
     return _hrZonesFromMax();
   }
-  function renderAerobicSplit(hrRows){
+  function renderAerobicSplit(hrRows, isReal){
     var card = document.getElementById('strava-zones-card');
     var body = document.getElementById('strava-zones-body');
     if(!card || !body) return;
@@ -11384,7 +11423,8 @@ nav.tabbar button.active svg{
       h+='<div style="flex:1; height:10px; border-radius:6px; background:rgba(255,255,255,.06);"><div style="width:'+w+'%; height:100%; border-radius:6px; background:'+col[k]+';"></div></div>';
       h+='<span style="width:78px; text-align:right; font-size:12px; color:var(--text);">'+mmss(t[k])+' · '+pct+'%</span></div>';
     }
-    h+='<div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Aeróbico = Z1–Z3 · Anaeróbico = Z4–Z5. '+(usingCustom?'A partir das tuas zonas de FC.':'Zonas estimadas pela idade — define as tuas no Perfil para mais rigor.')+'</div>';
+    var _lbl = (isReal===false) ? 'Estimativa \u2014 este treino não tem FC detalhada (a partir da FC média/máxima).' : (usingCustom?'A partir das tuas zonas de FC.':'Zonas estimadas pela idade \u2014 define as tuas no Perfil para mais rigor.');
+    h+='<div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Aeróbico = Z1–Z3 · Anaeróbico = Z4–Z5. '+_lbl+'</div>';
     body.innerHTML=h; card.style.display='block';
   }
   function renderKcal(){
@@ -13459,7 +13499,7 @@ nav.tabbar button.active svg{
       const spEmpty = streamErr ? failMsg : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.');
 
       renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null, {roundY:5});
-      try{ renderAerobicSplit(hasHrStream ? hrRows : null); }catch(e){}
+      try{ renderAerobicSplit(hrRows, hasHrStream); }catch(e){}
       if(isRun){
         renderStreamChart(document.getElementById('strava-speed-chart'), paceRows, 'var(--teal)', fmtPaceFromMin, spEmpty, (!hasSpeedStream && paceRows.length) ? 'estimado' : null, {invertY:true, bestIsMin:true, yFormatter:fmtPaceFromMin});
       }else{
@@ -14295,9 +14335,10 @@ nav.tabbar button.active svg{
     const today = todayStr();
     const WATER_GOAL_ML = getDailyWaterGoalMl();
     const todaysHydro = hydrationEntries.filter(e=>e.date===today && (e.type||'Água')==='Água').reduce((s,e)=>s+e.ml,0);
+    const baseHydro = Math.max(0, todaysHydro - getTodayTrainingWaterMl());
     document.getElementById('d-hydro').innerHTML = todaysHydro + ' <small>ml</small>';
     const hydroTrendEl = document.getElementById('d-hydro-trend');
-    hydroTrendEl.textContent = todaysHydro >= WATER_GOAL_ML ? PL('meta atingida','goal reached') : (WATER_GOAL_ML - todaysHydro) + PL(' ml para a meta',' ml to goal');
+    hydroTrendEl.textContent = baseHydro >= WATER_GOAL_ML ? PL('meta atingida','goal reached') : (WATER_GOAL_ML - baseHydro) + PL(' ml para a meta',' ml to goal');
     hydroTrendEl.className = 'trend ' + (todaysHydro >= WATER_GOAL_ML ? 'down' : 'flat');
 
     // Kcal de hoje (líquidas: ingeridas - gasto do treino)
