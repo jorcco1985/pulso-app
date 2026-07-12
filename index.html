@@ -7190,7 +7190,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 126</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 128</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -7617,7 +7617,36 @@ nav.tabbar button.active svg{
     async addWeight(date, kg){
       try{ if(!date || !isFinite(kg) || kg<=0) return; var ex=weightEntries.find(function(e){return e.date===date;}); if(ex) ex.kg=kg; else weightEntries.push({id:uid(), date:date, kg:kg}); weightEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('weight-entries', weightEntries); }catch(e){}
     },
-    refresh(){ try{ renderDashboard(); }catch(e){} try{ renderWeight(); }catch(e){} }
+    async addRestingHr(date, bpm){
+      try{ if(!date || !isFinite(bpm) || bpm<25 || bpm>130) return; var ex=bpEntries.find(function(e){return e.date===date && e.kind==='rhr';}); if(ex) ex.hr=Math.round(bpm); else bpEntries.push({id:uid(), date:date, sys:null, dia:null, hr:Math.round(bpm), kind:'rhr'}); bpEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('bp-entries', bpEntries); }catch(e){}
+    },
+    async addWorkouts(list){
+      try{
+        if(!Array.isArray(list) || !list.length) return 0;
+        if(typeof _impMake !== 'function' || typeof mergeStravaActivities !== 'function') return 0;
+        var made=[];
+        list.forEach(function(w){
+          try{
+            if(!w) return;
+            var startISO = w.startDate || w.start || w.startTime || null;
+            var endISO = w.endDate || w.end || w.endTime || null;
+            var totalSec = w.duration ? Math.round(Number(w.duration)) : (startISO && endISO ? Math.round((new Date(endISO)-new Date(startISO))/1000) : 0);
+            if(totalSec > 200000) totalSec = Math.round(totalSec/1000);
+            var o = { startISO:startISO, totalSec:totalSec,
+              distM: Number(w.distance || w.totalDistance || 0) || 0,
+              sport: w.workoutType || w.type || w.sport || 'Workout',
+              avgHr: w.heartRateAvg || w.avgHeartRate || w.averageHeartRate || null,
+              maxHr: w.heartRateMax || w.maxHeartRate || null,
+              elevM: 0, cal: Number(w.calories || w.totalEnergyBurned || w.activeEnergyBurned || 0) || null };
+            var act = _impMake(o);
+            if(act){ act.source='health'; act.id = 'hc-' + (startISO || (Date.now()+'-'+made.length)); made.push(act); }
+          }catch(e){}
+        });
+        if(made.length){ stravaActivities = mergeStravaActivities(stravaActivities, made); await sSet('strava-activities', stravaActivities); }
+        return made.length;
+      }catch(e){ return 0; }
+    },
+    refresh(){ try{ renderDashboard(); }catch(e){} try{ renderWeight(); }catch(e){} try{ renderBP(); }catch(e){} try{ renderStravaActivities&&renderStravaActivities(); }catch(e){} }
   };
 
   // Ponte para o modo Treinador ler os dados VIVOS (em memória) do atleta local,
@@ -24094,28 +24123,42 @@ document.addEventListener("click", function(e){
       const status = document.getElementById('health-native-status');
       const setStatus = (t)=>{ if(status) status.textContent = t; };
       if (card) card.style.display = '';
-      if (btn) btn.addEventListener('click', async ()=>{
+
+      async function runImport(silent){
         try{
-          setStatus('A verificar…');
+          if(!silent) setStatus('A verificar…');
           const av = await Health.isAvailable();
-          if (!av.available){ setStatus('Health Connect não disponível. Instala-o da Play Store e liga o teu relógio.'); return; }
-          await Health.requestAuthorization({ read:['sleep','weight'], write:[] });
+          if (!av.available){ if(!silent) setStatus('Health Connect não disponível. Instala-o da Play Store e liga o teu relógio.'); return; }
+          await Health.requestAuthorization({ read:['sleep','weight','restingHeartRate','workouts'], write:[] });
+          try{ localStorage.setItem('pulso:health-linked','1'); }catch(e){}
           const fim = new Date().toISOString();
           const ini = new Date(Date.now() - 30*24*60*60*1000).toISOString();
-          // SONO: somar minutos por noite -> horas
           const sono = await Health.readSamples({ dataType:'sleep', startDate:ini, endDate:fim });
           const noites = {};
           (sono.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); if(!d) return; noites[d]=(noites[d]||0)+(Number(x.value)||0); });
           for (const d in noites){ await window.PulsoImportAPI.addSleep(d, noites[d]/60); }
-          // PESO: último valor por dia
           const peso = await Health.readSamples({ dataType:'weight', startDate:ini, endDate:fim });
           const pesos = {};
           (peso.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); if(!d) return; if(Number(x.value)) pesos[d]=Number(x.value); });
           for (const d in pesos){ await window.PulsoImportAPI.addWeight(d, pesos[d]); }
+          const rhr = await Health.readSamples({ dataType:'restingHeartRate', startDate:ini, endDate:fim });
+          const rest = {};
+          (rhr.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); const v=Number(x.value); if(!d||!v) return; rest[d] = rest[d] ? Math.min(rest[d], v) : v; });
+          for (const d in rest){ await window.PulsoImportAPI.addRestingHr(d, rest[d]); }
+          let nT = 0;
+          try{ const wk = await Health.queryWorkouts({ startDate:ini, endDate:fim }); nT = await window.PulsoImportAPI.addWorkouts((wk && (wk.workouts || wk.samples)) || []); }catch(e){}
           window.PulsoImportAPI.refresh();
-          setStatus('Importado: '+Object.keys(noites).length+' noites de sono e '+Object.keys(pesos).length+' pesos. (Treinos e FC no próximo passo.)');
-        }catch(e){ setStatus('Erro: '+((e && e.message) ? e.message : e)); }
-      });
+          if(!silent) setStatus('Importado: '+Object.keys(noites).length+' sono · '+Object.keys(pesos).length+' pesos · '+Object.keys(rest).length+' FC repouso · '+nT+' treinos.');
+        }catch(e){ if(!silent) setStatus('Erro: '+((e && e.message) ? e.message : e)); }
+      }
+
+      if (btn) btn.addEventListener('click', ()=> runImport(false));
+
+      // Automático: depois de ligado uma vez, importa ao abrir a app e sempre que voltas a ela.
+      function autoIfLinked(){ try{ if(localStorage.getItem('pulso:health-linked')==='1') runImport(true); }catch(e){} }
+      autoIfLinked();
+      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') autoIfLinked(); });
+      setInterval(autoIfLinked, 4*60*60*1000);
     }
   }catch(e){ /* não-nativo: ignora */ }
 </script>
