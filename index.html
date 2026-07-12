@@ -7190,7 +7190,7 @@ nav.tabbar button.active svg{
       </div>
     </div>
     <div class="section-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
-    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 128</p>
+    <p id="pulso-version" style="text-align:center; font-size:11px; color:var(--text-muted); opacity:.6; margin:14px 0 2px;">Pulso · v2026.07.09 · build 132</p>
     <p style="text-align:center; font-size:10.5px; color:var(--text-muted); opacity:.55; line-height:1.55; margin:6px auto 12px; max-width:540px; padding:0 18px;" data-i18n="The app's guidance (nutrition, training, readiness and health) is informational only and does not replace medical advice. The author is not a doctor and has no health-related training. Consult a qualified professional before making health, training or nutrition decisions.">As indicações da app (nutrição, treino, prontidão e saúde) são apenas informativas e não substituem aconselhamento médico. O autor não é médico nem tem formação na área da saúde. Consulta um profissional qualificado antes de decisões de saúde, treino ou alimentação.</p>
     <p style="text-align:center; margin:0 0 14px;"><button type="button" style="font-size:11.5px; color:var(--text-muted); background:none; border:none; text-decoration:underline; cursor:pointer;" onclick="pulsoShowTerms()" data-i18n="Terms of Use">Termos de Utilização</button></p>
 
@@ -7224,6 +7224,10 @@ nav.tabbar button.active svg{
     <div class="card" style="margin-top:12px;">
       <h3 data-i18n="Cardio">Cardio</h3>
       <div class="strava-mini-chart" id="strava-hr-chart"></div>
+    </div>
+    <div class="card" style="margin-top:12px; display:none;" id="strava-zones-card">
+      <h3>Aeróbico vs anaeróbico</h3>
+      <div id="strava-zones-body"></div>
     </div>
     <div class="card" style="margin-top:12px;">
       <h3 id="strava-speed-title" data-i18n="Speed / pace">Velocidade / ritmo</h3>
@@ -11084,11 +11088,11 @@ nav.tabbar button.active svg{
       { n:'Caffeine', cat:'Cápsulas', fase:'pre', kcal:0, caf:100 }
     ]},
     { id:'tailwind', n:'Tailwind', cor:'#F58220', prod:[
-      { n:'Endurance Fuel', cat:'Líquidos', fase:'durante', kcal:200, hc:50, na:620, ml:600 },
-      { n:'Endurance Fuel Cafeinada', cat:'Líquidos', fase:'durante', kcal:200, hc:50, caf:70, na:620, ml:600 },
+      { n:'Endurance Fuel', cat:'Líquidos', fase:'durante', kcal:200, hc:50, na:620, ml:600, unit:'scoop', per:2 },
+      { n:'Endurance Fuel Cafeinada', cat:'Líquidos', fase:'durante', kcal:200, hc:50, caf:70, na:620, ml:600, unit:'scoop', per:2 },
       { n:'High Carb Fuel', cat:'Líquidos', fase:'durante', kcal:360, hc:90, ml:500 },
       { n:'Rapid Hydration', cat:'Líquidos', fase:'pre', kcal:45, hc:11, ml:500 },
-      { n:'Recovery Mix', cat:'Pós', fase:'pos', kcal:230, hc:34, prot:20, ml:475 }
+      { n:'Recovery Mix', cat:'Pós', fase:'pos', kcal:230, hc:34, prot:20, ml:475, unit:'scoop', per:2 }
     ]},
     { id:'naak', n:'Näak', cor:'#7CB342', prod:[
       { n:'Ultra Energy Drink Mix', cat:'Líquidos', fase:'durante', kcal:250, hc:55, prot:8, na:650, ml:500 },
@@ -11114,7 +11118,7 @@ nav.tabbar button.active svg{
   }
 
   // ---- adicionar / apagar ----
-  async function suppAdd(p, phase, qty){
+  async function suppAdd(p, phase, qty, waterMl){
     qty = qty || 1;
     const kcal = Math.round((p.kcal||0)*qty);
     const carbs = Math.round((p.hc||0)*qty*10)/10;
@@ -11122,7 +11126,7 @@ nav.tabbar button.active svg{
     const fat = Math.round((p.fat||0)*qty*10)/10;
     const caf = Math.round((p.caf||0)*qty);
     const na = Math.round((p.na||0)*qty);
-    const ml = Math.round((p.ml||0)*qty);
+    const ml = (typeof waterMl === 'number' && waterMl >= 0) ? Math.round(waterMl) : Math.round((p.ml||0)*qty);
     const id = uid();
     kcalEntries.push({ id, date: todayStr(), time: new Date().toISOString(), kcal, carbs, protein, fat,
       food: p.product + ' · ' + p.brand, supp:true, brand:p.brand, product:p.product, cat:p.cat,
@@ -11280,6 +11284,12 @@ nav.tabbar button.active svg{
       + '<button type="button" id="supp-qminus" class="icon-btn" style="font-size:20px;">−</button>'
       + '<strong id="supp-qval" style="min-width:24px; text-align:center; font-size:16px;">1</strong>'
       + '<button type="button" id="supp-qplus" class="icon-btn" style="font-size:20px;">+</button></div>';
+    h += '<div style="font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:700; margin-bottom:6px;">'+ PL('Água juntada','Added water') +' (ml)</div>';
+    h += '<div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">'
+      + '<button type="button" id="supp-wminus" class="icon-btn" style="font-size:20px;">\u2212</button>'
+      + '<input type="number" id="supp-water" inputmode="numeric" min="0" step="50" style="flex:1; text-align:center; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text); font-size:16px; font-weight:700;">'
+      + '<button type="button" id="supp-wplus" class="icon-btn" style="font-size:20px;">+</button></div>';
+    h += '<div style="font-size:11px; color:var(--text-muted); margin-bottom:16px;">'+ PL('Mais concentrado = menos água. Conta para a hidratação.','More concentrated = less water. Counts toward hydration.') +'</div>';
     h += '<button type="button" id="supp-confirm" class="primary" style="width:100%;">'+ PL('Adicionar ao dia','Add to day') +'</button>';
     s.innerHTML = h; s.scrollTop = 0;
     let curPhase = startPhase, qty = 1;
@@ -11295,15 +11305,88 @@ nav.tabbar button.active svg{
       });
     });
     const qval = document.getElementById('supp-qval');
-    document.getElementById('supp-qminus').onclick = ()=>{ qty = Math.max(0.5, Math.round((qty-0.5)*2)/2); qval.textContent = (qty%1===0?qty:qty.toFixed(1)); };
-    document.getElementById('supp-qplus').onclick = ()=>{ qty = Math.min(9, Math.round((qty+0.5)*2)/2); qval.textContent = (qty%1===0?qty:qty.toFixed(1)); };
+    const suppUnit = p.unit || null;
+    const suppPer = p.per || 1;
+    const qStep = suppUnit ? (1/suppPer) : 0.5;
+    const qMin = suppUnit ? (1/suppPer) : 0.5;
+    function qLabel(){ if(suppUnit){ var n=Math.round(qty*suppPer*100)/100; return (n%1===0?n:n.toFixed(1))+' '+suppUnit+(n===1?'':'s'); } return (qty%1===0?qty:qty.toFixed(1)); }
+    qval.textContent = qLabel();
+    const waterInput = document.getElementById('supp-water');
+    let waterEdited = false;
+    const basePerDose = Math.round(p.ml||0);
+    function syncWater(){ if(waterInput && !waterEdited) waterInput.value = Math.round(basePerDose * qty); }
+    if(waterInput){
+      waterInput.value = basePerDose;
+      waterInput.addEventListener('input', ()=>{ waterEdited = true; });
+      document.getElementById('supp-wminus').onclick = ()=>{ waterInput.value = Math.max(0, (parseInt(waterInput.value,10)||0) - 50); waterEdited = true; };
+      document.getElementById('supp-wplus').onclick = ()=>{ waterInput.value = Math.max(0, (parseInt(waterInput.value,10)||0) + 50); waterEdited = true; };
+    }
+    document.getElementById('supp-qminus').onclick = ()=>{ qty = Math.max(qMin, Math.round((qty-qStep)*100)/100); qval.textContent = qLabel(); syncWater(); };
+    document.getElementById('supp-qplus').onclick = ()=>{ qty = Math.min(9, Math.round((qty+qStep)*100)/100); qval.textContent = qLabel(); syncWater(); };
     document.getElementById('supp-confirm').onclick = ()=>{
-      suppAdd({ brand:b.n, product:p.n, cat:p.cat, fase:p.fase, kcal:p.kcal, hc:p.hc, prot:p.prot, fat:p.fat, caf:p.caf, na:p.na, ml:p.ml }, curPhase, qty);
+      var _wv = waterInput ? parseInt(waterInput.value,10) : NaN;
+      suppAdd({ brand:b.n, product:p.n, cat:p.cat, fase:p.fase, kcal:p.kcal, hc:p.hc, prot:p.prot, fat:p.fat, caf:p.caf, na:p.na, ml:p.ml }, curPhase, qty, isNaN(_wv)?undefined:_wv);
       suppModalClose();
     };
   }
 
 
+  function _hrZonesFromMax(){
+    var profile = getPulso('profile', {})||{};
+    var age = profile.age ? Number(profile.age) : (profile.birthYear ? (new Date().getFullYear()-Number(profile.birthYear)) : null);
+    var maxHR = Number(profile.maxHr || profile.hrMax || profile.hrmax) || (age ? (220-age) : 190);
+    return [ {name:'Z1', hi:Math.round(maxHR*0.6)}, {name:'Z2', hi:Math.round(maxHR*0.7)}, {name:'Z3', hi:Math.round(maxHR*0.8)}, {name:'Z4', hi:Math.round(maxHR*0.9)}, {name:'Z5', hi:Infinity} ];
+  }
+  function hrZoneBounds(){
+    try{
+      var z = (stravaZones && Array.isArray(stravaZones.heartRate)) ? stravaZones.heartRate : null;
+      if(z && z.length){
+        var byName = {}; z.forEach(function(zz){ if(zz && zz.name) byName[zz.name]=zz; });
+        var out=[];
+        for(var i=1;i<=5;i++){ var zz=byName['Z'+i]; if(!zz) return _hrZonesFromMax(); out.push({name:'Z'+i, hi:(i===5?Infinity:(zz.max!=null?zz.max:(zz.min!=null?zz.min:0)))}); }
+        return out;
+      }
+    }catch(e){}
+    return _hrZonesFromMax();
+  }
+  function renderAerobicSplit(hrRows){
+    var card = document.getElementById('strava-zones-card');
+    var body = document.getElementById('strava-zones-body');
+    if(!card || !body) return;
+    if(!hrRows || !hrRows.length){ card.style.display='none'; return; }
+    var zb = hrZoneBounds();
+    var usingCustom = !!(stravaZones && Array.isArray(stravaZones.heartRate) && stravaZones.heartRate.length);
+    var t=[0,0,0,0,0];
+    for(var i=0;i<hrRows.length;i++){
+      var bpm=Number(hrRows[i].v); if(!bpm||bpm<40) continue;
+      var dt = (i>0 && hrRows[i].t!=null && hrRows[i-1].t!=null) ? (hrRows[i].t - hrRows[i-1].t) : 1;
+      if(!(dt>0) || dt>60) dt=1;
+      var zi=4; for(var j=0;j<5;j++){ if(bpm<=zb[j].hi){ zi=j; break; } }
+      t[zi]+=dt;
+    }
+    var total=t[0]+t[1]+t[2]+t[3]+t[4];
+    if(total<=0){ card.style.display='none'; return; }
+    var aer=t[0]+t[1]+t[2], anaer=t[3]+t[4];
+    var aerPct=Math.round(aer/total*100), anaerPct=100-aerPct;
+    function mmss(x){ x=Math.round(x); var m=Math.floor(x/60), ss=x%60; return m+':'+(ss<10?'0':'')+ss; }
+    var col=['#3B82F6','#35D9A6','#EAB308','#F97316','#EF4444'];
+    var h='';
+    h+='<div style="display:flex; height:26px; border-radius:8px; overflow:hidden; margin-bottom:6px;">';
+    h+='<div style="width:'+aerPct+'%; background:#35D9A6; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#04331f;">'+(aerPct>=12?aerPct+'%':'')+'</div>';
+    h+='<div style="width:'+anaerPct+'%; background:#EF4444; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff;">'+(anaerPct>=12?anaerPct+'%':'')+'</div></div>';
+    h+='<div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:14px;"><span>Aeróbico · '+mmss(aer)+'</span><span>Anaeróbico · '+mmss(anaer)+'</span></div>';
+    var maxZ=Math.max(t[0],t[1],t[2],t[3],t[4]);
+    for(var k=0;k<5;k++){
+      var pct = Math.round(t[k]/total*100);
+      var w = maxZ>0 ? Math.round(t[k]/maxZ*100) : 0;
+      h+='<div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">';
+      h+='<span style="width:22px; font-weight:800; font-size:12px; color:'+col[k]+';">Z'+(k+1)+'</span>';
+      h+='<div style="flex:1; height:10px; border-radius:6px; background:rgba(255,255,255,.06);"><div style="width:'+w+'%; height:100%; border-radius:6px; background:'+col[k]+';"></div></div>';
+      h+='<span style="width:78px; text-align:right; font-size:12px; color:var(--text);">'+mmss(t[k])+' · '+pct+'%</span></div>';
+    }
+    h+='<div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Aeróbico = Z1–Z3 · Anaeróbico = Z4–Z5. '+(usingCustom?'A partir das tuas zonas de FC.':'Zonas estimadas pela idade — define as tuas no Perfil para mais rigor.')+'</div>';
+    body.innerHTML=h; card.style.display='block';
+  }
   function renderKcal(){
     try{ renderNutriFavs(); }catch(e){}
     const today = todayStr();
@@ -13376,6 +13459,7 @@ nav.tabbar button.active svg{
       const spEmpty = streamErr ? failMsg : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.');
 
       renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null, {roundY:5});
+      try{ renderAerobicSplit(hasHrStream ? hrRows : null); }catch(e){}
       if(isRun){
         renderStreamChart(document.getElementById('strava-speed-chart'), paceRows, 'var(--teal)', fmtPaceFromMin, spEmpty, (!hasSpeedStream && paceRows.length) ? 'estimado' : null, {invertY:true, bestIsMin:true, yFormatter:fmtPaceFromMin});
       }else{
