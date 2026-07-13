@@ -2930,6 +2930,9 @@ body.keyboard-open #tab-hidratacao{
 
 /* Pressão arterial: igual, para o gráfico + histórico rolarem bem */
 #sub-pressao .scroll-y,
+.src-b{display:inline-flex; align-items:center; justify-content:center; margin-left:7px; font-size:11px; line-height:1; padding:2px 6px; border-radius:6px; vertical-align:middle; font-weight:800;}
+.src-auto{background:rgba(53,217,166,.16); color:var(--teal);}
+.src-manual{background:rgba(255,255,255,.09); color:var(--text-muted);}
 #bp-list{
   max-height:none !important;
   height:auto !important;
@@ -6708,7 +6711,14 @@ nav.tabbar button.active svg{
       <div class="card fixed-form">
         <form class="entry" id="form-sleep">
           <div class="field"><label for="sleep-date" data-i18n="Date">Data</label><input type="date" id="sleep-date" required></div>
-          <div class="field"><label for="sleep-hours" data-i18n="Hours of sleep">Horas de sono</label><input type="number" step="0.1" id="sleep-hours" placeholder="7.5" required></div>
+          <div class="field"><label data-i18n="Sleep time">Tempo de sono</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="number" min="0" max="16" step="1" id="sleep-h" placeholder="7" inputmode="numeric" style="flex:1; text-align:center;" required>
+              <span style="font-weight:800; color:var(--text-muted);" data-i18n="h">h</span>
+              <input type="number" min="0" max="59" step="1" id="sleep-m" placeholder="30" inputmode="numeric" style="flex:1; text-align:center;">
+              <span style="font-weight:800; color:var(--text-muted);" data-i18n="min">min</span>
+            </div>
+          </div>
           <button class="primary" type="submit" data-i18n="Save">Guardar</button>
         </form>
       </div>
@@ -7661,22 +7671,28 @@ nav.tabbar button.active svg{
   // Ponte para outros <script>/IIFE (ex.: área do atleta) acederem à lista viva
   // de atividades. Devolve sempre a referência atual, mesmo após reatribuições.
   window.PulsoGetStravaActivities = function(){ return stravaActivities; };
+  // Origem de um registo de saúde: 'auto' (Health Connect) ou 'manual'.
+  function entrySrc(e){ return (e && e.source==='auto') ? 'auto' : 'manual'; }
+  function srcBadge(e){
+    var a = entrySrc(e)==='auto';
+    return '<span class="src-b '+(a?'src-auto':'src-manual')+'" title="'+(a?'Automático (telemóvel)':'Manual')+'">'+(a?'⌚':'✍️')+'</span>';
+  }
   // API para o módulo nativo de saúde (Health Connect / HealthKit)
   window.PulsoImportAPI = {
     async addSleep(date, hours){
-      try{ if(!date || !isFinite(hours) || hours<=0) return; var h=Math.round(hours*10)/10; var ex=sleepEntries.find(function(e){return e.date===date;}); if(ex) ex.hours=h; else sleepEntries.push({id:uid(), date:date, hours:h}); await sSet('sleep-entries', sleepEntries); }catch(e){}
+      try{ if(!date || !isFinite(hours) || hours<=0) return; var h=Math.round(hours*10)/10; var ex=sleepEntries.find(function(e){return e.date===date;}); if(ex){ if(ex.source==='manual') return; ex.hours=h; ex.source='auto'; } else sleepEntries.push({id:uid(), date:date, hours:h, source:'auto'}); await sSet('sleep-entries', sleepEntries); }catch(e){}
     },
     async addWeight(date, kg){
-      try{ if(!date || !isFinite(kg) || kg<=0) return; var ex=weightEntries.find(function(e){return e.date===date;}); if(ex) ex.kg=kg; else weightEntries.push({id:uid(), date:date, kg:kg}); weightEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('weight-entries', weightEntries); }catch(e){}
+      try{ if(!date || !isFinite(kg) || kg<=0) return; var ex=weightEntries.find(function(e){return e.date===date;}); if(ex){ if(ex.source==='manual') return; ex.kg=kg; ex.source='auto'; } else weightEntries.push({id:uid(), date:date, kg:kg, source:'auto'}); weightEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('weight-entries', weightEntries); }catch(e){}
     },
     async addRestingHr(date, bpm){
-      try{ if(!date || !isFinite(bpm) || bpm<25 || bpm>130) return; var ex=bpEntries.find(function(e){return e.date===date && e.kind==='rhr';}); if(ex) ex.hr=Math.round(bpm); else bpEntries.push({id:uid(), date:date, sys:null, dia:null, hr:Math.round(bpm), kind:'rhr'}); bpEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('bp-entries', bpEntries); }catch(e){}
+      try{ if(!date || !isFinite(bpm) || bpm<25 || bpm>130) return; var ex=bpEntries.find(function(e){return e.date===date && e.kind==='rhr';}); if(ex){ if(ex.source==='manual') return; ex.hr=Math.round(bpm); ex.source='auto'; } else bpEntries.push({id:uid(), date:date, sys:null, dia:null, hr:Math.round(bpm), kind:'rhr', source:'auto'}); bpEntries.sort(function(a,b){return a.date.localeCompare(b.date);}); await sSet('bp-entries', bpEntries); }catch(e){}
     },
     async addWorkouts(list){
       try{
         if(!Array.isArray(list) || !list.length) return 0;
         if(typeof _impMake !== 'function' || typeof mergeStravaActivities !== 'function') return 0;
-        var made=[];
+        var made=[]; var streamsToSave={};
         list.forEach(function(w){
           try{
             if(!w) return;
@@ -7691,10 +7707,29 @@ nav.tabbar button.active svg{
               maxHr: w.heartRateMax || w.maxHeartRate || null,
               elevM: 0, cal: Number(w.calories || w.totalEnergyBurned || w.activeEnergyBurned || 0) || null };
             var act = _impMake(o);
-            if(act){ act.source='health'; act.id = 'hc-' + (startISO || (Date.now()+'-'+made.length)); made.push(act); }
+            if(act){
+              act.source='import'; act.id = 'hc-' + (startISO || (Date.now()+'-'+made.length));
+              // Curva REAL de FC (a partir das amostras do período) para o detalhe mostrar cardio verdadeiro.
+              try{
+                var hs = w._hrSamples;
+                if(Array.isArray(hs) && hs.length && typeof _impDownsample==='function'){
+                  var pairs=[];
+                  hs.forEach(function(s){ var v=Number(s.value); var st=s.startDate||s.start||s.time; if(!v||!st) return; var ms=new Date(st).getTime(); if(!isNaN(ms)) pairs.push([ms, v]); });
+                  if(pairs.length>2){
+                    pairs.sort(function(a,b){ return a[0]-b[0]; });
+                    var base=pairs[0][0];
+                    var T=pairs.map(function(p){ return Math.round((p[0]-base)/1000); });
+                    var H=pairs.map(function(p){ return p[1]; });
+                    streamsToSave[act.id] = _impDownsample({time:T, heartrate:H, distance:[], velocity:[], altitude:[], watts:[]}, 300);
+                  }
+                }
+              }catch(e){}
+              made.push(act);
+            }
           }catch(e){}
         });
         if(made.length){ stravaActivities = mergeStravaActivities(stravaActivities, made); await sSet('strava-activities', stravaActivities); }
+        for(var id in streamsToSave){ try{ await sSet('strava-streams-'+id, streamsToSave[id]); }catch(e){} }
         return made.length;
       }catch(e){ return 0; }
     },
@@ -7979,7 +8014,7 @@ nav.tabbar button.active svg{
   });
   document.getElementById('profile-age')?.addEventListener('change', function(){ profile.age = parseInt(this.value,10) || null; try{ renderKcal(); renderDashboard(); }catch(e){} });
   document.getElementById('profile-height')?.addEventListener('change', function(){ profile.heightCm = parseInt(this.value,10) || null; try{ renderKcal(); renderDashboard(); }catch(e){} });
-  document.getElementById('profile-weight')?.addEventListener('change', async function(){ const kg=parseFloat(this.value); if(!isFinite(kg)||kg<=0) return; const today=todayStr(); const ex=weightEntries.find(e=>e.date===today); if(ex) ex.kg=kg; else weightEntries.push({id:uid(), date:today, kg}); weightEntries.sort((a,b)=>a.date.localeCompare(b.date)); try{ await sSet('weight-entries', weightEntries); }catch(e){} try{ renderKcal(); renderDashboard(); renderWeight(); }catch(e){} });
+  document.getElementById('profile-weight')?.addEventListener('change', async function(){ const kg=parseFloat(this.value); if(!isFinite(kg)||kg<=0) return; const today=todayStr(); const ex=weightEntries.find(e=>e.date===today); if(ex){ ex.kg=kg; ex.source='manual'; } else weightEntries.push({id:uid(), date:today, kg, source:'manual'}); weightEntries.sort((a,b)=>a.date.localeCompare(b.date)); try{ await sSet('weight-entries', weightEntries); }catch(e){} try{ renderKcal(); renderDashboard(); renderWeight(); }catch(e){} });
   document.getElementById('form-profile').addEventListener('submit', async (e)=>{
     e.preventDefault();
     profile.name = document.getElementById('profile-name').value.trim();
@@ -8001,7 +8036,7 @@ nav.tabbar button.active svg{
     const date = document.getElementById('weight-date').value;
     const kg = parseFloat(document.getElementById('weight-kg').value);
     if(!date || isNaN(kg)) return;
-    weightEntries.push({id:uid(), date, kg});
+    weightEntries.push({id:uid(), date, kg, source:'manual'});
     weightEntries.sort((a,b)=>a.date.localeCompare(b.date));
     await sSet('weight-entries', weightEntries);
     e.target.reset(); document.getElementById('weight-date').value = todayStr();
@@ -8018,7 +8053,7 @@ nav.tabbar button.active svg{
       empty.style.display='none';
       [...weightEntries].reverse().forEach(entry=>{
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td>${entry.kg.toFixed(1)} kg</td><td><button class="icon-btn" data-del="${entry.id}">✕</button></td>`;
+        tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td>${entry.kg.toFixed(1)} kg${srcBadge(entry)}</td><td><button class="icon-btn" data-del="${entry.id}">✕</button></td>`;
         tbody.appendChild(tr);
       });
       tbody.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', async ()=>{
@@ -8037,7 +8072,7 @@ nav.tabbar button.active svg{
     const sys = parseInt(document.getElementById('bp-sys').value,10);
     const dia = parseInt(document.getElementById('bp-dia').value,10);
     if(!date || isNaN(sys) || isNaN(dia)) return;
-    bpEntries.push({id:uid(), date, sys, dia, hr:null});
+    bpEntries.push({id:uid(), date, sys, dia, hr:null, source:'manual'});
     bpEntries.sort((a,b)=>a.date.localeCompare(b.date));
     await sSet('bp-entries', bpEntries);
     e.target.reset(); document.getElementById('bp-date').value = todayStr();
@@ -8050,7 +8085,7 @@ nav.tabbar button.active svg{
     const date = document.getElementById('rhr-date').value;
     const bpm = parseInt(document.getElementById('rhr-bpm').value,10);
     if(!date || isNaN(bpm)) return;
-    bpEntries.push({id:uid(), date, sys:null, dia:null, hr:bpm, kind:'rhr'});
+    bpEntries.push({id:uid(), date, sys:null, dia:null, hr:bpm, kind:'rhr', source:'manual'});
     bpEntries.sort((a,b)=>a.date.localeCompare(b.date));
     await sSet('bp-entries', bpEntries);
     e.target.reset(); document.getElementById('rhr-date').value = todayStr();
@@ -8193,7 +8228,7 @@ nav.tabbar button.active svg{
     [...bpMeas].reverse().forEach(entry=>{
       const cat = bpCategory(entry.sys, entry.dia);
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td><strong style="color:${cat.color};">${entry.sys}/${entry.dia}</strong></td><td><button class="icon-btn" data-bpdel="${entry.id}">✕</button></td>`;
+      tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td><strong style="color:${cat.color};">${entry.sys}/${entry.dia}</strong>${srcBadge(entry)}</td><td><button class="icon-btn" data-bpdel="${entry.id}">✕</button></td>`;
       tbody.appendChild(tr);
     });
     tbody.querySelectorAll('[data-bpdel]').forEach(b=>b.addEventListener('click', async ()=>{
@@ -8222,7 +8257,7 @@ nav.tabbar button.active svg{
       if(!rest.length){ if(emp) emp.style.display='block'; }
       else{
         if(emp) emp.style.display='none';
-        rest.forEach(e=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+fmtDate(e.date)+'</td><td>'+e.hr+'</td><td><button class="icon-btn" data-rhrdel="'+e.id+'">✕</button></td>'; tb.appendChild(tr); });
+        rest.forEach(e=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+fmtDate(e.date)+'</td><td>'+e.hr+srcBadge(e)+'</td><td><button class="icon-btn" data-rhrdel="'+e.id+'">✕</button></td>'; tb.appendChild(tr); });
         tb.querySelectorAll('[data-rhrdel]').forEach(b=>b.addEventListener('click', async ()=>{ bpEntries=bpEntries.filter(x=>x.id!==b.dataset.rhrdel); await sSet('bp-entries', bpEntries); renderBP(); try{ renderDashboard(); }catch(e){} }));
       }
     }
@@ -8232,9 +8267,15 @@ nav.tabbar button.active svg{
   document.getElementById('form-sleep').addEventListener('submit', async (e)=>{
     e.preventDefault();
     const date = document.getElementById('sleep-date').value;
-    const hours = parseFloat(document.getElementById('sleep-hours').value);
-    if(!date || isNaN(hours)) return;
-    sleepEntries.push({id:uid(), date, hours});
+    let h = parseInt(document.getElementById('sleep-h').value, 10);
+    let m = parseInt(document.getElementById('sleep-m').value, 10);
+    if(isNaN(h)) h = 0;
+    if(isNaN(m)) m = 0;
+    if(m < 0) m = 0; if(m > 59) m = 59;   // minutos só vão até 59
+    const hours = Math.round((h + m/60) * 100) / 100;
+    if(!date || hours <= 0) return;
+    const ex = sleepEntries.find(x=>x.date===date);
+    if(ex){ ex.hours = hours; ex.source='manual'; } else { sleepEntries.push({id:uid(), date, hours, source:'manual'}); }
     sleepEntries.sort((a,b)=>a.date.localeCompare(b.date));
     await sSet('sleep-entries', sleepEntries);
     e.target.reset(); document.getElementById('sleep-date').value = todayStr();
@@ -8242,6 +8283,12 @@ nav.tabbar button.active svg{
     toast(PL('Sono guardado','Sleep saved')); goToTab('dashboard');
   });
 
+  function fmtSleepHM(hoursDecimal){
+    const total = Math.round((Number(hoursDecimal)||0) * 60);
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return h + 'h' + String(m).padStart(2,'0');
+  }
   function renderSleep(){
     const tbody = document.getElementById('sleep-list'); const empty = document.getElementById('sleep-empty');
     tbody.innerHTML = '';
@@ -8250,7 +8297,7 @@ nav.tabbar button.active svg{
       empty.style.display='none';
       [...sleepEntries].reverse().forEach(entry=>{
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td>${entry.hours.toFixed(1)}h</td>
+        tr.innerHTML = `<td>${fmtDate(entry.date)}</td><td>${fmtSleepHM(entry.hours)}${srcBadge(entry)}</td>
           <td><button class="icon-btn" data-del="${entry.id}">✕</button></td>`;
         tbody.appendChild(tr);
       });
@@ -8343,6 +8390,7 @@ nav.tabbar button.active svg{
   }
   function getTodayDrinkCaffeine(){ const t=todayStr(); try{ return hydrationEntries.filter(e=>e.date===t).reduce((s,e)=>s+(e.caf||0),0); }catch(e){ return 0; } }
   function getTodayTrainingWaterMl(){ const t=todayStr(); try{ return hydrationEntries.filter(e=>e.date===t && e.duringTraining && (e.type||'Água')==='Água').reduce((s,e)=>s+(e.ml||0),0); }catch(e){ return 0; } }
+  function getTodayNonTrainingWaterMl(){ const t=todayStr(); try{ return hydrationEntries.filter(e=>e.date===t && !e.duringTraining && (e.type||'Água')==='Água').reduce((s,e)=>s+(e.ml||0),0); }catch(e){ return 0; } }
   async function addTrainingWater(ml){
     ml = Math.round(Number(ml)||0); if(ml<=0) return;
     hydrationEntries.push({ id: uid(), date: todayStr(), time: new Date().toISOString(), ml, type:'Água', kcal:0, duringTraining:true });
@@ -8355,7 +8403,15 @@ nav.tabbar button.active svg{
   function renderTrainingWaterToday(){
     var el = document.getElementById('training-water-today'); if(!el) return;
     var tw = getTodayTrainingWaterMl();
-    el.textContent = tw>0 ? (PL('Hoje em treino: ','Today in training: ') + tw + ' ml') : '';
+    var ow = getTodayNonTrainingWaterMl();
+    var total = tw + ow;
+    if(total <= 0){ el.innerHTML = ''; return; }
+    el.innerHTML =
+      '<div style="display:flex; flex-direction:column; gap:4px;">'
+      + '<div style="display:flex; justify-content:space-between; gap:10px;"><span>💧 '+PL('Em treino/prova','In training/race')+'</span><strong style="color:var(--text);">'+tw+' ml</strong></div>'
+      + '<div style="display:flex; justify-content:space-between; gap:10px;"><span>🚰 '+PL('Fora de treino','Outside training')+'</span><strong style="color:var(--text);">'+ow+' ml</strong></div>'
+      + '<div style="display:flex; justify-content:space-between; gap:10px; border-top:1px solid rgba(255,255,255,.08); padding-top:4px; margin-top:2px;"><span>'+PL('Total hoje','Total today')+'</span><strong style="color:var(--text);">'+total+' ml</strong></div>'
+      + '</div>';
   }
   document.addEventListener('click', function(e){ var b = e.target.closest ? e.target.closest('[data-train-water]') : null; if(b){ addTrainingWater(b.getAttribute('data-train-water')); } });
   async function addCoffee(){
@@ -9583,6 +9639,24 @@ nav.tabbar button.active svg{
       'Podes mudar depois em Perfil → "O que uso na Pulso": liga/desliga Saúde & Nutrição e Treino.',
       'Se desligares Saúde & Nutrição, o Painel e os separadores de saúde e nutrição (sono, peso, comida, bebida…) deixam de aparecer.',
       'Se fores Treinador + atleta, usa a pastilha "Modo treinador" / "Modo atleta" no topo para alternar entre os dois.' ] },
+    { id:'saude-tlm', icon:'⌚', title:'Ligar a saúde do telemóvel', how:[
+      'Saúde → botão "Ligar saúde do telemóvel".',
+      'Android: precisas da app "Health Connect" (Play Store) com uma fonte a alimentá-la — Google Fit, Mi Fitness, relógio… iPhone: usa o Apple Health.',
+      'Aceita as permissões que aparecem (sono, peso, frequência cardíaca, treinos).',
+      'A Pulso importa os últimos 90 dias e volta a atualizar sozinha sempre que abres a app.',
+      'Cada registo passa a mostrar ⌚ (automático) ou ✍️ (manual). O automático substitui os valores antigos; as tuas correções à mão ficam guardadas.',
+      'Os treinos importados aparecem no mesmo sítio dos do Strava, com distância, tempo, FC e calorias. O desnível e o mapa (GPS) só vêm do Strava ou de ficheiro .FIT.' ] },
+    { id:'sincronizar', icon:'☁️', title:'Conta, Cloud e sincronização', how:[
+      'No arranque, cria conta ou entra com a tua. Ao entrar numa conta existente, vês "Bem-vindo de volta".',
+      'Com sessão iniciada, os teus dados guardam-se na Cloud e aparecem em qualquer telemóvel onde entres com a mesma conta.',
+      'A pastilha de estado (topo) mostra: "A sincronizar" (a enviar), "Sincronizado" (tudo em dia), "Sem sincronização" (falhou, tenta mais tarde) e "Offline" (sem conta ou sem rede).',
+      'Mesmo Offline a app funciona — os dados ficam no telemóvel e sincronizam quando voltares a ter internet.',
+      'Para sair: Perfil → Sessão → Terminar sessão.' ] },
+    { id:'equipamento', icon:'🏋️', title:'Equipamento de treino', how:[
+      'Perfil → Equipamento.',
+      'Escolhe a área (Força, Bike, Corrida, Geral), escreve o que tens (ex.: "halteres 20kg") e toca em "+ Adicionar".',
+      'Vais adicionando equipamento a equipamento — cada item fica na lista.',
+      'O teu treinador vê este equipamento e usa-o para montar os teus treinos à medida do que tens.' ] },
     { id:'c-ia', coach:true, icon:'✨', title:'Treinos IA (gerador)', how:[
       'Modo Treinador → separador "✨ IA".',
       'Gerador: escolhe o tipo (corrida, bike, força, mobilidade, Hyrox, funcional), o objetivo, o tempo, o nível e o equipamento disponível → "Gerar treino".',
@@ -9624,7 +9698,8 @@ nav.tabbar button.active svg{
   function renderTutorialDir(){
     const el = document.getElementById('tutorial-dir'); if(!el) return;
     const _tbtn = g=>'<button type="button" class="tut-open" data-tut="'+g.id+'" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 12px; border-radius:11px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); cursor:pointer;"><span style="font-size:17px;">'+g.icon+'</span><span style="flex:1; font-size:14px; font-weight:600; color:var(--text);">'+_tutEsc(g.title)+'</span><span style="color:var(--text-muted); font-size:18px;">›</span></button>';
-    const _ath = TUTORIAL_GUIDES.filter(g=>!g.coach), _co = TUTORIAL_GUIDES.filter(g=>g.coach);
+    const _isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    const _ath = TUTORIAL_GUIDES.filter(g=>!g.coach && !(g.id==='instalar' && _isNativeApp)), _co = TUTORIAL_GUIDES.filter(g=>g.coach);
     let _h = _ath.map(_tbtn).join('');
     if(_co.length) _h += '<div style="margin:12px 2px 4px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:700;">'+PL('Treinador','Coach')+'</div>' + _co.map(_tbtn).join('');
     el.innerHTML = _h;
@@ -9704,7 +9779,8 @@ nav.tabbar button.active svg{
 
   (function pulsoInstallPrompt(){
     try{
-      const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+      const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      const isStandalone = isNative || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
       if(isStandalone) return;
       const dm = localStorage.getItem('pulso:install-dismissed');
       if(dm && (Date.now() - Number(dm)) < 7*24*3600*1000) return;
@@ -9822,7 +9898,7 @@ nav.tabbar button.active svg{
           +'<div style="font-size:46px; margin-bottom:8px;">\uD83D\uDC9A</div>'
           +'<h1 style="font-size:25px; margin:0 0 8px;">Bem-vindo \u00e0 Pulso</h1>'
           +'<p style="color:#8894a8; font-size:14px; line-height:1.6; max-width:330px; margin:0 auto;">Em menos de 1 minuto configuramos o essencial para a app funcionar contigo \u2014 treino, sa\u00fade e nutri\u00e7\u00e3o num s\u00f3 s\u00edtio.</p>'
-          +'<p style="color:#35D9A6; font-size:12.5px; line-height:1.55; max-width:330px; margin:12px auto 0;">📲 Dica: instala a Pulso no telem\u00f3vel (Partilhar \u2192 Adicionar ao Ecr\u00e3 Principal) para a usares como uma app, em ecr\u00e3 inteiro.</p>'
+          +((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? '' : '<p style="color:#35D9A6; font-size:12.5px; line-height:1.55; max-width:330px; margin:12px auto 0;">📲 Dica: instala a Pulso no telem\u00f3vel (Partilhar \u2192 Adicionar ao Ecr\u00e3 Principal) para a usares como uma app, em ecr\u00e3 inteiro.</p>')
           +'</div>';
       }
       if(S.step===1){
@@ -9952,7 +10028,7 @@ nav.tabbar button.active svg{
         if(!c.training && suppBtn.classList.contains('active')){ var fb=document.querySelector('#tab-hidratacao button[data-sub="bebida"]'); if(fb) fb.click(); } }
       // Cartão Atleta/Treinador só para quem tem treino ou já é treinador
       var isCoach=(document.body.getAttribute('data-user-role')==='coach');
-      try{ if(getPulso('user-role','athlete')==='coach') isCoach=true; }catch(_){}
+      try{ var _raw=localStorage.getItem('pulso:user-role'); var _ur='athlete'; if(_raw!=null){ try{ _ur=JSON.parse(_raw); }catch(e){ _ur=_raw; } } if(_ur==='coach') isCoach=true; }catch(_){}
       var sw=document.getElementById('athlete-switch-role'); if(sw){ var _cc=document.getElementById('coach-content'); var _cv=_cc && getComputedStyle(_cc).display!=='none'; sw.style.display = (isCoach && !_cv) ? '' : 'none'; }
       var roleCard=document.getElementById('user-role-card');
       if(roleCard) roleCard.style.display = (c.training || isCoach) ? '' : 'none';
@@ -11229,7 +11305,7 @@ nav.tabbar button.active svg{
     try{ renderKcal(); }catch(e){}
     try{ renderDrinks(); }catch(e){}
     try{ renderDashboard(); }catch(e){}
-    toast('+' + kcal + ' kcal · ' + p.product);
+    toast('+' + kcal + ' kcal · ' + carbs + ' g HC · ' + p.product);
   }
   async function suppDelete(id){
     const removed = kcalEntries.find(x=>x.id===id);
@@ -11253,7 +11329,15 @@ nav.tabbar button.active svg{
     const today = todayStr();
     const todays = kcalEntries.filter(e=>e.supp && e.date===today);
     const cafTotal = todays.reduce((s,e)=>s+(e.caf||0),0);
+    const kcalTotal = todays.reduce((s,e)=>s+(e.kcal||0),0);
+    const hcTotal = Math.round(todays.reduce((s,e)=>s+(e.carbs||0),0)*10)/10;
     let html = '';
+    if(todays.length){
+      html += '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">'
+        + '<div style="display:inline-flex; align-items:center; gap:6px; background:rgba(53,217,166,.14); color:var(--teal); border-radius:999px; padding:5px 11px; font-size:12px; font-weight:800;">'+ kcalTotal +' kcal</div>'
+        + '<div style="display:inline-flex; align-items:center; gap:6px; background:rgba(96,165,250,.16); color:#7CB2F5; border-radius:999px; padding:5px 11px; font-size:12px; font-weight:800;">'+ hcTotal +' g HC</div>'
+        + '</div>';
+    }
     if(cafTotal > 0){
       html += '<div style="display:inline-flex; align-items:center; gap:6px; background:rgba(242,184,75,.14); color:var(--amber); border-radius:999px; padding:5px 11px; font-size:12px; font-weight:700; margin-bottom:8px;">☕ '
         + PL('Cafeína (suplementos): ','Caffeine (supplements): ') + cafTotal + ' mg</div>';
@@ -11264,7 +11348,7 @@ nav.tabbar button.active svg{
         if(!list.length) return;
         html += '<div style="margin:6px 0 3px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); font-weight:700;">'+ sEsc(suppPhaseLabel(ph.k)) +'</div>';
         list.slice().reverse().forEach(e=>{
-          const meta = [ '+'+e.kcal+' kcal', (e.caf?e.caf+' mg caf':''), (e.ml?e.ml+' ml':'') ].filter(Boolean).join(' · ');
+          const meta = [ '+'+e.kcal+' kcal', (e.carbs?e.carbs+' g HC':''), (e.caf?e.caf+' mg caf':''), (e.ml?e.ml+' ml':'') ].filter(Boolean).join(' · ');
           html += '<div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.06);">'
             + '<div style="flex:1; min-width:0;"><div style="font-size:13px; font-weight:600;">'+ sEsc(e.product||'') +'</div>'
             + '<div style="font-size:11px; color:var(--text-muted);">'+ sEsc(e.brand||'') + (meta?(' — '+meta):'') +'</div></div>'
@@ -11421,9 +11505,10 @@ nav.tabbar button.active svg{
 
 
   function _hrZonesFromMax(){
-    var profile = getPulso('profile', {})||{};
-    var age = profile.age ? Number(profile.age) : (profile.birthYear ? (new Date().getFullYear()-Number(profile.birthYear)) : null);
-    var maxHR = Number(profile.maxHr || profile.hrMax || profile.hrmax) || (age ? (220-age) : 190);
+    var prof = {};
+    try{ prof = (typeof profile==='object' && profile) ? profile : (JSON.parse(localStorage.getItem('pulso:profile')||'{}')||{}); }catch(e){ prof = {}; }
+    var age = prof.age ? Number(prof.age) : (prof.birthYear ? (new Date().getFullYear()-Number(prof.birthYear)) : null);
+    var maxHR = Number(prof.maxHr || prof.hrMax || prof.hrmax) || (age ? (220-age) : 190);
     return [ {name:'Z1', hi:Math.round(maxHR*0.6)}, {name:'Z2', hi:Math.round(maxHR*0.7)}, {name:'Z3', hi:Math.round(maxHR*0.8)}, {name:'Z4', hi:Math.round(maxHR*0.9)}, {name:'Z5', hi:Infinity} ];
   }
   function hrZoneBounds(){
@@ -13517,9 +13602,11 @@ nav.tabbar button.active svg{
     if(st) st.textContent = isRun ? 'Ritmo' : 'Velocidade';
     try{
       let streams = null, streamErr = null;
-      // Treinos importados por ficheiro: usam as curvas reais guardadas do próprio ficheiro
-      // (FC, velocidade, altitude). Se não houver, caem nas curvas estimadas. Sem rede.
-      if(a.source === 'import'){
+      // Treinos que NÃO são do Strava (importados por ficheiro OU do Health Connect):
+      // usam as curvas reais guardadas do próprio ficheiro, se existirem; caso contrário
+      // caem nas curvas estimadas a partir do resumo (FC média/máx, velocidade). Nunca
+      // vão ao proxy do Strava (senão davam o erro de ligação).
+      if(a.source !== 'strava'){
         try{ streams = await sGet('strava-streams-' + a.id, null); }catch(e){ streams = null; }
       }else{
         try{ streams = await getStravaStreams(a.id); }
@@ -13545,8 +13632,9 @@ nav.tabbar button.active svg{
       const altRows = hasAltStream ? streams.altitude.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)})) : [];
 
       const failMsg = 'Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.';
-      const hrEmpty = streamErr ? failMsg : 'Esta atividade não tem frequência cardíaca registada no Strava.';
-      const spEmpty = streamErr ? failMsg : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.');
+      const _isImp = a.source !== 'strava';
+      const hrEmpty = streamErr ? failMsg : (_isImp ? 'Este treino não tem frequência cardíaca registada.' : 'Esta atividade não tem frequência cardíaca registada no Strava.');
+      const spEmpty = streamErr ? failMsg : (_isImp ? ('Este treino não tem ' + (isRun ? 'ritmo' : 'velocidade/distância') + ' registada.') : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.'));
 
       renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null, {roundY:5});
       try{ renderAerobicSplit(hrRows, hasHrStream); }catch(e){}
@@ -13561,7 +13649,7 @@ nav.tabbar button.active svg{
       const powerCard = document.getElementById('strava-power-card');
       if(isBike && powerRows.length){
         if(powerCard) powerCard.style.display = 'block';
-        const pwEmpty = streamErr ? failMsg : 'Esta atividade não tem potência registada no Strava.';
+        const pwEmpty = streamErr ? failMsg : (_isImp ? 'Este treino não tem potência registada.' : 'Esta atividade não tem potência registada no Strava.');
         renderStreamChart(document.getElementById('strava-power-chart'), powerRows, 'var(--cyan)', v=>Math.round(v)+' W', pwEmpty, (!hasPowerStream && powerRows.length) ? 'estimado' : null, {roundY:20});
       }else if(powerCard){
         powerCard.style.display = 'none';
@@ -14378,7 +14466,7 @@ nav.tabbar button.active svg{
     try{ maybeShowDailyTipsPopup(); }catch(e){}
     if(sleepEntries.length){
       const last = sleepEntries[sleepEntries.length-1]; const prev = sleepEntries[sleepEntries.length-2];
-      document.getElementById('d-sleep').innerHTML = last.hours.toFixed(1) + ' <small>h</small>';
+      document.getElementById('d-sleep').innerHTML = fmtSleepHM(last.hours);
       trendEl(document.getElementById('d-sleep-trend'), last.hours, prev?prev.hours:undefined, false);
       document.getElementById('d-sleep-detail').textContent = '';
     }
@@ -18361,7 +18449,7 @@ nav.tabbar button.active svg{
       </div>
       <button class="coach-switch-btn" type="button" id="coach-back-athlete" aria-label="Estás em modo Treinador — toca para trocar para Atleta" title="Modo atual: Treinador · toca para trocar para Atleta">
         <svg viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px;"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-        <span>Treinador</span>
+        <span data-i18n="Coach">Treinador</span>
       </button>
     </div>
   </header>
@@ -18369,7 +18457,7 @@ nav.tabbar button.active svg{
     <div class="coach-tabs">
       <button type="button" class="active" data-coach-tab="treinos" data-i18n="Workouts">Treinos</button>
       <button type="button" data-coach-tab="atleta" data-i18n="Athlete">Atleta</button>
-      <button type="button" data-coach-tab="ia">✨ IA</button>
+      <button type="button" data-coach-tab="ia" data-i18n="✨ AI">✨ IA</button>
     </div>
 
     <section id="coach-tab-treinos" class="coach-view active">
@@ -18922,7 +19010,7 @@ nav.tabbar button.active svg{
               ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
             </div>
             <div class="lib-actions">
-              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}" data-i18n="Prescribe">Prescrever</button>
+              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}" data-i18n="Prescribe">'+PL('Prescrever','Prescribe')+'</button>
               <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}" data-i18n="Edit">Editar</button>
               <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}" data-i18n="Delete">Apagar</button>
             </div>
@@ -19580,9 +19668,9 @@ nav.tabbar button.active svg{
     var ath=(typeof getAthletes==='function')?getAthletes():[]; if(!ath.length){ toast('Sem atletas. Liga-te a um atleta primeiro.'); return; }
     var athOpts=ath.map(function(a){ return '<option value="'+_pmEsc(a.id)+'">'+_pmEsc(a.name||'Atleta')+'</option>'; }).join(''); var today=todayStr();
     var ov=_pmModal('<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><strong style="font-size:17px;">Prescrever</strong><button id="ai-px" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button></div>'
-      +'<label style="font-size:12px; color:var(--text-muted);">Atleta</label><select id="ai-pa" style="width:100%; margin:4px 0 10px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+athOpts+'</select>'
-      +'<label style="font-size:12px; color:var(--text-muted);">Data</label><input type="date" id="ai-pd" value="'+today+'" style="width:100%; margin:4px 0 12px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
-      +'<button type="button" id="ai-pg" class="coach-btn primary" style="width:100%;">Prescrever</button>');
+      +'<label style="font-size:12px; color:var(--text-muted);">'+PL('Atleta','Athlete')+'</label><select id="ai-pa" style="width:100%; margin:4px 0 10px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+athOpts+'</select>'
+      +'<label style="font-size:12px; color:var(--text-muted);">'+PL('Data','Date')+'</label><input type="date" id="ai-pd" value="'+today+'" style="width:100%; margin:4px 0 12px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'
+      +'<button type="button" id="ai-pg" class="coach-btn primary" style="width:100%;">'+PL('Prescrever','Prescribe')+'</button>');
     ov.querySelector('#ai-px').onclick=function(){ ov.remove(); };
     ov.querySelector('#ai-pg').onclick=function(){ var aid=ov.querySelector('#ai-pa').value, d=ov.querySelector('#ai-pd').value||today; try{ scheduleWorkout(aid, d, Object.assign({}, w, {id:'w-'+Date.now().toString(36)})); }catch(e){} ov.remove(); var an=(ath.find(function(a){return a.id===aid;})||{}).name||'atleta'; toast(w.name+' → '+an); try{ renderCoachCalendar(); }catch(e){} };
   }
@@ -19591,7 +19679,7 @@ nav.tabbar button.active svg{
       +'<div style="font-weight:800;">'+_pmEsc(w.name)+'</div>'
       +'<div class="coach-note" style="margin:2px 0 6px;">'+(typeof coachModalityLabel==='function'?_pmEsc(coachModalityLabel(w.type)):_pmEsc(w.type))+' · ~'+(w.baseMinutes||0)+' min</div>'
       +'<pre style="white-space:pre-wrap; font-family:inherit; font-size:12.5px; color:var(--text); margin:0 0 8px; opacity:.92;">'+_pmEsc(w.desc)+'</pre>'
-      +'<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="coach-btn tiny primary" type="button" data-ai-save="'+kind+':'+idx+'">Guardar na biblioteca</button><button class="coach-btn tiny" type="button" data-ai-presc="'+kind+':'+idx+'">Prescrever</button></div></div>';
+      +'<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="coach-btn tiny primary" type="button" data-ai-save="'+kind+':'+idx+'">'+PL('Guardar na biblioteca','Save to library')+'</button><button class="coach-btn tiny" type="button" data-ai-presc="'+kind+':'+idx+'">'+PL('Prescrever','Prescribe')+'</button></div></div>';
   }
   var _aiLastGen=null;
 
@@ -19603,19 +19691,19 @@ nav.tabbar button.active svg{
     var cat0=AI_CATS[0];
     host.innerHTML =
       '<div class="card">'
-      +'<div style="font-weight:800; margin-bottom:10px;">\u2699\ufe0f Gerador de treino</div>'
+      +'<div style="font-weight:800; margin-bottom:10px;">\u2699\ufe0f '+PL('Gerador de treino','Workout generator')+'</div>'
       +'<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">'
-      +'<div><label style="font-size:12px; color:var(--text-muted);">Tipo</label><select id="ai-cat" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+AI_CATS.map(function(c){return '<option value="'+c.key+'">'+_pmEsc(c.label)+'</option>';}).join('')+'</select></div>'
-      +'<div><label style="font-size:12px; color:var(--text-muted);">Objetivo</label><select id="ai-sub" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+cat0.subs.map(function(s){return '<option>'+_pmEsc(s)+'</option>';}).join('')+'</select></div>'
-      +'<div><label style="font-size:12px; color:var(--text-muted);">Tempo (min)</label><input id="ai-min" type="number" min="10" step="5" value="45" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);"></div>'
-      +'<div><label style="font-size:12px; color:var(--text-muted);">Nível</label><select id="ai-lvl" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);"><option value="iniciante">Iniciante</option><option value="intermedio" selected>Intermédio</option><option value="avancado">Avançado</option></select></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">'+PL('Tipo','Type')+'</label><select id="ai-cat" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+AI_CATS.map(function(c){return '<option value="'+c.key+'">'+_pmEsc(c.label)+'</option>';}).join('')+'</select></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">'+PL('Objetivo','Goal')+'</label><select id="ai-sub" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);">'+cat0.subs.map(function(s){return '<option>'+_pmEsc(s)+'</option>';}).join('')+'</select></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">'+PL('Tempo (min)','Time (min)')+'</label><input id="ai-min" type="number" min="10" step="5" value="45" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);"></div>'
+      +'<div><label style="font-size:12px; color:var(--text-muted);">'+PL('Nível','Level')+'</label><select id="ai-lvl" style="width:100%; margin-top:4px; padding:9px; border-radius:9px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:var(--text);"><option value="iniciante">'+PL('Iniciante','Beginner')+'</option><option value="intermedio" selected>'+PL('Intermédio','Intermediate')+'</option><option value="avancado">'+PL('Avançado','Advanced')+'</option></select></div>'
       +'</div>'
-      +'<div style="margin-top:10px;"><label style="font-size:12px; color:var(--text-muted);">Equipamento disponível</label><div id="ai-equip" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">'+_aiEquipHtml(cat0)+'</div></div>'
-      +'<button type="button" id="ai-gen" data-ai-gen="1" class="coach-btn primary" style="width:100%; margin-top:12px;">Gerar treino</button>'
+      +'<div style="margin-top:10px;"><label style="font-size:12px; color:var(--text-muted);">'+PL('Equipamento disponível','Available equipment')+'</label><div id="ai-equip" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">'+_aiEquipHtml(cat0)+'</div></div>'
+      +'<button type="button" id="ai-gen" data-ai-gen="1" class="coach-btn primary" style="width:100%; margin-top:12px;">'+PL('Gerar treino','Generate workout')+'</button>'
       +'<div id="ai-gen-out" style="margin-top:12px;"></div>'
       +'</div>'
-      +'<div style="font-weight:800; margin:16px 2px 8px;">📚 Treinos prontos</div>'
-      +'<div class="coach-note" style="margin:0 2px 10px;">Muitos treinos j\u00e1 feitos, por categoria. Guarda na biblioteca para editar/prescrever.</div>'
+      +'<div style="font-weight:800; margin:16px 2px 8px;">📚 '+PL('Treinos prontos','Ready-made workouts')+'</div>'
+      +'<div class="coach-note" style="margin:0 2px 10px;">'+PL('Muitos treinos j\u00e1 feitos, por categoria. Guarda na biblioteca para editar/prescrever.','Lots of ready-made workouts by category. Save to your library to edit/prescribe.')+'</div>'
       +'<div id="ai-ready">'+AI_READY.map(function(w,i){ return _aiCard(w,'ready',i); }).join('')+'</div>';
     var catSel=host.querySelector('#ai-cat');
     catSel.onchange=function(){
@@ -20433,6 +20521,8 @@ nav.tabbar button.active svg{
     await sSet('strava-activities', stravaActivities);
     try{ updateStravaUI(); }catch(e){}
     try{ renderDashboard(); }catch(e){}
+    try{ renderLast30Workouts(); }catch(e){}
+    try{ if(window.PulsoImportAPI && window.PulsoImportAPI.refresh) window.PulsoImportAPI.refresh(); }catch(e){}
     try{ if(day && window.PulsoArchiveDay) window.PulsoArchiveDay(day); }catch(e){}
     try{ if(window.PulsoCloud && typeof window.PulsoCloud.uploadData==='function') window.PulsoCloud.uploadData(); }catch(e){}
     toast(PL('Treino apagado.','Workout removed.'));
@@ -20640,6 +20730,16 @@ nav.tabbar button.active svg{
     // Liga o clique de cada X diretamente (além da delegação global), para o apagar ser fiável no telemóvel.
     list.querySelectorAll('.a30-del').forEach(function(btn){
       btn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); const id = btn.getAttribute('data-del-activity'); if(id && window.PulsoDeleteActivity) window.PulsoDeleteActivity(id); });
+    });
+    // Liga o clique de cada treino diretamente para abrir o detalhe (não depende só da
+    // delegação global — garante que funciona também no modo atleta).
+    list.querySelectorAll('.athlete-last30-item[data-strava-id]').forEach(function(it){
+      it.addEventListener('click', function(e){
+        if(e.target.closest && e.target.closest('[data-del-activity]')) return; // clicar no X não abre
+        e.stopPropagation();
+        const id = it.getAttribute('data-strava-id');
+        if(id && window.PulsoOpenStravaActivityDetail) window.PulsoOpenStravaActivityDetail(id);
+      });
     });
     try{ if(window.PulsoRenderRecords) window.PulsoRenderRecords(); }catch(e){}
   }
@@ -22830,7 +22930,7 @@ async function uploadData(){
   if(!currentUser) return;
   clearTimeout(uploadTimer);
   uploadTimer = setTimeout(async ()=>{
-    setSyncStatus('sync', 'A sincronizar');
+    setSyncStatus('sync', PL('A sincronizar','Syncing'));
     try{
       const keys = localPulsoSnapshot();
       await setDoc(doc(db, 'athleteData', currentUser.uid), {
@@ -22842,8 +22942,8 @@ async function uploadData(){
       // Marca de que estes dados locais pertencem a esta conta e já foram sincronizados
       // (usado para isolar contas no mesmo dispositivo). Não é sincronizado.
       try{ localStorage.setItem('pulso:_local-owner', currentUser.uid); localStorage.setItem('pulso:_synced-once', '1'); }catch(e){}
-      setSyncStatus('ok', 'Sincronizado');
-    }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); setSyncStatus('off', 'Sem sincronização'); }
+      setSyncStatus('ok', PL('Sincronizado','Synced'));
+    }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); setSyncStatus('off', PL('Sem sincronização','Not synced')); }
   }, 1400);
 }
 
@@ -23037,6 +23137,11 @@ function showAuth(show){
   if(show){
     const conn = $('pc-connecting'); if(conn) conn.hidden = true;
     const card = $('pc-auth'); if(card) card.hidden = false;
+    try{ el.scrollTop = 0; }catch(e){}
+    // Pré-preenche o email guardado (para não o reescreveres a cada login).
+    try{ const em = $('pc-email'); if(em && !em.value){ const saved = localStorage.getItem('pulso:last-email'); if(saved) em.value = saved; } }catch(e){}
+    // Força o repaint do logótipo — em alguns WebViews o SVG só aparece após uma interação.
+    try{ const lg = el.querySelector('.pc-logo'); if(lg){ lg.style.transform='translateZ(0)'; void lg.offsetHeight; } }catch(e){}
   }
 }
 function setAuthMode(mode){
@@ -23063,6 +23168,7 @@ async function doAuthSubmit(){
   if(mode === 'signup' && !name){ err.textContent = 'Escreve o teu nome.'; return; }
   if(mode === 'signup' && pw.length < 6){ err.textContent = 'A palavra-passe precisa de 6+ caracteres.'; return; }
   if(mode === 'signup' && $('pc-accept') && !$('pc-accept').checked){ err.textContent = 'Tens de aceitar os Termos de Utilização para criar conta.'; return; }
+  try{ localStorage.setItem('pulso:last-email', email); }catch(e){}
   authBusy(true);
   try{
     if(mode === 'signup'){
@@ -23077,6 +23183,7 @@ async function doAuthSubmit(){
       }catch(e){}
     }else{
       await signInWithEmailAndPassword(auth, email, pw);
+      try{ window._pulsoWelcomeBack = true; }catch(e){}
     }
   }catch(e){
     err.textContent = friendlyAuthError(e);
@@ -23401,14 +23508,14 @@ onAuthStateChanged(auth, async (user)=>{
   currentUser = user || null;
   const btn = $('pulso-cloud-btn');
   if(!user){
-    setSyncStatus('off', 'Offline');
+    setSyncStatus('off', PL('Offline','Offline'));
     showAuth(true);
     if(btn) btn.hidden = false;
     const card = $('pc-auth');
     setAuthMode(card && card.dataset.mode ? card.dataset.mode : 'signin');
     return;
   }
-  setSyncStatus('ok', 'Ligado');
+  setSyncStatus('ok', PL('Sincronizado','Synced'));
   if(user && !user.emailVerified){
     showAuth(false);
     if(btn) btn.hidden = false;
@@ -23433,6 +23540,15 @@ onAuthStateChanged(auth, async (user)=>{
   }catch(e){}
   // uma sincronização inicial (garante a cloud coerente com o local)
   uploadData();
+  // Saudação "Bem-vindo de volta" — só quando é um login explícito de conta existente
+  // (não em cada abertura da app com sessão já iniciada, nem ao criar conta nova).
+  try{
+    if(window._pulsoWelcomeBack){
+      window._pulsoWelcomeBack = false;
+      var _nm = ((user.displayName || '').trim().split(' ')[0]) || '';
+      setTimeout(function(){ try{ if(window.toast) window.toast(PL('Bem-vindo de volta','Welcome back') + (_nm ? (', ' + _nm) : '') + ' 👋'); }catch(e){} }, 1500);
+    }
+  }catch(e){}
   // carrega os atletas que este utilizador treina (para aparecerem no modo Treinador)
   loadCoachedAthletes();
   // descarrega os treinos que o treinador prescreveu a este atleta
@@ -24361,6 +24477,21 @@ document.addEventListener("click", function(e){
 })();
 </script>
 <script type="module">
+  // A leitura da saúde (Health Connect / Apple Health) só é possível na app NATIVA.
+  // No navegador (PWA) mostramos o cartão na mesma, mas com uma nota a explicar.
+  try{
+    const Cap = window.Capacitor;
+    if (!(Cap && Cap.isNativePlatform && Cap.isNativePlatform())){
+      const card = document.getElementById('health-native-card');
+      if (card){
+        card.style.display = '';
+        const btnW = document.getElementById('btn-health-connect');
+        const stW = document.getElementById('health-native-status');
+        if (btnW){ btnW.disabled = true; btnW.style.opacity = '0.5'; btnW.style.cursor = 'not-allowed'; }
+        if (stW){ stW.textContent = (window.PL ? PL('Disponível na app instalada (Android / iPhone). No navegador não é possível ler a saúde do telemóvel.','Available in the installed app (Android / iPhone). A browser can\'t read the phone\'s health data.') : 'Disponível na app instalada (Android / iPhone). No navegador não dá para ler a saúde do telemóvel.'); }
+      }
+    }
+  }catch(e){}
   // Só corre dentro da app nativa (Capacitor). No browser normal, não faz nada.
   try{
     const Cap = window.Capacitor;
@@ -24377,24 +24508,56 @@ document.addEventListener("click", function(e){
           if(!silent) setStatus('A verificar…');
           const av = await Health.isAvailable();
           if (!av.available){ if(!silent) setStatus('Health Connect não disponível. Instala-o da Play Store e liga o teu relógio.'); return; }
-          await Health.requestAuthorization({ read:['sleep','weight','restingHeartRate','workouts'], write:[] });
+          await Health.requestAuthorization({ read:['sleep','weight','restingHeartRate','heartRate','distance','workouts'], write:[] });
           try{ localStorage.setItem('pulso:health-linked','1'); }catch(e){}
           const fim = new Date().toISOString();
-          const ini = new Date(Date.now() - 30*24*60*60*1000).toISOString();
-          const sono = await Health.readSamples({ dataType:'sleep', startDate:ini, endDate:fim });
+          const ini = new Date(Date.now() - 90*24*60*60*1000).toISOString();
+          const sono = await Health.readSamples({ dataType:'sleep', startDate:ini, endDate:fim, limit:100000 });
           const noites = {};
           (sono.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); if(!d) return; noites[d]=(noites[d]||0)+(Number(x.value)||0); });
           for (const d in noites){ await window.PulsoImportAPI.addSleep(d, noites[d]/60); }
-          const peso = await Health.readSamples({ dataType:'weight', startDate:ini, endDate:fim });
+          const peso = await Health.readSamples({ dataType:'weight', startDate:ini, endDate:fim, limit:100000 });
           const pesos = {};
           (peso.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); if(!d) return; if(Number(x.value)) pesos[d]=Number(x.value); });
           for (const d in pesos){ await window.PulsoImportAPI.addWeight(d, pesos[d]); }
-          const rhr = await Health.readSamples({ dataType:'restingHeartRate', startDate:ini, endDate:fim });
+          const rhr = await Health.readSamples({ dataType:'restingHeartRate', startDate:ini, endDate:fim, limit:100000 });
           const rest = {};
           (rhr.samples||[]).forEach(x=>{ const d=(x.startDate||'').slice(0,10); const v=Number(x.value); if(!d||!v) return; rest[d] = rest[d] ? Math.min(rest[d], v) : v; });
           for (const d in rest){ await window.PulsoImportAPI.addRestingHr(d, rest[d]); }
           let nT = 0;
-          try{ const wk = await Health.queryWorkouts({ startDate:ini, endDate:fim }); nT = await window.PulsoImportAPI.addWorkouts((wk && (wk.workouts || wk.samples)) || []); }catch(e){}
+          try{
+            const wk = await Health.queryWorkouts({ startDate:ini, endDate:fim });
+            const wl = (wk && (wk.workouts || wk.samples)) || [];
+            // O Health Connect não devolve a FC junto do treino — vamos buscá-la às amostras
+            // de frequência cardíaca dentro do período de cada treino (média e máxima),
+            // para o treino ficar com os mesmos dados de um do Strava.
+            for (const w of wl){
+              try{
+                const ws = w.startDate || w.start || w.startTime;
+                const we = w.endDate || w.end || w.endTime;
+                const hasHr = (w.averageHeartRate!=null || w.avgHeartRate!=null || w.heartRateAvg!=null);
+                if(ws && we && !hasHr){
+                  const hrS = await Health.readSamples({ dataType:'heartRate', startDate:ws, endDate:we, limit:100000 });
+                  const vals = (hrS.samples||[]).map(s=>Number(s.value)).filter(v=>v>0);
+                  if(vals.length){
+                    w.averageHeartRate = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+                    w.maxHeartRate = Math.max.apply(null, vals);
+                    w._hrSamples = hrS.samples;   // curva real de FC para o detalhe
+                  }
+                }
+                // Distância: no Health Connect vem muitas vezes num registo à parte (não na sessão).
+                // Se o treino não trouxer distância, somamos as amostras de distância do período.
+                if(ws && we && !(Number(w.distance || w.totalDistance) > 0)){
+                  try{
+                    const dS = await Health.readSamples({ dataType:'distance', startDate:ws, endDate:we, limit:100000 });
+                    let dm = 0; (dS.samples||[]).forEach(s=>{ var v=Number(s.value); if(v>0) dm += v; });
+                    if(dm > 0) w.distance = dm;   // metros
+                  }catch(e){}
+                }
+              }catch(e){}
+            }
+            nT = await window.PulsoImportAPI.addWorkouts(wl);
+          }catch(e){}
           window.PulsoImportAPI.refresh();
           if(!silent) setStatus('Importado: '+Object.keys(noites).length+' sono · '+Object.keys(pesos).length+' pesos · '+Object.keys(rest).length+' FC repouso · '+nT+' treinos.');
         }catch(e){ if(!silent) setStatus('Erro: '+((e && e.message) ? e.message : e)); }
