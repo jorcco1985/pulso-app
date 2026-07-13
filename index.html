@@ -21113,7 +21113,7 @@ nav.tabbar button.active svg{
         return '<tr style="text-align:right; border-top:1px solid rgba(255,255,255,.06);">'
           +'<td style="text-align:left;"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+col+';"></span> '+r.idx+'</td>'
           +'<td style="color:rgba(255,255,255,.5);">'+fmtHm(r.iaH)+'</td>'
-          +'<td style="white-space:nowrap; text-align:right;"><input type="number" min="0" value="'+Math.floor(r.planH)+'" data-plan-week="'+r.startKey+'" data-plan-part="h" style="width:32px; background:rgba(255,255,255,.06); border:1px solid '+(r.editedH?'#35D9A6':'rgba(255,255,255,.18)')+'; color:#fff; border-radius:5px; padding:2px 2px; font-size:12px; text-align:center;">h<input type="number" min="0" max="59" value="'+Math.round((r.planH-Math.floor(r.planH))*60)+'" data-plan-week="'+r.startKey+'" data-plan-part="m" style="width:32px; background:rgba(255,255,255,.06); border:1px solid '+(r.editedH?'#35D9A6':'rgba(255,255,255,.18)')+'; color:#fff; border-radius:5px; padding:2px 2px; font-size:12px; text-align:center; margin-left:2px;">m</td><td style="color:'+(okH?'#35D9A6':'#F2B84B')+';">'+fmtHm(r.realH)+'</td>'
+          +'<td style="white-space:nowrap; text-align:right;"><span class="plan-hm" role="button" tabindex="0" data-plan-week="'+r.startKey+'" data-min="'+Math.round(r.planH*60)+'" style="display:inline-block; min-width:66px; text-align:center; background:rgba(255,255,255,.06); border:1px solid '+(r.editedH?'#35D9A6':'rgba(255,255,255,.18)')+'; color:#fff; border-radius:7px; padding:4px 10px; font-size:13px; font-weight:700; cursor:ew-resize; touch-action:pan-y; -webkit-user-select:none; user-select:none;">'+fmtHm(r.planH)+'</span></td><td style="color:'+(okH?'#35D9A6':'#F2B84B')+';">'+fmtHm(r.realH)+'</td>'
           +'<td>'+r.marked+'</td><td>'+r.done+'</td></tr>';
       }).join('')+
       '<tr style="text-align:right; border-top:2px solid rgba(255,255,255,.14); font-weight:800;"><td style="text-align:left;">Total</td><td></td><td>'+fmtHm(tot.planH)+'</td><td>'+fmtHm(tot.realH)+'</td><td>'+tot.marked+'</td><td>'+tot.done+'</td></tr>'+
@@ -21126,7 +21126,7 @@ nav.tabbar button.active svg{
     ov.innerHTML = '<button type="button" id="period-close-fixed" style="position:fixed; top:calc(env(safe-area-inset-top,20px) + 54px); right:14px; z-index:100000; min-width:100px; height:44px; border-radius:999px; background:rgba(20,28,44,.96); border:1px solid rgba(53,217,166,.55); color:#35D9A6; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.5);">\u2715 Fechar</button>'
       +'<div style="max-width:640px; margin:0 auto;">'
       +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h2 style="margin:0; font-size:19px;">Análise até '+esc(data.race.name||'à prova')+'</h2></div>'
-      +'<p class="help" style="margin:0 0 10px;">Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Toca em "Trein." na tabela para ajustares o plano.</p>'
+      +'<p class="help" style="margin:0 0 10px;">Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Arrasta o dedo (←/→) sobre o tempo para o ajustar — passos de 5 min.</p>'
       +(data.stateScore!=null ? '<p class="help" style="margin:-4px 0 10px; font-weight:700; color:'+(data.stateFactor<0.98?'#F2B84B':(data.stateFactor>1.02?'#35D9A6':'var(--text-muted)'))+';">'+PL('IA ajustada ao estado do atleta: ','AI adjusted to athlete state: ')+(data.stateFactor>=1?'+':'')+Math.round((data.stateFactor-1)*100)+'% · '+PL('prontidão ','readiness ')+data.stateScore+'/100</p>' : '')
       +'<div id="period-bars">'+periodBarsHTML(rows, _periodMetrics)+'</div>'
       +'<div style="display:flex; gap:10px; flex-wrap:wrap; font-size:10px; color:var(--text-muted); margin:4px 0 2px;">'
@@ -21140,18 +21140,48 @@ nav.tabbar button.active svg{
       +table
       +'</div>';
     document.body.appendChild(ov);
-    ov.addEventListener('change', function(e){
-      const inp = e.target.closest ? e.target.closest('[data-plan-week]') : null;
-      if(!inp) return;
-      const wk = inp.getAttribute('data-plan-week');
-      const hEl = ov.querySelector('[data-plan-week="'+wk+'"][data-plan-part="h"]');
-      const mEl = ov.querySelector('[data-plan-week="'+wk+'"][data-plan-part="m"]');
-      const h = hEl ? (parseFloat(hEl.value)||0) : 0;
-      const m = mEl ? (parseFloat(mEl.value)||0) : 0;
-      const hours = h + m/60;
-      setPlanOverride(data.raceId, wk, 'h', hours>0 ? hours : null);
-      openPeriodModal(athleteId); // reabre já com o plano ajustado (recalcula tudo)
-    });
+    // Ajustar o tempo do plano arrastando o dedo (←/→) sobre o valor "XhYY":
+    // direita aumenta, esquerda diminui, em passos de 5 min (os minutos passam de hora sozinhos).
+    // Arrasto vertical = scroll normal da tabela.
+    (function(){
+      var drag = null; var STEP = 11; var STEPMIN = 5; // ~11px = 5 min
+      function start(clientX, clientY, target){
+        var el = target && target.closest ? target.closest('.plan-hm[data-plan-week]') : null;
+        if(!el) return;
+        drag = { el:el, x0:clientX, y0:clientY, v0: parseInt(el.getAttribute('data-min')||'0',10)||0, moved:false };
+      }
+      function move(clientX, clientY, ev){
+        if(!drag) return;
+        var dx = clientX - drag.x0, dy = clientY - drag.y0;
+        if(!drag.moved){
+          if(Math.abs(dx) < 6) return;                         // ainda não é arrasto
+          if(Math.abs(dy) > Math.abs(dx)){ drag = null; return; } // é scroll vertical
+          drag.moved = true;
+        }
+        if(ev && ev.cancelable) ev.preventDefault();
+        var mins = drag.v0 + Math.round(dx / STEP) * STEPMIN;
+        if(mins < 0) mins = 0;
+        drag.el.setAttribute('data-min', String(mins));
+        drag.el.textContent = fmtHm(mins/60);
+      }
+      function end(){
+        if(!drag) return; var d = drag; drag = null;
+        if(d.moved){
+          var wk = d.el.getAttribute('data-plan-week');
+          var mins = parseInt(d.el.getAttribute('data-min')||'0',10)||0;
+          var hours = mins/60;
+          setPlanOverride(data.raceId, wk, 'h', hours>0 ? hours : null);
+          openPeriodModal(athleteId); // reabre já com o plano ajustado (recalcula tudo)
+        }
+      }
+      ov.addEventListener('touchstart', function(e){ var t=e.touches&&e.touches[0]; if(t) start(t.clientX, t.clientY, e.target); }, {passive:true});
+      ov.addEventListener('touchmove', function(e){ var t=e.touches&&e.touches[0]; if(t) move(t.clientX, t.clientY, e); }, {passive:false});
+      ov.addEventListener('touchend', end);
+      ov.addEventListener('touchcancel', end);
+      ov.addEventListener('mousedown', function(e){ start(e.clientX, e.clientY, e.target); });
+      ov.addEventListener('mousemove', function(e){ if(drag){ move(e.clientX, e.clientY, e); } });
+      ov.addEventListener('mouseup', end);
+    })();
     ov.addEventListener('click', function(e){
       if(e.target.id==='period-modal' || e.target.id==='period-close' || (e.target.closest && e.target.closest('#period-close-fixed'))){ ov.remove(); return; }
       const mb = e.target.closest ? e.target.closest('[data-period-metric]') : null;
