@@ -6611,6 +6611,7 @@ nav.tabbar button.active svg{
               <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Effort">Esforço</label><select id="wb-int-effort"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
               <div class="field" style="flex:1; min-width:110px;" id="wb-int-ex-wrap"><label data-i18n="Exercise">Exercício</label><select id="wb-int-ex"></select></div>
               <div class="field" style="flex:1; min-width:90px;"><label data-i18n="Intensity">Intensidade</label><select id="wb-int-int"><option>Z3</option><option>Z4</option><option selected>Z5</option><option>FTP</option><option>RPE</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
+              <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Target (pace/power/HR)">Alvo (ritmo/W/FC)</label><input type="text" id="wb-int-target" placeholder="ex.: 4:00/km · 250 W" data-i18n-ph="e.g. 4:00/km · 250 W"></div>
               <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Recovery">Recuperação</label><select id="wb-int-rec"><option value="15">15 s</option><option value="30">30 s</option><option value="45">45 s</option><option value="60" selected>1 min</option><option value="120">2 min</option><option value="180">3 min</option><option value="240">4 min</option><option value="300">5 min</option></select></div>
               <div class="field" style="flex:1; min-width:110px;"><label data-i18n="Recovery type">Tipo recuperação</label><select id="wb-int-rectype"><option value="Parado" data-i18n="Standing">Parado</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Trote" selected data-i18n="Jog">Trote</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option></select></div>
             </div>
@@ -6655,9 +6656,12 @@ nav.tabbar button.active svg{
             <div class="row" style="gap:10px; flex-wrap:wrap;">
               <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Muscle group">Grupo muscular</label><select id="wb-fx-group"><option value="Core" data-i18n="Core">Core</option><option value="Pernas" selected data-i18n="Legs">Pernas</option><option value="Glúteos" data-i18n="Glutes">Glúteos</option><option value="Posterior" data-i18n="Hamstrings">Posterior</option><option value="Tronco" data-i18n="Trunk">Tronco</option><option value="Superior" data-i18n="Upper body">Superior</option><option value="Corpo inteiro" data-i18n="Full body">Corpo inteiro</option><option value="Hyrox">Hyrox</option><option value="Funcional" data-i18n="Functional">Funcional</option></select></div>
               <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Type">Tipo</label><select id="wb-fx-equip"><option value="Peso corporal" selected data-i18n="Bodyweight">Peso corporal</option><option value="Halteres" data-i18n="Dumbbells">Halteres</option><option value="Barra" data-i18n="Barbell">Barra</option><option>Kettlebell</option><option value="Elásticos" data-i18n="Bands">Elásticos</option><option value="Máquinas" data-i18n="Machines">Máquinas</option></select></div>
-              <div class="field" style="flex:1; min-width:80px;"><label data-i18n="Sets">Séries</label><select id="wb-fx-series"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label data-i18n="Sets">Séries</label><select id="wb-fx-series"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>12</option><option>15</option><option>20</option></select></div>
+              <div class="field" style="flex:1; min-width:90px;"><label data-i18n="Reps">Repetições</label><select id="wb-fx-reps"><option value="" data-i18n="Auto (per exercise)">Auto</option><option>6</option><option>8</option><option>10</option><option>12</option><option>15</option><option>20</option><option>25</option><option>30</option><option value="Até à falha" data-i18n="To failure">Até à falha</option></select></div>
               <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Rest">Descanso</label><select id="wb-fx-rest"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option></select></div>
               <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Load">Carga</label><select id="wb-fx-load"><option value="" data-i18n="Optional">Opcional</option><option value="Sem carga" data-i18n="No load">Sem carga</option><option value="Leve" data-i18n="Light">Leve</option><option value="Moderada" data-i18n="Moderate">Moderada</option><option value="Pesada" data-i18n="Heavy">Pesada</option></select></div>
+              <div class="field" style="flex:1; min-width:80px;"><label>RPE</label><select id="wb-fx-rpe"><option value="" data-i18n="Optional">Opcional</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+              <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Execution tempo">Tempo/execução</label><select id="wb-fx-tempo"><option value="" data-i18n="Optional">Opcional</option><option value="Controlado" data-i18n="Controlled">Controlado</option><option value="Explosivo" data-i18n="Explosive">Explosivo</option><option value="Lento (excêntrico)" data-i18n="Slow (eccentric)">Lento (excêntrico)</option><option>3-0-1</option><option>3-1-1</option><option>2-0-2</option><option value="Isométrico" data-i18n="Isometric">Isométrico</option></select></div>
             </div>
             <label style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; display:block; margin:10px 0 6px;" data-i18n="Exercises (tap to add)">Exercícios (toca para adicionar)</label>
             <div id="wb-fx-ex" class="row" style="gap:6px; flex-wrap:wrap;"></div>
@@ -8790,11 +8794,11 @@ nav.tabbar button.active svg{
       ring.style.cursor = 'pointer';
       ring.addEventListener('click', ()=>{
         const c = computeCycle(cycleData);
-        if(!c.hasData){ if(window.pulsoInfo) window.pulsoInfo('Regista o início da tua menstruação no separador Saúde → Ciclo para a Pulso calcular o teu estado.'); return; }
-        const msg = 'Estado do ciclo: ' + c.wellbeing + '/100.\n\n'+
-          'Este número combina a fase do teu ciclo com o humor, energia e dor que registas. Quanto mais alto (verde), melhor estás para treinar; mais baixo (amarelo/vermelho), maior a probabilidade de precisares de abrandar.\n\n'+
-          'Fase atual: ' + c.phase + ' (dia ' + c.cycleDay + ' do ciclo).\n'+
-          'Disponibilidade para treino: ' + c.availability + '/100.\n\n'+
+        if(!c.hasData){ if(window.pulsoInfo) window.pulsoInfo(PL('Regista o início da tua menstruação no separador Saúde → Ciclo para a Pulso calcular o teu estado.','Log the start of your period in the Health → Cycle tab so Pulso can calculate your state.')); return; }
+        const msg = PL('Estado do ciclo: ','Cycle state: ') + c.wellbeing + '/100.\n\n'+
+          PL('Este número combina a fase do teu ciclo com o humor, energia e dor que registas. Quanto mais alto (verde), melhor estás para treinar; mais baixo (amarelo/vermelho), maior a probabilidade de precisares de abrandar.','This number combines your cycle phase with the mood, energy and pain you log. The higher (green), the better you are to train; the lower (amber/red), the more likely you need to ease off.')+'\n\n'+
+          PL('Fase atual: ','Current phase: ') + c.phase + PL(' (dia ',' (day ') + c.cycleDay + PL(' do ciclo).\n',' of the cycle).\n')+
+          PL('Disponibilidade para treino: ','Training availability: ') + c.availability + '/100.\n\n'+
           c.tip;
         if(window.pulsoInfo) window.pulsoInfo(msg);
       });
@@ -8851,7 +8855,7 @@ nav.tabbar button.active svg{
       if(badge){ badge.textContent = c.phase; badge.className = 'cycle-phase-badge ' + c.phaseKey; }
     }else{
       ['cycle-day','cycle-phase','cycle-next-period','cycle-next-ovulation'].forEach(id=>set(id,'—'));
-      set('cycle-tip', 'Regista o primeiro dia da tua última menstruação (botão abaixo ou no calendário) para a Pulso começar a calcular o teu ciclo.');
+      set('cycle-tip', PL('Regista o primeiro dia da tua última menstruação (botão abaixo ou no calendário) para a Pulso começar a calcular o teu ciclo.','Log the first day of your last period (button below or on the calendar) so Pulso can start calculating your cycle.'));
       if(badge){ badge.textContent = '—'; badge.className = 'cycle-phase-badge'; }
     }
     const share = document.getElementById('cycle-share');
@@ -9215,14 +9219,14 @@ nav.tabbar button.active svg{
     if(ring){ ring.style.borderColor = color; ring.style.boxShadow = '0 0 0 12px '+color+'12, 0 0 34px '+color+'3a'; ring.style.cursor='pointer'; }
     if(n){ n.textContent = rd.score; n.style.color = color; }
     if(lbl){ lbl.textContent = rlbl; lbl.style.color = color; }
-    const explain = 'Prontidão para treino: ' + rd.score + '/100.\n\n'+
-      'Cruza a tua carga de treino (últimos 7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (alimentação).\n\n'+
-      '• 70–100 (verde): fresco, podes treinar forte.\n'+
-      '• 45–69 (amarelo): fadiga a acumular — vigia e ajusta.\n'+
-      '• Abaixo de 45 (vermelho): sinais de sobrecarga — considera uma descarga.\n\n'+
-      'O que pesa hoje:\n' + rd.reasons.map(r=>'• '+r).join('\n') +
-      (rd.confidence<3 ? '\n\n⚠ Poucos dados registados — estimativa menos fiável. Regista sono, FC de repouso e alimentação para afinar.' : '') +
-      '\n\nNota: é um apoio à decisão, não um diagnóstico.';
+    const explain = PL('Prontidão para treino: ','Training readiness: ') + rd.score + '/100.\n\n'+
+      PL('Cruza a tua carga de treino (últimos 7 dias vs 4 semanas), a recuperação (sono e FC de repouso) e o combustível (alimentação).','It combines your training load (last 7 days vs 4 weeks), recovery (sleep and resting HR) and fuel (nutrition).')+'\n\n'+
+      PL('• 70–100 (verde): fresco, podes treinar forte.\n','• 70–100 (green): fresh, you can train hard.\n')+
+      PL('• 45–69 (amarelo): fadiga a acumular — vigia e ajusta.\n','• 45–69 (amber): fatigue building — watch and adjust.\n')+
+      PL('• Abaixo de 45 (vermelho): sinais de sobrecarga — considera uma descarga.\n\n','• Below 45 (red): signs of overload — consider a recovery block.\n\n')+
+      PL('O que pesa hoje:\n','What matters today:\n') + rd.reasons.map(r=>'• '+r).join('\n') +
+      (rd.confidence<3 ? PL('\n\n⚠ Poucos dados registados — estimativa menos fiável. Regista sono, FC de repouso e alimentação para afinar.','\n\n⚠ Little data logged — less reliable estimate. Log sleep, resting HR and nutrition to refine.') : '') +
+      PL('\n\nNota: é um apoio à decisão, não um diagnóstico.','\n\nNote: this is decision support, not a diagnosis.');
     if(ring){ ring.onclick = ()=>{ if(window.pulsoInfo) window.pulsoInfo(explain); }; }
   }
   document.addEventListener('click', function(e){
@@ -9332,8 +9336,8 @@ nav.tabbar button.active svg{
       const sl = _tipLastSleep();
       if(sl!=null){
         const h = Math.round(sl*10)/10;
-        if(sl < 6) tips.push({icon:'😴', pr:82, slot:'review', text:'Dormiste só '+h+'h — hoje prioriza o descanso e evita treino muito intenso.'});
-        else if(sl < 6.8) tips.push({icon:'😴', pr:55, slot:'review', text:'Sono curto ('+h+'h) — cuidado com a intensidade e reforça a recuperação.'});
+        if(sl < 6) tips.push({icon:'😴', pr:82, slot:'review', text:PL('Dormiste só ','Only slept ')+h+PL('h — hoje prioriza o descanso e evita treino muito intenso.','h — prioritise rest today and avoid very intense training.')});
+        else if(sl < 6.8) tips.push({icon:'😴', pr:55, slot:'review', text:PL('Sono curto (','Short sleep (')+h+PL('h) — cuidado com a intensidade e reforça a recuperação.','h) — go easy on intensity and boost recovery.')});
       }
     }catch(e){}
 
@@ -9344,8 +9348,8 @@ nav.tabbar button.active svg{
         if(yk > 0){
           const expend = maint + _tipWorkoutKcalDay(yest);
           const diff = yk - expend;
-          if(diff < -400) tips.push({icon:'⚖️', pr:72, slot:'review', text:'Ontem ficaste ~'+Math.abs(Math.round(diff))+' kcal abaixo do gasto (treino incluído) — hoje come o suficiente, não repitas o défice.'});
-          else if(diff > 500) tips.push({icon:'⚖️', pr:50, slot:'review', text:'Ontem passaste ~'+Math.round(diff)+' kcal acima do gasto — hoje equilibra um pouco.'});
+          if(diff < -400) tips.push({icon:'⚖️', pr:72, slot:'review', text:PL('Ontem ficaste ~','Yesterday you were ~')+Math.abs(Math.round(diff))+PL(' kcal abaixo do gasto (treino incluído) — hoje come o suficiente, não repitas o défice.',' kcal below expenditure (training included) — eat enough today, do not repeat the deficit.')});
+          else if(diff > 500) tips.push({icon:'⚖️', pr:50, slot:'review', text:PL('Ontem passaste ~','Yesterday you went ~')+Math.round(diff)+PL(' kcal acima do gasto — hoje equilibra um pouco.',' kcal above expenditure — balance it out a bit today.')});
         }
       }
     }catch(e){}
@@ -9357,8 +9361,8 @@ nav.tabbar button.active svg{
         for(let i=1;i<=7;i++){ const ds=_tipDayAgo(i); const k=_tipKcalDay(ds); if(k>0){ sumDiff += (k - (maint + _tipWorkoutKcalDay(ds))); n++; } }
         if(n>=4){
           const avg = sumDiff/n;
-          if(avg < -300) tips.push({icon:'📉', pr:66, slot:'review', text:'Nos últimos dias andas em défice (~'+Math.abs(Math.round(avg))+' kcal/dia, treino incluído) — tende a aumentar a ingestão, sobretudo hidratos.'});
-          else if(avg > 400) tips.push({icon:'📈', pr:44, slot:'review', text:'Nos últimos dias comeste acima do gasto (~'+Math.round(avg)+' kcal/dia) — se não queres ganhar peso, ajusta as porções.'});
+          if(avg < -300) tips.push({icon:'📉', pr:66, slot:'review', text:PL('Nos últimos dias andas em défice (~','In recent days you have been in a deficit (~')+Math.abs(Math.round(avg))+PL(' kcal/dia, treino incluído) — tende a aumentar a ingestão, sobretudo hidratos.',' kcal/day, training included) — lean towards eating more, especially carbs.')});
+          else if(avg > 400) tips.push({icon:'📈', pr:44, slot:'review', text:PL('Nos últimos dias comeste acima do gasto (~','In recent days you have eaten above expenditure (~')+Math.round(avg)+PL(' kcal/dia) — se não queres ganhar peso, ajusta as porções.',' kcal/day) — if you do not want to gain weight, adjust portions.')});
         }
       }
     }catch(e){}
@@ -9371,9 +9375,9 @@ nav.tabbar button.active svg{
       const wavg = wn ? wsum/wn : 0;
       const wt = _tipAguaDay(today);
       if(wn && wavg>0 && wavg < goal*0.7 && wt < goal*0.5){
-        tips.push({icon:'💧', pr:60, slot:'review', text:'Costumas beber pouca água (~'+Math.round(wavg)+' ml/dia nos últimos dias, meta '+goal+' ml) — hoje bebe mais cedo e ao longo do dia.'});
+        tips.push({icon:'💧', pr:60, slot:'review', text:PL('Costumas beber pouca água (~','You usually drink little water (~')+Math.round(wavg)+PL(' ml/dia nos últimos dias, meta ',' ml/day recently, goal ')+goal+PL(' ml) — hoje bebe mais cedo e ao longo do dia.',' ml) — today drink earlier and throughout the day.')});
       }
-      if(hourNow>=13 && goal>0 && wt < goal*0.5) tips.push({icon:'💧', pr:53, slot:'today', text:'Até agora só bebeste '+wt+' ml (meta '+goal+') — bebe água já.'});
+      if(hourNow>=13 && goal>0 && wt < goal*0.5) tips.push({icon:'💧', pr:53, slot:'today', text:PL('Até agora só bebeste ','So far you have only drunk ')+wt+PL(' ml (meta ',' ml (goal ')+goal+PL(') — bebe água já.',') — drink water now.')});
     }catch(e){}
 
     // Treino: planeado (revisão) / feito → recuperação
@@ -9381,8 +9385,8 @@ nav.tabbar button.active svg{
       let trainToday=false, trainDone=false;
       try{ const cal=JSON.parse(localStorage.getItem('pulso:coach-calendar')||'{}'); trainToday=!!(cal.local && cal.local[today] && cal.local[today].length); }catch(e){}
       try{ trainDone=(stravaActivities||[]).some(a=>a.date && String(a.date).slice(0,10)===today); }catch(e){}
-      if(trainDone) tips.push({icon:'🔁', pr:64, slot:'recovery', text:'Já treinaste hoje — nas próximas 1–2 h repõe hidratos e proteína para recuperar.'});
-      else if(trainToday) tips.push({icon:'⚡', pr:57, slot:'review', text:'Tens treino planeado hoje — garante hidratos antes e hidrata-te bem.'});
+      if(trainDone) tips.push({icon:'🔁', pr:64, slot:'recovery', text:PL('Já treinaste hoje — nas próximas 1–2 h repõe hidratos e proteína para recuperar.','You have already trained today — in the next 1–2 h replenish carbs and protein to recover.')});
+      else if(trainToday) tips.push({icon:'⚡', pr:57, slot:'review', text:PL('Tens treino planeado hoje — garante hidratos antes e hidrata-te bem.','You have training planned today — get carbs in beforehand and hydrate well.')});
     }catch(e){}
 
     // Progresso de hoje (para o pm)
@@ -9394,9 +9398,9 @@ nav.tabbar button.active svg{
         const remaining = expend - tIntake;
         const proteinGoal = maint*0.25/4;
         const pctP = proteinGoal>0 ? Math.round(_tipProtDay(today)/proteinGoal*100) : null;
-        if(pctP!=null && pctP<55 && hourNow>=12) tips.push({icon:'🍗', pr:63, slot:'today', text:'Só '+pctP+'% da proteína até agora — reforça a próxima refeição com proteína.'});
-        if(tIntake>0 && remaining>500) tips.push({icon:'🍽️', pr:58, slot:'today', text:'Faltam ~'+Math.round(remaining)+' kcal até ao teu gasto de hoje'+(wkToday>0?' (já com o treino)':'')+' — distribui pelo resto do dia, não saltes refeições.'});
-        else if(remaining < -250) tips.push({icon:'🛑', pr:46, slot:'today', text:'Já passaste o teu gasto de hoje (~'+Math.abs(Math.round(remaining))+' kcal acima) — abranda no resto do dia, salvo se treinares mais.'});
+        if(pctP!=null && pctP<55 && hourNow>=12) tips.push({icon:'🍗', pr:63, slot:'today', text:PL('Só ','Only ')+pctP+PL('% da proteína até agora — reforça a próxima refeição com proteína.','% of protein so far — boost your next meal with protein.')});
+        if(tIntake>0 && remaining>500) tips.push({icon:'🍽️', pr:58, slot:'today', text:PL('Faltam ~','About ~')+Math.round(remaining)+PL(' kcal até ao teu gasto de hoje',' kcal left to reach your expenditure for today')+(wkToday>0?PL(' (já com o treino)',' (training included)'):'')+PL(' — distribui pelo resto do dia, não saltes refeições.',' — spread it across the rest of the day, do not skip meals.')});
+        else if(remaining < -250) tips.push({icon:'🛑', pr:46, slot:'today', text:PL('Já passaste o teu gasto de hoje (~','You have already passed your expenditure for today (~')+Math.abs(Math.round(remaining))+PL(' kcal acima) — abranda no resto do dia, salvo se treinares mais.',' kcal over) — ease off for the rest of the day, unless you train more.')});
       }
     }catch(e){}
 
@@ -9411,16 +9415,16 @@ nav.tabbar button.active svg{
 
     // Fallback da prontidão (sem alertas de treino)
     if(mode==='ball-prontidao' && !list.length){
-      list.push({icon:'✅', pr:10, slot:'healthy', text:'Sem alertas de treino — carga e recuperação equilibradas. Bom para carregar.'});
+      list.push({icon:'✅', pr:10, slot:'healthy', text:PL('Sem alertas de treino — carga e recuperação equilibradas. Bom para carregar.','No training alerts — load and recovery balanced. Good for building up.')});
     }
     // Sem prova perto e poucas notas -> vida saudável (rotativo) — só bem-estar/geral
     const hasRace = list.some(x=>x.slot==='race');
     if(mode!=='ball-prontidao' && !hasRace && list.length < 2){
       const healthy = [
-        {icon:'🥗', text:'Sem prova à vista — foca em comer saudável: proteína em todas as refeições e metade do prato de vegetais.'},
-        {icon:'🐟', text:'Prioriza comida real: peixe, ovos, leguminosas, fruta e cereais integrais em vez de processados.'},
-        {icon:'💧', text:'Hidrata-te ao longo do dia, não só ao treino.'},
-        {icon:'🌈', text:'Varia as cores no prato — mais vegetais e fruta cobrem micronutrientes importantes.'}
+        {icon:'🥗', text:PL('Sem prova à vista — foca em comer saudável: proteína em todas as refeições e metade do prato de vegetais.','No race in sight — focus on eating healthily: protein at every meal and half the plate vegetables.')},
+        {icon:'🐟', text:PL('Prioriza comida real: peixe, ovos, leguminosas, fruta e cereais integrais em vez de processados.','Prioritise real food: fish, eggs, legumes, fruit and whole grains instead of processed.')},
+        {icon:'💧', text:PL('Hidrata-te ao longo do dia, não só ao treino.','Hydrate throughout the day, not just around training.')},
+        {icon:'🌈', text:PL('Varia as cores no prato — mais vegetais e fruta cobrem micronutrientes importantes.','Vary the colours on your plate — more vegetables and fruit cover important micronutrients.')}
       ];
       const idx = (new Date().getDate() + new Date().getMonth()) % healthy.length;
       list.push(Object.assign({pr:10, slot:'healthy'}, healthy[idx]));
@@ -9694,10 +9698,117 @@ nav.tabbar button.active svg{
       'Toca na timeline para a análise da semana: horas previstas (roxo) vs feitas (cor da fase) + linha branca = sugestão da IA, ajustada ao estado do atleta.',
       'Podes editar as horas de cada semana (h e min) e ver treinos marcados vs feitos.' ] }
   ];
+  const TUTORIAL_GUIDES_EN = {
+    'comida': { title:'Log food', how:[
+      'Nutrition → Food.',
+      'Type the food (e.g. "cooked rice") and the amount in grams.',
+      'The AI fetches calories and macros. Tap ⭐ Favourites to repeat your usual items.',
+      'The target and tips only appear once you have set age, height and sex (Profile) and logged a weight in Health → Weight.' ] },
+    'bebidas': { title:'Drinks & hydration', how:[
+      'Nutrition → Drink. Swipe between the bubbles: Water, Coffee, Juice, Alcohol.',
+      'Tap the shortcuts (e.g. +200 ml) to add up.',
+      'For Juice pick Regular or Zero — and there is Red Bull 330/500 (caffeine counts).',
+      'For Alcohol pick With or Without alcohol (Beer and Somersby 200/330).',
+      'Caffeine (coffees + gels + Red Bull) adds up in the total, on the Coffee bubble.' ] },
+    'supp': { title:'Supplements', how:[
+      'Nutrition → Supplements → Add.',
+      'Pick the brand (Maurten, SIS, GU, 226ers, Gold Nutrition, Nduranz, 4Endurance…).',
+      'Then the category (gels, liquids, powders) and the product.',
+      'Choose the phase (Pre / During / Post) and the amount (up to 0.5).',
+      'Kcal and carbs go into the day, liquids count towards water, caffeine adds to the total. "Recent" repeats in one tap.' ] },
+    'prontidao': { title:'Wellbeing & readiness', how:[
+      'In the morning: Health → Wellbeing. Rate 1–5 (sleep, energy, muscles, stress, mood) and save.',
+      'This feeds the Readiness ring on the dashboard.',
+      'On the dashboard, answer "Does readiness feel right today?" (Worse / Right / Better) — the model learns from you.',
+      'The more you log (sleep, cardio, wellbeing, food), the more reliable the number.' ] },
+    'cardio': { title:'Cardio (resting HR)', how:[
+      'Health → Cardio.',
+      'On waking, lying down and before getting up, measure your resting HR and log the value (bpm).',
+      'It is the cardio metric that weighs most for readiness.',
+      'You also see the average cardio from workouts. Blood pressure is down here, optional.' ] },
+    'painel': { title:'Body fat & tips', how:[
+      'On the dashboard, the Body fat card shows an estimate (weight + height + age + sex) — good for the trend.',
+      'Below the rings you get tips from the last 7 days and upcoming races (carb load, deficit, water…).',
+      'When you open the app you get a pop-up in the morning and mid-afternoon.',
+      'To turn off tips and pop-up: Profile → Athlete → Tips and alerts.' ] },
+    'importar': { title:'Import workouts', how:[
+      'Profile → Import workouts.',
+      'Recommended — File: upload your watch file (.FIT, .TCX, .GPX or the .ZIP as it comes). Works with any watch (Garmin, Xiaomi, Coros…) and no subscriptions.',
+      'Garmin: connect.garmin.com → open the activity → gear icon → Export.',
+      'Optional — Strava: since June 2026 the Strava API requires a Strava subscription, so the file is the recommended path.',
+      'In strength/mobility workouts, each exercise has a ▶ to watch the video.' ] },
+    'instalar': { title:'Install on your phone', how:[
+      'iPhone (Safari): tap Share (the icon in the bar) → "Add to Home Screen" → Add.',
+      'Android (Chrome): menu ⋮ → "Install app" (or "Add to home screen").',
+      'The app then opens full-screen, with its own icon, like a normal app.',
+      'It keeps working offline for viewing and syncs when you have internet.' ] },
+    'personalizar': { title:'Personalise (what you use)', how:[
+      'On first launch you choose how you will use Pulso: health only, athlete (training + health), athlete training only, coach or coach + athlete.',
+      'You can change it later in Profile → "What I use in Pulso": toggle Health & Nutrition and Training.',
+      'If you turn off Health & Nutrition, the Dashboard and the health/nutrition tabs (sleep, weight, food, drink…) stop showing.',
+      'If you are Coach + athlete, use the "Coach mode" / "Athlete mode" pill at the top to switch between them.' ] },
+    'saude-tlm': { title:'Connect phone health', how:[
+      'Health → "Connect phone health" button.',
+      'Android: you need the "Health Connect" app (Play Store) with a source feeding it — Google Fit, Mi Fitness, a watch… iPhone: uses Apple Health.',
+      'Accept the permissions that appear (sleep, weight, heart rate, workouts).',
+      'Pulso imports the last 90 days and refreshes on its own each time you open the app.',
+      'Each record now shows ⌚ (automatic) or ✍️ (manual). Automatic replaces old values; your hand corrections are kept.',
+      'Imported workouts appear in the same place as Strava ones, with distance, time, HR and calories. Elevation and the map (GPS) only come from Strava or a .FIT file.' ] },
+    'sincronizar': { title:'Account, Cloud & sync', how:[
+      'On launch, create an account or sign in. When you sign in to an existing account, you see "Welcome back".',
+      'While signed in, your data is saved to the Cloud and appears on any phone where you sign in with the same account.',
+      'The status pill (top) shows: "Syncing" (uploading), "Synced" (all up to date), "Not synced" (failed, try later) and "Offline" (no account or no network).',
+      'Even Offline the app works — data stays on the phone and syncs when you are back online.',
+      'To sign out: Profile → Session → Sign out.' ] },
+    'equipamento': { title:'Training equipment', how:[
+      'Profile → Equipment.',
+      'Choose the area (Strength, Bike, Running, General), type what you have (e.g. "20kg dumbbells") and tap "+ Add".',
+      'Add equipment one item at a time — each stays in the list.',
+      'Your coach sees this equipment and uses it to build your workouts around what you have.' ] },
+    'c-ia': { title:'AI workouts (generator)', how:[
+      'Coach mode → "✨ AI" tab.',
+      'Generator: pick the type (running, bike, strength, mobility, Hyrox, functional), the goal, the time, the level and available equipment → "Generate workout".',
+      'Ready-made workouts: a list already built by category, for when you do not want to start from scratch.',
+      'On any workout: "Save to library" (editable and reusable) or "Prescribe" straight to an athlete.' ] },
+    'c-treino': { title:'Create a workout (coach)', how:[
+      'Coach mode → "Workouts" tab → "+ New workout". Give it a name and choose the sport.',
+      'Add blocks: warm-up, main and cool-down. In the main, pick the type (sets, intervals, progressive, over/under, pyramid).',
+      'In each set define the target by zone — pace, HR, power (watts) or RPE — plus duration/distance and recovery.',
+      'For strength/mobility pick the group (Strength, Hyrox, Functional) or the body area and add exercises as chips.',
+      'Each exercise has a ▶ that opens the video demo.',
+      'Save and star ★ to add to Favourites — your reusable library.' ] },
+    'c-prescrever': { title:'Prescribe to an athlete', how:[
+      'In the "Workouts" tab, first pick the athlete from the list.',
+      'Open a workout from your library (Favourites) by name.',
+      'Tap "Prescribe" and then the desired day on the athlete calendar.',
+      'The workout is linked to that athlete and shows on their "today" (teal on the calendar).',
+      'You can prescribe several days and edit/remove. The athlete races show in amber (main) and purple (secondary).' ] },
+    'c-cloud': { title:'Connect to the athlete (Cloud)', how:[
+      'Tap the ☁ button (top right) to open the Cloud link.',
+      'Show your QR or code to the athlete — or scan theirs with the camera.',
+      'The athlete scans the QR / pastes the code on their phone.',
+      'You become linked: the workouts you prescribe sync and they see your plans.',
+      'The link uses the athlete+coach ID and only syncs after both confirm.' ] },
+    'c-atleta': { title:'View athlete data', how:[
+      'Coach mode → "Athlete" tab (with the athlete selected).',
+      'Summary: training time and distance from recent days and imported activities.',
+      'Health: sleep, weight, cardio (resting HR) and subjective wellbeing.',
+      'The athlete Readiness and Overall state rings, with overload risk.',
+      'Tap an activity to open the full chart (HR, pace, power).' ] },
+    'c-periodizacao': { title:'Periodisation & weekly analysis', how:[
+      'The Periodisation card shows the timeline to the athlete MAIN race.',
+      'Coloured phases: Base, Build, Peak and Taper, with the "TODAY" line and the flag at the race.',
+      'Grey bars = recent actual load; scale in hours/week.',
+      'Tap the timeline for the weekly analysis: planned hours (purple) vs done (phase colour) + white line = AI suggestion, adjusted to the athlete state.',
+      'You can edit each week time by dragging it, and see workouts marked vs done.' ] }
+  };
+  function _guideIsEN(){ try{ return !!(window.PL && window.PL('\u0001','\u0002') === '\u0002'); }catch(e){ return false; } }
+  function _gT(g){ var e = TUTORIAL_GUIDES_EN[g.id]; return (_guideIsEN() && e && e.title) ? e.title : g.title; }
+  function _gH(g){ var e = TUTORIAL_GUIDES_EN[g.id]; return (_guideIsEN() && e && e.how) ? e.how : g.how; }
   function _tutEsc(s){ return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function renderTutorialDir(){
     const el = document.getElementById('tutorial-dir'); if(!el) return;
-    const _tbtn = g=>'<button type="button" class="tut-open" data-tut="'+g.id+'" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 12px; border-radius:11px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); cursor:pointer;"><span style="font-size:17px;">'+g.icon+'</span><span style="flex:1; font-size:14px; font-weight:600; color:var(--text);">'+_tutEsc(g.title)+'</span><span style="color:var(--text-muted); font-size:18px;">›</span></button>';
+    const _tbtn = g=>'<button type="button" class="tut-open" data-tut="'+g.id+'" style="display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 12px; border-radius:11px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); cursor:pointer;"><span style="font-size:17px;">'+g.icon+'</span><span style="flex:1; font-size:14px; font-weight:600; color:var(--text);">'+_tutEsc(_gT(g))+'</span><span style="color:var(--text-muted); font-size:18px;">›</span></button>';
     const _isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
     const _ath = TUTORIAL_GUIDES.filter(g=>!g.coach && !(g.id==='instalar' && _isNativeApp)), _co = TUTORIAL_GUIDES.filter(g=>g.coach);
     let _h = _ath.map(_tbtn).join('');
@@ -9712,10 +9823,10 @@ nav.tabbar button.active svg{
     ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
     const illo = TUT_ILLO[id] ? ('<div style="background:#0b0f16; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:8px; margin-bottom:14px;">'+TUT_ILLO[id]+'</div>') : '';
     ov.innerHTML = '<div style="width:100%; max-width:520px; max-height:88vh; overflow-y:auto; background:var(--card,#151b23); border-radius:18px 18px 0 0; padding:16px 16px 24px; box-shadow:0 -8px 30px rgba(0,0,0,.4);">'
-      + '<div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;"><span style="font-size:20px;">'+g.icon+'</span><strong style="font-size:17px; flex:1;">'+_tutEsc(g.title)+'</strong><button type="button" id="tut-close" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button></div>'
+      + '<div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;"><span style="font-size:20px;">'+g.icon+'</span><strong style="font-size:17px; flex:1;">'+_tutEsc(_gT(g))+'</strong><button type="button" id="tut-close" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button></div>'
       + illo
       + '<ol style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:9px;">'
-      + g.how.map(h=>'<li style="font-size:13.5px; line-height:1.5; color:var(--text);">'+_tutEsc(h)+'</li>').join('')
+      + _gH(g).map(h=>'<li style="font-size:13.5px; line-height:1.5; color:var(--text);">'+_tutEsc(h)+'</li>').join('')
       + '</ol></div>';
     document.body.appendChild(ov);
     const x=ov.querySelector('#tut-close'); if(x) x.onclick=()=>ov.remove();
@@ -11888,11 +11999,11 @@ nav.tabbar button.active svg{
       'Posterior': ['Deadlift romeno','Peso morto','Nordic curl','Good morning','Hamstring curl'],
       'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação','Pallof press'],
       'Superior': ['Flexões','Remada','Press ombros','Elevações','Fundos','Supino','Press militar','Curl bíceps','Extensão tríceps','Face pull'],
-      'Corpo inteiro': ['Burpees','Thruster','Clean','Snatch','Turkish Get-up','Devils Press','Agachamento','Flexões'],
+      'Corpo inteiro': ['Burpees','Thruster','Clean','Snatch','Turkish Get-up','Devils Press','Agachamento','Flexões','Saltar à corda'],
       'Hyrox': ['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Remo','Farmers Carry','Sandbag Lunges','Wall Ball','Kettlebell Swing','Sandbag over shoulder'],
-      'Funcional': ['Kettlebell Swing','Goblet Squat','Turkish Get-up','Thruster','Devils Press','Dumbbell Snatch','Box Jump','Wall Ball','Battle Ropes','Medicine Ball Slam','Bear Crawl','Farmers Carry']
+      'Funcional': ['Kettlebell Swing','Goblet Squat','Turkish Get-up','Thruster','Devils Press','Dumbbell Snatch','Box Jump','Wall Ball','Battle Ropes','Medicine Ball Slam','Bear Crawl','Farmers Carry','Saltar à corda']
     },
-    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','Hollow Hold':'30 s','Mountain Climbers':'30 s','Wall Sit':'45 s','Bear Crawl':'20 m','Battle Ropes':'30 s','SkiErg':'250 m','Sled Push':'25 m','Sled Pull':'25 m','Burpee Broad Jump':'10','Remo':'250 m','Farmers Carry':'40 m','Sandbag Lunges':'20 m','Wall Ball':'15','Kettlebell Swing':'20','Sandbag over shoulder':'8','Box Jump':'12','Thruster':'12','Burpees':'12','Goblet Squat':'12','Turkish Get-up':'4','Devils Press':'8','Dumbbell Snatch':'8','Snatch':'8','Clean':'8','Elevações':'8','Fundos':'10','Supino':'8','Press militar':'8','Pistol Squat':'6','Russian Twist':'20','V-up':'12','Elevação de pernas':'12','Medicine Ball Slam':'12','default':'10' },
+    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','Hollow Hold':'30 s','Mountain Climbers':'30 s','Wall Sit':'45 s','Bear Crawl':'20 m','Battle Ropes':'30 s','SkiErg':'250 m','Sled Push':'25 m','Sled Pull':'25 m','Burpee Broad Jump':'10','Remo':'250 m','Farmers Carry':'40 m','Sandbag Lunges':'20 m','Wall Ball':'15','Kettlebell Swing':'20','Sandbag over shoulder':'8','Box Jump':'12','Thruster':'12','Burpees':'12','Goblet Squat':'12','Turkish Get-up':'4','Devils Press':'8','Dumbbell Snatch':'8','Snatch':'8','Clean':'8','Elevações':'8','Fundos':'10','Supino':'8','Press militar':'8','Pistol Squat':'6','Russian Twist':'20','V-up':'12','Elevação de pernas':'12','Medicine Ball Slam':'12','Saltar à corda':'60 s','default':'10' },
     mob: {
       'Anca': ['90/90','Hip CARs','Agachamento profundo','Pombo','Cossack Squat','Frog Stretch'],
       'Tornozelo': ['Mobilidade de tornozelo na parede','Ankle CARs','Alongamento de gémeos','Agachamento profundo'],
@@ -11912,7 +12023,7 @@ nav.tabbar button.active svg{
   // ao tocar, abre a demonstração no YouTube (pesquisa pelo nome, em PT).
   window.PulsoExerciseVocab = null;
   function pulsoBuildExerciseVocab(){
-    var names = ['Afundos búlgaros','Agachamento frontal','Sandbag over shoulder','Burpee Broad Jump','Medicine Ball Slam','Rotação anti-rotação','Elevação de pernas','Ponte de glúteos','Deadlift romeno','Turkish Get-up','Kettlebell Swing','Extensão tríceps','Marcha de glúteo','Mountain Climbers','Dumbbell Snatch','Hamstring curl','Sandbag Lunges','Press militar','Pallof press','Russian Twist','Farmers Carry','Battle Ropes','Goblet Squat','Pistol Squat','Devils Press','Good morning','Press ombros','Nordic curl','Curl bíceps','Wall Ball','Bear Crawl','Box Jump','Face pull','Hip Thrust','Wall Sit','Side Plank','Hollow Hold','Sled Push','Sled Pull','Peso morto','Elevações','Agachamento','Thruster','Burpees','SkiErg','Dead Bug','Bird Dog','Abdução','Flexões','Remada','Prancha','Lunges','Step Up','Gémeos','Fundos','Supino','Snatch','Clean','Remo','V-up','Kickback','90/90','Hip CARs','Shoulder CARs','Neck CARs','Ankle CARs','Gato-camelo','Wall Slides','Thread the Needle','Open Book','Worlds Greatest Stretch','Saudação ao sol','Rotação torácica','Pombo','Cossack Squat','Postura da criança','Band Pull-apart','Inchworm','Lunge com rotação','Cobra'];
+    var names = ['Afundos búlgaros','Agachamento frontal','Sandbag over shoulder','Burpee Broad Jump','Medicine Ball Slam','Rotação anti-rotação','Elevação de pernas','Ponte de glúteos','Deadlift romeno','Turkish Get-up','Kettlebell Swing','Extensão tríceps','Marcha de glúteo','Mountain Climbers','Dumbbell Snatch','Hamstring curl','Sandbag Lunges','Press militar','Pallof press','Russian Twist','Farmers Carry','Battle Ropes','Goblet Squat','Pistol Squat','Devils Press','Good morning','Press ombros','Nordic curl','Curl bíceps','Wall Ball','Bear Crawl','Box Jump','Face pull','Hip Thrust','Wall Sit','Side Plank','Hollow Hold','Sled Push','Sled Pull','Peso morto','Elevações','Agachamento','Thruster','Burpees','SkiErg','Dead Bug','Bird Dog','Abdução','Flexões','Remada','Prancha','Lunges','Step Up','Gémeos','Fundos','Supino','Snatch','Clean','Remo','V-up','Kickback','90/90','Hip CARs','Shoulder CARs','Neck CARs','Ankle CARs','Gato-camelo','Wall Slides','Thread the Needle','Open Book','Worlds Greatest Stretch','Saudação ao sol','Rotação torácica','Pombo','Cossack Squat','Postura da criança','Band Pull-apart','Inchworm','Lunge com rotação','Cobra','Saltar à corda'];
     ['WB_EX','CWB_EX'].forEach(function(key){
       try{
         var obj = (key === 'WB_EX') ? (typeof WB_EX !== 'undefined' ? WB_EX : null) : (typeof CWB_EX !== 'undefined' ? CWB_EX : null);
@@ -12036,13 +12147,19 @@ nav.tabbar button.active svg{
     if(mod==='forca'){
       const s = parseInt(wbVal('wb-fx-series'),10);
       const rest = parseInt(wbVal('wb-fx-rest'),10);
+      const repsVal = wbVal('wb-fx-reps');
+      const rpeVal = wbVal('wb-fx-rpe');
+      const tempoVal = wbVal('wb-fx-tempo');
       lines.push(`Força — ${wbVal('wb-fx-group')} (${wbVal('wb-fx-equip')})`);
-      lines.push(`${s} séries:`);
+      lines.push(`${s} séries${repsVal?' × '+repsVal:''}:`);
       wbForcaSelected.forEach(ex=>{
-        const reps = WB_EX.forcaReps[ex] || WB_EX.forcaReps['default'];
-        lines.push(`• ${reps} ${ex}`);
+        const reps = repsVal || (WB_EX.forcaReps[ex] || WB_EX.forcaReps['default']);
+        lines.push(`• ${reps} ${ex}${tempoVal?' — '+tempoVal:''}`);
       });
-      lines.push(`Descanso ${wbFmtSec(rest)} entre séries${wbVal('wb-fx-load')?' · Carga: '+wbVal('wb-fx-load'):''}`);
+      const extras = [];
+      if(wbVal('wb-fx-load')) extras.push('Carga: '+wbVal('wb-fx-load'));
+      if(rpeVal) extras.push('RPE '+rpeVal);
+      lines.push(`Descanso ${wbFmtSec(rest)} entre séries${extras.length?' · '+extras.join(' · '):''}`);
       minutes += Math.round(s * (wbForcaSelected.length*0.75 + rest/60));
     }else if(mod==='mobilidade'){
       const d = parseInt(wbVal('wb-mob-dur'),10);
@@ -12066,7 +12183,8 @@ nav.tabbar button.active svg{
       const ex = wbVal('wb-int-ex');
       const intn = wbVal('wb-int-int');
       const unit = (ex && ex!=='Tempo livre') ? ex : wbFmtSec(eff);
-      lines.push(`${n} × ${unit}${intn!=='Livre'?' '+intn:''}`);
+      const tgt = wbVal('wb-int-target');
+      lines.push(`${n} × ${unit}${intn!=='Livre'?' '+intn:''}${tgt?' ('+tgt+')':''}`);
       lines.push(`Recuperação ${wbFmtSec(rec)} — ${wbVal('wb-int-rectype')}`);
       minutes += Math.round(n * (eff + rec) / 60);
     }else if(main==='Subidas'){
@@ -13275,10 +13393,19 @@ nav.tabbar button.active svg{
   }
 
   function fillManualHrZoneInputs(zones){
-    const refs = getManualHrRefs(zones);
+    let refs = getManualHrRefs(zones);
+    const hasSaved = Array.isArray(zones) && zones.length;
+    // Sem zonas guardadas → mostra a estimativa pela idade nos campos (o utilizador vê o que a
+    // app usa e pode guardar/ajustar), em vez de deixar os campos vazios com exemplos.
+    if(!hasSaved && (!refs || refs.every(v=>v==null))){
+      try{
+        const zb = _hrZonesFromMax();
+        if(zb && zb.length>=5){ refs = [Math.round(zb[0].hi), Math.round(zb[1].hi), Math.round(zb[2].hi), Math.round(zb[3].hi), Math.round(zb[3].hi)+1]; }
+      }catch(e){}
+    }
     for(let i=1;i<=5;i++){
       const el = document.getElementById('hr-z' + i + '-ref');
-      if(el) el.value = refs[i-1]!=null ? Math.round(refs[i-1]) : '';
+      if(el) el.value = (refs && refs[i-1]!=null) ? Math.round(refs[i-1]) : '';
     }
   }
 
@@ -13291,7 +13418,7 @@ nav.tabbar button.active svg{
     box.innerHTML = '';
     box.classList.add('manual-ref-list');
     if(!zones.length){
-      box.innerHTML = '<div class="empty">'+PL('Sem zonas guardadas.','No zones saved.')+'</div>';
+      box.innerHTML = '<div class="empty">'+PL('A usar estimativa pela idade (FC máx ≈ 220 − idade). Os campos acima já têm essa estimativa — ajusta se quiseres e carrega em "Guardar zonas".','Using age-based estimate (max HR ≈ 220 − age). The fields above already show it — adjust if you want and tap "Save zones".')+'</div>';
       if(note) note.textContent = PL('Atalho no Strava: Perfil > Definições > Zonas de treino > Frequência cardíaca. Copia apenas os valores de referência: Z1 até, Z2 até, Z3 até, Z4 até e Z5 desde.','Strava shortcut: Profile > Settings > Training zones > Heart rate. Copy only the reference values: Z1 up to, Z2 up to, Z3 up to, Z4 up to and Z5 from.');
       return;
     }
@@ -13631,10 +13758,10 @@ nav.tabbar button.active svg{
       const hasAltStream = !!(streams && streams.altitude && streams.altitude.length);
       const altRows = hasAltStream ? streams.altitude.map((v,i)=>({t:times[i] || i, d:dists[i], v:Number(v)})) : [];
 
-      const failMsg = 'Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.';
+      const failMsg = PL('Não foi possível obter os dados detalhados do Strava (ligação/proxy). Tenta novamente daqui a pouco.','Could not get detailed data from Strava (connection/proxy). Try again shortly.');
       const _isImp = a.source !== 'strava';
-      const hrEmpty = streamErr ? failMsg : (_isImp ? 'Este treino não tem frequência cardíaca registada.' : 'Esta atividade não tem frequência cardíaca registada no Strava.');
-      const spEmpty = streamErr ? failMsg : (_isImp ? ('Este treino não tem ' + (isRun ? 'ritmo' : 'velocidade/distância') + ' registada.') : ('Esta atividade não tem ' + (isRun ? 'ritmo' : 'velocidade') + ' registado no Strava.'));
+      const hrEmpty = streamErr ? failMsg : (_isImp ? PL('Este treino não tem frequência cardíaca registada.','This workout has no heart rate recorded.') : PL('Esta atividade não tem frequência cardíaca registada no Strava.','This activity has no heart rate recorded on Strava.'));
+      const spEmpty = streamErr ? failMsg : (_isImp ? (isRun ? PL('Este treino não tem ritmo registado.','This workout has no pace recorded.') : PL('Este treino não tem velocidade/distância registada.','This workout has no speed/distance recorded.')) : (isRun ? PL('Esta atividade não tem ritmo registado no Strava.','This activity has no pace recorded on Strava.') : PL('Esta atividade não tem velocidade registada no Strava.','This activity has no speed recorded on Strava.')));
 
       renderStreamChart(document.getElementById('strava-hr-chart'), hrRows, 'var(--red)', v=>Math.round(v)+' bpm', hrEmpty, (!hasHrStream && hrRows.length) ? 'estimado' : null, {roundY:5});
       try{ renderAerobicSplit(hrRows, hasHrStream); }catch(e){}
@@ -13649,7 +13776,7 @@ nav.tabbar button.active svg{
       const powerCard = document.getElementById('strava-power-card');
       if(isBike && powerRows.length){
         if(powerCard) powerCard.style.display = 'block';
-        const pwEmpty = streamErr ? failMsg : (_isImp ? 'Este treino não tem potência registada.' : 'Esta atividade não tem potência registada no Strava.');
+        const pwEmpty = streamErr ? failMsg : (_isImp ? PL('Este treino não tem potência registada.','This workout has no power recorded.') : PL('Esta atividade não tem potência registada no Strava.','This activity has no power recorded on Strava.'));
         renderStreamChart(document.getElementById('strava-power-chart'), powerRows, 'var(--cyan)', v=>Math.round(v)+' W', pwEmpty, (!hasPowerStream && powerRows.length) ? 'estimado' : null, {roundY:20});
       }else if(powerCard){
         powerCard.style.display = 'none';
@@ -19010,7 +19137,7 @@ nav.tabbar button.active svg{
               ${w.baseMinutes ? `<span class="coach-pill">${esc(w.baseMinutes)} min</span>` : ''}
             </div>
             <div class="lib-actions">
-              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}" data-i18n="Prescribe">'+PL('Prescrever','Prescribe')+'</button>
+              <button class="coach-btn tiny primary" type="button" data-lib-schedule="${esc(w.id)}" data-i18n="Prescribe">Prescrever</button>
               <button class="coach-btn tiny" type="button" data-lib-edit="${esc(w.id)}" data-i18n="Edit">Editar</button>
               <button class="coach-btn tiny danger" type="button" data-lib-del="${esc(w.id)}" data-i18n="Delete">Apagar</button>
             </div>
@@ -19066,11 +19193,11 @@ nav.tabbar button.active svg{
       'Posterior': ['Deadlift romeno','Peso morto','Nordic curl','Good morning','Hamstring curl'],
       'Tronco': ['Prancha','Bird Dog','Rotação anti-rotação','Pallof press'],
       'Superior': ['Flexões','Remada','Press ombros','Elevações','Fundos','Supino','Press militar','Curl bíceps','Extensão tríceps','Face pull'],
-      'Corpo inteiro': ['Burpees','Thruster','Clean','Snatch','Turkish Get-up','Devils Press','Agachamento','Flexões'],
+      'Corpo inteiro': ['Burpees','Thruster','Clean','Snatch','Turkish Get-up','Devils Press','Agachamento','Flexões','Saltar à corda'],
       'Hyrox': ['SkiErg','Sled Push','Sled Pull','Burpee Broad Jump','Remo','Farmers Carry','Sandbag Lunges','Wall Ball','Kettlebell Swing','Sandbag over shoulder'],
-      'Funcional': ['Kettlebell Swing','Goblet Squat','Turkish Get-up','Thruster','Devils Press','Dumbbell Snatch','Box Jump','Wall Ball','Battle Ropes','Medicine Ball Slam','Bear Crawl','Farmers Carry']
+      'Funcional': ['Kettlebell Swing','Goblet Squat','Turkish Get-up','Thruster','Devils Press','Dumbbell Snatch','Box Jump','Wall Ball','Battle Ropes','Medicine Ball Slam','Bear Crawl','Farmers Carry','Saltar à corda']
     },
-    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','Hollow Hold':'30 s','Mountain Climbers':'30 s','Wall Sit':'45 s','Bear Crawl':'20 m','Battle Ropes':'30 s','SkiErg':'250 m','Sled Push':'25 m','Sled Pull':'25 m','Burpee Broad Jump':'10','Remo':'250 m','Farmers Carry':'40 m','Sandbag Lunges':'20 m','Wall Ball':'15','Kettlebell Swing':'20','Sandbag over shoulder':'8','Box Jump':'12','Thruster':'12','Burpees':'12','Goblet Squat':'12','Turkish Get-up':'4','Devils Press':'8','Dumbbell Snatch':'8','Snatch':'8','Clean':'8','Elevações':'8','Fundos':'10','Supino':'8','Press militar':'8','Pistol Squat':'6','Russian Twist':'20','V-up':'12','Elevação de pernas':'12','Medicine Ball Slam':'12','default':'10' },
+    forcaReps: { 'Prancha':'45 s','Side Plank':'30 s','Dead Bug':'12','Gémeos':'15','Nordic curl':'6','Hollow Hold':'30 s','Mountain Climbers':'30 s','Wall Sit':'45 s','Bear Crawl':'20 m','Battle Ropes':'30 s','SkiErg':'250 m','Sled Push':'25 m','Sled Pull':'25 m','Burpee Broad Jump':'10','Remo':'250 m','Farmers Carry':'40 m','Sandbag Lunges':'20 m','Wall Ball':'15','Kettlebell Swing':'20','Sandbag over shoulder':'8','Box Jump':'12','Thruster':'12','Burpees':'12','Goblet Squat':'12','Turkish Get-up':'4','Devils Press':'8','Dumbbell Snatch':'8','Snatch':'8','Clean':'8','Elevações':'8','Fundos':'10','Supino':'8','Press militar':'8','Pistol Squat':'6','Russian Twist':'20','V-up':'12','Elevação de pernas':'12','Medicine Ball Slam':'12','Saltar à corda':'60 s','default':'10' },
     mob: {
       'Anca': ['90/90','Hip CARs','Agachamento profundo','Pombo','Cossack Squat','Frog Stretch'],
       'Tornozelo': ['Mobilidade de tornozelo na parede','Ankle CARs','Alongamento de gémeos','Agachamento profundo'],
@@ -21126,7 +21253,7 @@ nav.tabbar button.active svg{
     ov.innerHTML = '<button type="button" id="period-close-fixed" style="position:fixed; top:calc(env(safe-area-inset-top,20px) + 54px); right:14px; z-index:100000; min-width:100px; height:44px; border-radius:999px; background:rgba(20,28,44,.96); border:1px solid rgba(53,217,166,.55); color:#35D9A6; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.5);">\u2715 Fechar</button>'
       +'<div style="max-width:640px; margin:0 auto;">'
       +'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h2 style="margin:0; font-size:19px;">Análise até '+esc(data.race.name||'à prova')+'</h2></div>'
-      +'<p class="help" style="margin:0 0 10px;">Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Arrasta o dedo (←/→) sobre o tempo para o ajustar — passos de 5 min.</p>'
+      +'<p class="help" style="margin:0 0 10px;">'+PL('Treinador vs feito. A linha branca é a sugestão da IA (auxiliar). Arrasta o dedo (←/→) sobre o tempo para o ajustar — passos de 5 min.','Coach vs done. The white line is the AI suggestion (helper). Drag your finger (←/→) over the time to adjust it — 5-min steps.')+'</p>'
       +(data.stateScore!=null ? '<p class="help" style="margin:-4px 0 10px; font-weight:700; color:'+(data.stateFactor<0.98?'#F2B84B':(data.stateFactor>1.02?'#35D9A6':'var(--text-muted)'))+';">'+PL('IA ajustada ao estado do atleta: ','AI adjusted to athlete state: ')+(data.stateFactor>=1?'+':'')+Math.round((data.stateFactor-1)*100)+'% · '+PL('prontidão ','readiness ')+data.stateScore+'/100</p>' : '')
       +'<div id="period-bars">'+periodBarsHTML(rows, _periodMetrics)+'</div>'
       +'<div style="display:flex; gap:10px; flex-wrap:wrap; font-size:10px; color:var(--text-muted); margin:4px 0 2px;">'
