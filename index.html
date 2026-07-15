@@ -9961,11 +9961,11 @@ nav.tabbar button.active svg{
     function done(){ try{ return !!localStorage.getItem('pulso_setup_done'); }catch(e){ return false; } }
     var S = { step:0, introIdx:0, introDone:false, role:'athlete', type:'atleta-full', caps:{health:true,training:true}, name:'', gender:'', age:'', height:'', weight:'', activity:6, raceName:'', raceDate:'', raceKm:'' };
     var TYPES=[
-      {k:'saude', ic:'🩺', t:'Saúde & Nutrição', d:'Cuido da minha saúde e alimentação (sono, peso, nutrição, hidratação). Sem treinos.', who:'Para quem quer cuidar da saúde e da alimentação, sem parte de treino.', role:'athlete', caps:{health:true,training:false}},
-      {k:'atleta-full', ic:'🏃', t:'Atleta', d:'Treino + saúde — o pacote completo.', who:'Para atletas que querem juntar treino, saúde e nutrição num só sítio.', role:'athlete', caps:{health:true,training:true}},
-      {k:'atleta-treino', ic:'🏃', t:'Atleta (só treino)', d:'Só treinos e calendário, sem a parte de saúde.', who:'Para atletas focados só no treino, sem registar saúde/nutrição.', role:'athlete', caps:{health:false,training:true}},
-      {k:'treinador', ic:'🧑‍🏫', t:'Treinador', d:'Giro os meus atletas.', who:'Para treinadores que só acompanham atletas (não treinam na app).', role:'coach', caps:{health:false,training:false}},
-      {k:'treinador-atleta', ic:'🧑‍🏫', t:'Treinador + atleta', d:'Giro atletas e também treino/registo a minha saúde.', who:'Para treinadores que também treinam e registam a sua saúde.', role:'coach', caps:{health:true,training:true}}
+      {k:'saude', ic:'🩺', t:PL('Saúde & Nutrição','Health & Nutrition'), d:PL('Cuido da minha saúde e alimentação (sono, peso, nutrição, hidratação). Sem treinos.','I look after my health and diet (sleep, weight, nutrition, hydration). No training.'), who:PL('Para quem quer cuidar da saúde e da alimentação, sem parte de treino.','For people who want to look after their health and diet, with no training side.'), role:'athlete', caps:{health:true,training:false}},
+      {k:'atleta-full', ic:'🏃', t:PL('Atleta','Athlete'), d:PL('Treino + saúde — o pacote completo.','Training + health — the full package.'), who:PL('Para atletas que querem juntar treino, saúde e nutrição num só sítio.','For athletes who want training, health and nutrition all in one place.'), role:'athlete', caps:{health:true,training:true}},
+      {k:'atleta-treino', ic:'🏃', t:PL('Atleta (só treino)','Athlete (training only)'), d:PL('Só treinos e calendário, sem a parte de saúde.','Just training and calendar, without the health side.'), who:PL('Para atletas focados só no treino, sem registar saúde/nutrição.','For athletes focused only on training, not logging health/nutrition.'), role:'athlete', caps:{health:false,training:true}},
+      {k:'treinador', ic:'🧑‍🏫', t:PL('Treinador','Coach'), d:PL('Giro os meus atletas.','I manage my athletes.'), who:PL('Para treinadores que só acompanham atletas (não treinam na app).','For coaches who only manage athletes (they don\'t train in the app).'), role:'coach', caps:{health:false,training:false}},
+      {k:'treinador-atleta', ic:'🧑‍🏫', t:PL('Treinador + atleta','Coach + athlete'), d:PL('Giro atletas e também treino/registo a minha saúde.','I manage athletes and also train/log my own health.'), who:PL('Para treinadores que também treinam e registam a sua saúde.','For coaches who also train and log their own health.'), role:'coach', caps:{health:true,training:true}}
     ];
     var ov=null;
     function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -10039,66 +10039,66 @@ nav.tabbar button.active svg{
       if(S.step===0){
         return '<div style="text-align:center; margin:auto 0;">'
           +'<div style="font-size:46px; margin-bottom:8px;">\uD83D\uDC9A</div>'
-          +'<h1 style="font-size:25px; margin:0 0 8px;">Bem-vindo \u00e0 Pulso</h1>'
-          +'<p style="color:#8894a8; font-size:14px; line-height:1.6; max-width:330px; margin:0 auto;">Em menos de 1 minuto configuramos o essencial para a app funcionar contigo \u2014 treino, sa\u00fade e nutri\u00e7\u00e3o num s\u00f3 s\u00edtio.</p>'
-          +((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? '' : '<p style="color:#35D9A6; font-size:12.5px; line-height:1.55; max-width:330px; margin:12px auto 0;">📲 Dica: instala a Pulso no telem\u00f3vel (Partilhar \u2192 Adicionar ao Ecr\u00e3 Principal) para a usares como uma app, em ecr\u00e3 inteiro.</p>')
+          +'<h1 style="font-size:25px; margin:0 0 8px;">'+PL('Bem-vindo à Pulso','Welcome to Pulso')+'</h1>'
+          +'<p style="color:#8894a8; font-size:14px; line-height:1.6; max-width:330px; margin:0 auto;">'+PL('Em menos de 1 minuto configuramos o essencial para a app funcionar contigo — treino, saúde e nutrição num só sítio.','In under a minute we set up the essentials so the app works for you — training, health and nutrition in one place.')+'</p>'
+          +((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? '' : '<p style="color:#35D9A6; font-size:12.5px; line-height:1.55; max-width:330px; margin:12px auto 0;">'+PL('📲 Dica: instala a Pulso no telemóvel (Partilhar → Adicionar ao Ecrã Principal) para a usares como uma app, em ecrã inteiro.','📲 Tip: install Pulso on your phone (Share → Add to Home Screen) to use it as a full-screen app.')+'</p>')
           +'</div>';
       }
       if(S.step===1){
         if(!S.introDone){
           var _x = TYPES[S.introIdx];
           return '<div style="text-align:center; padding:6px 0;">'
-            +'<div style="font-size:11px; color:#35D9A6; font-weight:800; letter-spacing:.8px; margin-bottom:14px;">OS 5 TIPOS &middot; '+(S.introIdx+1)+'/'+TYPES.length+'</div>'
+            +'<div style="font-size:11px; color:#35D9A6; font-weight:800; letter-spacing:.8px; margin-bottom:14px;">'+PL('OS 5 TIPOS','THE 5 TYPES')+' &middot; '+(S.introIdx+1)+'/'+TYPES.length+'</div>'
             +'<div style="font-size:46px; line-height:1; margin-bottom:8px;">'+_x.ic+'</div>'
             +'<h2 style="font-size:22px; margin:0 0 14px;">'+_x.t+'</h2>'
             +'<div style="text-align:left; max-width:340px; margin:0 auto; display:flex; flex-direction:column; gap:10px;">'
-            +'<div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px;"><div style="font-size:10.5px; color:#8894a8; font-weight:800; letter-spacing:.5px; margin-bottom:4px;">O QUE FAZ</div><div style="font-size:13.5px; color:#e8eef5; line-height:1.5;">'+_x.d+'</div></div>'
-            +'<div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px;"><div style="font-size:10.5px; color:#8894a8; font-weight:800; letter-spacing:.5px; margin-bottom:4px;">PARA QUEM</div><div style="font-size:13.5px; color:#e8eef5; line-height:1.5;">'+_x.who+'</div></div>'
+            +'<div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px;"><div style="font-size:10.5px; color:#8894a8; font-weight:800; letter-spacing:.5px; margin-bottom:4px;">'+PL('O QUE FAZ','WHAT IT DOES')+'</div><div style="font-size:13.5px; color:#e8eef5; line-height:1.5;">'+_x.d+'</div></div>'
+            +'<div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px;"><div style="font-size:10.5px; color:#8894a8; font-weight:800; letter-spacing:.5px; margin-bottom:4px;">'+PL('PARA QUEM','WHO IT\'S FOR')+'</div><div style="font-size:13.5px; color:#e8eef5; line-height:1.5;">'+_x.who+'</div></div>'
             +'</div>'
-            +(S.introIdx===TYPES.length-1 ? '<p style="color:#35D9A6; font-size:12px; margin:16px auto 0; max-width:320px; line-height:1.5;">Podes mudar isto quando quiseres em Perfil &rarr; "O que uso na Pulso".</p>' : '')
+            +(S.introIdx===TYPES.length-1 ? '<p style="color:#35D9A6; font-size:12px; margin:16px auto 0; max-width:320px; line-height:1.5;">'+PL('Podes mudar isto quando quiseres em Perfil &rarr; "O que uso na Pulso".','You can change this anytime in Profile &rarr; "What I use in Pulso".')+'</p>' : '')
             +'</div>';
         }
-        return '<h2 style="font-size:20px; margin:0 0 6px;">Escolhe o teu tipo</h2>'
-          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 14px;">Já viste o que cada um faz. Podes mudar depois no Perfil.</p>'
+        return '<h2 style="font-size:20px; margin:0 0 6px;">'+PL('Escolhe o teu tipo','Choose your type')+'</h2>'
+          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 14px;">'+PL('Já viste o que cada um faz. Podes mudar depois no Perfil.','You have already seen what each one does. You can change it later in your Profile.')+'</p>'
           +'<div style="display:flex; flex-direction:column; gap:10px;">'
           + TYPES.map(function(x){ var sel=S.type===x.k; return '<button type="button" data-set-type="'+x.k+'" style="text-align:left; padding:14px; border-radius:14px; cursor:pointer; border:1px solid '+(sel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(sel?'rgba(53,217,166,.12)':'rgba(255,255,255,.03)')+'; color:#e8eef5;"><div style="font-weight:800; font-size:15px;">'+x.ic+' '+x.t+'</div><div style="font-size:12px; color:#8894a8; margin-top:3px;">'+x.d+'</div></button>'; }).join('')
           +'</div>';
       }
       if(S.step===2){
         var mSel=(S.gender==='M'), fSel=(S.gender==='F');
-        return '<h2 style="font-size:20px; margin:0 0 6px;">Os teus dados</h2>'
-          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 16px;">Precisamos disto para calcular metas, prontid\u00e3o e massa gorda.</p>'
-          +'<label style="font-size:12px; color:#8894a8;">Nome</label>'
-          +'<input id="su-name" type="text" value="'+esc(S.name)+'" placeholder="ex: Jorge" style="width:100%; margin:4px 0 12px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;">'
-          +'<label style="font-size:12px; color:#8894a8;">Sexo</label>'
+        return '<h2 style="font-size:20px; margin:0 0 6px;">'+PL('Os teus dados','Your details')+'</h2>'
+          +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 16px;">'+PL('Precisamos disto para calcular metas, prontidão e massa gorda.','We need this to calculate goals, readiness and body fat.')+'</p>'
+          +'<label style="font-size:12px; color:#8894a8;">'+PL('Nome','Name')+'</label>'
+          +'<input id="su-name" type="text" value="'+esc(S.name)+'" placeholder="'+PL('ex: Jorge','e.g. Jorge')+'" style="width:100%; margin:4px 0 12px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;">'
+          +'<label style="font-size:12px; color:#8894a8;">'+PL('Sexo','Sex')+'</label>'
           +'<div style="display:flex; gap:8px; margin:4px 0 12px;">'
-          +'<button type="button" data-set-gender="M" style="flex:1; padding:11px; border-radius:10px; cursor:pointer; font-weight:700; border:1px solid '+(mSel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(mSel?'rgba(53,217,166,.12)':'rgba(255,255,255,.04)')+'; color:'+(mSel?'#35D9A6':'#e8eef5')+';">Masculino</button>'
-          +'<button type="button" data-set-gender="F" style="flex:1; padding:11px; border-radius:10px; cursor:pointer; font-weight:700; border:1px solid '+(fSel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(fSel?'rgba(53,217,166,.12)':'rgba(255,255,255,.04)')+'; color:'+(fSel?'#35D9A6':'#e8eef5')+';">Feminino</button>'
+          +'<button type="button" data-set-gender="M" style="flex:1; padding:11px; border-radius:10px; cursor:pointer; font-weight:700; border:1px solid '+(mSel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(mSel?'rgba(53,217,166,.12)':'rgba(255,255,255,.04)')+'; color:'+(mSel?'#35D9A6':'#e8eef5')+';">'+PL('Masculino','Male')+'</button>'
+          +'<button type="button" data-set-gender="F" style="flex:1; padding:11px; border-radius:10px; cursor:pointer; font-weight:700; border:1px solid '+(fSel?'#35D9A6':'rgba(255,255,255,.14)')+'; background:'+(fSel?'rgba(53,217,166,.12)':'rgba(255,255,255,.04)')+'; color:'+(fSel?'#35D9A6':'#e8eef5')+';">'+PL('Feminino','Female')+'</button>'
           +'</div>'
           +'<div style="display:flex; gap:8px; margin-bottom:12px;">'
-          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Idade</label><input id="su-age" type="number" inputmode="numeric" value="'+esc(S.age)+'" placeholder="34" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
-          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Altura (cm)</label><input id="su-height" type="number" inputmode="numeric" value="'+esc(S.height)+'" placeholder="178" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
-          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Peso (kg)</label><input id="su-weight" type="number" inputmode="decimal" step="0.1" value="'+esc(S.weight)+'" placeholder="74" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">'+PL('Idade','Age')+'</label><input id="su-age" type="number" inputmode="numeric" value="'+esc(S.age)+'" placeholder="34" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">'+PL('Altura (cm)','Height (cm)')+'</label><input id="su-height" type="number" inputmode="numeric" value="'+esc(S.height)+'" placeholder="178" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+          +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">'+PL('Peso (kg)','Weight (kg)')+'</label><input id="su-weight" type="number" inputmode="decimal" step="0.1" value="'+esc(S.weight)+'" placeholder="74" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
           +'</div>'
-          +'<label style="font-size:12px; color:#8894a8;">N\u00edvel de atividade: <strong id="su-act-val" style="color:#35D9A6;">'+esc(S.activity)+'</strong>/10</label>'
+          +'<label style="font-size:12px; color:#8894a8;">'+PL('Nível de atividade','Activity level')+': <strong id="su-act-val" style="color:#35D9A6;">'+esc(S.activity)+'</strong>/10</label>'
           +'<input id="su-activity" type="range" min="1" max="10" step="1" value="'+esc(S.activity)+'" style="width:100%; margin-top:6px;" oninput="var v=document.getElementById(\'su-act-val\'); if(v) v.textContent=this.value;">';
       }
       // step 3 (só atleta): objetivo
-      return '<h2 style="font-size:20px; margin:0 0 6px;">Tens uma prova em vista?</h2>'
-        +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 16px;">Opcional \u2014 ajuda a app a preparar carb load, taper e o plano. Podes saltar.</p>'
-        +'<label style="font-size:12px; color:#8894a8;">Nome da prova</label>'
-        +'<input id="su-race-name" type="text" value="'+esc(S.raceName)+'" placeholder="ex: Maratona de Lisboa" style="width:100%; margin:4px 0 12px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;">'
+      return '<h2 style="font-size:20px; margin:0 0 6px;">'+PL('Tens uma prova em vista?','Got a race coming up?')+'</h2>'
+        +'<p style="color:#8894a8; font-size:12.5px; margin:0 0 16px;">'+PL('Opcional — ajuda a app a preparar carb load, taper e o plano. Podes saltar.','Optional — helps the app plan carb load, taper and your plan. You can skip.')+'</p>'
+        +'<label style="font-size:12px; color:#8894a8;">'+PL('Nome da prova','Race name')+'</label>'
+        +'<input id="su-race-name" type="text" value="'+esc(S.raceName)+'" placeholder="'+PL('ex: Maratona de Lisboa','e.g. Lisbon Marathon')+'" style="width:100%; margin:4px 0 12px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;">'
         +'<div style="display:flex; gap:8px;">'
-        +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Data</label><input id="su-race-date" type="date" value="'+esc(S.raceDate)+'" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
-        +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">Dist\u00e2ncia (km)</label><input id="su-race-km" type="number" inputmode="decimal" step="0.1" value="'+esc(S.raceKm)+'" placeholder="42.2" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+        +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">'+PL('Data','Date')+'</label><input id="su-race-date" type="date" value="'+esc(S.raceDate)+'" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
+        +'<div style="flex:1;"><label style="font-size:12px; color:#8894a8;">'+PL('Distância (km)','Distance (km)')+'</label><input id="su-race-km" type="number" inputmode="decimal" step="0.1" value="'+esc(S.raceKm)+'" placeholder="42.2" style="width:100%; margin-top:4px; padding:11px; border-radius:10px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#e8eef5; font-size:15px;"></div>'
         +'</div>';
     }
 
     function footer(){
       var isLast = (S.step===lastStep());
-      var backBtn = S.step>0 ? '<button type="button" id="su-back" style="background:none; border:none; color:#8894a8; font-size:14px; cursor:pointer;">Voltar</button>' : '<span></span>';
-      var nextLabel = S.step===0 ? 'Começar' : (S.step===1 && !S.introDone ? (S.introIdx < TYPES.length-1 ? 'Seguinte' : 'Escolher o meu') : (isLast ? 'Concluir' : 'Continuar'));
-      var skipLabel = S.step===2 ? 'Preencher depois' : 'Saltar';
+      var backBtn = S.step>0 ? '<button type="button" id="su-back" style="background:none; border:none; color:#8894a8; font-size:14px; cursor:pointer;">'+PL('Voltar','Back')+'</button>' : '<span></span>';
+      var nextLabel = S.step===0 ? PL('Começar','Start') : (S.step===1 && !S.introDone ? (S.introIdx < TYPES.length-1 ? PL('Seguinte','Next') : PL('Escolher o meu','Choose mine')) : (isLast ? PL('Concluir','Finish') : PL('Continuar','Continue')));
+      var skipLabel = S.step===2 ? PL('Preencher depois','Fill in later') : PL('Saltar','Skip');
       var skip = (S.step===2 || S.step===3) ? '<button type="button" id="su-skip" style="background:none; border:none; color:#8894a8; font-size:13px; cursor:pointer; text-decoration:underline; margin-right:12px;">'+skipLabel+'</button>' : '';
       return '<div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px;">'+backBtn
         +'<div style="display:flex; align-items:center;">'+skip
@@ -24733,26 +24733,29 @@ document.addEventListener("click", function(e){
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
     var pad=76, x=pad, w=W-pad*2, y=pad+ (curFmt==='square'?12:64);
 
-    // header — símbolo no topo + marca de texto (o logo grande está desfocado no fundo)
+    // header — logo grande no topo (o logo esbatido continua no fundo como marca de água)
+    var ls=(curFmt==='square')?130:160;
     if(logoReady && logoImg && logoImg.width){
-      var ls=90; ctx.save(); rr(ctx,x,y,ls,ls,ls*0.24); ctx.clip(); ctx.drawImage(logoImg,x,y,ls,ls); ctx.restore();
+      ctx.save(); rr(ctx,x,y,ls,ls,ls*0.24); ctx.clip(); ctx.drawImage(logoImg,x,y,ls,ls); ctx.restore();
       rr(ctx,x,y,ls,ls,ls*0.24); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.stroke();
-      var tx=x+ls+22;
-      ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 44px Inter, Arial'; ctx.fillText('PULSO', tx, y+40);
-      ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 25px Inter, Arial'; ctx.fillText('Health & Training', tx, y+74);
-      y+=ls+24;
     } else {
-      drawLogo(ctx,x,y,90);
-      ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 44px Inter, Arial'; ctx.fillText('PULSO', x+112, y+40);
-      ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 25px Inter, Arial'; ctx.fillText('Health & Training', x+112, y+74);
-      y+=114;
+      drawLogo(ctx,x,y,ls);
     }
-    // barra de destaque
-    ctx.fillStyle=(curSpec.accent||TEAL); rr(ctx,x,y,88,10,5); ctx.fill(); y+=34;
+    var tx=x+ls+30;
+    ctx.textAlign='left'; ctx.fillStyle='#fff'; ctx.font='900 '+(curFmt==='square'?50:58)+'px Inter, Arial'; ctx.fillText('PULSO', tx, y+ls*0.46);
+    ctx.fillStyle='rgba(255,255,255,.62)'; ctx.font='600 '+(curFmt==='square'?28:32)+'px Inter, Arial'; ctx.fillText('Health & Training', tx, y+ls*0.46+42);
+    y += ls + 54;   // folga por baixo do logo para o título descer
 
-    // título
-    ctx.fillStyle='#fff'; ctx.font='900 '+(curFmt==='square'?54:70)+'px Inter, Arial';
-    wrapText(ctx, curSpec.title||'', x, y, w, curFmt==='square'?60:78, 2); y+= (curFmt==='square'?74:92);
+    // barra de destaque
+    ctx.fillStyle=(curSpec.accent||TEAL); rr(ctx,x,y,96,12,6); ctx.fill();
+    y += 12 + 40;   // altura da barra + folga
+
+    // título — baixado para não tocar no logo nem na barra
+    var titleFont=(curFmt==='square'?54:70), titleLh=(curFmt==='square'?64:84);
+    y += Math.round(titleFont*0.74);   // desce a baseline pela altura das maiúsculas
+    ctx.fillStyle='#fff'; ctx.font='900 '+titleFont+'px Inter, Arial';
+    var titleLines=wrapText(ctx, curSpec.title||'', x, y, w, titleLh, 2);
+    y += (titleLines>1 ? titleLh : 0) + (curFmt==='square'?30:38);
     if(curSpec.subtitle){ ctx.fillStyle=(curSpec.accent||TEAL); ctx.font='800 32px Inter, Arial'; ctx.fillText(curSpec.subtitle, x, y); y+=56; }
 
     // chart
@@ -24814,6 +24817,7 @@ document.addEventListener("click", function(e){
     for(var i=0;i<words.length;i++){ var t=line?line+' '+words[i]:words[i]; if(ctx.measureText(t).width>maxW && line){ lines.push(line); line=words[i]; } else line=t; }
     if(line) lines.push(line); if(maxLines) lines=lines.slice(0,maxLines);
     for(var j=0;j<lines.length;j++) ctx.fillText(lines[j], x, y+j*lh);
+    return lines.length;
   }
 
   function renderToggles(){
