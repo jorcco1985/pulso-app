@@ -6594,6 +6594,7 @@ nav.tabbar button.active svg{
               <div class="field" style="flex:1; min-width:90px;"><label data-i18n="Time">Tempo</label><select id="wb-warm-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
               <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Type">Tipo</label><select id="wb-warm-type"><option value="Corrida fácil" data-i18n="Easy run">Corrida fácil</option><option value="Trail fácil" data-i18n="Easy trail">Trail fácil</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Mobilidade dinâmica" data-i18n="Dynamic mobility">Mobilidade dinâmica</option></select></div>
               <div class="field" style="flex:1; min-width:80px;"><label data-i18n="Zone">Zona</label><select id="wb-warm-zone"><option>Z1</option><option selected>Z2</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
+              <div class="field" style="flex:2; min-width:160px;"><label data-i18n="Notes / drills">Notas / drills</label><input type="text" id="wb-warm-notes" data-i18n-ph="e.g. mobility, activation drills…" placeholder="ex.: mobilidade, drills de ativação…"></div>
             </div>
           </div>
 
@@ -6662,6 +6663,11 @@ nav.tabbar button.active svg{
               <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Load">Carga</label><select id="wb-fx-load"><option value="" data-i18n="Optional">Opcional</option><option value="Sem carga" data-i18n="No load">Sem carga</option><option value="Leve" data-i18n="Light">Leve</option><option value="Moderada" data-i18n="Moderate">Moderada</option><option value="Pesada" data-i18n="Heavy">Pesada</option></select></div>
               <div class="field" style="flex:1; min-width:80px;"><label>RPE</label><select id="wb-fx-rpe"><option value="" data-i18n="Optional">Opcional</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
               <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Execution tempo">Tempo/execução</label><select id="wb-fx-tempo"><option value="" data-i18n="Optional">Opcional</option><option value="Controlado" data-i18n="Controlled">Controlado</option><option value="Explosivo" data-i18n="Explosive">Explosivo</option><option value="Lento (excêntrico)" data-i18n="Slow (eccentric)">Lento (excêntrico)</option><option>3-0-1</option><option>3-1-1</option><option>2-0-2</option><option value="Isométrico" data-i18n="Isometric">Isométrico</option></select></div>
+              <div class="field" style="flex:1; min-width:120px;"><label data-i18n="Format">Formato</label><select id="wb-fx-format"><option value="" data-i18n="Normal">Normal</option><option>EMOM</option><option>AMRAP</option><option>Tabata</option><option value="Circuito" data-i18n="Circuit">Circuito</option></select></div>
+            </div>
+            <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:8px; align-items:center;">
+              <label class="row" style="gap:6px; align-items:center; cursor:pointer; flex:0 0 auto; min-width:auto;"><input type="checkbox" id="wb-fx-superset" style="width:18px; height:18px;"> <span style="font-size:12px;" data-i18n="Superset (no rest between exercises)">Superset (sem descanso entre exercícios)</span></label>
+              <div class="field" style="flex:1; min-width:160px;"><label data-i18n="Notes">Notas</label><input type="text" id="wb-fx-notes" data-i18n-ph="e.g. focus on form, tempo…" placeholder="ex.: foco na técnica, tempo…"></div>
             </div>
             <label style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; display:block; margin:10px 0 6px;" data-i18n="Exercises (tap to add)">Exercícios (toca para adicionar)</label>
             <div id="wb-fx-ex" class="row" style="gap:6px; flex-wrap:wrap;"></div>
@@ -6684,6 +6690,7 @@ nav.tabbar button.active svg{
             <div id="wb-cool-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
               <div class="field" style="flex:1; min-width:90px;"><label data-i18n="Time">Tempo</label><select id="wb-cool-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
               <div class="field" style="flex:1; min-width:130px;"><label data-i18n="Type">Tipo</label><select id="wb-cool-type"><option value="Corrida leve" data-i18n="Light run">Corrida leve</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Alongamentos" data-i18n="Stretching">Alongamentos</option></select></div>
+              <div class="field" style="flex:2; min-width:160px;"><label data-i18n="Notes / stretches">Notas / alongamentos</label><input type="text" id="wb-cool-notes" data-i18n-ph="e.g. hold each stretch 30 s…" placeholder="ex.: manter cada alongamento 30 s…"></div>
             </div>
           </div>
 
@@ -7192,7 +7199,32 @@ nav.tabbar button.active svg{
             <div id="athlete-trend-chart" class="athlete-trend-chart"><div class="empty" data-i18n="Not enough data for a trend yet.">Ainda sem dados suficientes para tendência.</div></div>
             <div id="athlete-trend-note" class="athlete-trend-note" data-i18n="Save a few days to see the trend.">Guarda alguns dias para veres a evolução.</div>
           </div>
-          <div id="athlete-history-list" class="athlete-history-list"><div class="empty" data-i18n="No saved history yet.">Ainda não há histórico guardado.</div></div>
+          <div id="monthly-report-card" style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,.08);">
+            <div class="profile-group-head">
+              <div class="profile-group-icon">📅</div>
+              <div>
+                <h3 data-i18n="Monthly consumption report">Relatório mensal de consumo</h3>
+                <p class="help" style="margin:0;" data-i18n="Totals for food, drinks and supplements over a full calendar month.">Totais de comida, bebidas e suplementação num mês de calendário completo.</p>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 0;">
+              <button class="ghost" id="mr-prev" type="button" aria-label="Mês anterior" style="min-width:46px; font-size:20px; line-height:1;">‹</button>
+              <strong id="mr-month-label" style="font-family:var(--font-display); font-size:17px; text-align:center; flex:1;">—</strong>
+              <button class="ghost" id="mr-next" type="button" aria-label="Mês seguinte" style="min-width:46px; font-size:20px; line-height:1;">›</button>
+            </div>
+            <div id="mr-scope" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
+              <button class="chip mr-scope-btn" data-scope="all" type="button" data-i18n="Everything">Tudo</button>
+              <button class="chip mr-scope-btn" data-scope="food" type="button" data-i18n="Food">Comida</button>
+              <button class="chip mr-scope-btn" data-scope="drinks" type="button" data-i18n="Drinks">Bebidas</button>
+              <button class="chip mr-scope-btn" data-scope="supp" type="button" data-i18n="Supplements">Suplementos</button>
+            </div>
+            <div id="monthly-report-body"><div class="empty" data-i18n="No data for this month yet.">Ainda sem dados para este mês.</div></div>
+            <div class="row" style="margin-top:10px;">
+              <button class="ghost" id="mr-copy" type="button" data-i18n="Copy summary">Copiar resumo</button>
+            </div>
+          </div>
+
+          <div id="athlete-history-list" class="athlete-history-list" style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,.08);"><div class="empty" data-i18n="No saved history yet.">Ainda não há histórico guardado.</div></div>
         </div>
       </div>
 
@@ -11144,6 +11176,9 @@ nav.tabbar button.active svg{
     const carbsGoal = safeGoal ? (safeGoal * 0.50 / 4) : 0;
     const proteinGoal = safeGoal ? (safeGoal * 0.25 / 4) : 0;
     const fatGoal = safeGoal ? (safeGoal * 0.25 / 9) : 0;
+    // Gordura mostrada como intervalo saudável (20–35% das kcal), não como alvo único.
+    const fatLowG = safeGoal ? (safeGoal * 0.20 / 9) : 0;
+    const fatHighG = safeGoal ? (safeGoal * 0.35 / 9) : 0;
     const ddrPct = (value, target) => target > 0 ? Math.round((value / target) * 100) : 0;
 
     const carbsDdr = document.getElementById('kcal-carbs-ddr');
@@ -11151,7 +11186,18 @@ nav.tabbar button.active svg{
     const fatDdr = document.getElementById('kcal-fat-ddr');
     if(carbsDdr) carbsDdr.innerHTML = `${macroPct(safeCarbs)}% <small>(${ddrPct(safeCarbs, carbsGoal)}% da DDR)</small>`;
     if(proteinDdr) proteinDdr.innerHTML = `${macroPct(safeProtein)}% <small>(${ddrPct(safeProtein, proteinGoal)}% da DDR)</small>`;
-    if(fatDdr) fatDdr.innerHTML = `${macroPct(safeFat)}% <small>(${ddrPct(safeFat, fatGoal)}% da DDR)</small>`;
+    if(fatDdr){
+      if(fatHighG > 0){
+        const lo = Math.round(fatLowG), hi = Math.round(fatHighG);
+        let word, col;
+        if(safeFat < fatLowG){ word = PL('abaixo do ideal','below ideal'); col = '#F2B84B'; }
+        else if(safeFat > fatHighG){ word = PL('acima do ideal','above ideal'); col = '#F2B84B'; }
+        else { word = PL('no intervalo ideal','within ideal'); col = 'var(--teal)'; }
+        fatDdr.innerHTML = `${macroPct(safeFat)}% <small style="color:${col};">(${word} · ${lo}–${hi} g)</small>`;
+      } else {
+        fatDdr.innerHTML = `${macroPct(safeFat)}% <small>(${ddrPct(safeFat, fatGoal)}% da DDR)</small>`;
+      }
+    }
   }
 
   function renderNutritionInsight(data){
@@ -12141,6 +12187,8 @@ nav.tabbar button.active svg{
       const t = parseInt(wbVal('wb-warm-time'),10);
       const z = wbVal('wb-warm-zone');
       lines.push(`${t} min aquecimento${z!=='Livre'?' '+z:''} · ${wbVal('wb-warm-type')}`);
+      const wn = wbVal('wb-warm-notes').trim();
+      if(wn) lines.push(`  ↳ ${wn}`);
       minutes += t;
     }
 
@@ -12150,8 +12198,17 @@ nav.tabbar button.active svg{
       const repsVal = wbVal('wb-fx-reps');
       const rpeVal = wbVal('wb-fx-rpe');
       const tempoVal = wbVal('wb-fx-tempo');
+      const fmt = wbVal('wb-fx-format');
+      const superset = !!(wbEl('wb-fx-superset') && wbEl('wb-fx-superset').checked);
+      const notes = wbVal('wb-fx-notes').trim();
+      const nEx = wbForcaSelected.length;
       lines.push(`Força — ${wbVal('wb-fx-group')} (${wbVal('wb-fx-equip')})`);
-      lines.push(`${s} séries${repsVal?' × '+repsVal:''}:`);
+      const ssTag = superset ? ' · superset' : '';
+      if(fmt==='EMOM') lines.push(`EMOM ${s} min (a cada minuto)${ssTag}:`);
+      else if(fmt==='AMRAP') lines.push(`AMRAP ${s} min (máx. voltas)${ssTag}:`);
+      else if(fmt==='Tabata') lines.push(`Tabata — ${s} × 20 s trabalho / 10 s descanso:`);
+      else if(fmt==='Circuito') lines.push(`Circuito — ${s} voltas${ssTag}:`);
+      else lines.push(`${s} séries${repsVal?' × '+repsVal:''}${ssTag}:`);
       wbForcaSelected.forEach(ex=>{
         const reps = repsVal || (WB_EX.forcaReps[ex] || WB_EX.forcaReps['default']);
         lines.push(`• ${reps} ${ex}${tempoVal?' — '+tempoVal:''}`);
@@ -12159,8 +12216,17 @@ nav.tabbar button.active svg{
       const extras = [];
       if(wbVal('wb-fx-load')) extras.push('Carga: '+wbVal('wb-fx-load'));
       if(rpeVal) extras.push('RPE '+rpeVal);
-      lines.push(`Descanso ${wbFmtSec(rest)} entre séries${extras.length?' · '+extras.join(' · '):''}`);
-      minutes += Math.round(s * (wbForcaSelected.length*0.75 + rest/60));
+      if(fmt==='EMOM' || fmt==='AMRAP' || fmt==='Tabata'){
+        if(extras.length) lines.push(extras.join(' · '));
+      }else if(fmt==='Circuito'){
+        lines.push(`Descanso ${wbFmtSec(rest)} entre voltas${extras.length?' · '+extras.join(' · '):''}`);
+      }else{
+        lines.push(`Descanso ${wbFmtSec(rest)} entre séries${superset?' (sem descanso dentro do superset)':''}${extras.length?' · '+extras.join(' · '):''}`);
+      }
+      if(notes) lines.push(`Notas: ${notes}`);
+      if(fmt==='EMOM' || fmt==='AMRAP') minutes += s;
+      else if(fmt==='Tabata') minutes += Math.max(1, Math.round(s * nEx * 0.5));
+      else minutes += Math.round(s * (nEx*0.75 + rest/60));
     }else if(mod==='mobilidade'){
       const d = parseInt(wbVal('wb-mob-dur'),10);
       lines.push(`${d} min ${wbVal('wb-mob-type')} — ${wbVal('wb-mob-zone')}`);
@@ -12221,6 +12287,8 @@ nav.tabbar button.active svg{
     if(mod!=='mobilidade' && wbEl('wb-cool').checked){
       const t = parseInt(wbVal('wb-cool-time'),10);
       lines.push(`${t} min desaquecimento (${wbVal('wb-cool-type')})`);
+      const cn = wbVal('wb-cool-notes').trim();
+      if(cn) lines.push(`  ↳ ${cn}`);
       minutes += t;
     }
     minutes = Math.max(10, Math.round(minutes/5)*5);
@@ -17067,8 +17135,194 @@ nav.tabbar button.active svg{
     if(note) note.textContent = cfg.label + ': ' + sign + String(diff).replace('.', ',') + cfg.unit + PL(' nos últimos ',' in the last ') + rows.length + PL(' registos.',' entries.');
   }
 
+  /* ================= RELATÓRIO MENSAL DE CONSUMO =================
+     Lê o histórico arquivado (athlete-history[].details) + as entradas
+     "de hoje" ainda por arquivar (kcal/alcohol/hydration/coffee), agrega
+     por mês de calendário e mostra comida, bebidas e suplementação.       */
+  const MR = { ym: null, scope: 'all', lastText: '' };
+  const MR_MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const MR_MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function mrYmToday(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+  function mrShiftYm(ym, delta){
+    const p = String(ym || mrYmToday()).split('-'); let y = +p[0], m = (+p[1]) + delta;
+    while(m < 1){ m += 12; y--; } while(m > 12){ m -= 12; y++; }
+    return y + '-' + String(m).padStart(2,'0');
+  }
+  function mrMonthLabel(ym){ const p = String(ym).split('-'); const mi = (+p[1]) - 1; return PL(MR_MONTHS[mi] || '', MR_MONTHS_EN[mi] || '') + ' ' + p[0]; }
+  function mrInMonth(dateStr, ym){ return String(dateStr || '').slice(0,7) === ym; }
+  function mrNum(v){ return Number(v) || 0; }
+  function mrKey(s){ return String(s == null ? '' : s).trim().toLowerCase(); }
+  function mrEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function mrFmt(n){ n = Math.round(mrNum(n) * 10) / 10; return String(n).replace('.', ','); }
+  function mrAlcMl(e){ if(e && e.ml != null) return Math.round(mrNum(e.ml)); try{ return (window.PulsoGetAlcoholMl ? Math.round(window.PulsoGetAlcoholMl(e)) : 0); }catch(_){ return 0; } }
+  function mrFmtMl(ml){ ml = Math.round(mrNum(ml)); if(ml >= 1000){ return (Math.round(ml/100)/10).toString().replace('.', ',') + ' L'; } return ml + ' ml'; }
+  function mrDrinkName(t){ const map = { 'água': PL('Água','Water'), 'sumo': PL('Sumo','Juice'), 'sumo zero': PL('Sumo Zero','Zero juice'), 'red bull': 'Red Bull', 'café': PL('Café','Coffee') }; return map[mrKey(t)] || t; }
+  function mrPlural(n, one, many){ return (n === 1 ? one : many); }
+
+  function mrCollect(ym){
+    const out = { meals: [], alcohol: [], hydration: [], coffee: [] };
+    const seen = { meals:{}, alcohol:{}, hydration:{}, coffee:{} };
+    function pushU(bucket, e){ if(!e) return; const id = e.id || (bucket + ':' + (e.time || '') + ':' + (e.food || e.type || e.ml || '')); if(seen[bucket][id]) return; seen[bucket][id] = 1; out[bucket].push(e); }
+    const hist = read('athlete-history', []);
+    (Array.isArray(hist) ? hist : []).forEach(function(rec){
+      if(!rec || !mrInMonth(rec.date, ym)) return;
+      const d = rec.details || {};
+      (d.meals || []).forEach(e=>pushU('meals', e));
+      (d.alcohol || []).forEach(e=>pushU('alcohol', e));
+      (d.hydration || []).forEach(e=>pushU('hydration', e));
+      (d.coffee || []).forEach(e=>pushU('coffee', e));
+    });
+    // Entradas vivas (dia atual ainda não arquivado) — evita perder registos recentes.
+    read('kcal-entries', []).forEach(e=>{ if(mrInMonth(e.date, ym)) pushU('meals', e); });
+    read('alcohol-entries', []).forEach(e=>{ if(mrInMonth(e.date, ym)) pushU('alcohol', e); });
+    read('hydration-entries', []).forEach(e=>{ if(mrInMonth(e.date, ym)) pushU('hydration', e); });
+    read('coffee-entries', []).forEach(e=>{ if(mrInMonth(e.date, ym)) pushU('coffee', e); });
+    return out;
+  }
+
+  function mrRow(left, right){
+    return '<div style="display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.06);">'
+      + '<span style="color:var(--text); min-width:0; overflow:hidden; text-overflow:ellipsis;">' + left + '</span>'
+      + '<strong style="white-space:nowrap;">' + right + '</strong></div>';
+  }
+  function mrSectionHtml(title, inner){ return '<div class="athlete-detail-section" style="margin-top:14px;"><h4>' + title + '</h4>' + inner + '</div>'; }
+
+  function renderMonthlyReport(){
+    const body = document.getElementById('monthly-report-body');
+    const label = document.getElementById('mr-month-label');
+    if(!body) return;
+    if(!MR.ym) MR.ym = mrYmToday();
+    if(label) label.textContent = mrMonthLabel(MR.ym);
+
+    document.querySelectorAll('.mr-scope-btn').forEach(function(b){
+      const on = b.dataset.scope === MR.scope;
+      b.style.background = on ? 'rgba(53,217,166,.16)' : '';
+      b.style.borderColor = on ? 'rgba(53,217,166,.6)' : '';
+      b.style.color = on ? 'var(--teal)' : '';
+    });
+
+    const data = mrCollect(MR.ym);
+    const foods = data.meals.filter(e=>!e.supp);
+    const supps = data.meals.filter(e=>e.supp);
+
+    const dayset = {};
+    ['meals','alcohol','hydration','coffee'].forEach(function(k){ data[k].forEach(function(e){ if(e && e.date) dayset[String(e.date).slice(0,10)] = 1; }); });
+    const nDays = Object.keys(dayset).length;
+
+    if(!data.meals.length && !data.alcohol.length && !data.hydration.length && !data.coffee.length){
+      body.innerHTML = '<div class="empty">' + PL('Sem dados registados neste mês.','No data logged this month.') + '</div>';
+      MR.lastText = mrMonthLabel(MR.ym) + ' — ' + PL('sem dados.','no data.');
+      return;
+    }
+
+    const show = function(s){ return MR.scope === 'all' || MR.scope === s; };
+    let html = '';
+    let txt = PL('Relatório mensal — ','Monthly report — ') + mrMonthLabel(MR.ym) + '\n'
+            + nDays + ' ' + PL(mrPlural(nDays,'dia com registos','dias com registos'), mrPlural(nDays,'day with data','days with data')) + '\n';
+    html += '<div class="help" style="margin:2px 0 2px;">' + nDays + ' ' + PL(mrPlural(nDays,'dia com registos','dias com registos'), mrPlural(nDays,'day with data','days with data')) + '</div>';
+
+    // ---- COMIDA ----
+    if(show('food')){
+      if(foods.length){
+        const g = {};
+        foods.forEach(function(e){ const k = mrKey(e.food) || '—'; if(!g[k]) g[k] = { name: (e.food || PL('Sem nome','Unnamed')), count: 0, kcal: 0 }; g[k].count++; g[k].kcal += mrNum(e.kcal); });
+        const rows = Object.keys(g).map(k=>g[k]).sort((a,b)=>b.count - a.count);
+        const totKcal = rows.reduce((s,r)=>s + r.kcal, 0);
+        let inner = '';
+        rows.forEach(function(r){ inner += mrRow(mrEsc(r.name), r.count + '× · ' + Math.round(r.kcal) + ' kcal'); });
+        inner += mrRow('<strong>' + PL('Total comida','Food total') + '</strong>', foods.length + '× · ' + Math.round(totKcal) + ' kcal');
+        html += mrSectionHtml('🍽️ ' + PL('Comida','Food'), inner);
+        txt += '\n' + PL('COMIDA','FOOD') + ':\n';
+        rows.forEach(r=> txt += '· ' + r.name + ' — ' + r.count + '× (' + Math.round(r.kcal) + ' kcal)\n');
+      } else if(MR.scope === 'food'){
+        html += mrSectionHtml('🍽️ ' + PL('Comida','Food'), '<div class="help">' + PL('Nada registado.','Nothing logged.') + '</div>');
+      }
+    }
+
+    // ---- BEBIDAS (não alcoólicas + café) ----
+    if(show('drinks')){
+      let inner = '';
+      if(data.hydration.length){
+        const g = {};
+        data.hydration.forEach(function(e){ const type = e.type || 'Água'; const k = mrKey(type); if(!g[k]) g[k] = { name: type, count: 0, ml: 0 }; g[k].count++; g[k].ml += mrNum(e.ml); });
+        Object.keys(g).map(k=>g[k]).sort((a,b)=>b.ml - a.ml).forEach(function(r){ inner += mrRow(mrEsc(mrDrinkName(r.name)), r.count + '× · ' + mrFmtMl(r.ml)); });
+      }
+      const coffeeCount = data.coffee.reduce((s,e)=>s + (mrNum(e.units) || 1), 0);
+      if(coffeeCount) inner += mrRow('☕ ' + PL('Café','Coffee'), Math.round(coffeeCount) + '×');
+      if(inner){
+        html += mrSectionHtml('🥤 ' + PL('Bebidas','Drinks'), inner);
+        txt += '\n' + PL('BEBIDAS','DRINKS') + ':\n';
+        if(data.hydration.length){ const g = {}; data.hydration.forEach(function(e){ const k = mrKey(e.type || 'Água'); if(!g[k]) g[k] = { name: e.type || 'Água', count: 0, ml: 0 }; g[k].count++; g[k].ml += mrNum(e.ml); }); Object.keys(g).map(k=>g[k]).forEach(r=> txt += '· ' + mrDrinkName(r.name) + ' — ' + r.count + '× (' + mrFmtMl(r.ml) + ')\n'); }
+        if(coffeeCount) txt += '· ' + PL('Café','Coffee') + ' — ' + Math.round(coffeeCount) + '×\n';
+      }
+
+      // ---- ÁLCOOL ----
+      if(data.alcohol.length){
+        const g = {};
+        data.alcohol.forEach(function(e){ const type = e.type || e.label || 'Bebida'; const k = mrKey(type); if(!g[k]) g[k] = { name: type, drinks: 0, ml: 0, units: 0, kcal: 0 }; g[k].drinks++; g[k].ml += mrAlcMl(e); g[k].units += mrNum(e.units); g[k].kcal += mrNum(e.kcal); });
+        const rows = Object.keys(g).map(k=>g[k]).sort((a,b)=>b.drinks - a.drinks);
+        const tD = rows.reduce((s,r)=>s + r.drinks, 0), tMl = rows.reduce((s,r)=>s + r.ml, 0), tU = rows.reduce((s,r)=>s + r.units, 0), tK = rows.reduce((s,r)=>s + r.kcal, 0);
+        let ai = '';
+        rows.forEach(function(r){ ai += mrRow(mrEsc(r.name), r.drinks + '× · ' + mrFmtMl(r.ml) + ' · ' + mrFmt(r.units) + ' u'); });
+        ai += mrRow('<strong>' + PL('Total álcool','Alcohol total') + '</strong>', tD + '× · ' + mrFmtMl(tMl) + ' · ' + mrFmt(tU) + ' u · ' + Math.round(tK) + ' kcal');
+        html += mrSectionHtml('🍺 ' + PL('Bebidas alcoólicas','Alcoholic drinks'), ai);
+        txt += '\n' + PL('ÁLCOOL','ALCOHOL') + ':\n';
+        rows.forEach(r=> txt += '· ' + r.name + ' — ' + r.drinks + '× (' + mrFmtMl(r.ml) + ', ' + mrFmt(r.units) + ' u)\n');
+        txt += PL('Total álcool: ','Alcohol total: ') + tD + '× · ' + mrFmtMl(tMl) + ' · ' + mrFmt(tU) + ' u · ' + Math.round(tK) + ' kcal\n';
+      } else if(MR.scope === 'drinks' && !inner){
+        html += mrSectionHtml('🥤 ' + PL('Bebidas','Drinks'), '<div class="help">' + PL('Nada registado.','Nothing logged.') + '</div>');
+      }
+    }
+
+    // ---- SUPLEMENTOS ----
+    if(show('supp')){
+      if(supps.length){
+        const g = {};
+        supps.forEach(function(e){ const name = e.product ? (e.brand ? (e.product + ' · ' + e.brand) : e.product) : (e.food || PL('Suplemento','Supplement')); const k = mrKey(name); if(!g[k]) g[k] = { name: name, count: 0, kcal: 0 }; g[k].count += (mrNum(e.qty) || 1); g[k].kcal += mrNum(e.kcal); });
+        const rows = Object.keys(g).map(k=>g[k]).sort((a,b)=>b.count - a.count);
+        const totKcal = rows.reduce((s,r)=>s + r.kcal, 0), totCount = rows.reduce((s,r)=>s + r.count, 0);
+        let inner = '';
+        rows.forEach(function(r){ inner += mrRow(mrEsc(r.name), mrFmt(r.count) + '× · ' + Math.round(r.kcal) + ' kcal'); });
+        inner += mrRow('<strong>' + PL('Total suplementos','Supplements total') + '</strong>', mrFmt(totCount) + '× · ' + Math.round(totKcal) + ' kcal');
+        html += mrSectionHtml('💊 ' + PL('Suplementação','Supplements'), inner);
+        txt += '\n' + PL('SUPLEMENTOS','SUPPLEMENTS') + ':\n';
+        rows.forEach(r=> txt += '· ' + r.name + ' — ' + mrFmt(r.count) + '× (' + Math.round(r.kcal) + ' kcal)\n');
+      } else if(MR.scope === 'supp'){
+        html += mrSectionHtml('💊 ' + PL('Suplementação','Supplements'), '<div class="help">' + PL('Nada registado.','Nothing logged.') + '</div>');
+      }
+    }
+
+    body.innerHTML = html || '<div class="empty">' + PL('Sem dados para este filtro.','No data for this filter.') + '</div>';
+    MR.lastText = txt.trim();
+  }
+
+  function mrCopySummary(){
+    const text = MR.lastText || '';
+    function done(){ if(typeof window.showToast === 'function') window.showToast(PL('Resumo copiado','Summary copied')); }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, function(){ mrCopyFallback(text); done(); }); return; }
+    }catch(_){}
+    mrCopyFallback(text); done();
+  }
+  function mrCopyFallback(text){
+    try{ const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly',''); ta.style.position = 'absolute'; ta.style.left = '-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }catch(_){}
+  }
+
+  function mrBindControls(){
+    if(mrBindControls._done) return; mrBindControls._done = true;
+    const prev = document.getElementById('mr-prev');
+    const next = document.getElementById('mr-next');
+    const copy = document.getElementById('mr-copy');
+    if(prev) prev.addEventListener('click', function(){ MR.ym = mrShiftYm(MR.ym || mrYmToday(), -1); renderMonthlyReport(); });
+    if(next) next.addEventListener('click', function(){ MR.ym = mrShiftYm(MR.ym || mrYmToday(), +1); renderMonthlyReport(); });
+    if(copy) copy.addEventListener('click', mrCopySummary);
+    document.querySelectorAll('.mr-scope-btn').forEach(function(b){ b.addEventListener('click', function(){ MR.scope = b.dataset.scope || 'all'; renderMonthlyReport(); }); });
+  }
+
   function renderAthleteHistory(){
     renderAthleteTrend();
+    try{ if(!MR.ym) MR.ym = mrYmToday(); mrBindControls(); renderMonthlyReport(); }catch(e){}
     const el = document.getElementById('athlete-history-list');
     if(!el) return;
     const hist = read('athlete-history', []);
@@ -18636,6 +18890,7 @@ nav.tabbar button.active svg{
                   <div class="cwb-field"><label data-i18n="Tempo">Tempo</label><select id="cwb-warm-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
                   <div class="cwb-field"><label data-i18n="Type">Tipo</label><select id="cwb-warm-type"><option value="Corrida fácil" data-i18n="Easy run">Corrida fácil</option><option value="Trail fácil" data-i18n="Easy trail">Trail fácil</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Mobilidade dinâmica" data-i18n="Dynamic mobility">Mobilidade dinâmica</option></select></div>
                   <div class="cwb-field"><label data-i18n="Zone">Zona</label><select id="cwb-warm-zone"><option>Z1</option><option selected>Z2</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
+                  <div class="cwb-field" style="min-width:160px;"><label data-i18n="Notes / drills">Notas / drills</label><input type="text" id="cwb-warm-notes" data-i18n-ph="e.g. mobility, activation drills…" placeholder="ex.: mobilidade, drills de ativação…"></div>
                 </div>
               </div>
 
@@ -18721,9 +18976,17 @@ nav.tabbar button.active svg{
                 <div class="cwb-row">
                   <div class="cwb-field"><label data-i18n="Muscle group">Grupo muscular</label><select id="cwb-fx-group"><option value="Core" data-i18n="Core">Core</option><option value="Pernas" selected data-i18n="Legs">Pernas</option><option value="Glúteos" data-i18n="Glutes">Glúteos</option><option value="Posterior" data-i18n="Hamstrings">Posterior</option><option value="Tronco" data-i18n="Trunk">Tronco</option><option value="Superior" data-i18n="Upper body">Superior</option><option value="Corpo inteiro" data-i18n="Full body">Corpo inteiro</option><option value="Hyrox">Hyrox</option><option value="Funcional" data-i18n="Functional">Funcional</option></select></div>
                   <div class="cwb-field"><label data-i18n="Type">Tipo</label><select id="cwb-fx-equip"><option value="Peso corporal" selected data-i18n="Bodyweight">Peso corporal</option><option value="Halteres" data-i18n="Dumbbells">Halteres</option><option value="Barra" data-i18n="Barbell">Barra</option><option>Kettlebell</option><option value="Elásticos" data-i18n="Bands">Elásticos</option><option value="Máquinas" data-i18n="Machines">Máquinas</option></select></div>
-                  <div class="cwb-field"><label data-i18n="Sets">Séries</label><select id="cwb-fx-series"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Sets">Séries</label><select id="cwb-fx-series"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>12</option><option>15</option><option>20</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Reps">Repetições</label><select id="cwb-fx-reps"><option value="" data-i18n="Auto (per exercise)">Auto</option><option>6</option><option>8</option><option>10</option><option>12</option><option>15</option><option>20</option><option>25</option><option>30</option><option value="Até à falha" data-i18n="To failure">Até à falha</option></select></div>
                   <div class="cwb-field"><label data-i18n="Rest">Descanso</label><select id="cwb-fx-rest"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90" selected>90 s</option><option value="120">2 min</option><option value="180">3 min</option></select></div>
                   <div class="cwb-field"><label data-i18n="Load">Carga</label><select id="cwb-fx-load"><option value="" data-i18n="Optional">Opcional</option><option value="Sem carga" data-i18n="No load">Sem carga</option><option value="Leve" data-i18n="Light">Leve</option><option value="Moderada" data-i18n="Moderate">Moderada</option><option value="Pesada" data-i18n="Heavy">Pesada</option></select></div>
+                  <div class="cwb-field"><label>RPE</label><select id="cwb-fx-rpe"><option value="" data-i18n="Optional">Opcional</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Execution tempo">Tempo/execução</label><select id="cwb-fx-tempo"><option value="" data-i18n="Optional">Opcional</option><option value="Controlado" data-i18n="Controlled">Controlado</option><option value="Explosivo" data-i18n="Explosive">Explosivo</option><option value="Lento (excêntrico)" data-i18n="Slow (eccentric)">Lento (excêntrico)</option><option>3-0-1</option><option>3-1-1</option><option>2-0-2</option><option value="Isométrico" data-i18n="Isometric">Isométrico</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Format">Formato</label><select id="cwb-fx-format"><option value="" data-i18n="Normal">Normal</option><option>EMOM</option><option>AMRAP</option><option>Tabata</option><option value="Circuito" data-i18n="Circuit">Circuito</option></select></div>
+                </div>
+                <div class="cwb-row" style="margin-top:9px; align-items:center;">
+                  <label class="cwb-check" style="flex:0 0 auto;"><input type="checkbox" id="cwb-fx-superset"> <span data-i18n="Superset (no rest between exercises)">Superset (sem descanso entre exercícios)</span></label>
+                  <div class="cwb-field" style="min-width:160px;"><label data-i18n="Notes">Notas</label><input type="text" id="cwb-fx-notes" data-i18n-ph="e.g. focus on form, tempo…" placeholder="ex.: foco na técnica, tempo…"></div>
                 </div>
                 <label style="font-size:10.5px; color:var(--text-muted); font-weight:800; text-transform:uppercase; letter-spacing:.5px; display:block; margin:11px 0 6px;" data-i18n="Exercises (tap to add)">Exercícios (toca para adicionar)</label>
                 <div id="cwb-fx-ex" class="cwb-chips"></div>
@@ -18746,6 +19009,7 @@ nav.tabbar button.active svg{
                 <div class="cwb-row" id="cwb-cool-fields" style="display:none; margin-top:9px;">
                   <div class="cwb-field"><label data-i18n="Tempo">Tempo</label><select id="cwb-cool-time"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option></select></div>
                   <div class="cwb-field"><label data-i18n="Type">Tipo</label><select id="cwb-cool-type"><option value="Corrida leve" data-i18n="Light run">Corrida leve</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Alongamentos" data-i18n="Stretching">Alongamentos</option></select></div>
+                  <div class="cwb-field" style="min-width:160px;"><label data-i18n="Notes / stretches">Notas / alongamentos</label><input type="text" id="cwb-cool-notes" data-i18n-ph="e.g. hold each stretch 30 s…" placeholder="ex.: manter cada alongamento 30 s…"></div>
                 </div>
               </div>
 
@@ -19322,20 +19586,46 @@ nav.tabbar button.active svg{
       const t = parseInt(cwbVal('cwb-warm-time'),10);
       const z = cwbVal('cwb-warm-zone');
       lines.push(`${t} min aquecimento${z!=='Livre'?' '+z:''} · ${cwbVal('cwb-warm-type')}`);
+      const wn = cwbVal('cwb-warm-notes').trim();
+      if(wn) lines.push(`  ↳ ${wn}`);
       minutes += t;
     }
 
     if(mod==='forca'){
       const s = parseInt(cwbVal('cwb-fx-series'),10);
       const rest = parseInt(cwbVal('cwb-fx-rest'),10);
+      const repsVal = cwbVal('cwb-fx-reps');
+      const rpeVal = cwbVal('cwb-fx-rpe');
+      const tempoVal = cwbVal('cwb-fx-tempo');
+      const fmt = cwbVal('cwb-fx-format');
+      const superset = !!(cwbEl('cwb-fx-superset') && cwbEl('cwb-fx-superset').checked);
+      const notes = cwbVal('cwb-fx-notes').trim();
+      const nEx = cwbForcaSelected.length;
       lines.push(`Força — ${cwbVal('cwb-fx-group')} (${cwbVal('cwb-fx-equip')})`);
-      lines.push(`${s} séries:`);
+      const ssTag = superset ? ' · superset' : '';
+      if(fmt==='EMOM') lines.push(`EMOM ${s} min (a cada minuto)${ssTag}:`);
+      else if(fmt==='AMRAP') lines.push(`AMRAP ${s} min (máx. voltas)${ssTag}:`);
+      else if(fmt==='Tabata') lines.push(`Tabata — ${s} × 20 s trabalho / 10 s descanso:`);
+      else if(fmt==='Circuito') lines.push(`Circuito — ${s} voltas${ssTag}:`);
+      else lines.push(`${s} séries${repsVal?' × '+repsVal:''}${ssTag}:`);
       cwbForcaSelected.forEach(ex=>{
-        const reps = CWB_EX.forcaReps[ex] || CWB_EX.forcaReps['default'];
-        lines.push(`• ${reps} ${ex}`);
+        const reps = repsVal || (CWB_EX.forcaReps[ex] || CWB_EX.forcaReps['default']);
+        lines.push(`• ${reps} ${ex}${tempoVal?' — '+tempoVal:''}`);
       });
-      lines.push(`Descanso ${cwbFmtSec(rest)} entre séries${cwbVal('cwb-fx-load')?' · Carga: '+cwbVal('cwb-fx-load'):''}`);
-      minutes += Math.round(s * (cwbForcaSelected.length*0.75 + rest/60));
+      const extras = [];
+      if(cwbVal('cwb-fx-load')) extras.push('Carga: '+cwbVal('cwb-fx-load'));
+      if(rpeVal) extras.push('RPE '+rpeVal);
+      if(fmt==='EMOM' || fmt==='AMRAP' || fmt==='Tabata'){
+        if(extras.length) lines.push(extras.join(' · '));
+      }else if(fmt==='Circuito'){
+        lines.push(`Descanso ${cwbFmtSec(rest)} entre voltas${extras.length?' · '+extras.join(' · '):''}`);
+      }else{
+        lines.push(`Descanso ${cwbFmtSec(rest)} entre séries${superset?' (sem descanso dentro do superset)':''}${extras.length?' · '+extras.join(' · '):''}`);
+      }
+      if(notes) lines.push(`Notas: ${notes}`);
+      if(fmt==='EMOM' || fmt==='AMRAP') minutes += s;
+      else if(fmt==='Tabata') minutes += Math.max(1, Math.round(s * nEx * 0.5));
+      else minutes += Math.round(s * (nEx*0.75 + rest/60));
     }else if(mod==='mobilidade'){
       const d = parseInt(cwbVal('cwb-mob-dur'),10);
       lines.push(`${d} min ${cwbVal('cwb-mob-type')} — ${cwbVal('cwb-mob-zone')}`);
@@ -19423,6 +19713,8 @@ nav.tabbar button.active svg{
     if(mod!=='mobilidade' && cool && cool.checked){
       const t = parseInt(cwbVal('cwb-cool-time'),10);
       lines.push(`${t} min desaquecimento (${cwbVal('cwb-cool-type')})`);
+      const cn = cwbVal('cwb-cool-notes').trim();
+      if(cn) lines.push(`  ↳ ${cn}`);
       minutes += t;
     }
     minutes = Math.max(10, Math.round(minutes/5)*5);
@@ -23897,6 +24189,11 @@ document.addEventListener("click", function(e){
       [/desaquecimento/gi,'cool-down'],[/aquecimento/gi,'warm-up'],
       [/Recuperação/g,'Recovery'],[/recuperação/g,'recovery'],
       [/Descanso/g,'Rest'],[/entre séries/g,'between sets'],[/séries/gi,'sets'],
+      [/Notas:/g,'Notes:'],
+      [/sem descanso dentro do superset/g,'no rest within superset'],
+      [/máx\. voltas/g,'max rounds'],[/entre voltas/g,'between rounds'],[/\bvoltas\b/g,'rounds'],
+      [/a cada minuto/g,'every minute'],[/trabalho/g,'work'],[/\bdescanso\b/g,'rest'],
+      [/Circuito/g,'Circuit'],
       [/Pirâmide/g,'Pyramid'],[/subida/gi,'climb'],[/contínuo/gi,'continuous'],
       [/Corrida fácil/gi,'Easy run'],[/Trail fácil/gi,'Easy trail'],[/Bike leve/gi,'Light bike'],
       [/Mobilidade dinâmica/gi,'Dynamic mobility'],[/Caminhada/g,'Walk'],[/caminhada/g,'walk'],
