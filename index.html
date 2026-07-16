@@ -6323,6 +6323,24 @@ nav.tabbar button.active svg{
             <em id="kcal-fat-ddr">0% <small>(0% da DDR)</small></em>
           </div>
         </div>
+
+        <div class="micro-row" id="kcal-micro-row" style="display:flex; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,.08);">
+          <div style="flex:1; text-align:center;">
+            <div style="font-size:11px; letter-spacing:.6px; color:#8894a8; font-weight:800;" data-i18n="SALT">SAL</div>
+            <strong id="kcal-na-val" style="display:block; font-size:17px; margin-top:3px;">0 g</strong>
+            <em id="kcal-na-ref" style="font-size:11px; color:#8894a8; font-style:normal;"></em>
+          </div>
+          <div style="flex:1; text-align:center; border-left:1px solid rgba(255,255,255,.1);">
+            <div style="font-size:11px; letter-spacing:.6px; color:#8894a8; font-weight:800;" data-i18n="IRON">FERRO</div>
+            <strong id="kcal-fe-val" style="display:block; font-size:17px; margin-top:3px;">0 mg</strong>
+            <em id="kcal-fe-ref" style="font-size:11px; color:#8894a8; font-style:normal;"></em>
+          </div>
+          <div style="flex:1; text-align:center; border-left:1px solid rgba(255,255,255,.1);">
+            <div style="font-size:11px; letter-spacing:.6px; color:#8894a8; font-weight:800;" data-i18n="FIBER">FIBRA</div>
+            <strong id="kcal-fib-val" style="display:block; font-size:17px; margin-top:3px;">0 g</strong>
+            <em id="kcal-fib-ref" style="font-size:11px; color:#8894a8; font-style:normal;"></em>
+          </div>
+        </div>
       </div>
       <div class="card nutri-insight-card" id="nutri-insight-card" style="display:none;">
         <div class="nutri-insight-head">💡 <span>Nota de nutrição</span></div>
@@ -6618,7 +6636,7 @@ nav.tabbar button.active svg{
             </div>
 
             <div id="wb-time-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
-              <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Continuous time">Tempo contínuo</label><select id="wb-time-dur"><option value="20">20 min</option><option value="30">30 min</option><option value="40" selected>40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Continuous time">Tempo contínuo</label><select id="wb-time-dur"><option value="20">20 min</option><option value="30">30 min</option><option value="40" selected>40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="105">105 min</option><option value="120">120 min</option><option value="150">150 min</option><option value="180">180 min</option></select></div>
               <div class="field" style="flex:1; min-width:80px;"><label data-i18n="Zone">Zona</label><select id="wb-time-zone"><option>Z1</option><option>Z2</option><option selected>Z3</option><option>Z4</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
               <div class="field" style="flex:1; min-width:80px;"><label>RPE</label><select id="wb-time-rpe"><option value="">—</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
             </div>
@@ -6648,7 +6666,7 @@ nav.tabbar button.active svg{
             </div>
 
             <div id="wb-free-fields" class="row" style="display:none; gap:10px; flex-wrap:wrap; margin-top:8px;">
-              <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Time">Tempo</label><select id="wb-free-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
+              <div class="field" style="flex:1; min-width:100px;"><label data-i18n="Time">Tempo</label><select id="wb-free-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option><option value="150">150 min</option><option value="180">180 min</option></select></div>
             </div>
           </div>
 
@@ -10570,119 +10588,119 @@ nav.tabbar button.active svg{
   // Base de alimentos comuns (valores aproximados por 100g) — estimativa genérica, não substitui rótulos reais.
   const FOOD_DB = {
     // Cereais, massa, pão
-    'arroz cozido': {kcal:130, carbs:28, protein:2.7, fat:0.3, defaultG:200},
-    'arroz integral cozido': {kcal:123, carbs:26, protein:2.7, fat:1, defaultG:200},
-    'massa cozida': {kcal:131, carbs:25, protein:5, fat:1.1, defaultG:200},
-    'massa integral cozida': {kcal:124, carbs:25, protein:5.3, fat:1, defaultG:200},
-    'batata cozida': {kcal:87, carbs:20, protein:1.9, fat:0.1, defaultG:180},
-    'batata assada': {kcal:93, carbs:21, protein:2.5, fat:0.1, defaultG:180},
-    'batata frita': {kcal:312, carbs:41, protein:3.4, fat:15, defaultG:150},
-    'batata-doce cozida': {kcal:90, carbs:21, protein:2, fat:0.2, defaultG:180},
-    'pão': {kcal:265, carbs:49, protein:9, fat:3.2, defaultG:50},
-    'pão integral': {kcal:247, carbs:41, protein:13, fat:3.4, defaultG:50},
-    'pão de forma': {kcal:264, carbs:49, protein:8, fat:3.3, defaultG:30},
-    'tosta mista': {kcal:290, carbs:30, protein:16, fat:12, defaultG:120},
-    'aveia': {kcal:389, carbs:66, protein:17, fat:7, defaultG:50},
-    'papas de aveia': {kcal:68, carbs:12, protein:2.4, fat:1.4, defaultG:250},
-    'cereais de pequeno-almoço': {kcal:378, carbs:84, protein:7, fat:2, defaultG:40},
-    'quinoa cozida': {kcal:120, carbs:21, protein:4.4, fat:1.9, defaultG:180},
-    'bolachas maria': {kcal:435, carbs:75, protein:7, fat:12, defaultG:25},
-    'granola': {kcal:471, carbs:64, protein:10, fat:20, defaultG:40},
+    'arroz cozido': {kcal:130, carbs:28, protein:2.7, fat:0.3, na:1, fe:0.2, fib:0.4, defaultG:200},
+    'arroz integral cozido': {kcal:123, carbs:26, protein:2.7, fat:1, na:5, fe:0.5, fib:1.8, defaultG:200},
+    'massa cozida': {kcal:131, carbs:25, protein:5, fat:1.1, na:1, fe:0.5, fib:1.8, defaultG:200},
+    'massa integral cozida': {kcal:124, carbs:25, protein:5.3, fat:1, na:3, fe:1.1, fib:3.9, defaultG:200},
+    'batata cozida': {kcal:87, carbs:20, protein:1.9, fat:0.1, na:4, fe:0.3, fib:1.8, defaultG:180},
+    'batata assada': {kcal:93, carbs:21, protein:2.5, fat:0.1, na:7, fe:0.5, fib:2.2, defaultG:180},
+    'batata frita': {kcal:312, carbs:41, protein:3.4, fat:15, na:210, fe:0.8, fib:3.8, defaultG:150},
+    'batata-doce cozida': {kcal:90, carbs:21, protein:2, fat:0.2, na:27, fe:0.7, fib:3.3, defaultG:180},
+    'pão': {kcal:265, carbs:49, protein:9, fat:3.2, na:490, fe:1.5, fib:2.7, defaultG:50},
+    'pão integral': {kcal:247, carbs:41, protein:13, fat:3.4, na:450, fe:2.5, fib:7, defaultG:50},
+    'pão de forma': {kcal:264, carbs:49, protein:8, fat:3.3, na:490, fe:1.5, fib:2.5, defaultG:30},
+    'tosta mista': {kcal:290, carbs:30, protein:16, fat:12, na:650, fe:1.2, fib:1.8, defaultG:120},
+    'aveia': {kcal:389, carbs:66, protein:17, fat:7, na:2, fe:4.7, fib:10, defaultG:50},
+    'papas de aveia': {kcal:68, carbs:12, protein:2.4, fat:1.4, na:4, fe:0.9, fib:1.7, defaultG:250},
+    'cereais de pequeno-almoço': {kcal:378, carbs:84, protein:7, fat:2, na:500, fe:8, fib:7, defaultG:40},
+    'quinoa cozida': {kcal:120, carbs:21, protein:4.4, fat:1.9, na:7, fe:1.5, fib:2.8, defaultG:180},
+    'bolachas maria': {kcal:435, carbs:75, protein:7, fat:12, na:300, fe:1.8, fib:2.5, defaultG:25},
+    'granola': {kcal:471, carbs:64, protein:10, fat:20, na:30, fe:3.5, fib:7, defaultG:40},
     // Carnes e peixe
-    'frango grelhado': {kcal:165, carbs:0, protein:31, fat:3.6, defaultG:150},
-    'peito de frango': {kcal:165, carbs:0, protein:31, fat:3.6, defaultG:150},
-    'frango assado com pele': {kcal:215, carbs:0, protein:27, fat:11, defaultG:150},
-    'carne de vaca magra': {kcal:187, carbs:0, protein:26, fat:9, defaultG:150},
-    'bife grelhado': {kcal:271, carbs:0, protein:26, fat:18, defaultG:150},
-    'carne de porco magra': {kcal:143, carbs:0, protein:21, fat:6, defaultG:150},
-    'lombo de porco': {kcal:143, carbs:0, protein:21, fat:6, defaultG:150},
-    'peru fatiado': {kcal:135, carbs:1, protein:24, fat:3.5, defaultG:50},
-    'presunto': {kcal:145, carbs:0.5, protein:22, fat:6, defaultG:30},
-    'fiambre': {kcal:120, carbs:1.5, protein:18, fat:4.5, defaultG:30},
-    'chouriço': {kcal:455, carbs:1.5, protein:24, fat:38, defaultG:40},
-    'salsichas': {kcal:290, carbs:2, protein:12, fat:26, defaultG:100},
-    'bacalhau cozido': {kcal:105, carbs:0, protein:23, fat:0.9, defaultG:180},
-    'bacalhau com natas': {kcal:180, carbs:9, protein:12, fat:11, defaultG:250},
-    'peixe (salmão)': {kcal:208, carbs:0, protein:20, fat:13, defaultG:150},
-    'peixe (dourada/pescada)': {kcal:96, carbs:0, protein:20, fat:1.5, defaultG:150},
-    'sardinha assada': {kcal:210, carbs:0, protein:20, fat:14, defaultG:120},
-    'atum em água': {kcal:116, carbs:0, protein:26, fat:1, defaultG:80},
-    'atum em azeite': {kcal:198, carbs:0, protein:25, fat:11, defaultG:80},
-    'camarão cozido': {kcal:99, carbs:0.2, protein:24, fat:0.3, defaultG:100},
+    'frango grelhado': {kcal:165, carbs:0, protein:31, fat:3.6, na:70, fe:0.7, fib:0, defaultG:150},
+    'peito de frango': {kcal:165, carbs:0, protein:31, fat:3.6, na:70, fe:0.7, fib:0, defaultG:150},
+    'frango assado com pele': {kcal:215, carbs:0, protein:27, fat:11, na:80, fe:0.9, fib:0, defaultG:150},
+    'carne de vaca magra': {kcal:187, carbs:0, protein:26, fat:9, na:55, fe:2.6, fib:0, defaultG:150},
+    'bife grelhado': {kcal:271, carbs:0, protein:26, fat:18, na:55, fe:2.6, fib:0, defaultG:150},
+    'carne de porco magra': {kcal:143, carbs:0, protein:21, fat:6, na:50, fe:0.9, fib:0, defaultG:150},
+    'lombo de porco': {kcal:143, carbs:0, protein:21, fat:6, na:50, fe:0.9, fib:0, defaultG:150},
+    'peru fatiado': {kcal:135, carbs:1, protein:24, fat:3.5, na:1000, fe:1.2, fib:0, defaultG:50},
+    'presunto': {kcal:145, carbs:0.5, protein:22, fat:6, na:2340, fe:1, fib:0, defaultG:30},
+    'fiambre': {kcal:120, carbs:1.5, protein:18, fat:4.5, na:1200, fe:0.8, fib:0, defaultG:30},
+    'chouriço': {kcal:455, carbs:1.5, protein:24, fat:38, na:1500, fe:1.5, fib:0, defaultG:40},
+    'salsichas': {kcal:290, carbs:2, protein:12, fat:26, na:900, fe:1, fib:0, defaultG:100},
+    'bacalhau cozido': {kcal:105, carbs:0, protein:23, fat:0.9, na:300, fe:0.4, fib:0, defaultG:180},
+    'bacalhau com natas': {kcal:180, carbs:9, protein:12, fat:11, na:400, fe:0.6, fib:0.5, defaultG:250},
+    'peixe (salmão)': {kcal:208, carbs:0, protein:20, fat:13, na:60, fe:0.4, fib:0, defaultG:150},
+    'peixe (dourada/pescada)': {kcal:96, carbs:0, protein:20, fat:1.5, na:80, fe:0.4, fib:0, defaultG:150},
+    'sardinha assada': {kcal:210, carbs:0, protein:20, fat:14, na:90, fe:2.9, fib:0, defaultG:120},
+    'atum em água': {kcal:116, carbs:0, protein:26, fat:1, na:250, fe:1.3, fib:0, defaultG:80},
+    'atum em azeite': {kcal:198, carbs:0, protein:25, fat:11, na:350, fe:1.2, fib:0, defaultG:80},
+    'camarão cozido': {kcal:99, carbs:0.2, protein:24, fat:0.3, na:220, fe:0.5, fib:0, defaultG:100},
     // Ovos e laticínios
-    'ovo cozido': {kcal:155, carbs:1.1, protein:13, fat:11, defaultG:50},
-    'ovo mexido': {kcal:168, carbs:1.6, protein:12, fat:12, defaultG:100},
-    'omelete simples': {kcal:154, carbs:1, protein:11, fat:12, defaultG:120},
-    'iogurte natural': {kcal:61, carbs:4.7, protein:3.5, fat:3.3, defaultG:125},
-    'iogurte grego': {kcal:97, carbs:4, protein:9, fat:5, defaultG:125},
-    'iogurte de fruta': {kcal:95, carbs:15, protein:3.5, fat:2.5, defaultG:125},
-    'leite meio-gordo': {kcal:50, carbs:4.8, protein:3.4, fat:1.6, defaultG:250},
-    'leite magro': {kcal:35, carbs:5, protein:3.4, fat:0.1, defaultG:250},
-    'leite gordo': {kcal:64, carbs:4.8, protein:3.2, fat:3.6, defaultG:250},
-    'queijo': {kcal:350, carbs:1.3, protein:25, fat:28, defaultG:30},
-    'queijo fresco': {kcal:174, carbs:3.4, protein:12, fat:12, defaultG:50},
-    'requeijão': {kcal:98, carbs:3.4, protein:11, fat:4.3, defaultG:100},
-    'manteiga': {kcal:717, carbs:0.1, protein:0.9, fat:81, defaultG:10},
-    'natas': {kcal:292, carbs:3, protein:2.2, fat:30, defaultG:30},
+    'ovo cozido': {kcal:155, carbs:1.1, protein:13, fat:11, na:124, fe:1.2, fib:0, defaultG:50},
+    'ovo mexido': {kcal:168, carbs:1.6, protein:12, fat:12, na:150, fe:1.2, fib:0, defaultG:100},
+    'omelete simples': {kcal:154, carbs:1, protein:11, fat:12, na:155, fe:1.2, fib:0, defaultG:120},
+    'iogurte natural': {kcal:61, carbs:4.7, protein:3.5, fat:3.3, na:46, fe:0.1, fib:0, defaultG:125},
+    'iogurte grego': {kcal:97, carbs:4, protein:9, fat:5, na:36, fe:0.1, fib:0, defaultG:125},
+    'iogurte de fruta': {kcal:95, carbs:15, protein:3.5, fat:2.5, na:50, fe:0.1, fib:0.2, defaultG:125},
+    'leite meio-gordo': {kcal:50, carbs:4.8, protein:3.4, fat:1.6, na:44, fe:0.03, fib:0, defaultG:250},
+    'leite magro': {kcal:35, carbs:5, protein:3.4, fat:0.1, na:42, fe:0.03, fib:0, defaultG:250},
+    'leite gordo': {kcal:64, carbs:4.8, protein:3.2, fat:3.6, na:43, fe:0.03, fib:0, defaultG:250},
+    'queijo': {kcal:350, carbs:1.3, protein:25, fat:28, na:620, fe:0.7, fib:0, defaultG:30},
+    'queijo fresco': {kcal:174, carbs:3.4, protein:12, fat:12, na:30, fe:0.2, fib:0, defaultG:50},
+    'requeijão': {kcal:98, carbs:3.4, protein:11, fat:4.3, na:30, fe:0.1, fib:0, defaultG:100},
+    'manteiga': {kcal:717, carbs:0.1, protein:0.9, fat:81, na:400, fe:0.02, fib:0, defaultG:10},
+    'natas': {kcal:292, carbs:3, protein:2.2, fat:30, na:30, fe:0.1, fib:0, defaultG:30},
     // Leguminosas e vegetais
-    'feijão cozido': {kcal:127, carbs:23, protein:9, fat:0.5, defaultG:150},
-    'grão-de-bico cozido': {kcal:164, carbs:27, protein:9, fat:2.6, defaultG:150},
-    'lentilhas cozidas': {kcal:116, carbs:20, protein:9, fat:0.4, defaultG:150},
-    'ervilhas cozidas': {kcal:81, carbs:14, protein:5.4, fat:0.4, defaultG:100},
-    'brócolos': {kcal:34, carbs:7, protein:2.8, fat:0.4, defaultG:120},
-    'cenoura': {kcal:41, carbs:10, protein:0.9, fat:0.2, defaultG:80},
-    'tomate': {kcal:18, carbs:3.9, protein:0.9, fat:0.2, defaultG:100},
-    'alface': {kcal:15, carbs:2.9, protein:1.4, fat:0.2, defaultG:50},
-    'pepino': {kcal:15, carbs:3.6, protein:0.7, fat:0.1, defaultG:100},
-    'cebola': {kcal:40, carbs:9.3, protein:1.1, fat:0.1, defaultG:50},
-    'espinafres': {kcal:23, carbs:3.6, protein:2.9, fat:0.4, defaultG:100},
-    'courgette': {kcal:17, carbs:3.1, protein:1.2, fat:0.3, defaultG:120},
-    'cogumelos': {kcal:22, carbs:3.3, protein:3.1, fat:0.3, defaultG:80},
-    'salada mista': {kcal:20, carbs:4, protein:1.5, fat:0.2, defaultG:150},
-    'sopa de legumes': {kcal:35, carbs:6, protein:1.2, fat:0.8, defaultG:300},
+    'feijão cozido': {kcal:127, carbs:23, protein:9, fat:0.5, na:2, fe:2.2, fib:6.4, defaultG:150},
+    'grão-de-bico cozido': {kcal:164, carbs:27, protein:9, fat:2.6, na:7, fe:2.9, fib:7.6, defaultG:150},
+    'lentilhas cozidas': {kcal:116, carbs:20, protein:9, fat:0.4, na:2, fe:3.3, fib:7.9, defaultG:150},
+    'ervilhas cozidas': {kcal:81, carbs:14, protein:5.4, fat:0.4, na:3, fe:1.5, fib:5.5, defaultG:100},
+    'brócolos': {kcal:34, carbs:7, protein:2.8, fat:0.4, na:33, fe:0.7, fib:2.6, defaultG:120},
+    'cenoura': {kcal:41, carbs:10, protein:0.9, fat:0.2, na:69, fe:0.3, fib:2.8, defaultG:80},
+    'tomate': {kcal:18, carbs:3.9, protein:0.9, fat:0.2, na:5, fe:0.3, fib:1.2, defaultG:100},
+    'alface': {kcal:15, carbs:2.9, protein:1.4, fat:0.2, na:28, fe:0.9, fib:1.3, defaultG:50},
+    'pepino': {kcal:15, carbs:3.6, protein:0.7, fat:0.1, na:2, fe:0.3, fib:0.5, defaultG:100},
+    'cebola': {kcal:40, carbs:9.3, protein:1.1, fat:0.1, na:4, fe:0.2, fib:1.7, defaultG:50},
+    'espinafres': {kcal:23, carbs:3.6, protein:2.9, fat:0.4, na:79, fe:2.7, fib:2.2, defaultG:100},
+    'courgette': {kcal:17, carbs:3.1, protein:1.2, fat:0.3, na:8, fe:0.4, fib:1, defaultG:120},
+    'cogumelos': {kcal:22, carbs:3.3, protein:3.1, fat:0.3, na:5, fe:0.5, fib:1, defaultG:80},
+    'salada mista': {kcal:20, carbs:4, protein:1.5, fat:0.2, na:20, fe:0.6, fib:1.5, defaultG:150},
+    'sopa de legumes': {kcal:35, carbs:6, protein:1.2, fat:0.8, na:300, fe:0.5, fib:1.2, defaultG:300},
     // Gorduras
-    'azeite': {kcal:884, carbs:0, protein:0, fat:100, defaultG:10},
-    'óleo vegetal': {kcal:884, carbs:0, protein:0, fat:100, defaultG:10},
-    'maionese': {kcal:680, carbs:0.6, protein:1, fat:75, defaultG:15},
+    'azeite': {kcal:884, carbs:0, protein:0, fat:100, na:2, fe:0.6, fib:0, defaultG:10},
+    'óleo vegetal': {kcal:884, carbs:0, protein:0, fat:100, na:0, fe:0, fib:0, defaultG:10},
+    'maionese': {kcal:680, carbs:0.6, protein:1, fat:75, na:600, fe:0.2, fib:0, defaultG:15},
     // Fruta
-    'banana': {kcal:89, carbs:23, protein:1.1, fat:0.3, defaultG:120},
-    'maçã': {kcal:52, carbs:14, protein:0.3, fat:0.2, defaultG:150},
-    'laranja': {kcal:47, carbs:12, protein:0.9, fat:0.1, defaultG:150},
-    'pera': {kcal:57, carbs:15, protein:0.4, fat:0.1, defaultG:150},
-    'morangos': {kcal:32, carbs:7.7, protein:0.7, fat:0.3, defaultG:150},
-    'uvas': {kcal:69, carbs:18, protein:0.7, fat:0.2, defaultG:100},
-    'manga': {kcal:60, carbs:15, protein:0.8, fat:0.4, defaultG:150},
-    'melancia': {kcal:30, carbs:7.6, protein:0.6, fat:0.2, defaultG:250},
-    'kiwi': {kcal:61, carbs:15, protein:1.1, fat:0.5, defaultG:70},
-    'abacate': {kcal:160, carbs:9, protein:2, fat:15, defaultG:100},
-    'ananás': {kcal:50, carbs:13, protein:0.5, fat:0.1, defaultG:150},
+    'banana': {kcal:89, carbs:23, protein:1.1, fat:0.3, na:1, fe:0.3, fib:2.6, defaultG:120},
+    'maçã': {kcal:52, carbs:14, protein:0.3, fat:0.2, na:1, fe:0.1, fib:2.4, defaultG:150},
+    'laranja': {kcal:47, carbs:12, protein:0.9, fat:0.1, na:0, fe:0.1, fib:2.4, defaultG:150},
+    'pera': {kcal:57, carbs:15, protein:0.4, fat:0.1, na:1, fe:0.2, fib:3.1, defaultG:150},
+    'morangos': {kcal:32, carbs:7.7, protein:0.7, fat:0.3, na:1, fe:0.4, fib:2, defaultG:150},
+    'uvas': {kcal:69, carbs:18, protein:0.7, fat:0.2, na:2, fe:0.4, fib:0.9, defaultG:100},
+    'manga': {kcal:60, carbs:15, protein:0.8, fat:0.4, na:1, fe:0.2, fib:1.6, defaultG:150},
+    'melancia': {kcal:30, carbs:7.6, protein:0.6, fat:0.2, na:1, fe:0.2, fib:0.4, defaultG:250},
+    'kiwi': {kcal:61, carbs:15, protein:1.1, fat:0.5, na:3, fe:0.3, fib:3, defaultG:70},
+    'abacate': {kcal:160, carbs:9, protein:2, fat:15, na:7, fe:0.6, fib:6.7, defaultG:100},
+    'ananás': {kcal:50, carbs:13, protein:0.5, fat:0.1, na:1, fe:0.3, fib:1.4, defaultG:150},
     // Frutos secos e snacks
-    'amêndoas': {kcal:579, carbs:22, protein:21, fat:50, defaultG:30},
-    'nozes': {kcal:654, carbs:14, protein:15, fat:65, defaultG:30},
-    'amendoins': {kcal:567, carbs:16, protein:26, fat:49, defaultG:30},
-    'manteiga de amendoim': {kcal:588, carbs:20, protein:25, fat:50, defaultG:20},
-    'chocolate preto': {kcal:546, carbs:61, protein:5, fat:31, defaultG:25},
-    'chocolate de leite': {kcal:535, carbs:59, protein:7.6, fat:30, defaultG:25},
-    'batatas fritas de pacote': {kcal:536, carbs:53, protein:6.6, fat:34, defaultG:40},
-    'pipocas': {kcal:387, carbs:78, protein:13, fat:4.5, defaultG:30},
-    'bolo simples': {kcal:350, carbs:52, protein:5, fat:14, defaultG:80},
-    'croissant': {kcal:406, carbs:45, protein:8, fat:21, defaultG:60},
-    'pastel de nata': {kcal:290, carbs:29, protein:5, fat:17, defaultG:60},
-    'gelado': {kcal:207, carbs:24, protein:3.5, fat:11, defaultG:100},
-    'barra de cereais': {kcal:410, carbs:65, protein:7, fat:14, defaultG:30},
+    'amêndoas': {kcal:579, carbs:22, protein:21, fat:50, na:1, fe:3.7, fib:12.5, defaultG:30},
+    'nozes': {kcal:654, carbs:14, protein:15, fat:65, na:2, fe:2.9, fib:6.7, defaultG:30},
+    'amendoins': {kcal:567, carbs:16, protein:26, fat:49, na:18, fe:4.6, fib:8.5, defaultG:30},
+    'manteiga de amendoim': {kcal:588, carbs:20, protein:25, fat:50, na:350, fe:1.9, fib:6, defaultG:20},
+    'chocolate preto': {kcal:546, carbs:61, protein:5, fat:31, na:24, fe:8, fib:7, defaultG:25},
+    'chocolate de leite': {kcal:535, carbs:59, protein:7.6, fat:30, na:79, fe:2.3, fib:3.4, defaultG:25},
+    'batatas fritas de pacote': {kcal:536, carbs:53, protein:6.6, fat:34, na:525, fe:1.6, fib:4.8, defaultG:40},
+    'pipocas': {kcal:387, carbs:78, protein:13, fat:4.5, na:250, fe:3.2, fib:14, defaultG:30},
+    'bolo simples': {kcal:350, carbs:52, protein:5, fat:14, na:300, fe:1, fib:1, defaultG:80},
+    'croissant': {kcal:406, carbs:45, protein:8, fat:21, na:400, fe:1.5, fib:2.3, defaultG:60},
+    'pastel de nata': {kcal:290, carbs:29, protein:5, fat:17, na:180, fe:0.8, fib:0.8, defaultG:60},
+    'gelado': {kcal:207, carbs:24, protein:3.5, fat:11, na:80, fe:0.1, fib:0.7, defaultG:100},
+    'barra de cereais': {kcal:410, carbs:65, protein:7, fat:14, na:200, fe:2, fib:4, defaultG:30},
     // Pratos comuns
-    'pizza': {kcal:266, carbs:33, protein:11, fat:10, defaultG:200},
-    'hambúrguer': {kcal:295, carbs:24, protein:17, fat:14, defaultG:220},
-    'sushi (peça variada)': {kcal:150, carbs:28, protein:6, fat:1, defaultG:150},
-    'francesinha': {kcal:320, carbs:14, protein:18, fat:22, defaultG:400},
-    'caldo verde': {kcal:55, carbs:6, protein:1.5, fat:2.5, defaultG:300},
-    'feijoada': {kcal:150, carbs:12, protein:10, fat:7, defaultG:350},
-    'omelete de queijo': {kcal:210, carbs:1.5, protein:15, fat:16, defaultG:150},
+    'pizza': {kcal:266, carbs:33, protein:11, fat:10, na:600, fe:1.5, fib:2.3, defaultG:200},
+    'hambúrguer': {kcal:295, carbs:24, protein:17, fat:14, na:500, fe:2.5, fib:1.5, defaultG:220},
+    'sushi (peça variada)': {kcal:150, carbs:28, protein:6, fat:1, na:350, fe:0.8, fib:1.5, defaultG:150},
+    'francesinha': {kcal:320, carbs:14, protein:18, fat:22, na:700, fe:2, fib:1.5, defaultG:400},
+    'caldo verde': {kcal:55, carbs:6, protein:1.5, fat:2.5, na:300, fe:0.7, fib:1.2, defaultG:300},
+    'feijoada': {kcal:150, carbs:12, protein:10, fat:7, na:400, fe:2, fib:4, defaultG:350},
+    'omelete de queijo': {kcal:210, carbs:1.5, protein:15, fat:16, na:350, fe:1.2, fib:0, defaultG:150},
     // Bebidas
-    'sumo de laranja': {kcal:45, carbs:10, protein:0.7, fat:0.2, defaultG:200},
-    'refrigerante': {kcal:42, carbs:10.6, protein:0, fat:0, defaultG:330},
-    'cerveja': {kcal:43, carbs:3.6, protein:0.5, fat:0, defaultG:330},
-    'vinho tinto': {kcal:85, carbs:2.6, protein:0.1, fat:0, defaultG:150}
+    'sumo de laranja': {kcal:45, carbs:10, protein:0.7, fat:0.2, na:1, fe:0.2, fib:0.2, defaultG:200},
+    'refrigerante': {kcal:42, carbs:10.6, protein:0, fat:0, na:10, fe:0, fib:0, defaultG:330},
+    'cerveja': {kcal:43, carbs:3.6, protein:0.5, fat:0, na:4, fe:0, fib:0, defaultG:330},
+    'vinho tinto': {kcal:85, carbs:2.6, protein:0.1, fat:0, na:4, fe:0.5, fib:0, defaultG:150}
   };
 
   function findFoodMatch(rawName){
@@ -10692,6 +10710,21 @@ nav.tabbar button.active svg{
     const keys = Object.keys(FOOD_DB);
     let key = keys.find(k => k.includes(name) || name.includes(k));
     return key ? {food:FOOD_DB[key], name:key} : null;
+  }
+
+  // Micronutrientes (sódio mg, ferro mg, fibra g) de um alimento, escalados para a quantidade.
+  // Usa a base local / IA aprendida (findFoodMatch) ou a última estimativa da IA (kcalAiBase.per100).
+  function foodMicrosFor(name, grams){
+    const g = (Number(grams) || 0) / 100;
+    let src = null;
+    if(name){ const m = findFoodMatch(name); if(m && m.food) src = m.food; }
+    if(!src && typeof kcalAiBase !== 'undefined' && kcalAiBase && kcalAiBase.per100 && kcalAiBase.desc === (name||'').trim()) src = kcalAiBase.per100;
+    if(!src) return { na:0, fe:0, fib:0 };
+    return {
+      na: Math.round((Number(src.na)||0) * g),
+      fe: Math.round((Number(src.fe)||0) * g * 10) / 10,
+      fib: Math.round((Number(src.fib)||0) * g * 10) / 10
+    };
   }
 
   // Sugestões de alimentos próprias (o datalist nativo não aparece no iPhone/Safari)
@@ -10955,7 +10988,9 @@ nav.tabbar button.active svg{
     const protein = parseFloat(document.getElementById('kcal-protein').value) || 0;
     const fat = parseFloat(document.getElementById('kcal-fat').value) || 0;
     const foodName = document.getElementById('kcal-food').value.trim();
-    kcalEntries.push({id:uid(), date: todayStr(), time: new Date().toISOString(), kcal, carbs, protein, fat, food: foodName || null});
+    const gramsFood = parseFloat(document.getElementById('kcal-grams').value) || 0;
+    const micros = foodMicrosFor(foodName, gramsFood);
+    kcalEntries.push({id:uid(), date: todayStr(), time: new Date().toISOString(), kcal, carbs, protein, fat, na:micros.na, fe:micros.fe, fib:micros.fib, food: foodName || null});
     await sSet('kcal-entries', kcalEntries);
     // Guarda na memória de alimentos, tal como a IA: se o alimento não existir, aprende-o.
     if(foodName){
@@ -11184,20 +11219,32 @@ nav.tabbar button.active svg{
     const carbsDdr = document.getElementById('kcal-carbs-ddr');
     const proteinDdr = document.getElementById('kcal-protein-ddr');
     const fatDdr = document.getElementById('kcal-fat-ddr');
-    if(carbsDdr) carbsDdr.innerHTML = `${macroPct(safeCarbs)}% <small>(${ddrPct(safeCarbs, carbsGoal)}% da DDR)</small>`;
-    if(proteinDdr) proteinDdr.innerHTML = `${macroPct(safeProtein)}% <small>(${ddrPct(safeProtein, proteinGoal)}% da DDR)</small>`;
-    if(fatDdr){
-      if(fatHighG > 0){
-        const lo = Math.round(fatLowG), hi = Math.round(fatHighG);
+
+    // Intervalos saudáveis por macro (mesma lógica da gordura):
+    //  hidratos 45–60% das kcal · proteína 1,6–2,2 g/kg (ou 15–25% sem peso) · gordura 20–35%.
+    const bwKg = (typeof weightEntries !== 'undefined' && weightEntries && weightEntries.length) ? Number(weightEntries[weightEntries.length-1].kg) : null;
+    const carbsLowG = safeGoal ? (safeGoal * 0.45 / 4) : 0;
+    const carbsHighG = safeGoal ? (safeGoal * 0.60 / 4) : 0;
+    const proteinLowG = bwKg ? (bwKg * 1.6) : (safeGoal ? (safeGoal * 0.15 / 4) : 0);
+    const proteinHighG = bwKg ? (bwKg * 2.2) : (safeGoal ? (safeGoal * 0.25 / 4) : 0);
+
+    const macroLegend = (el, value, lowG, highG, goalG) => {
+      if(!el) return;
+      const comp = macroPct(value);
+      if(highG > 0){
+        const lo = Math.round(lowG), hi = Math.round(highG);
         let word, col;
-        if(safeFat < fatLowG){ word = PL('abaixo do ideal','below ideal'); col = '#F2B84B'; }
-        else if(safeFat > fatHighG){ word = PL('acima do ideal','above ideal'); col = '#F2B84B'; }
+        if(value < lowG){ word = PL('abaixo do ideal','below ideal'); col = '#F2B84B'; }
+        else if(value > highG){ word = PL('acima do ideal','above ideal'); col = '#F2B84B'; }
         else { word = PL('no intervalo ideal','within ideal'); col = 'var(--teal)'; }
-        fatDdr.innerHTML = `${macroPct(safeFat)}% <small style="color:${col};">(${word} · ${lo}–${hi} g)</small>`;
+        el.innerHTML = `${comp}% <small style="color:${col};">(${word} · ${lo}–${hi} g)</small>`;
       } else {
-        fatDdr.innerHTML = `${macroPct(safeFat)}% <small>(${ddrPct(safeFat, fatGoal)}% da DDR)</small>`;
+        el.innerHTML = `${comp}% <small>(${ddrPct(value, goalG)}% da DDR)</small>`;
       }
-    }
+    };
+    macroLegend(carbsDdr, safeCarbs, carbsLowG, carbsHighG, carbsGoal);
+    macroLegend(proteinDdr, safeProtein, proteinLowG, proteinHighG, proteinGoal);
+    macroLegend(fatDdr, safeFat, fatLowG, fatHighG, fatGoal);
   }
 
   function renderNutritionInsight(data){
@@ -11723,22 +11770,40 @@ nav.tabbar button.active svg{
     try{ renderNutriFavs(); }catch(e){}
     const today = todayStr();
     const todays = kcalEntries.filter(e=>e.date===today);
+    const foodToday = todays.filter(e=>!e.supp); // suplementos são registados à parte e não contam para a roda/meta diária
     const coffeeTotal = getTodayCoffeeTotal();
     const coffeeKcal = getTodayCoffeeKcal();
     const drinkKcal = getTodayDrinkKcal();
     const alcoholTotals = getTodayAlcoholTotals();
     const alcoholKcal = alcoholTotals.kcal;
-    const intakeKcal = Math.round(todays.reduce((s,e)=>s+e.kcal,0) + coffeeKcal + drinkKcal + alcoholKcal);
+    const intakeKcal = Math.round(foodToday.reduce((s,e)=>s+e.kcal,0) + coffeeKcal + drinkKcal + alcoholKcal);
     const workoutKcal = todayWorkoutBurnedKcal();
     const netKcal = intakeKcal - workoutKcal;
     const totalKcal = netKcal;
-    const totalCarbs = todays.reduce((s,e)=>s+(e.carbs||0),0);
-    const totalProtein = todays.reduce((s,e)=>s+(e.protein||0),0);
-    const totalFat = todays.reduce((s,e)=>s+(e.fat||0),0);
+    const totalCarbs = foodToday.reduce((s,e)=>s+(e.carbs||0),0);
+    const totalProtein = foodToday.reduce((s,e)=>s+(e.protein||0),0);
+    const totalFat = foodToday.reduce((s,e)=>s+(e.fat||0),0);
 
     const goal = estimateMaintenanceKcal();
     updateKcalModernRing(totalKcal, goal, totalCarbs, totalProtein, totalFat);
-    try{ renderNutritionInsight({ intakeKcal:intakeKcal, goal:goal, carbs:totalCarbs, protein:totalProtein, fat:totalFat, hasAny:(todays.length>0) }); }catch(e){}
+
+    // Micronutrientes do dia (sal / ferro / fibra) — a partir da comida.
+    try{
+      const sumNa = foodToday.reduce((s,e)=>s+(Number(e.na)||0),0);   // sódio mg
+      const sumFe = foodToday.reduce((s,e)=>s+(Number(e.fe)||0),0);   // ferro mg
+      const sumFib = foodToday.reduce((s,e)=>s+(Number(e.fib)||0),0); // fibra g
+      const saltG = sumNa * 2.5 / 1000; // sal = sódio × 2,5
+      const naEl=document.getElementById('kcal-na-val'), naRef=document.getElementById('kcal-na-ref');
+      const feEl=document.getElementById('kcal-fe-val'), feRef=document.getElementById('kcal-fe-ref');
+      const fibEl=document.getElementById('kcal-fib-val'), fibRef=document.getElementById('kcal-fib-ref');
+      if(naEl){ naEl.textContent = (Math.round(saltG*10)/10).toString().replace('.',',') + ' g'; naEl.style.color = saltG>5 ? '#F2B84B' : '#fff'; }
+      if(naRef) naRef.textContent = PL('máx. 5 g/dia','max 5 g/day');
+      if(feEl) feEl.textContent = Math.round(sumFe) + ' mg';
+      if(feRef) feRef.textContent = PL('ref. ~14 mg','ref. ~14 mg');
+      if(fibEl){ fibEl.textContent = Math.round(sumFib) + ' g'; fibEl.style.color = sumFib>=25 ? 'var(--teal)' : '#fff'; }
+      if(fibRef) fibRef.textContent = PL('meta ~30 g','goal ~30 g');
+    }catch(e){}
+    try{ renderNutritionInsight({ intakeKcal:intakeKcal, goal:goal, carbs:totalCarbs, protein:totalProtein, fat:totalFat, hasAny:(foodToday.length>0) }); }catch(e){}
 
     const listEl = document.getElementById('kcal-today-list');
     const coffeeRows = coffeeTotal > 0
@@ -12084,17 +12149,31 @@ nav.tabbar button.active svg{
     if(!text) return text || '';
     if(!window.PulsoExerciseVocab) window.PulsoExerciseVocab = pulsoBuildExerciseVocab();
     var vocab = window.PulsoExerciseVocab || [];
-    var out = String(text), slots = [];
+    var out = String(text), slots = [], urls = [];
+    // 1) Protege URLs escritos nas notas (para nao colidirem com nomes de exercicios).
+    out = out.replace(/(https?:\/\/[^\s<>()]+)/g, function(url){ urls.push(url); return '\uE001' + (urls.length - 1) + '\uE001'; });
+    // 2) Marca cada exercicio reconhecido.
     vocab.forEach(function(name){
       if(!name) return;
       var esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       var re = new RegExp('(^|[^0-9A-Za-zÀ-ÿ])(' + esc + ')(?![0-9A-Za-zÀ-ÿ])', 'g');
       out = out.replace(re, function(m, pre){ slots.push(name); return pre + '\uE000' + (slots.length - 1) + '\uE000'; });
     });
+    // 3) Expande exercicios em links de demonstracao.
     out = out.replace(/\uE000(\d+)\uE000/g, function(m, i){
       var nm = slots[parseInt(i, 10)];
       var q = encodeURIComponent(nm + ' como fazer técnica execução');
       return '<a href="https://www.youtube.com/results?search_query=' + q + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--amber); text-decoration:underline; text-underline-offset:2px; white-space:nowrap;">' + nm + '<span style="font-size:.8em; opacity:.7;"> \u25B6</span></a>';
+    });
+    // 4) Expande URLs em links tocaveis (YouTube abre direto).
+    out = out.replace(/\uE001(\d+)\uE001/g, function(m, i){
+      var url = urls[parseInt(i, 10)] || '';
+      var clean = url.replace(/[.,;:]+$/, ''); var tail = url.slice(clean.length);
+      var href = clean.replace(/"/g, '%22');
+      var yt = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+      var label = yt ? ('\u25B6 ' + PL('Ver vídeo','Watch video')) : clean.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      if(!yt && label.length > 42) label = label.slice(0, 40) + '\u2026';
+      return '<a href="' + href + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="color:var(--teal); text-decoration:underline; text-underline-offset:2px; font-weight:700; white-space:nowrap;">' + label + '</a>' + tail;
     });
     return out;
   };
@@ -14677,7 +14756,7 @@ nav.tabbar button.active svg{
     // Kcal de hoje (líquidas: ingeridas - gasto do treino)
     const dKcalEl = document.getElementById('d-kcal');
     if(dKcalEl){
-      const kToday = kcalEntries.filter(e=>e.date===today);
+      const kToday = kcalEntries.filter(e=>e.date===today && !e.supp);
       let intakeK = kToday.reduce((s,e)=>s+(Number(e.kcal)||0),0);
       try{ intakeK += getTodayCoffeeKcal(); }catch(e){}
       try{ intakeK += getTodayDrinkKcal(); }catch(e){}
@@ -15316,7 +15395,7 @@ nav.tabbar button.active svg{
     setTimeout(function(){ booted = true; }, 2500);
     // Depois do arranque (dados já migrados/recuperados do armazenamento), recalcula os
     // resumos dos últimos dias a partir das entradas — corrige dias que ficaram a 0.
-    setTimeout(function(){ try{ if(window.PulsoReArchiveRecent) window.PulsoReArchiveRecent(14); if(typeof renderDashboard==='function') renderDashboard(); }catch(e){} }, 4000);
+    setTimeout(function(){ try{ if(window.PulsoReArchiveRecent) window.PulsoReArchiveRecent(120); if(typeof renderDashboard==='function') renderDashboard(); }catch(e){} }, 4000);
   });
 
   function checkDailyReset(){
@@ -15352,11 +15431,24 @@ nav.tabbar button.active svg{
   window.PulsoReArchiveRecent = function(days){
     try{
       const n = days || 3;
-      const base = new Date();
-      for(let i=0;i<n;i++){
-        const d = new Date(base); d.setDate(d.getDate()-i);
-        archiveDay(d.toISOString().slice(0,10));
-      }
+      const cutoff = (()=>{ const d = new Date(); d.setDate(d.getDate() - (n - 1)); return d.toISOString().slice(0,10); })();
+      const today = todayKey();
+      // Lê cada lista UMA vez, recolhe os dias que têm dados e arquiva só esses.
+      // (Antes só se re-arquivava um número fixo de dias de calendário, deixando
+      //  dias mais antigos com registos — ex.: importados do Health Connect — sem resumo.)
+      const keys = ['hydration-entries','coffee-entries','alcohol-entries','kcal-entries','weight-entries','sleep-entries','bp-entries','strava-activities','planned-workouts'];
+      const daysSet = {};
+      keys.forEach(function(k){
+        const arr = readPulsoJson(k, []);
+        (Array.isArray(arr) ? arr : []).forEach(function(e){
+          if(!e) return;
+          const dv = e.date || e.start_date || e.time || e.day;
+          if(!dv) return;
+          const d = String(dv).slice(0,10);
+          if(d >= cutoff && d <= today) daysSet[d] = 1;
+        });
+      });
+      Object.keys(daysSet).forEach(function(d){ try{ archiveDay(d); }catch(e){} });
     }catch(e){}
   };
 
@@ -18917,7 +19009,7 @@ nav.tabbar button.active svg{
                   <div class="cwb-field"><label data-i18n="Recovery type">Tipo recuperação</label><select id="cwb-int-rectype"><option value="Parado" data-i18n="Standing">Parado</option><option value="Caminhada" data-i18n="Walk">Caminhada</option><option value="Trote" selected data-i18n="Jog">Trote</option><option value="Bike leve" data-i18n="Light bike">Bike leve</option></select></div>
                 </div>
                 <div class="cwb-row" id="cwb-prog-fields" style="display:none; margin-top:9px;">
-                  <div class="cwb-field"><label data-i18n="Duration">Duração</label><select id="cwb-prog-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Duration">Duração</label><select id="cwb-prog-dur"><option value="20">20 min</option><option value="30" selected>30 min</option><option value="40">40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="120">120 min</option></select></div>
                   <div class="cwb-field"><label data-i18n="Start zone">Zona inicial</label><select id="cwb-prog-z1"><option>Z1</option><option selected>Z2</option><option>Z3</option></select></div>
                   <div class="cwb-field"><label data-i18n="End zone">Zona final</label><select id="cwb-prog-z2"><option>Z3</option><option selected>Z4</option><option>Z5</option></select></div>
                 </div>
@@ -18937,7 +19029,7 @@ nav.tabbar button.active svg{
                 </div>
 
                 <div class="cwb-row" id="cwb-time-fields" style="display:none; margin-top:9px;">
-                  <div class="cwb-field"><label data-i18n="Continuous time">Tempo contínuo</label><select id="cwb-time-dur"><option value="20">20 min</option><option value="30">30 min</option><option value="40" selected>40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></div>
+                  <div class="cwb-field"><label data-i18n="Continuous time">Tempo contínuo</label><select id="cwb-time-dur"><option value="20">20 min</option><option value="30">30 min</option><option value="40" selected>40 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="105">105 min</option><option value="120">120 min</option><option value="150">150 min</option><option value="180">180 min</option></select></div>
                   <div class="cwb-field"><label data-i18n="Zone">Zona</label><select id="cwb-time-zone"><option>Z1</option><option>Z2</option><option selected>Z3</option><option>Z4</option><option value="Livre" data-i18n="Free">Livre</option></select></div>
                   <div class="cwb-field"><label>RPE</label><select id="cwb-time-rpe"><option value="">—</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
                 </div>
