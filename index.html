@@ -7497,15 +7497,18 @@ nav.tabbar button.active svg{
     }catch(e){}
   }
 
-  function pulsoToast(msg){
+  function pulsoToast(msg, onClick){
     const t = document.getElementById('toast');
     if(!t) return;
     t.textContent = msg;
     t.classList.add('show');
+    t.style.cursor = onClick ? 'pointer' : '';
+    t.onclick = onClick ? function(){ t.classList.remove('show'); t.onclick = null; t.style.cursor = ''; try{ onClick(); }catch(e){} } : null;
     clearTimeout(pulsoToast._t);
-    pulsoToast._t = setTimeout(()=>t.classList.remove('show'), 2400);
+    pulsoToast._t = setTimeout(function(){ t.classList.remove('show'); t.onclick = null; t.style.cursor = ''; }, onClick ? 5200 : 2400);
   }
   window.showToast = pulsoToast;
+  function pulsoOpenTreinos(){ try{ var b=document.querySelector('nav.tabbar button[data-tab="treinos"]'); if(b) b.click(); }catch(e){} }
 
   // Confirmação própria (o window.confirm nativo é bloqueado em alguns webviews).
   let _pulsoConfirmResolve = null;
@@ -10168,7 +10171,27 @@ nav.tabbar button.active svg{
       try{ localStorage.setItem('pulso:seen-msg-count', String(total)); }catch(e){}
       if(seen>=0 && total>seen){
         var n=total-seen;
-        try{ if(typeof toast==='function') toast('\uD83D\uDCAC '+PL('Tens '+n+' nova(s) mensagem(ns) nos treinos.','You have '+n+' new workout message(s).')); }catch(e){}
+        try{ if(typeof toast==='function') toast('\uD83D\uDCAC '+PL('Tens '+n+' nova(s) mensagem(ns) nos treinos.','You have '+n+' new workout message(s).'), pulsoOpenTreinos); }catch(e){}
+      }
+    }catch(e){}
+  }
+  // Aviso ao atleta quando o treinador prescreve/altera um treino (perspetiva de atleta).
+  function checkPlanNotifications(){
+    try{
+      var isCoachView = false;
+      try{ var cc=document.getElementById('coach-content'); if(cc && getComputedStyle(cc).display!=='none') isCoachView=true; }catch(e){}
+      if(isCoachView) return; // o treinador é o autor — não se auto-notifica
+      var pw = (typeof plannedWorkouts!=='undefined' && Array.isArray(plannedWorkouts)) ? plannedWorkouts : [];
+      var count = pw.length;
+      var sig = count + ':' + pw.map(function(w){ return (w.date||'')+'|'+(w.id||w.name||'')+'|'+(w.updatedAt||w.baseMinutes||''); }).sort().join(';');
+      var rawC = localStorage.getItem('pulso:seen-plan-count'); var seenC = rawC==null ? -1 : parseInt(rawC,10);
+      var seenSig = localStorage.getItem('pulso:seen-plan-sig');
+      try{ localStorage.setItem('pulso:seen-plan-count', String(count)); localStorage.setItem('pulso:seen-plan-sig', sig); }catch(e){}
+      if(seenC < 0) return; // primeira vez: só define a base, sem avisar
+      if(count > seenC){
+        try{ if(typeof toast==='function') toast('\uD83D\uDCC5 '+PL('Novo treino prescrito pelo teu treinador.','New workout from your coach.'), pulsoOpenTreinos); }catch(e){}
+      } else if(sig !== seenSig){
+        try{ if(typeof toast==='function') toast('\u270F\uFE0F '+PL('O teu treinador alterou um treino.','Your coach updated a workout.'), pulsoOpenTreinos); }catch(e){}
       }
     }catch(e){}
   }
@@ -10725,6 +10748,23 @@ nav.tabbar button.active svg{
       fe: Math.round((Number(src.fe)||0) * g * 10) / 10,
       fib: Math.round((Number(src.fib)||0) * g * 10) / 10
     };
+  }
+
+  // Micros de uma entrada já registada: usa os guardados; senão deriva da base pela razão de kcal.
+  // (Garante que registos antigos e alimentos da base mostram sal/ferro/fibra na roda diária.)
+  function entryMicros(e){
+    if(!e) return { na:0, fe:0, fib:0 };
+    if(e.na != null || e.fe != null || e.fib != null) return { na:Number(e.na)||0, fe:Number(e.fe)||0, fib:Number(e.fib)||0 };
+    const m = e.food ? findFoodMatch(e.food) : null;
+    if(m && m.food && (Number(m.food.kcal)||0) > 0 && m.food.na != null){
+      const g = (Number(e.kcal)||0) / Number(m.food.kcal); // = gramas/100
+      return {
+        na: Math.round((Number(m.food.na)||0) * g),
+        fe: Math.round((Number(m.food.fe)||0) * g * 10) / 10,
+        fib: Math.round((Number(m.food.fib)||0) * g * 10) / 10
+      };
+    }
+    return { na:0, fe:0, fib:0 };
   }
 
   // Sugestões de alimentos próprias (o datalist nativo não aparece no iPhone/Safari)
@@ -11789,19 +11829,36 @@ nav.tabbar button.active svg{
 
     // Micronutrientes do dia (sal / ferro / fibra) — a partir da comida.
     try{
-      const sumNa = foodToday.reduce((s,e)=>s+(Number(e.na)||0),0);   // sódio mg
-      const sumFe = foodToday.reduce((s,e)=>s+(Number(e.fe)||0),0);   // ferro mg
-      const sumFib = foodToday.reduce((s,e)=>s+(Number(e.fib)||0),0); // fibra g
+      let sumNa = 0, sumFe = 0, sumFib = 0;
+      foodToday.forEach(function(e){ const mi = entryMicros(e); sumNa += mi.na; sumFe += mi.fe; sumFib += mi.fib; });
+      // Sódio também vem de suplementos (géis/eletrólitos/recovery guardam 'na') e de algumas bebidas.
+      todays.forEach(function(e){ if(e.supp) sumNa += Number(e.na)||0; });
+      try{
+        hydrationEntries.filter(function(e){ return e.date===today; }).forEach(function(e){
+          var k = (e.type||'').toLowerCase(), perMl = 0;
+          if(k.indexOf('red bull')>=0) perMl = 0.42;              // ~105 mg / 250 ml
+          else if(k.indexOf('cola')>=0 || k.indexOf('sumo')>=0) perMl = 0.04;
+          sumNa += perMl * (Number(e.ml)||0);
+        });
+      }catch(_e){}
       const saltG = sumNa * 2.5 / 1000; // sal = sódio × 2,5
       const naEl=document.getElementById('kcal-na-val'), naRef=document.getElementById('kcal-na-ref');
       const feEl=document.getElementById('kcal-fe-val'), feRef=document.getElementById('kcal-fe-ref');
       const fibEl=document.getElementById('kcal-fib-val'), fibRef=document.getElementById('kcal-fib-ref');
-      if(naEl){ naEl.textContent = (Math.round(saltG*10)/10).toString().replace('.',',') + ' g'; naEl.style.color = saltG>5 ? '#F2B84B' : '#fff'; }
-      if(naRef) naRef.textContent = PL('máx. 5 g/dia','max 5 g/day');
-      if(feEl) feEl.textContent = Math.round(sumFe) + ' mg';
-      if(feRef) feRef.textContent = PL('ref. ~14 mg','ref. ~14 mg');
-      if(fibEl){ fibEl.textContent = Math.round(sumFib) + ' g'; fibEl.style.color = sumFib>=25 ? 'var(--teal)' : '#fff'; }
-      if(fibRef) fibRef.textContent = PL('meta ~30 g','goal ~30 g');
+      const MTEAL='var(--teal)', MAMBER='#F2B84B';
+      const wIn=PL('no ideal','within ideal'), wOver=PL('acima do ideal','above ideal'), wUnder=PL('abaixo do ideal','below ideal');
+      // SAL — limite máximo (5 g): só sinaliza quando passa
+      const saltOver = saltG > 5;
+      if(naEl){ naEl.textContent = (Math.round(saltG*10)/10).toString().replace('.',',') + ' g'; }
+      if(naRef){ naRef.innerHTML = '(' + (saltOver ? wOver : wIn) + ' · ' + PL('máx. 5 g','max 5 g') + ')'; naRef.style.color = saltOver ? MAMBER : MTEAL; }
+      // FERRO — referência ~14 mg (abaixo de 8 mg sinaliza baixo)
+      const feLow = sumFe < 8;
+      if(feEl){ feEl.textContent = Math.round(sumFe) + ' mg'; }
+      if(feRef){ feRef.innerHTML = '(' + (feLow ? wUnder : wIn) + ' · ' + PL('ref. 14 mg','ref. 14 mg') + ')'; feRef.style.color = feLow ? MAMBER : MTEAL; }
+      // FIBRA — meta ~30 g (abaixo de 25 g sinaliza baixo)
+      const fibLow = sumFib < 25;
+      if(fibEl){ fibEl.textContent = Math.round(sumFib) + ' g'; }
+      if(fibRef){ fibRef.innerHTML = '(' + (fibLow ? wUnder : wIn) + ' · ' + PL('meta 30 g','goal 30 g') + ')'; fibRef.style.color = fibLow ? MAMBER : MTEAL; }
     }catch(e){}
     try{ renderNutritionInsight({ intakeKcal:intakeKcal, goal:goal, carbs:totalCarbs, protein:totalProtein, fat:totalFat, hasAny:(foodToday.length>0) }); }catch(e){}
 
@@ -14990,6 +15047,7 @@ nav.tabbar button.active svg{
       try{ applyCaps(); }catch(e){}
       try{ wireEquip(); }catch(e){}
       try{ setTimeout(checkMsgNotifications, 2600); }catch(e){}
+      try{ setTimeout(checkPlanNotifications, 2900); }catch(e){}
       if(window.PulsoSetup && !PulsoSetup.done()){ PulsoSetup.start(); }
       else if(window.PulsoOnboarding) window.PulsoOnboarding.maybeStart();
     }, 800); }catch(e){}
@@ -20363,6 +20421,28 @@ nav.tabbar button.active svg{
     return list;
   }
   function currentAthlete(){ const l = getAthletes(); return l.find(a=>a.id===selectedAthleteId) || l[0]; }
+  // Aviso ao treinador quando o atleta completa treinos ou deixa feedback (ao carregar os dados dele).
+  function checkAthleteFeedbackForCoach(uid, keysObj, name){
+    try{
+      if(!uid || !keysObj) return;
+      var fb = keysObj['plan-feedback'];
+      if(typeof fb === 'string'){ try{ fb = JSON.parse(fb); }catch(e){ fb = {}; } }
+      fb = fb || {};
+      var doneCount=0, otherCount=0, lastAt='';
+      Object.keys(fb).forEach(function(k){ var e=fb[k]; if(!e) return;
+        if(e.status==='done') doneCount++;
+        if(e.note || e.feel || e.sent || e.status==='diff' || e.status==='skip') otherCount++;
+        if(e.at && e.at>lastAt) lastAt=e.at; });
+      var sig = doneCount+'|'+otherCount+'|'+lastAt;
+      var seenKey='pulso:coach-seen-fb:'+uid, seen=localStorage.getItem(seenKey);
+      try{ localStorage.setItem(seenKey, sig); }catch(e){}
+      if(seen==null || sig===seen) return;
+      var who = name || PL('O atleta','The athlete');
+      var prevDone = parseInt((String(seen).split('|')[0])||'0',10)||0;
+      if(doneCount>prevDone){ try{ if(typeof toast==='function') toast('\u2705 '+PL(who+' completou um treino.', who+' completed a workout.')); }catch(e){} }
+      else{ try{ if(typeof toast==='function') toast('\uD83D\uDCAC '+PL(who+' deixou feedback num treino.', who+' left feedback on a workout.')); }catch(e){} }
+    }catch(e){}
+  }
   // Carrega (ou limpa) o override com os dados do atleta cloud selecionado e depois re-renderiza.
   function loadSelectedAthleteData(done){
     const isCloud = cloudAthletes.some(a=>a.id===selectedAthleteId);
@@ -20378,6 +20458,7 @@ nav.tabbar button.active svg{
         if(selectedAthleteId !== uid) return;
         coachCloudOverride = keys || {}; cloudOverrideUid = uid;
         cloudPlanCache[uid] = plan || {};
+        try{ checkAthleteFeedbackForCoach(uid, coachCloudOverride, (currentAthlete()||{}).name); }catch(e){}
         if(done) done();
       }).catch(()=>{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); });
     }else{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); }
@@ -21482,8 +21563,15 @@ nav.tabbar button.active svg{
         const on = fb.note && String(fb.note).indexOf(txt) !== -1;
         return '<button type="button" class="cp-fb-chip'+(on?' on':'')+'" data-fb-chip="'+esc(txt)+'">'+esc(txt)+'</button>';
       }).join('');
+      const _pm = (fb.mins!=null && fb.mins>0) ? fb.mins : (Number(w&&w.baseMinutes)||0);
+      const _ph = Math.floor(_pm/60), _pmin = Math.round(_pm%60);
       feedbackPart = '<div class="cp-fb" data-fb-date="'+esc(date)+'" data-fb-id="'+esc((w&&(w.id||w.name))||'x')+'">'
         + '<div class="cp-fb-row">'+btn('done','✓ '+PL('Feito','Done'))+btn('diff','✎ '+PL('Diferente','Different'))+btn('skip','✗ '+PL('Não fiz','Skipped'))+'</div>'
+        + '<div class="cp-fb-time" style="display:flex; align-items:center; gap:7px; margin-top:9px; font-size:13px; color:var(--text); flex-wrap:wrap;">'
+          + '<span style="color:var(--text-muted);">⏱ '+PL('Tempo total','Total time')+'</span>'
+          + '<input type="number" data-fb-th min="0" max="24" inputmode="numeric" value="'+_ph+'" style="width:52px; text-align:center; padding:6px;"><span style="color:var(--text-muted);">h</span>'
+          + '<input type="number" data-fb-tm min="0" max="59" inputmode="numeric" value="'+_pmin+'" style="width:52px; text-align:center; padding:6px;"><span style="color:var(--text-muted);">min</span>'
+        + '</div>'
         + '<div class="cp-fb-feel"><span class="cp-fb-h">'+PL('Como te sentiste?','How did it feel?')+'</span><div class="cp-fb-bars">'+fbBarsHTML(fb.feel||0)+'</div></div>'
         + '<div class="cp-fb-chips">'+chips+'</div>'
         + '<input type="text" class="cp-fb-note" data-fb-note maxlength="140" placeholder="'+PL('Nota (opcional)','Note (optional)')+'" value="'+esc(fb.note||'')+'">'
@@ -21560,12 +21648,12 @@ nav.tabbar button.active svg{
         const items=cal[key]||[]; marked+=items.length;
         items.forEach(it=>{ markedMin+=(it.baseMinutes||0); });
         // Confirmações manuais do dia (chave alinhada com fbKey: id||name).
-        const manualItems = items.filter(it=>{ const fb=store[key+'|'+((it.id||it.name)||'x')]; return fb && fb.status==='done'; });
+        const manualItems = items.map(it=>({ it:it, fb: store[key+'|'+((it.id||it.name)||'x')] })).filter(x=> x.fb && x.fb.status==='done');
         // Atividades reais do dia (Strava/ficheiros) para o desporto.
         const dayActs = (acts||[]).filter(a=> scat(a.type)===cat && activityDay(a)===key);
-        // Prioridade por dia: manual (cumprimento total = horas prescritas) primeiro; senão Strava/ficheiros. Nunca ambos → sem duplicação.
+        // Prioridade por dia: manual (tempo escrito pelo atleta; senão horas prescritas) primeiro; senão Strava/ficheiros. Nunca ambos → sem duplicação.
         if(manualItems.length){
-          manualItems.forEach(it=>{ doneH += (it.baseMinutes||0)/60; });
+          manualItems.forEach(x=>{ const mn = (x.fb && x.fb.mins>0) ? x.fb.mins : (x.it.baseMinutes||0); doneH += mn/60; });
           doneN += manualItems.length; confirmed += manualItems.length;
         } else if(dayActs.length){
           dayActs.forEach(a=>{ doneH += (a.movingSec||0)/3600; });
@@ -21923,6 +22011,14 @@ nav.tabbar button.active svg{
         setFb(date, {id:id}, { note: note }); return; }
     });
     document.addEventListener('change', function(e){
+      if(e.target && (e.target.hasAttribute('data-fb-th') || e.target.hasAttribute('data-fb-tm'))){
+        const box = e.target.closest('.cp-fb'); if(!box) return;
+        const hEl = box.querySelector('[data-fb-th]'), mEl = box.querySelector('[data-fb-tm]');
+        const h = Math.max(0, parseInt((hEl&&hEl.value)||'0',10)||0);
+        const m = Math.max(0, Math.min(59, parseInt((mEl&&mEl.value)||'0',10)||0));
+        setFb(box.getAttribute('data-fb-date'), {id:box.getAttribute('data-fb-id')}, { mins: h*60+m });
+        return;
+      }
       if(e.target && e.target.classList && e.target.classList.contains('cp-fb-note')){
         const fb = e.target.closest('.cp-fb'); if(!fb) return;
         setFb(fb.getAttribute('data-fb-date'), {id:fb.getAttribute('data-fb-id')}, { note: e.target.value.trim() });
