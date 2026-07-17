@@ -20357,13 +20357,60 @@ nav.tabbar button.active svg{
   let cloudAthletes = [];   // atletas ligados via cloud: {id:uid, name, email, cloud:true}
   let cloudPlanCache = {};  // uid -> calendário prescrito (coachPlans), carregado ao selecionar
   let cloudDataCache = {};  // uid -> dados (keys) do atleta cloud, para calcular prontidão na lista
+  let _coachedDataUnsubs = {};
+  let _msgAnnounceTimer = null, _msgAnnounced = false;
+  // Conta mensagens de atletas ainda não vistas pelo treinador (por fio).
+  function coachUnreadMessages(){
+    let n = 0;
+    try{
+      (cloudAthletes||[]).forEach(a=>{
+        const store = safeParse((cloudDataCache[a.id]||{})['plan-messages'], {}) || {};
+        Object.keys(store).forEach(key=>{
+          (store[key]||[]).forEach(m=>{
+            if((m.from||'athlete') !== 'coach'){
+              const seenTs = _msgSeenTs(key, 'coach');
+              if(String(m.at||'') > String(seenTs)) n++;
+            }
+          });
+        });
+      });
+    }catch(e){}
+    return n;
+  }
+  // Pop-up (uma vez por abertura da app) se houver mensagens de atletas por ler.
+  function announceCoachMessages(){
+    if(_msgAnnounced) return;
+    const n = coachUnreadMessages();
+    if(n > 0){
+      _msgAnnounced = true;
+      const txt = PL('💬 Tens '+n+' mensagem(ns) de atletas por ler.','💬 You have '+n+' unread athlete message(s).');
+      try{ if(window.pulsoInfo) window.pulsoInfo(txt); else if(window.toast) window.toast(txt); }catch(e){}
+    }
+  }
   function preloadCloudData(){
     if(!(window.PulsoCloud && typeof window.PulsoCloud.fetchAthleteData === 'function')) return;
+    const rerender = function(){
+      try{ renderAthletes(); }catch(e){}
+      try{ if(typeof renderCoachCalendar === 'function') renderCoachCalendar(); }catch(e){}
+      try{ if(typeof renderCoachWeekGlance === 'function') renderCoachWeekGlance(); }catch(e){}
+    };
+    // Fecha escutas de atletas que já não estão na lista.
+    try{ Object.keys(_coachedDataUnsubs).forEach(function(uid){ if(!cloudAthletes.some(a=>a.id===uid)){ try{ _coachedDataUnsubs[uid](); }catch(e){} delete _coachedDataUnsubs[uid]; } }); }catch(e){}
     cloudAthletes.forEach(a=>{
+      // Leitura inicial.
       window.PulsoCloud.fetchAthleteData(a.id).then(keys=>{
         cloudDataCache[a.id] = keys || {};
-        try{ renderAthletes(); }catch(e){}
+        rerender();
+        clearTimeout(_msgAnnounceTimer); _msgAnnounceTimer = setTimeout(announceCoachMessages, 1500);
       }).catch(()=>{});
+      // Tempo real: mantém o feedback/tempo de TODOS os atletas atualizado, para o
+      // calendário e a "Semana de relance" ficarem verdes sozinhos, sem abrir o dia.
+      if(!_coachedDataUnsubs[a.id] && typeof window.PulsoCloud.watchAthleteData === 'function'){
+        _coachedDataUnsubs[a.id] = window.PulsoCloud.watchAthleteData(a.id, function(keys){
+          cloudDataCache[a.id] = keys || {};
+          rerender();
+        });
+      }
     });
   }
   function athleteGetter(athleteId){
@@ -20917,7 +20964,7 @@ nav.tabbar button.active svg{
       if(hasDone) dots += '<span class="pcal-dot done" title="Treino feito"></span>';
       if(hasMainRace) dots += '<span class="pcal-dot race" title="Prova principal"></span>';
       if(hasSecRace) dots += '<span class="pcal-dot race-sec" title="Prova secundária"></span>';
-      if(hasPlanned) dots += '<span class="pcal-dot planned" title="Treino prescrito"></span>';
+      if(hasPlanned && !hasDone) dots += '<span class="pcal-dot planned" title="Treino prescrito"></span>';
       const cls = ['pcal-cell'];
       if(key === today) cls.push('today');
       if(key === selectedDay) cls.push('selected');
@@ -21621,6 +21668,9 @@ nav.tabbar button.active svg{
     if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
       return safeParse(coachCloudOverride['plan-feedback'], {}) || {};
     }
+    if(typeof cloudDataCache !== 'undefined' && cloudDataCache[athleteId]){
+      return safeParse(cloudDataCache[athleteId]['plan-feedback'], {}) || {};
+    }
     return null; // dados desse atleta não estão carregados agora
   }
 
@@ -21877,6 +21927,9 @@ nav.tabbar button.active svg{
     if(!athleteId || athleteId === 'local'){ store = getPulso('plan-messages', {}) || {}; }
     else if(typeof coachCloudOverride !== 'undefined' && coachCloudOverride && typeof cloudOverrideUid !== 'undefined' && cloudOverrideUid === athleteId){
       store = safeParse(coachCloudOverride['plan-messages'], {}) || {};
+    }
+    else if(typeof cloudDataCache !== 'undefined' && cloudDataCache[athleteId]){
+      store = safeParse(cloudDataCache[athleteId]['plan-messages'], {}) || {};
     }
     return (store[key] || []).map(m=>({from: m.from || 'athlete', text:m.text, at:m.at}));
   }
