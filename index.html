@@ -20421,6 +20421,20 @@ nav.tabbar button.active svg{
   function _isCoachContext(){ return (cloudAthletes && cloudAthletes.length > 0); }
   function _msgPreview(t){ t = String(t||''); return t.length > 60 ? (t.slice(0,58)+'…') : t; }
   function _msgWhen(iso){ try{ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(PL('pt-PT','en-GB'),{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString(PL('pt-PT','en-GB'),{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+  // Cache de nomes por uid (para pastas de treinador do lado do atleta).
+  let _folderNames = {};
+  function _resolveFolderName(uid){
+    if(!uid || _folderNames[uid]) return;
+    _folderNames[uid] = null; // em curso
+    try{
+      if(window.PulsoCloud && typeof window.PulsoCloud.nameForUid === 'function'){
+        Promise.resolve(window.PulsoCloud.nameForUid(uid)).then(nm=>{
+          _folderNames[uid] = nm || PL('Treinador','Coach');
+          try{ const ov=document.getElementById('pulso-msg-inbox'); if(ov && !ov.hidden) renderMsgInbox(); }catch(e){}
+        }).catch(()=>{ _folderNames[uid] = PL('Treinador','Coach'); });
+      } else { _folderNames[uid] = PL('Treinador','Coach'); }
+    }catch(e){ _folderNames[uid] = PL('Treinador','Coach'); }
+  }
   // Recolhe todos os fios com mensagens para o papel atual.
   function collectMsgThreads(){
     const out = [];
@@ -20435,13 +20449,13 @@ nav.tabbar button.active svg{
             const last = msgs[msgs.length-1];
             const seenTs = _msgSeenTs(key, 'coach');
             const unread = msgs.filter(m=> (m.from||'athlete')!=='coach' && String(m.at||'')>String(seenTs)).length;
-            out.push({ side:'coach', athleteId:a.id, name:(a.name||'Atleta'), date, wid, key, last, count:msgs.length, unread });
+            out.push({ side:'coach', athleteId:a.id, name:(a.name||'Atleta'), date, wid, key, last, count:msgs.length, unread, folderId:a.id, folderName:(a.name||'Atleta') });
           });
         });
       } else {
         const cal = getCalendarFor('local') || {};
         const merged = {};
-        Object.keys(cal).forEach(day=>{ (cal[day]||[]).forEach(w=>{ if(Array.isArray(w.coachMsgs)&&w.coachMsgs.length){ const key=day+'|'+((w.id||w.name)||'x'); merged[key]=(merged[key]||[]).concat(w.coachMsgs.map(m=>({from:'coach',text:m.text,at:m.at}))); } }); });
+        Object.keys(cal).forEach(day=>{ (cal[day]||[]).forEach(w=>{ if(Array.isArray(w.coachMsgs)&&w.coachMsgs.length){ const key=day+'|'+((w.id||w.name)||'x'); merged[key]=(merged[key]||[]).concat(w.coachMsgs.map(m=>({from:'coach',text:m.text,at:m.at,by:m.by||''}))); } }); });
         const local = getPulso('plan-messages', {}) || {};
         Object.keys(local).forEach(key=>{ merged[key]=(merged[key]||[]).concat(local[key]||[]); });
         Object.keys(merged).forEach(key=>{
@@ -20451,12 +20465,30 @@ nav.tabbar button.active svg{
           const last=msgs[msgs.length-1];
           const seenTs=_msgSeenTs(key,'athlete');
           const unread=msgs.filter(m=> m.from==='coach' && String(m.at||'')>String(seenTs)).length;
-          out.push({ side:'athlete', athleteId:'local', name:PL('Treinador','Coach'), date, wid, key, last, count:msgs.length, unread });
+          // Descobre o treinador desta conversa (para a pasta) — suporta futuro multi-treinador.
+          let coachUid=''; for(let i=msgs.length-1;i>=0;i--){ if(msgs[i].from==='coach' && msgs[i].by){ coachUid=msgs[i].by; break; } }
+          const folderId = coachUid || 'coach';
+          if(coachUid) _resolveFolderName(coachUid);
+          const folderName = (coachUid && _folderNames[coachUid]) ? _folderNames[coachUid] : PL('Treinador','Coach');
+          out.push({ side:'athlete', athleteId:'local', name:folderName, date, wid, key, last, count:msgs.length, unread, folderId, folderName });
         });
       }
     }catch(e){}
     out.sort((a,b)=> String((b.last&&b.last.at)||'').localeCompare(String((a.last&&a.last.at)||'')));
     return out;
+  }
+  function _msgFolders(threads){
+    const map={}, order=[];
+    threads.forEach(t=>{
+      const fid=t.folderId||'_';
+      if(!map[fid]){ map[fid]={ id:fid, name:t.folderName||t.name||'—', threads:[], unread:0, lastAt:'' }; order.push(fid); }
+      map[fid].threads.push(t);
+      map[fid].unread += t.unread;
+      const at=(t.last&&t.last.at)||''; if(String(at)>String(map[fid].lastAt)) map[fid].lastAt=at;
+    });
+    const arr=order.map(id=>map[id]);
+    arr.sort((a,b)=> String(b.lastAt).localeCompare(String(a.lastAt)));
+    return arr;
   }
   function msgUnreadTotal(){ let n=0; try{ collectMsgThreads().forEach(t=> n+=t.unread); }catch(e){} return n; }
   function updateMsgBadge(){
@@ -20467,31 +20499,50 @@ nav.tabbar button.active svg{
       if(n>0){ b.textContent = n>99?'99+':String(n); b.hidden=false; } else { b.hidden=true; }
     }catch(e){}
   }
+  let _msgInboxFolder = null; // null = lista de pastas; senão o folderId aberto
   function renderMsgInbox(){
     const list=document.getElementById('pulso-msg-list'); if(!list) return;
+    const back=document.getElementById('pulso-msg-back');
     const threads=collectMsgThreads(); _msgInboxCache=threads;
-    if(!threads.length){ list.innerHTML='<div class="coach-empty" style="text-align:center; padding:20px; color:var(--text-muted);">'+PL('Ainda não há mensagens.','No messages yet.')+'</div>'; return; }
-    // Agrupa por atleta (treinador) / por treinador (atleta).
-    const groups={}; const order=[];
-    threads.forEach((t,idx)=>{ if(!groups[t.name]){ groups[t.name]=[]; order.push(t.name); } groups[t.name].push(Object.assign({idx}, t)); });
-    let html='';
-    order.forEach(name=>{
-      const items=groups[name];
-      const gUnread=items.reduce((s,i)=>s+i.unread,0);
-      html+='<div class="pulso-msg-group"><div class="pulso-msg-gname">'+esc(name)+(gUnread?' <span class="pulso-msg-pill">'+gUnread+'</span>':'')+'</div>';
+    if(!threads.length){ if(back) back.hidden=true; _msgInboxFolder=null; list.innerHTML='<div class="coach-empty" style="text-align:center; padding:20px; color:var(--text-muted);">'+PL('Ainda não há mensagens.','No messages yet.')+'</div>'; return; }
+    const folders=_msgFolders(threads);
+    if(_msgInboxFolder && !folders.some(f=>f.id===_msgInboxFolder)) _msgInboxFolder=null;
+    if(!_msgInboxFolder){
+      // NÍVEL 1 — pastas por pessoa (atleta p/ treinador; treinador p/ atleta)
+      if(back) back.hidden=true;
+      let html='';
+      folders.forEach(f=>{
+        html+='<button type="button" class="pulso-msg-folder" data-msg-folder="'+esc(f.id)+'">'
+          +'<div class="pulso-msg-frow"><span class="pulso-msg-fname">📁 '+esc(f.name)+'</span>'+(f.unread?'<span class="pulso-msg-pill">'+f.unread+'</span>':'')+'</div>'
+          +'<div class="pulso-msg-when">'+esc(_msgWhen(f.lastAt))+' · '+f.threads.length+' '+PL('conversa(s)','thread(s)')+'</div>'
+          +'</button>';
+      });
+      list.innerHTML=html;
+    } else {
+      // NÍVEL 2 — histórico de conversas dessa pessoa
+      if(back) back.hidden=false;
+      const f=folders.find(x=>x.id===_msgInboxFolder);
+      const items=(f?f.threads.slice():[]);
+      items.sort((a,b)=> String((b.last&&b.last.at)||'').localeCompare(String((a.last&&a.last.at)||'')));
+      let html='<div class="pulso-msg-gname" style="margin:2px 0 12px;">📁 '+esc(f?f.name:'')+'</div>';
       items.forEach(it=>{
+        const idx=_msgInboxCache.indexOf(it);
         const who = it.last && it.last.from==='coach' ? PL('Tu: ','You: ') : '';
-        html+='<button type="button" class="pulso-msg-item" data-msg-open="'+it.idx+'">'
+        html+='<button type="button" class="pulso-msg-item" data-msg-open="'+idx+'">'
           +'<div class="pulso-msg-row"><span class="pulso-msg-day">'+esc(fmtDayLabel(it.date))+'</span>'+(it.unread?'<span class="pulso-msg-dot"></span>':'')+'</div>'
           +'<div class="pulso-msg-prev">'+esc(who+_msgPreview(it.last&&it.last.text))+'</div>'
           +'<div class="pulso-msg-when">'+esc(_msgWhen(it.last&&it.last.at))+'</div>'
           +'</button>';
       });
-      html+='</div>';
-    });
-    list.innerHTML=html;
+      list.innerHTML=html;
+    }
   }
-  function openMsgInbox(){ ensureMsgInbox(); const ov=document.getElementById('pulso-msg-inbox'); if(!ov) return; renderMsgInbox(); ov.hidden=false; ov.setAttribute('aria-hidden','false'); }
+  function markAllMsgsSeen(){
+    try{ collectMsgThreads().forEach(t=>{ try{ _markMsgSeen(t.key, t.side); }catch(e){} }); }catch(e){}
+    try{ updateMsgBadge(); }catch(e){}
+    try{ renderMsgInbox(); }catch(e){}
+  }
+  function openMsgInbox(){ ensureMsgInbox(); const ov=document.getElementById('pulso-msg-inbox'); if(!ov) return; _msgInboxFolder=null; renderMsgInbox(); ov.hidden=false; ov.setAttribute('aria-hidden','false'); }
   function closeMsgInbox(){ const ov=document.getElementById('pulso-msg-inbox'); if(ov){ ov.hidden=true; ov.setAttribute('aria-hidden','true'); } }
   function _scrollToThread(date, athleteId, tries){
     tries = tries||0;
@@ -20550,6 +20601,10 @@ nav.tabbar button.active svg{
         +'.pulso-msg-dot{width:9px; height:9px; border-radius:50%; background:#F2555A; flex:0 0 auto;}'
         +'.pulso-msg-prev{font-size:13px; color:var(--text); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}'
         +'.pulso-msg-when{font-size:11px; color:var(--text-muted); margin-top:2px;}'
+        +'.pulso-msg-folder{display:block; width:100%; text-align:left; background:rgba(53,217,166,.06); border:1px solid rgba(53,217,166,.22); border-radius:14px; padding:13px 14px; margin-bottom:9px; cursor:pointer; color:var(--text);}'
+        +'.pulso-msg-frow{display:flex; align-items:center; justify-content:space-between; gap:8px;} .pulso-msg-fname{font-size:14.5px; font-weight:800; color:#fff;}'
+        +'#pulso-msg-back{background:transparent; border:0; color:var(--teal); font-weight:800; font-size:13px; cursor:pointer; padding:4px 2px;}'
+        +'#pulso-msg-back[hidden]{display:none;}'
         +'.pulso-thread-flash{animation:pulsoThreadFlash 1.6s ease;} @keyframes pulsoThreadFlash{0%,100%{box-shadow:0 0 0 0 rgba(53,217,166,0);} 30%{box-shadow:0 0 0 3px rgba(53,217,166,.55);}}';
       document.head.appendChild(st);
       const btn=document.createElement('button');
@@ -20559,12 +20614,16 @@ nav.tabbar button.active svg{
       document.body.appendChild(btn);
       const ov=document.createElement('div');
       ov.id='pulso-msg-inbox'; ov.className='pc-sheet'; ov.hidden=true; ov.setAttribute('aria-hidden','true');
-      ov.innerHTML='<div class="pc-sheet-inner"><div class="pc-sheet-head"><h3>💬 '+PL('Mensagens','Messages')+'</h3><button type="button" id="pulso-msg-close" class="pc-btn tiny">'+PL('Fechar','Close')+'</button></div><div id="pulso-msg-list" class="scroll-y" style="max-height:70vh; overflow-y:auto;"></div></div>';
+      ov.innerHTML='<div class="pc-sheet-inner"><div class="pc-sheet-head"><div style="display:flex; align-items:center; gap:10px;"><button type="button" id="pulso-msg-back" hidden>← '+PL('Voltar','Back')+'</button><h3>💬 '+PL('Mensagens','Messages')+'</h3></div><div style="display:flex; gap:8px;"><button type="button" id="pulso-msg-allread" class="pc-btn tiny">'+PL('Marcar todas lidas','Mark all read')+'</button><button type="button" id="pulso-msg-close" class="pc-btn tiny">'+PL('Fechar','Close')+'</button></div></div><div id="pulso-msg-list" class="scroll-y" style="max-height:70vh; overflow-y:auto;"></div></div>';
       document.body.appendChild(ov);
       ov.addEventListener('click', function(e){ if(e.target===ov) closeMsgInbox(); });
       const cl=document.getElementById('pulso-msg-close'); if(cl) cl.addEventListener('click', closeMsgInbox);
+      const ar=document.getElementById('pulso-msg-allread'); if(ar) ar.addEventListener('click', markAllMsgsSeen);
+      const bk=document.getElementById('pulso-msg-back'); if(bk) bk.addEventListener('click', function(){ _msgInboxFolder=null; renderMsgInbox(); });
       const lst=document.getElementById('pulso-msg-list');
       if(lst) lst.addEventListener('click', function(e){
+        const fld=e.target.closest('[data-msg-folder]');
+        if(fld){ _msgInboxFolder=fld.getAttribute('data-msg-folder'); renderMsgInbox(); return; }
         const it=e.target.closest('[data-msg-open]'); if(!it) return;
         const idx=parseInt(it.getAttribute('data-msg-open'),10);
         if(_msgInboxCache && _msgInboxCache[idx]) openMsgThread(_msgInboxCache[idx]);
@@ -22080,7 +22139,7 @@ nav.tabbar button.active svg{
   // ---------- Fio de mensagens treinador ↔ atleta (por treino) ----------
   // Todas as mensagens ficam em 'plan-messages' (com etiqueta 'from'); para atletas
   // cloud, as do treinador vão também no treino (coachMsgs) para viajarem até ele.
-  function coachMsgsOf(w){ return (w && Array.isArray(w.coachMsgs)) ? w.coachMsgs.map(m=>({from:'coach', text:m.text, at:m.at})) : []; }
+  function coachMsgsOf(w){ return (w && Array.isArray(w.coachMsgs)) ? w.coachMsgs.map(m=>({from:'coach', text:m.text, at:m.at, by:m.by||''})) : []; }
   function planMsgsFor(date, w, athleteId){
     const key = fbKey(date, w);
     let store = {};
@@ -22153,12 +22212,13 @@ nav.tabbar button.active svg{
   }
   function addCoachMessage(athleteId, date, wid, text){
     const at = new Date().toISOString();
+    const by = (window.PulsoCloud && window.PulsoCloud.user && window.PulsoCloud.user.uid) || '';
     // Guarda sempre no plan-messages (o atleta local lê daqui; e o treinador vê a sua mensagem).
-    _pushPlanMsg(date + '|' + wid, { from:'coach', text:text, at:at });
+    _pushPlanMsg(date + '|' + wid, { from:'coach', text:text, at:at, by:by });
     // Atleta cloud: mete também no treino, para a mensagem viajar até ele pela cloud.
     if(isCloudAthlete(athleteId)){
       const cal = cloudPlanCache[athleteId] || {};
-      (cal[date]||[]).forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ if(!Array.isArray(x.coachMsgs)) x.coachMsgs = []; x.coachMsgs.push({ text:text, at:at }); } });
+      (cal[date]||[]).forEach(x=>{ if(String(x.id)===String(wid) || x.name===wid){ if(!Array.isArray(x.coachMsgs)) x.coachMsgs = []; x.coachMsgs.push({ text:text, at:at, by:by }); } });
       cloudPlanCache[athleteId] = cal;
       if(window.PulsoCloud && window.PulsoCloud.saveCoachPlan){ window.PulsoCloud.saveCoachPlan(athleteId, cal).catch(err=>console.warn(err)); }
     }
@@ -24622,7 +24682,8 @@ window.PulsoCloud = {
   fetchCoachPlan,
   pullMyCoachPlan,
   watchAthleteData,
-  startMyCoachPlanWatch
+  startMyCoachPlanWatch,
+  nameForUid
 };
 
 </script>
