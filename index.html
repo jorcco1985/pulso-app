@@ -20439,6 +20439,7 @@ nav.tabbar button.active svg{
   // Recolhe todos os fios com mensagens para o papel atual.
   function collectMsgThreads(){
     const out = [];
+    const allSeen = getPulso('msg-seen-all','') || '';
     try{
       if(_isCoachContext()){
         (cloudAthletes||[]).forEach(a=>{
@@ -20450,7 +20451,8 @@ nav.tabbar button.active svg{
             const parts = key.split('|'); const date = parts[0]; const wid = parts.slice(1).join('|');
             const last = msgs[msgs.length-1];
             const seenTs = _msgSeenTs(key, 'coach');
-            const unread = msgs.filter(m=> (m.from||'athlete')!=='coach' && String(m.at||'')>String(seenTs)).length;
+            const eff = String(seenTs) > String(allSeen) ? seenTs : allSeen;
+            const unread = msgs.filter(m=> (m.from||'athlete')!=='coach' && String(m.at||'')>String(eff)).length;
             out.push({ side:'coach', athleteId:a.id, name:(a.name||'Atleta'), date, wid, key, last, count:msgs.length, unread, folderId:a.id, folderName:(a.name||'Atleta') });
           });
         });
@@ -20467,7 +20469,8 @@ nav.tabbar button.active svg{
           const parts=key.split('|'); const date=parts[0]; const wid=parts.slice(1).join('|');
           const last=msgs[msgs.length-1];
           const seenTs=_msgSeenTs(key,'athlete');
-          const unread=msgs.filter(m=> m.from==='coach' && String(m.at||'')>String(seenTs)).length;
+          const eff = String(seenTs) > String(allSeen) ? seenTs : allSeen;
+          const unread=msgs.filter(m=> m.from==='coach' && String(m.at||'')>String(eff)).length;
           // Descobre o treinador desta conversa (para a pasta) — suporta futuro multi-treinador.
           let coachUid=''; for(let i=msgs.length-1;i>=0;i--){ if(msgs[i].from==='coach' && msgs[i].by){ coachUid=msgs[i].by; break; } }
           const folderId = coachUid || 'coach';
@@ -20541,7 +20544,12 @@ nav.tabbar button.active svg{
     }
   }
   function markAllMsgsSeen(){
-    try{ collectMsgThreads().forEach(t=>{ try{ _markMsgSeen(t.key, t.side, _laterTs(t.last && t.last.at)); }catch(e){} }); }catch(e){}
+    try{
+      let maxAt='';
+      collectMsgThreads().forEach(t=>{ const at=(t.last&&t.last.at)||''; if(String(at)>String(maxAt)) maxAt=at; try{ _markMsgSeen(t.key, t.side, _laterTs(at)); }catch(e){} });
+      // Corte global: tudo o que existe até agora fica lido (à prova de chaves/relógios).
+      setPulso('msg-seen-all', _laterTs(maxAt));
+    }catch(e){}
     try{ updateMsgBadge(); }catch(e){}
     try{ renderMsgInbox(); }catch(e){}
   }
