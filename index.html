@@ -20384,7 +20384,7 @@ nav.tabbar button.active svg{
     if(n > 0){
       _msgAnnounced = true;
       const txt = PL('💬 Tens '+n+' mensagem(ns) de atletas por ler.','💬 You have '+n+' unread athlete message(s).');
-      try{ if(window.pulsoInfo) window.pulsoInfo(txt); else if(window.toast) window.toast(txt); }catch(e){}
+      try{ if(window.toast) window.toast(txt, openMsgInbox); else if(window.pulsoInfo) window.pulsoInfo(txt); }catch(e){}
     }
   }
   function preloadCloudData(){
@@ -20393,6 +20393,7 @@ nav.tabbar button.active svg{
       try{ renderAthletes(); }catch(e){}
       try{ if(typeof renderCoachCalendar === 'function') renderCoachCalendar(); }catch(e){}
       try{ if(typeof renderCoachWeekGlance === 'function') renderCoachWeekGlance(); }catch(e){}
+      try{ updateMsgBadge(); }catch(e){}
     };
     // Fecha escutas de atletas que já não estão na lista.
     try{ Object.keys(_coachedDataUnsubs).forEach(function(uid){ if(!cloudAthletes.some(a=>a.id===uid)){ try{ _coachedDataUnsubs[uid](); }catch(e){} delete _coachedDataUnsubs[uid]; } }); }catch(e){}
@@ -20413,6 +20414,153 @@ nav.tabbar button.active svg{
       }
     });
   }
+  // ======================= Caixa de mensagens (Inbox) =======================
+  // Botão 💬 fixo + painel com as conversas por atleta (treinador) ou do treinador
+  // (atleta). Tocar numa conversa salta direto para o fio no dia de treino.
+  let _msgInboxCache = [];
+  function _isCoachContext(){ return (cloudAthletes && cloudAthletes.length > 0); }
+  function _msgPreview(t){ t = String(t||''); return t.length > 60 ? (t.slice(0,58)+'…') : t; }
+  function _msgWhen(iso){ try{ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(PL('pt-PT','en-GB'),{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString(PL('pt-PT','en-GB'),{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+  // Recolhe todos os fios com mensagens para o papel atual.
+  function collectMsgThreads(){
+    const out = [];
+    try{
+      if(_isCoachContext()){
+        (cloudAthletes||[]).forEach(a=>{
+          const store = safeParse((cloudDataCache[a.id]||{})['plan-messages'], {}) || {};
+          Object.keys(store).forEach(key=>{
+            const msgs = (store[key]||[]).slice(); if(!msgs.length) return;
+            msgs.sort((x,y)=>String(x.at||'').localeCompare(String(y.at||'')));
+            const parts = key.split('|'); const date = parts[0]; const wid = parts.slice(1).join('|');
+            const last = msgs[msgs.length-1];
+            const seenTs = _msgSeenTs(key, 'coach');
+            const unread = msgs.filter(m=> (m.from||'athlete')!=='coach' && String(m.at||'')>String(seenTs)).length;
+            out.push({ side:'coach', athleteId:a.id, name:(a.name||'Atleta'), date, wid, key, last, count:msgs.length, unread });
+          });
+        });
+      } else {
+        const cal = getCalendarFor('local') || {};
+        const merged = {};
+        Object.keys(cal).forEach(day=>{ (cal[day]||[]).forEach(w=>{ if(Array.isArray(w.coachMsgs)&&w.coachMsgs.length){ const key=day+'|'+((w.id||w.name)||'x'); merged[key]=(merged[key]||[]).concat(w.coachMsgs.map(m=>({from:'coach',text:m.text,at:m.at}))); } }); });
+        const local = getPulso('plan-messages', {}) || {};
+        Object.keys(local).forEach(key=>{ merged[key]=(merged[key]||[]).concat(local[key]||[]); });
+        Object.keys(merged).forEach(key=>{
+          const msgs = merged[key]; if(!msgs.length) return;
+          msgs.sort((x,y)=>String(x.at||'').localeCompare(String(y.at||'')));
+          const parts=key.split('|'); const date=parts[0]; const wid=parts.slice(1).join('|');
+          const last=msgs[msgs.length-1];
+          const seenTs=_msgSeenTs(key,'athlete');
+          const unread=msgs.filter(m=> m.from==='coach' && String(m.at||'')>String(seenTs)).length;
+          out.push({ side:'athlete', athleteId:'local', name:PL('Treinador','Coach'), date, wid, key, last, count:msgs.length, unread });
+        });
+      }
+    }catch(e){}
+    out.sort((a,b)=> String((b.last&&b.last.at)||'').localeCompare(String((a.last&&a.last.at)||'')));
+    return out;
+  }
+  function msgUnreadTotal(){ let n=0; try{ collectMsgThreads().forEach(t=> n+=t.unread); }catch(e){} return n; }
+  function updateMsgBadge(){
+    try{
+      ensureMsgInbox();
+      const b=document.getElementById('pulso-msg-badge'); if(!b) return;
+      const n=msgUnreadTotal();
+      if(n>0){ b.textContent = n>99?'99+':String(n); b.hidden=false; } else { b.hidden=true; }
+    }catch(e){}
+  }
+  function renderMsgInbox(){
+    const list=document.getElementById('pulso-msg-list'); if(!list) return;
+    const threads=collectMsgThreads(); _msgInboxCache=threads;
+    if(!threads.length){ list.innerHTML='<div class="coach-empty" style="text-align:center; padding:20px; color:var(--text-muted);">'+PL('Ainda não há mensagens.','No messages yet.')+'</div>'; return; }
+    // Agrupa por atleta (treinador) / por treinador (atleta).
+    const groups={}; const order=[];
+    threads.forEach((t,idx)=>{ if(!groups[t.name]){ groups[t.name]=[]; order.push(t.name); } groups[t.name].push(Object.assign({idx}, t)); });
+    let html='';
+    order.forEach(name=>{
+      const items=groups[name];
+      const gUnread=items.reduce((s,i)=>s+i.unread,0);
+      html+='<div class="pulso-msg-group"><div class="pulso-msg-gname">'+esc(name)+(gUnread?' <span class="pulso-msg-pill">'+gUnread+'</span>':'')+'</div>';
+      items.forEach(it=>{
+        const who = it.last && it.last.from==='coach' ? PL('Tu: ','You: ') : '';
+        html+='<button type="button" class="pulso-msg-item" data-msg-open="'+it.idx+'">'
+          +'<div class="pulso-msg-row"><span class="pulso-msg-day">'+esc(fmtDayLabel(it.date))+'</span>'+(it.unread?'<span class="pulso-msg-dot"></span>':'')+'</div>'
+          +'<div class="pulso-msg-prev">'+esc(who+_msgPreview(it.last&&it.last.text))+'</div>'
+          +'<div class="pulso-msg-when">'+esc(_msgWhen(it.last&&it.last.at))+'</div>'
+          +'</button>';
+      });
+      html+='</div>';
+    });
+    list.innerHTML=html;
+  }
+  function openMsgInbox(){ ensureMsgInbox(); const ov=document.getElementById('pulso-msg-inbox'); if(!ov) return; renderMsgInbox(); ov.hidden=false; ov.setAttribute('aria-hidden','false'); }
+  function closeMsgInbox(){ const ov=document.getElementById('pulso-msg-inbox'); if(ov){ ov.hidden=true; ov.setAttribute('aria-hidden','true'); } }
+  function _scrollToThread(date, athleteId){
+    setTimeout(function(){
+      let el=null;
+      try{ el=document.querySelector('.cp-thread[data-msg-date="'+date+'"][data-msg-athlete="'+athleteId+'"]'); }catch(e){}
+      if(!el){ try{ el=document.querySelector('.cp-thread[data-msg-date="'+date+'"]'); }catch(e){} }
+      if(el){ try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} el.classList.add('pulso-thread-flash'); setTimeout(()=>{ try{ el.classList.remove('pulso-thread-flash'); }catch(e){} },1600); }
+      else { const b=document.getElementById('coach-cal-day-body')||document.getElementById('athlete-cal-day-body'); if(b){ try{ b.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} } }
+    }, 380);
+  }
+  function openMsgThread(item){
+    if(!item) return;
+    closeMsgInbox();
+    if(item.side==='coach'){
+      selectedAthleteId=item.athleteId; coachCalendarFilter=item.athleteId; coachAthletePicked=true;
+      const cs=document.getElementById('coach-calendar-athlete'); if(cs) cs.value=item.athleteId;
+      loadSelectedAthleteData(function(){
+        try{ setCoachTab('treinos'); }catch(e){}
+        coachSelectedDay=item.date;
+        try{ renderCoachCalendar(); }catch(e){}
+        try{ const cc=document.getElementById('coach-content'); if(cc) cc.scrollTop=0; }catch(e){}
+        _scrollToThread(item.date, item.athleteId);
+        try{ updateMsgBadge(); }catch(e){}
+      });
+    } else {
+      try{ document.querySelector('nav.tabbar button[data-tab="treinos"]')?.click(); }catch(e){}
+      athleteSelectedDay=item.date;
+      try{ renderAthleteCalendar(); }catch(e){}
+      _scrollToThread(item.date, 'local');
+      try{ updateMsgBadge(); }catch(e){}
+    }
+  }
+  function ensureMsgInbox(){
+    if(document.getElementById('pulso-msg-btn')) return;
+    try{
+      const st=document.createElement('style');
+      st.textContent='#pulso-msg-btn{position:fixed; top:calc(12px + env(safe-area-inset-top)); right:18px; z-index:5000; width:44px; height:44px; border-radius:999px; background:rgba(15,22,38,.92); border:1px solid rgba(53,217,166,.45); color:var(--teal); font-size:19px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center;}'
+        +'#pulso-msg-btn[hidden]{display:none;}'
+        +'.pulso-msg-badge{position:absolute; top:-4px; right:-4px; min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:#F2555A; color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.4);}'
+        +'.pulso-msg-group{margin-bottom:14px;} .pulso-msg-gname{font-size:13px; font-weight:800; color:var(--teal); margin:0 0 7px; display:flex; align-items:center; gap:8px;}'
+        +'.pulso-msg-pill{background:#F2555A; color:#fff; font-size:11px; font-weight:800; border-radius:999px; padding:1px 7px;}'
+        +'.pulso-msg-item{display:block; width:100%; text-align:left; background:rgba(9,14,25,.5); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:10px 12px; margin-bottom:8px; cursor:pointer; color:var(--text);}'
+        +'.pulso-msg-row{display:flex; align-items:center; justify-content:space-between; gap:8px;} .pulso-msg-day{font-size:12.5px; font-weight:800; color:#fff;}'
+        +'.pulso-msg-dot{width:9px; height:9px; border-radius:50%; background:#F2555A; flex:0 0 auto;}'
+        +'.pulso-msg-prev{font-size:13px; color:var(--text); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}'
+        +'.pulso-msg-when{font-size:11px; color:var(--text-muted); margin-top:2px;}'
+        +'.pulso-thread-flash{animation:pulsoThreadFlash 1.6s ease;} @keyframes pulsoThreadFlash{0%,100%{box-shadow:0 0 0 0 rgba(53,217,166,0);} 30%{box-shadow:0 0 0 3px rgba(53,217,166,.55);}}';
+      document.head.appendChild(st);
+      const btn=document.createElement('button');
+      btn.id='pulso-msg-btn'; btn.type='button'; btn.setAttribute('aria-label', PL('Mensagens','Messages'));
+      btn.innerHTML='💬<span id="pulso-msg-badge" class="pulso-msg-badge" hidden>0</span>';
+      btn.addEventListener('click', openMsgInbox);
+      document.body.appendChild(btn);
+      const ov=document.createElement('div');
+      ov.id='pulso-msg-inbox'; ov.className='pc-sheet'; ov.hidden=true; ov.setAttribute('aria-hidden','true');
+      ov.innerHTML='<div class="pc-sheet-inner"><div class="pc-sheet-head"><h3>💬 '+PL('Mensagens','Messages')+'</h3><button type="button" id="pulso-msg-close" class="pc-btn tiny">'+PL('Fechar','Close')+'</button></div><div id="pulso-msg-list" class="scroll-y" style="max-height:70vh; overflow-y:auto;"></div></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click', function(e){ if(e.target===ov) closeMsgInbox(); });
+      const cl=document.getElementById('pulso-msg-close'); if(cl) cl.addEventListener('click', closeMsgInbox);
+      const lst=document.getElementById('pulso-msg-list');
+      if(lst) lst.addEventListener('click', function(e){
+        const it=e.target.closest('[data-msg-open]'); if(!it) return;
+        const idx=parseInt(it.getAttribute('data-msg-open'),10);
+        if(_msgInboxCache && _msgInboxCache[idx]) openMsgThread(_msgInboxCache[idx]);
+      });
+    }catch(e){ console.warn('ensureMsgInbox', e); }
+  }
+  try{ if(typeof window!=='undefined'){ window.pulsoOpenMsgInbox = openMsgInbox; } }catch(e){}
+
   function athleteGetter(athleteId){
     if(athleteId === 'local' || !isCloudAthlete(athleteId)){
       return function(key){
@@ -22023,6 +22171,7 @@ nav.tabbar button.active svg{
     try{ renderAthletePlanCard(); }catch(_){}
     try{ if(typeof renderAthleteCalDay === 'function') renderAthleteCalDay(); }catch(_){}
     try{ if(typeof renderCoachDay === 'function') renderCoachDay(); }catch(_){}
+    try{ if(typeof updateMsgBadge === 'function') updateMsgBadge(); }catch(_){}
     send.disabled = false;
   });
   // Marca as mensagens como lidas quando tocas na caixa de escrever.
@@ -22032,6 +22181,7 @@ nav.tabbar button.active svg{
     const date = thread.getAttribute('data-msg-date'), wid = thread.getAttribute('data-msg-wid'), side = thread.getAttribute('data-msg-side');
     try{ _markMsgSeen(date+'|'+wid, side); }catch(_){}
     const b = thread.querySelector('.cp-unread'); if(b) b.remove();
+    try{ if(typeof updateMsgBadge === 'function') updateMsgBadge(); }catch(_){}
   });
 
   function renderAthletePlanCard(){
@@ -22945,11 +23095,13 @@ nav.tabbar button.active svg{
       preloadCloudPlans();
       preloadCloudData();
       try{ renderAthletes(); fillCoachAthleteSelectors(); renderCoachCalendar(); }catch(e){}
+      try{ ensureMsgInbox(); updateMsgBadge(); }catch(e){}
     });
     // O atleta recebeu treinos prescritos pelo treinador (via cloud) — atualiza a vista.
     document.addEventListener('pulso:coach-plan-updated', function(){
       try{ if(window.PulsoRenderAthleteSide) window.PulsoRenderAthleteSide(); }catch(e){}
       try{ renderCoachCalendar(); }catch(e){}
+      try{ ensureMsgInbox(); updateMsgBadge(); }catch(e){}
     });
     // Explicação da bola de disponibilidade (Saúde Feminina).
     document.addEventListener('click', function(e){
@@ -22959,8 +23111,7 @@ nav.tabbar button.active svg{
     refreshCloudAthletes();
     preloadCloudPlans();
     preloadCloudData();
-
-    // Calendário do treinador (delegação)
+    try{ ensureMsgInbox(); updateMsgBadge(); }catch(e){}
     document.getElementById('coach-calendar')?.addEventListener('click', (e)=>{
       if(e.target.closest('[data-cal-prev]')){ coachCalRef = new Date(coachCalRef.getFullYear(), coachCalRef.getMonth()-1, 1); renderCoachCalendar(); return; }
       if(e.target.closest('[data-cal-next]')){ coachCalRef = new Date(coachCalRef.getFullYear(), coachCalRef.getMonth()+1, 1); renderCoachCalendar(); return; }
@@ -23003,24 +23154,36 @@ nav.tabbar button.active svg{
     document.getElementById('coach-calendar-athlete')?.addEventListener('change', function(){
       coachCalendarFilter = this.value || 'all';
       coachSelectedDay = null;
-      // Escolher um atleta no calendário passa a carregar TAMBÉM os dados dele
-      // (feedback, tempo, mensagens, treinos marcados) e a ouvi-los em tempo real.
+      // Redesenha calendário, semana E periodização (a periodização segue o atleta do calendário).
+      const after = function(){
+        try{ renderCoachCalendar(); }catch(e){}
+        try{ renderCoachWeekGlance(); }catch(e){}   // inclui renderCoachPeriodCard()
+        try{ renderCoachPeriodCard(); }catch(e){}
+      };
+      // Escolher um atleta no calendário carrega TAMBÉM os dados dele
+      // (feedback, tempo, mensagens, treinos marcados) e ouve-os em tempo real.
       if(coachCalendarFilter && coachCalendarFilter !== 'all' && cloudAthletes.some(a=>a.id===coachCalendarFilter)){
         selectedAthleteId = coachCalendarFilter;
-        loadSelectedAthleteData(function(){ renderCoachCalendar(); });
+        loadSelectedAthleteData(after);
       } else {
-        renderCoachCalendar();
+        after();
       }
     });
     document.getElementById('coach-athlete-select')?.addEventListener('change', function(){
       if(!this.value){ coachAthletePicked = false; renderAthleteData(); return; }
       selectedAthleteId = this.value || 'local';
       coachAthletePicked = true;
+      // Mantém o calendário e a periodização em sincronia com o atleta escolhido aqui.
+      coachCalendarFilter = selectedAthleteId;
+      const _cs = document.getElementById('coach-calendar-athlete'); if(_cs) _cs.value = selectedAthleteId;
       loadSelectedAthleteData(()=>{
         renderAthletes();
         fillCoachAthleteSelectors();
         fillDayPicker();
         renderAthleteData();
+        try{ renderCoachCalendar(); }catch(e){}
+        try{ renderCoachWeekGlance(); }catch(e){}
+        try{ renderCoachPeriodCard(); }catch(e){}
       });
     });
     document.getElementById('coach-athlete-day')?.addEventListener('change', renderAthleteData);
