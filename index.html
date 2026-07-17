@@ -20509,6 +20509,9 @@ nav.tabbar button.active svg{
   function openMsgThread(item){
     if(!item) return;
     closeMsgInbox();
+    // Abrir a conversa marca-a como lida (para o número lá em cima descer).
+    try{ _markMsgSeen(item.key, item.side); }catch(e){}
+    try{ updateMsgBadge(); }catch(e){}
     if(item.side==='coach'){
       // Garante que o modo Treinador está visível.
       try{ const cc=document.getElementById('coach-content'); if(cc && getComputedStyle(cc).display==='none'){ const app=document.getElementById('app-content'); if(app) app.style.display='none'; const lk=document.getElementById('app-locked'); if(lk) lk.style.display='none'; cc.style.display='flex'; cc.setAttribute('aria-hidden','false'); } }catch(e){}
