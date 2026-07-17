@@ -20493,34 +20493,43 @@ nav.tabbar button.active svg{
   }
   function openMsgInbox(){ ensureMsgInbox(); const ov=document.getElementById('pulso-msg-inbox'); if(!ov) return; renderMsgInbox(); ov.hidden=false; ov.setAttribute('aria-hidden','false'); }
   function closeMsgInbox(){ const ov=document.getElementById('pulso-msg-inbox'); if(ov){ ov.hidden=true; ov.setAttribute('aria-hidden','true'); } }
-  function _scrollToThread(date, athleteId){
-    setTimeout(function(){
-      let el=null;
-      try{ el=document.querySelector('.cp-thread[data-msg-date="'+date+'"][data-msg-athlete="'+athleteId+'"]'); }catch(e){}
-      if(!el){ try{ el=document.querySelector('.cp-thread[data-msg-date="'+date+'"]'); }catch(e){} }
-      if(el){ try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} el.classList.add('pulso-thread-flash'); setTimeout(()=>{ try{ el.classList.remove('pulso-thread-flash'); }catch(e){} },1600); }
-      else { const b=document.getElementById('coach-cal-day-body')||document.getElementById('athlete-cal-day-body'); if(b){ try{ b.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} } }
-    }, 380);
+  function _scrollToThread(date, athleteId, tries){
+    tries = tries||0;
+    let el=null;
+    try{ el=document.querySelector('.cp-thread[data-msg-date="'+date+'"][data-msg-athlete="'+athleteId+'"]'); }catch(e){}
+    if(!el){ try{ el=document.querySelector('.cp-thread[data-msg-date="'+date+'"]'); }catch(e){} }
+    if(el){
+      try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
+      el.classList.add('pulso-thread-flash'); setTimeout(()=>{ try{ el.classList.remove('pulso-thread-flash'); }catch(e){} },1600);
+      return;
+    }
+    if(tries < 8){ setTimeout(()=>_scrollToThread(date, athleteId, tries+1), 200); return; }
+    const b=document.getElementById('coach-cal-day-body')||document.getElementById('athlete-cal-day-body'); if(b){ try{ b.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} }
   }
   function openMsgThread(item){
     if(!item) return;
     closeMsgInbox();
     if(item.side==='coach'){
+      // Garante que o modo Treinador está visível.
+      try{ const cc=document.getElementById('coach-content'); if(cc && getComputedStyle(cc).display==='none'){ const app=document.getElementById('app-content'); if(app) app.style.display='none'; const lk=document.getElementById('app-locked'); if(lk) lk.style.display='none'; cc.style.display='flex'; cc.setAttribute('aria-hidden','false'); } }catch(e){}
+      // Troca SEMPRE para o atleta da mensagem (mesmo que estivesses noutro).
       selectedAthleteId=item.athleteId; coachCalendarFilter=item.athleteId; coachAthletePicked=true;
       const cs=document.getElementById('coach-calendar-athlete'); if(cs) cs.value=item.athleteId;
+      const sel=document.getElementById('coach-athlete-select'); if(sel) sel.value=item.athleteId;
       loadSelectedAthleteData(function(){
         try{ setCoachTab('treinos'); }catch(e){}
         coachSelectedDay=item.date;
-        try{ renderCoachCalendar(); }catch(e){}
+        try{ renderCoachCalendar(); }catch(e){}     // renderiza também o dia (renderCoachDay)
+        try{ renderAthleteData(); }catch(e){}
         try{ const cc=document.getElementById('coach-content'); if(cc) cc.scrollTop=0; }catch(e){}
-        _scrollToThread(item.date, item.athleteId);
+        _scrollToThread(item.date, item.athleteId, 0);
         try{ updateMsgBadge(); }catch(e){}
       });
     } else {
       try{ document.querySelector('nav.tabbar button[data-tab="treinos"]')?.click(); }catch(e){}
       athleteSelectedDay=item.date;
       try{ renderAthleteCalendar(); }catch(e){}
-      _scrollToThread(item.date, 'local');
+      _scrollToThread(item.date, 'local', 0);
       try{ updateMsgBadge(); }catch(e){}
     }
   }
