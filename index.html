@@ -20358,6 +20358,7 @@ nav.tabbar button.active svg{
   let cloudPlanCache = {};  // uid -> calendário prescrito (coachPlans), carregado ao selecionar
   let cloudDataCache = {};  // uid -> dados (keys) do atleta cloud, para calcular prontidão na lista
   let _coachedDataUnsubs = {};
+  let _msgSeenAllMem = ''; // corte global em memória (resistente a localStorage cheio)
   let _msgAnnounceTimer = null, _msgAnnounced = false;
   // Conta mensagens de atletas ainda não vistas pelo treinador (por fio).
   function coachUnreadMessages(){
@@ -20439,7 +20440,8 @@ nav.tabbar button.active svg{
   // Recolhe todos os fios com mensagens para o papel atual.
   function collectMsgThreads(){
     const out = [];
-    const allSeen = getPulso('msg-seen-all','') || '';
+    const allSeen0 = getPulso('msg-seen-all','') || '';
+    const allSeen = String(allSeen0) > String(_msgSeenAllMem) ? allSeen0 : _msgSeenAllMem;
     try{
       if(_isCoachContext()){
         (cloudAthletes||[]).forEach(a=>{
@@ -20544,14 +20546,20 @@ nav.tabbar button.active svg{
     }
   }
   function markAllMsgsSeen(){
+    let before=0, after=0, saved='—';
     try{
       let maxAt='';
-      collectMsgThreads().forEach(t=>{ const at=(t.last&&t.last.at)||''; if(String(at)>String(maxAt)) maxAt=at; try{ _markMsgSeen(t.key, t.side, _laterTs(at)); }catch(e){} });
-      // Corte global: tudo o que existe até agora fica lido (à prova de chaves/relógios).
-      setPulso('msg-seen-all', _laterTs(maxAt));
-    }catch(e){}
+      const threads = collectMsgThreads();
+      threads.forEach(t=>{ before+=t.unread; const at=(t.last&&t.last.at)||''; if(String(at)>String(maxAt)) maxAt=at; try{ _markMsgSeen(t.key, t.side, _laterTs(at)); }catch(e){} });
+      const cut = _laterTs(maxAt);
+      _msgSeenAllMem = cut;                 // corte em memória (funciona sempre nesta sessão)
+      setPulso('msg-seen-all', cut);        // e tenta persistir (pode falhar se storage cheio)
+      saved = (getPulso('msg-seen-all','') === cut) ? 'gravado' : 'só memória';
+      after = collectMsgThreads().reduce((s,t)=>s+t.unread,0);
+    }catch(e){ saved='erro'; }
     try{ updateMsgBadge(); }catch(e){}
     try{ renderMsgInbox(); }catch(e){}
+    try{ if(window.toast) window.toast(PL('Lidas: '+before+' → '+after+' · '+saved, 'Read: '+before+' → '+after+' · '+saved)); }catch(e){}
   }
   function openMsgInbox(){ ensureMsgInbox(); const ov=document.getElementById('pulso-msg-inbox'); if(!ov) return; _msgInboxFolder=null; renderMsgInbox(); ov.hidden=false; ov.setAttribute('aria-hidden','false'); }
   function closeMsgInbox(){ const ov=document.getElementById('pulso-msg-inbox'); if(ov){ ov.hidden=true; ov.setAttribute('aria-hidden','true'); } }
