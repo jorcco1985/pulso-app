@@ -11275,7 +11275,7 @@ nav.tabbar button.active svg{
         const lo = Math.round(lowG), hi = Math.round(highG);
         let word, col;
         if(value < lowG){ word = PL('abaixo do ideal','below ideal'); col = '#F2B84B'; }
-        else if(value > highG){ word = PL('acima do ideal','above ideal'); col = '#F2B84B'; }
+        else if(value > highG){ word = PL('acima do ideal','above ideal'); col = '#F2555A'; }
         else { word = PL('no intervalo ideal','within ideal'); col = 'var(--teal)'; }
         el.innerHTML = `${comp}% <small style="color:${col};">(${word} · ${lo}–${hi} g)</small>`;
       } else {
@@ -11845,12 +11845,12 @@ nav.tabbar button.active svg{
       const naEl=document.getElementById('kcal-na-val'), naRef=document.getElementById('kcal-na-ref');
       const feEl=document.getElementById('kcal-fe-val'), feRef=document.getElementById('kcal-fe-ref');
       const fibEl=document.getElementById('kcal-fib-val'), fibRef=document.getElementById('kcal-fib-ref');
-      const MTEAL='var(--teal)', MAMBER='#F2B84B';
+      const MTEAL='var(--teal)', MAMBER='#F2B84B', MRED='#F2555A';
       const wIn=PL('no ideal','within ideal'), wOver=PL('acima do ideal','above ideal'), wUnder=PL('abaixo do ideal','below ideal');
       // SAL — limite máximo (5 g): só sinaliza quando passa
       const saltOver = saltG > 5;
       if(naEl){ naEl.textContent = (Math.round(saltG*10)/10).toString().replace('.',',') + ' g'; }
-      if(naRef){ naRef.innerHTML = '(' + (saltOver ? wOver : wIn) + ' · ' + PL('máx. 5 g','max 5 g') + ')'; naRef.style.color = saltOver ? MAMBER : MTEAL; }
+      if(naRef){ naRef.innerHTML = '(' + (saltOver ? wOver : wIn) + ' · ' + PL('máx. 5 g','max 5 g') + ')'; naRef.style.color = saltOver ? MRED : MTEAL; }
       // FERRO — referência ~14 mg (abaixo de 8 mg sinaliza baixo)
       const feLow = sumFe < 8;
       if(feEl){ feEl.textContent = Math.round(sumFe) + ' mg'; }
@@ -20444,10 +20444,26 @@ nav.tabbar button.active svg{
     }catch(e){}
   }
   // Carrega (ou limpa) o override com os dados do atleta cloud selecionado e depois re-renderiza.
+  let _athleteDataUnsub = null;
+  function stopAthleteDataWatch(){ try{ if(_athleteDataUnsub){ _athleteDataUnsub(); _athleteDataUnsub = null; } }catch(e){} }
+  // Ouve em tempo real os dados do atleta cloud selecionado: feedback, tempo registado,
+  // mensagens e treinos marcados aparecem de imediato no lado do treinador.
+  function startAthleteDataWatch(uid){
+    stopAthleteDataWatch();
+    if(!(window.PulsoCloud && typeof window.PulsoCloud.watchAthleteData === 'function')) return;
+    _athleteDataUnsub = window.PulsoCloud.watchAthleteData(uid, function(keys){
+      if(cloudOverrideUid !== uid) return;
+      coachCloudOverride = keys || {};
+      try{ checkAthleteFeedbackForCoach(uid, coachCloudOverride, (currentAthlete()||{}).name); }catch(e){}
+      try{ if(typeof renderCoachCalendar === 'function') renderCoachCalendar(); }catch(e){}
+      try{ if(typeof renderCoachDay === 'function') renderCoachDay(); }catch(e){}
+      try{ if(typeof renderAthleteData === 'function') renderAthleteData(); }catch(e){}
+    });
+  }
   function loadSelectedAthleteData(done){
     const isCloud = cloudAthletes.some(a=>a.id===selectedAthleteId);
-    if(!isCloud){ coachCloudOverride = null; cloudOverrideUid = null; if(done) done(); return; }
-    if(cloudOverrideUid === selectedAthleteId && coachCloudOverride){ if(done) done(); return; }
+    if(!isCloud){ coachCloudOverride = null; cloudOverrideUid = null; stopAthleteDataWatch(); if(done) done(); return; }
+    if(cloudOverrideUid === selectedAthleteId && coachCloudOverride){ startAthleteDataWatch(selectedAthleteId); if(done) done(); return; }
     const uid = selectedAthleteId;
     if(window.PulsoCloud && typeof window.PulsoCloud.fetchAthleteData === 'function'){
       toast(PL('A carregar dados do atleta…','Loading athlete data…'));
@@ -20459,6 +20475,7 @@ nav.tabbar button.active svg{
         coachCloudOverride = keys || {}; cloudOverrideUid = uid;
         cloudPlanCache[uid] = plan || {};
         try{ checkAthleteFeedbackForCoach(uid, coachCloudOverride, (currentAthlete()||{}).name); }catch(e){}
+        startAthleteDataWatch(uid);
         if(done) done();
       }).catch(()=>{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); });
     }else{ coachCloudOverride = {}; cloudOverrideUid = uid; if(done) done(); }
@@ -20605,17 +20622,32 @@ nav.tabbar button.active svg{
 
     const rows = athletes.map(a=>{
       const plan = getCalendarFor(a.id) || {};
+      const store = fbStoreFor(a.id); // null => dados do atleta ainda não carregados
       const cells = days.map(day=>{
-        const planned = (plan[day] || []).length;
-        const done = (((a.id === 'local') ? ((localDone[day] || []).length > 0) : false) || (manualDoneItems(a.id, day).length > 0));
-        let cls = 'cwg-none';
-        if(done){ cls = 'cwg-done'; }
-        else if(planned){
-          // No passado e sabemos que não foi feito (só garantido no atleta local) → em falta.
-          if(day < today && a.id === 'local') cls = 'cwg-missed';
-          else cls = 'cwg-planned';
+        const items = plan[day] || [];
+        const planned = items.length;
+        let done = (a.id === 'local') ? ((localDone[day] || []).length > 0) : false;
+        let anySkip = false;
+        if(store){
+          items.forEach(w=>{
+            const fb = store[day + '|' + ((w.id||w.name)||'x')];
+            if(fb && fb.status){
+              if(fb.status === 'done' || fb.status === 'diff') done = true;
+              else if(fb.status === 'skip') anySkip = true;
+            }
+          });
         }
-        const label = (a.name||'') + ' · ' + day + (planned?(' · '+planned+' '+PL('planeado(s)','planned')):'') + (done?(' · '+PL('feito','done')):'');
+        let cls = 'cwg-none', st = '';
+        if(done){ cls = 'cwg-done'; st = PL('feito','done'); }
+        else if(anySkip){ cls = 'cwg-missed'; st = PL('não feito','not done'); }
+        else if(planned){
+          // No passado, se já temos os dados do atleta (local, ou cloud aberto) e não há
+          // marcação de feito → em falta. Sem dados carregados, mantém "planeado".
+          const known = (a.id === 'local') || (store !== null);
+          if(day < today && known){ cls = 'cwg-missed'; st = PL('não feito','not done'); }
+          else { cls = 'cwg-planned'; st = PL('planeado','planned'); }
+        }
+        const label = (a.name||'') + ' · ' + day + (planned?(' · '+planned+' '+PL('treino(s)','workout(s)')):'') + (st?(' · '+st):'');
         return '<div class="cwg-cell"><span class="cwg-dot '+cls+'" title="'+esc(label)+'"></span></div>';
       }).join('');
       return '<div class="cwg-row"><div class="cwg-name" title="'+esc(a.name||'')+'">'+esc((a.name||'A').length>10 ? (a.name.slice(0,9)+'…') : a.name)+'</div>'+cells+'</div>';
@@ -22918,7 +22950,14 @@ nav.tabbar button.active svg{
     document.getElementById('coach-calendar-athlete')?.addEventListener('change', function(){
       coachCalendarFilter = this.value || 'all';
       coachSelectedDay = null;
-      renderCoachCalendar();
+      // Escolher um atleta no calendário passa a carregar TAMBÉM os dados dele
+      // (feedback, tempo, mensagens, treinos marcados) e a ouvi-los em tempo real.
+      if(coachCalendarFilter && coachCalendarFilter !== 'all' && cloudAthletes.some(a=>a.id===coachCalendarFilter)){
+        selectedAthleteId = coachCalendarFilter;
+        loadSelectedAthleteData(function(){ renderCoachCalendar(); });
+      } else {
+        renderCoachCalendar();
+      }
     });
     document.getElementById('coach-athlete-select')?.addEventListener('change', function(){
       if(!this.value){ coachAthletePicked = false; renderAthleteData(); return; }
@@ -23375,7 +23414,7 @@ nav.tabbar button.active svg{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile, sendPasswordResetEmail, sendEmailVerification, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAt2hVgPVLWOCFQvcAwf2RNnsZRAZn_m-Y",
@@ -23394,10 +23433,17 @@ const db = getFirestore(app);
 const $ = (id) => document.getElementById(id);
 function cloudToast(msg){
   try{
-    const t = $('toast'); if(!t) return;
-    t.textContent = msg; t.classList.add('show');
+    let t = document.getElementById('pulso-cloud-toast');
+    if(!t){
+      t = document.createElement('div');
+      t.id = 'pulso-cloud-toast';
+      t.style.cssText = 'position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:2147483647; max-width:88%; text-align:center; padding:11px 16px; border-radius:999px; background:rgba(16,26,44,.96); border:1px solid rgba(255,255,255,.12); color:#fff; font-size:13.5px; box-shadow:0 8px 24px rgba(0,0,0,.45); opacity:0; transition:opacity .2s ease; pointer-events:none;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    requestAnimationFrame(function(){ t.style.opacity = '1'; });
     clearTimeout(cloudToast._t);
-    cloudToast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+    cloudToast._t = setTimeout(function(){ t.style.opacity = '0'; }, 2600);
   }catch(e){}
 }
 function esc(v){ return String(v ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -23561,28 +23607,48 @@ function hydrateLocalFrom(keys){
 let currentUser = null;
 let currentRole = 'athlete';
 let uploadTimer = null;
+let uploadPending = false;
 
 // ---------- sincronização ----------
+async function _writeAthleteDataNow(){
+  if(!currentUser) return;
+  uploadPending = false;
+  clearTimeout(uploadTimer); uploadTimer = null;
+  setSyncStatus('sync', PL('A sincronizar','Syncing'));
+  try{
+    const keys = localPulsoSnapshot();
+    await setDoc(doc(db, 'athleteData', currentUser.uid), {
+      keys,
+      name: (currentUser.displayName || ''),
+      email: (currentUser.email || ''),
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    // Marca de que estes dados locais pertencem a esta conta e já foram sincronizados
+    // (usado para isolar contas no mesmo dispositivo). Não é sincronizado.
+    try{ localStorage.setItem('pulso:_local-owner', currentUser.uid); localStorage.setItem('pulso:_synced-once', '1'); }catch(e){}
+    setSyncStatus('ok', PL('Sincronizado','Synced'));
+  }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); setSyncStatus('off', PL('Sem sincronização','Not synced')); uploadPending = true; }
+}
+// Debounce curto para juntar escritas seguidas. O envio real é sempre garantido pelo
+// flush nos momentos críticos e ao sair da app.
 async function uploadData(){
   if(!currentUser) return;
+  uploadPending = true;
   clearTimeout(uploadTimer);
-  uploadTimer = setTimeout(async ()=>{
-    setSyncStatus('sync', PL('A sincronizar','Syncing'));
-    try{
-      const keys = localPulsoSnapshot();
-      await setDoc(doc(db, 'athleteData', currentUser.uid), {
-        keys,
-        name: (currentUser.displayName || ''),
-        email: (currentUser.email || ''),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      // Marca de que estes dados locais pertencem a esta conta e já foram sincronizados
-      // (usado para isolar contas no mesmo dispositivo). Não é sincronizado.
-      try{ localStorage.setItem('pulso:_local-owner', currentUser.uid); localStorage.setItem('pulso:_synced-once', '1'); }catch(e){}
-      setSyncStatus('ok', PL('Sincronizado','Synced'));
-    }catch(err){ console.warn('Falha ao sincronizar para a cloud', err); setSyncStatus('off', PL('Sem sincronização','Not synced')); }
-  }, 1400);
+  uploadTimer = setTimeout(function(){ _writeAthleteDataNow(); }, 600);
 }
+// Força o envio imediato. Fundamental no iPhone/PWA: ao fechar/minimizar a app o iOS
+// congela os temporizadores, por isso um envio adiado (setTimeout) perder-se-ia.
+async function flushUpload(){
+  if(!currentUser) return;
+  if(!uploadPending && !uploadTimer) return;
+  await _writeAthleteDataNow();
+}
+try{
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'hidden'){ flushUpload(); } });
+  window.addEventListener('pagehide', function(){ flushUpload(); });
+  window.addEventListener('blur', function(){ if(uploadPending) flushUpload(); });
+}catch(e){}
 
 async function ensureUserDoc(user){
   const ref = doc(db, 'users', user.uid);
@@ -23765,6 +23831,32 @@ async function pullMyCoachPlan(){
     localStorage.setItem('pulso:cloud-coach-plan', JSON.stringify(cal || {}));
     document.dispatchEvent(new Event('pulso:coach-plan-updated'));
   }catch(e){ console.warn('pullMyCoachPlan falhou', e); }
+}
+
+// ---------- Sincronização em tempo real (push automático) ----------
+let _coachPlanUnsub = null;
+// O ATLETA ouve o seu plano em coachPlans/{uid}: alterações e mensagens do treinador
+// chegam na hora, sem ser preciso atualizar a app.
+function startMyCoachPlanWatch(){
+  try{ if(_coachPlanUnsub){ _coachPlanUnsub(); _coachPlanUnsub = null; } }catch(e){}
+  if(!currentUser) return;
+  try{
+    _coachPlanUnsub = onSnapshot(doc(db, 'coachPlans', currentUser.uid), function(s){
+      const cal = (s.exists() && s.data() && s.data().calendar) ? s.data().calendar : {};
+      try{ localStorage.setItem('pulso:cloud-coach-plan', JSON.stringify(cal || {})); }catch(e){}
+      try{ document.dispatchEvent(new Event('pulso:coach-plan-updated')); }catch(e){}
+    }, function(err){ console.warn('watch coachPlan', err); });
+  }catch(e){ console.warn('startMyCoachPlanWatch', e); }
+}
+// O TREINADOR ouve os dados do atleta selecionado em athleteData/{uid}: feedback,
+// mensagens e treinos marcados chegam na hora. Devolve a função para cancelar.
+function watchAthleteData(uid, cb){
+  try{
+    return onSnapshot(doc(db, 'athleteData', uid), function(s){
+      const keys = (s.exists() && s.data() && s.data().keys) ? s.data().keys : {};
+      try{ cb(keys); }catch(e){ console.warn('watchAthleteData cb', e); }
+    }, function(err){ console.warn('watchAthleteData', err); });
+  }catch(e){ console.warn('watchAthleteData', e); return function(){}; }
 }
 
 // ---------- UI: ecrã de autenticação ----------
@@ -24190,6 +24282,10 @@ onAuthStateChanged(auth, async (user)=>{
   loadCoachedAthletes();
   // descarrega os treinos que o treinador prescreveu a este atleta
   pullMyCoachPlan();
+  // e passa a ouvi-los em tempo real (push automático — sem ser preciso atualizar)
+  startMyCoachPlanWatch();
+  // ligações (convites/ligações) em tempo real — aviso instantâneo nos dois lados
+  startLinksWatch();
 });
 
 // Rede de segurança do arranque: se ao fim de alguns segundos o ecrã "A ligar ao
@@ -24239,8 +24335,23 @@ async function checkLinkNotifications(){
     let seen={}; try{ seen=JSON.parse(localStorage.getItem('pulso:seen-links')||'{}'); }catch(e){}
     const hadSeen = Object.keys(seen).length>0;
     const novos = active.filter(function(l){ return !seen[l.id]; });
-    const nowSeen={}; active.forEach(function(l){ nowSeen[l.id]=1; });
+    // Convites PENDENTES que precisam da MINHA aceitação (avisa mesmo no 1.º arranque).
+    const newInvites = links.filter(function(l){
+      const iConsented = l.iAm==='athlete' ? l.athleteConsent : l.trainerConsent;
+      return l.status==='pending' && !iConsented && !seen['p:'+l.id];
+    });
+    const nowSeen={};
+    active.forEach(function(l){ nowSeen[l.id]=1; });
+    links.forEach(function(l){ if(l.status==='pending') nowSeen['p:'+l.id]=1; });
     try{ localStorage.setItem('pulso:seen-links', JSON.stringify(nowSeen)); }catch(e){}
+    if(newInvites.length){
+      const inv=newInvites[0]; const invOther = inv.iAm==='athlete' ? inv.trainerUid : inv.athleteUid;
+      let invNm=invOther; try{ invNm=await nameForUid(invOther); }catch(e){}
+      const invTxt = inv.iAm==='athlete'
+        ? PL(invNm+' quer ligar-se como teu treinador. Abre a Cloud para aceitar.', invNm+' wants to link as your coach. Open Cloud to accept.')
+        : PL(invNm+' quer ligar-se como teu atleta. Abre a Cloud para aceitar.', invNm+' wants to link as your athlete. Open Cloud to accept.');
+      try{ if(window.pulsoInfo) window.pulsoInfo(invTxt); else cloudToast(invTxt); }catch(e){ try{ cloudToast(invTxt); }catch(_){} }
+    }
     if(hadSeen && novos.length){
       const l=novos[0]; const otherUid = l.iAm==='athlete' ? l.trainerUid : l.athleteUid;
       let nm=otherUid; try{ nm=await nameForUid(otherUid); }catch(e){}
@@ -24249,9 +24360,30 @@ async function checkLinkNotifications(){
     }
   }catch(e){}
 }
+// Ligações em tempo real: o aviso de convite/ligação chega na hora, igual nos dois lados.
+let _linksUnsubA = null, _linksUnsubB = null, _linksTimer = null;
+function startLinksWatch(){
+  try{ if(_linksUnsubA){ _linksUnsubA(); _linksUnsubA=null; } if(_linksUnsubB){ _linksUnsubB(); _linksUnsubB=null; } }catch(e){}
+  if(!currentUser) return;
+  try{
+    const qa = query(collection(db,'links'), where('athleteUid','==',currentUser.uid));
+    const qb = query(collection(db,'links'), where('trainerUid','==',currentUser.uid));
+    const onChange = function(){
+      clearTimeout(_linksTimer);
+      _linksTimer = setTimeout(function(){
+        try{ checkLinkNotifications(); }catch(e){}
+        try{ loadCoachedAthletes(); }catch(e){}
+        try{ if(typeof renderSheet==='function') renderSheet(); }catch(e){}
+      }, 400);
+    };
+    _linksUnsubA = onSnapshot(qa, onChange, function(err){ console.warn('watch links A', err); });
+    _linksUnsubB = onSnapshot(qb, onChange, function(err){ console.warn('watch links B', err); });
+  }catch(e){ console.warn('startLinksWatch', e); }
+}
 window.PulsoCloud = {
   deleteAccount,
   uploadData,
+  flushUpload,
   get user(){ return currentUser; },
   get role(){ return currentRole; },
   openSheet, openCentral, signOut: doSignOut,
@@ -24260,7 +24392,9 @@ window.PulsoCloud = {
   fetchAthleteData,
   saveCoachPlan,
   fetchCoachPlan,
-  pullMyCoachPlan
+  pullMyCoachPlan,
+  watchAthleteData,
+  startMyCoachPlanWatch
 };
 
 </script>
