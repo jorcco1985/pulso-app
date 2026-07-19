@@ -15142,6 +15142,16 @@ nav.tabbar button.active svg{
     }, true);
 
     // Quando o teclado altera o viewport, o Safari tenta reposicionar outra vez. Mantemos a secção quieta.
+    // Rede de segurança: se a marca de "teclado aberto" ficar presa (acontecia ao trocar
+    // de modo), a barra inferior fica sem toque. Aqui limpamos assim que não há campo focado.
+    setInterval(function(){
+      try{
+        if(!document.body.classList.contains('keyboard-open')) return;
+        const a = document.activeElement;
+        if(!a || !a.matches || !a.matches(FOCUSABLE)) document.body.classList.remove('keyboard-open');
+      }catch(e){}
+    }, 1200);
+
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', function () {
         if (document.activeElement && document.activeElement.matches && document.activeElement.matches(FOCUSABLE)) {
@@ -19492,6 +19502,13 @@ nav.tabbar button.active svg{
     saveName();
     localStorage.setItem(MODE_KEY, 'athlete');
     setTimeout(function(){ try{ applyCaps(); }catch(e){} }, 350);
+    // Limpa o estado de "teclado aberto" (senão a barra inferior fica sem toque
+    // e esbatida) e fecha painéis sobrepostos.
+    try{ document.body.classList.remove('keyboard-open'); }catch(e){}
+    try{ if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); }catch(e){}
+    try{ closeMsgInbox(); }catch(e){}
+    setTimeout(function(){ try{ document.body.classList.remove('keyboard-open'); }catch(e){} }, 500);
+    setTimeout(function(){ try{ document.body.classList.remove('keyboard-open'); }catch(e){} }, 1500);
     const coach = document.getElementById('coach-content');
     if(coach){ coach.style.display = 'none'; coach.setAttribute('aria-hidden','true'); }
     const form = document.getElementById('login-form');
@@ -21028,8 +21045,9 @@ nav.tabbar button.active svg{
   }
 
   // Treinos realmente efetuados (Strava/ficheiro) de QUALQUER atleta, por dia.
+  // Usa sempre os dados DO PRÓPRIO atleta (o local não é afetado por ter um atleta
+  // cloud carregado — antes trocavam-se os treinos entre atletas).
   function completedByDayFor(athleteId){
-    if(athleteId === 'local') return completedByDay(30);
     try{
       const g = athleteGetter(athleteId);
       const acts = g('strava-activities') || [];
@@ -23059,6 +23077,9 @@ nav.tabbar button.active svg{
     saveName();
     try{ localStorage.setItem(MODE_KEY,'coach'); }catch(e){}
     setTimeout(function(){ try{ applyCaps(); }catch(e){} }, 350);
+    try{ document.body.classList.remove('keyboard-open'); }catch(e){}
+    try{ if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); }catch(e){}
+    setTimeout(function(){ try{ document.body.classList.remove('keyboard-open'); }catch(e){} }, 500);
     localStorage.setItem(MODE_KEY, 'coach');
     const locked = document.getElementById('app-locked');
     const app = document.getElementById('app-content');
