@@ -15302,6 +15302,35 @@ nav.tabbar button.active svg{
       }
     };
 
+    // PROTEÇÃO: nunca piorar um resumo já guardado.
+    // Se o dia já tinha um resumo com mais informação (ex.: a cloud/Strava ainda não
+    // tinham terminado de carregar quando isto correu), mantemos os valores melhores.
+    const prevRec = history.find(x=>x && x.date === day);
+    if(prevRec && prevRec.totals){
+      const pt = prevRec.totals, nt = record.totals;
+      // Cumulativos: fica sempre o maior (nunca desce para 0 por falta de dados).
+      ['waterMl','colaMl','outraMl','coffeeCount','alcoholUnits','alcoholMl','alcoholKcal','foodKcal','totalKcal','protein','carbs','fat','workoutMin','workoutKm','workoutKcal'].forEach(function(k){
+        const a = Number(nt[k])||0, b = Number(pt[k])||0;
+        if(b > a) nt[k] = pt[k];
+      });
+      // Valores de "nível": se o novo vier vazio, mantém o antigo.
+      ['weightKg','sleepHours','bpSys','bpDia','restingHr'].forEach(function(k){
+        if(nt[k] == null && pt[k] != null) nt[k] = pt[k];
+      });
+      // Detalhes: fica a lista mais completa de cada tipo.
+      if(prevRec.details && record.details){
+        ['meals','alcohol','hydration','coffee','workouts','planned','bp'].forEach(function(k){
+          const a = Array.isArray(record.details[k]) ? record.details[k] : [];
+          const b = Array.isArray(prevRec.details[k]) ? prevRec.details[k] : [];
+          if(b.length > a.length) record.details[k] = b;
+        });
+      }
+      // Score: recalcula com o álcool final (que pode ter vindo do registo antigo).
+      const au = Number(nt.alcoholUnits)||0;
+      const pen = au <= 0 ? 0 : au <= 1 ? 3 : au <= 2 ? 7 : au <= 3 ? 12 : au <= 4 ? 18 : 25;
+      record.score = Math.max(0, 80 - pen);
+    }
+
     const next = history.filter(x=>x && x.date !== day);
     next.push(record);
     next.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -20998,11 +21027,29 @@ nav.tabbar button.active svg{
     return list.filter(a=>a.id === coachCalendarFilter);
   }
 
+  // Treinos realmente efetuados (Strava/ficheiro) de QUALQUER atleta, por dia.
+  function completedByDayFor(athleteId){
+    if(athleteId === 'local') return completedByDay(30);
+    try{
+      const g = athleteGetter(athleteId);
+      const acts = g('strava-activities') || [];
+      const out = {};
+      const now = new Date(); const start = new Date(now); start.setDate(start.getDate()-45); start.setHours(0,0,0,0);
+      (Array.isArray(acts)?acts:[]).forEach(a=>{
+        const d = String((a && (a.date || a.start_date || a.time)) || '').slice(0,10);
+        if(!d) return;
+        const dt = new Date(d+'T12:00:00'); if(isNaN(dt) || dt < start) return;
+        if(!out[d]) out[d] = [];
+        out[d].push({ id:'done-'+((a&&a.id)||d+'-'+out[d].length), name:(a&&a.name)||'Treino efetuado', desc:'Treino efetuado', type:'done', completed:true });
+      });
+      return out;
+    }catch(e){ return {}; }
+  }
   function coachCalendarData(){
     const out = {};
     coachCalendarAthletes().forEach(a=>{
       const plannedData = getCalendarFor(a.id);
-      const completedData = a.id === 'local' ? completedByDay(30) : {};
+      const completedData = completedByDayFor(a.id);
       const days = new Set(Object.keys(plannedData || {}).concat(Object.keys(completedData || {})));
       days.forEach(day=>{
         if(!out[day]) out[day] = [];
@@ -21964,17 +22011,23 @@ nav.tabbar button.active svg{
       }
     }catch(e){}
     const rows = plan.weeks.map((w,i)=>{
-      const s = new Date(today); s.setDate(s.getDate()+i*7);
+      // As semanas passam a alinhar com a semana de calendário (começa 2ª feira), para os
+      // treinos já feitos nos dias anteriores desta semana serem contados como "Feito".
+      const weekStart = new Date(today); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay()+6)%7));
+      const s = new Date(weekStart); s.setDate(s.getDate()+i*7);
       const e = new Date(s); e.setDate(e.getDate()+7);
       const startKey = s.toISOString().slice(0,10);
-      let wov = rov[startKey]; if(typeof wov==='number') wov={h:wov}; wov = wov||{};
+      // Compatibilidade: ajustes de horas guardados com a chave antiga (semana a começar "hoje").
+      const oldS = new Date(today); oldS.setDate(oldS.getDate()+i*7);
+      const oldKey = oldS.toISOString().slice(0,10);
+      let wov = rov[startKey]; if(wov==null) wov = rov[oldKey]; if(typeof wov==='number') wov={h:wov}; wov = wov||{};
       const planH = (wov.h!=null) ? wov.h : Math.round(w.hours*10)/10;
       let marked=0, confirmed=0, markedMin=0, doneH=0, doneN=0;
       for(let k=0;k<7;k++){ const dd=new Date(s); dd.setDate(dd.getDate()+k); const key=dd.toISOString().slice(0,10);
         const items=cal[key]||[]; marked+=items.length;
         items.forEach(it=>{ markedMin+=(it.baseMinutes||0); });
         // Confirmações manuais do dia (chave alinhada com fbKey: id||name).
-        const manualItems = items.map(it=>({ it:it, fb: store[key+'|'+((it.id||it.name)||'x')] })).filter(x=> x.fb && x.fb.status==='done');
+        const manualItems = items.map(it=>({ it:it, fb: store[key+'|'+((it.id||it.name)||'x')] })).filter(x=> x.fb && (x.fb.status==='done' || x.fb.status==='diff'));
         // Atividades reais do dia (Strava/ficheiros) para o desporto.
         const dayActs = (acts||[]).filter(a=> scat(a.type)===cat && activityDay(a)===key);
         // Prioridade por dia: manual (tempo escrito pelo atleta; senão horas prescritas) primeiro; senão Strava/ficheiros. Nunca ambos → sem duplicação.
@@ -22132,7 +22185,7 @@ nav.tabbar button.active svg{
       const out = [];
       items.forEach(w=>{
         const fb = store[day + '|' + ((w.id||w.name)||'x')];
-        if(fb && fb.status === 'done') out.push({ id:'mdone-'+(w.id||w.name||day), name:(w.name||'Treino'), minutes:(w.baseMinutes||0), day:day });
+        if(fb && (fb.status === 'done' || fb.status === 'diff')) out.push({ id:'mdone-'+(w.id||w.name||day), name:(w.name||'Treino'), minutes:(fb.mins>0?fb.mins:(w.baseMinutes||0)), day:day });
       });
       return out;
     }catch(e){ return []; }
